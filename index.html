@@ -1037,7 +1037,39 @@ function migrate(s){
 function load(){
   try{
     var raw=localStorage.getItem(KEY);
-    if(!raw)return null;
+    if(!raw){
+      var bak=null;
+      try{bak=localStorage.getItem(KEY+'_bak')}catch(e){}
+      if(bak){
+        try{
+          var db=JSON.parse(bak);
+          if(db&&db.contacts&&Array.isArray(db.contacts)){
+            window.__restoreCandidate=db;
+            return db;
+          }
+        }catch(e){}
+      }
+      idbGet('full').then(function(full){
+        if(full&&typeof full==='string'){
+          try{
+            var d=JSON.parse(full);
+            if(d&&d.contacts&&Array.isArray(d.contacts)){
+              if(window.__restoreCandidate===null){
+                window.__restoreCandidate=d;
+                if(typeof state!=='undefined'&&state&&state.contacts){
+                  restoreFull(window.__restoreCandidate,state);
+                  window.__restoreCandidate=null;
+                  if(typeof renderAll==='function')renderAll();
+                  try{save()}catch(e){}
+                  toast('已从大容量备份恢复全部数据');
+                }
+              }
+            }
+          }catch(e){}
+        }
+      }).catch(function(){});
+      return null;
+    }
     try{localStorage.setItem(KEY+'_bak',raw)}catch(e){}
     var d=JSON.parse(raw);
     if(d&&d.contacts&&Array.isArray(d.contacts)){
@@ -1046,12 +1078,23 @@ function load(){
         delete d.bigKeys;
         var has=false;
         for(var i=0;i<bk.length;i++)if(d[bk[i]]==='__IDB__'){d[bk[i]]=[];has=true}
-        if(has)idbGet('big').then(function(big){
-          if(big)for(var j=0;j<bk.length;j++)if(big[bk[j]]!=null)d[bk[j]]=big[bk[j]];
-          try{save()}catch(e){}
-          if(typeof renderAll==='function')renderAll();
-        });
+        if(has){
+          d._dbLoaded=false;
+          idbGet('big').then(function(big){
+            if(big)for(var j=0;j<bk.length;j++)if(big[bk[j]]!=null)d[bk[j]]=big[bk[j]];
+            d._dbLoaded=true;
+            try{save()}catch(e){}
+            if(typeof renderAll==='function')renderAll();
+          }).catch(function(){
+            d._dbLoaded=true;
+            try{save()}catch(e){}
+            if(typeof renderAll==='function')renderAll();
+            toast('提示：大容量记录读回失败，已恢复其他设置');
+          });
+        }
+        else d._dbLoaded=true;
       }
+      else d._dbLoaded=true;
       return migrate(d);
     }
   }catch(e){
@@ -1062,7 +1105,27 @@ function load(){
   }
   return null;
 }
+function restoreFull(d,tgt){
+  var T=tgt||state;
+  var ks=d.bigKeys&&Array.isArray(d.bigKeys)?d.bigKeys:[];
+  for(var k in d){
+    if(ks.indexOf(k)>=0){T[k]=[];continue}
+    T[k]=d[k];
+  }
+  if(ks.length){
+    T._dbLoaded=false;
+    idbGet('big').then(function(big){
+      if(big)for(var j=0;j<ks.length;j++)if(big[ks[j]]!=null)T[ks[j]]=big[ks[j]];
+      T._dbLoaded=true;
+      try{save()}catch(e){}
+      if(typeof renderAll==='function')renderAll();
+    }).catch(function(){T._dbLoaded=true;try{save()}catch(e){}});
+  }
+  else T._dbLoaded=true;
+}
+window.__restoreCandidate=null;
 var state=load()||defaultState();
+if(window.__restoreCandidate){restoreFull(window.__restoreCandidate,state);window.__restoreCandidate=null}
 function idbOpen(){
   return new Promise(function(res,rej){
     try{
@@ -1074,7 +1137,7 @@ function idbOpen(){
   });
 }
 function idbPut(key,val){
-  idbOpen().then(function(db){
+  return idbOpen().then(function(db){
     return new Promise(function(res,rej){
       try{
         var tx=db.transaction('big','readwrite');
@@ -1099,9 +1162,19 @@ function idbGet(key){
 }
 var BIG_KEYS=['messages','posts','letters','cards','transfers'];
 function save(){
+  if(state._dbLoaded===false)return false;
   try{
     var json=JSON.stringify(state);
-    if(json.length<2600000){localStorage.setItem(KEY,json);return true}
+    if(json.length<1100000){
+      try{localStorage.setItem(KEY,json)}catch(e){return saveBig()}
+      try{idbPut('full',json)}catch(e){}
+      return true;
+    }
+    return saveBig();
+  }catch(e){return saveFallback()}
+}
+function saveBig(){
+  try{
     var big={},bigKeys=[];
     for(var i=0;i<BIG_KEYS.length;i++){
       var v=state[BIG_KEYS[i]];
@@ -1113,7 +1186,12 @@ function save(){
     for(var j=0;j<bigKeys.length;j++)small[bigKeys[j]]='__IDB__';
     small.bigKeys=bigKeys;
     try{localStorage.setItem(KEY,JSON.stringify(small))}catch(e){return saveFallback()}
-    idbPut('big',big);
+    try{idbPut('full',JSON.stringify(small))}catch(e){}
+    state._dbPending=1;
+    idbPut('big',big).then(function(){
+      state._dbPending=0;
+      try{localStorage.setItem(KEY+'_idbok','1')}catch(e){}
+    }).catch(function(){state._dbPending=0});
     return true;
   }catch(e){return saveFallback()}
 }
@@ -1135,6 +1213,13 @@ function saveFallback(){
     return false;
   }catch(e2){toast('保存失败：浏览器存储已满');return false}
 }
+window.addEventListener('pagehide',function(){
+  if(state&&state._dbPending===1){
+    var big={},bks=[];
+    for(var i=0;i<BIG_KEYS.length;i++){var v=state[BIG_KEYS[i]];if(Array.isArray(v)&&v.length){big[BIG_KEYS[i]]=v;bks.push(BIG_KEYS[i])}}
+    if(bks.length)try{idbPut('big',big)}catch(e){}
+  }
+});
 
 /* ================= 壁纸 / 封面 ================= */
 var BG_PRESETS={
@@ -1289,6 +1374,7 @@ function renderHome(){
   html+='</div>';
   $('#view').innerHTML=html;
   initDrag();
+  initWidgetDrag();
 }
 
 
@@ -4030,9 +4116,9 @@ document.addEventListener('visibilitychange',function(){
 var ICON_EXPAND='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg>';
 function initDrag(){
   var grids=document.querySelectorAll('.app-grid');
-  for(var gi=0;gi<grids.length;gi++)bindAppDrag(grids[gi]);
+  for(var gi=0;gi<grids.length;gi++)bindAppDrag(grids[gi],grids);
 }
-function bindAppDrag(grid){
+function bindAppDrag(grid,allGrids){
   var drag=null,timer=null,ghost=null,startX=0,startY=0,lastX=0,lastY=0;
   function findApp(t){var el=t;while(el&&el!==grid&&!el.classList.contains('app-item'))el=el.parentNode;return el===grid?null:el}
   function begin(x,y,target){
@@ -4059,6 +4145,21 @@ function bindAppDrag(grid){
     rafT=requestAnimationFrame(function(){
       rafT=null;
       if(ghost)ghost.style.transform='translate3d('+(x-ghost.offsetWidth/2)+'px,'+(y-ghost.offsetHeight/2)+'px,0)';
+      var gr=grid.getBoundingClientRect();
+      if(allGrids&&allGrids.length>1&&(x<gr.left+6||x>gr.right-6)){
+        var cur=parseInt(grid.getAttribute('data-page'),10)||0;
+        var nxt=x<gr.left+6?cur-1:cur+1;
+        if(nxt>=0&&nxt<allGrids.length){
+          var tgt=allGrids[nxt];
+          var sc=document.getElementById('homePages');
+          if(sc)sc.scrollTo({left:nxt*sc.clientWidth,behavior:'smooth'});
+          if(drag.parentNode===grid)grid.removeChild(drag);
+          tgt.appendChild(drag);
+          grid.classList.remove('editing');
+          grid=tgt;
+          grid.classList.add('editing');
+        }
+      }
       var items=grid.querySelectorAll('.app-item');
     for(var i=0;i<items.length;i++){
       var it=items[i];
