@@ -113,6 +113,14 @@ input:focus,textarea:focus{border-color:var(--green)}
 .cat-tabs .add-cat{border:1px dashed rgba(201,123,142,.6);color:#B25E8B;background:rgba(255,255,255,.5);font-weight:600}
 .cat-tabs .add-cat.danger{border-color:rgba(196,91,91,.55);color:#C25B5B;border-style:solid}
 .card .chip.gray{opacity:.6;background:rgba(255,255,255,.6);color:var(--sub)}
+/* ===== 组件尺寸选择 ===== */
+.wdlib-sz{display:inline-flex;gap:3px;margin-right:6px;flex-shrink:0}
+.wdlib-sz button{min-height:30px;padding:0 8px;border-radius:9px;background:rgba(255,255,255,.85);border:1px solid var(--line);color:var(--sub);font-size:calc(12px*var(--fs))}
+.wdlib-sz button.on{background:linear-gradient(150deg,#F0859F,#D9557A);color:#fff;border-color:transparent}
+.menu-sizes{display:flex;align-items:center;gap:6px;padding:10px 4px;border-top:1px solid var(--line);flex-wrap:wrap}
+.menu-sizes>span{font-size:calc(12.5px*var(--fs));color:var(--sub);margin-right:2px}
+.menu-sizes button{min-height:34px;padding:0 10px;border-radius:10px;background:rgba(255,255,255,.85);border:1px solid var(--line);color:var(--ink);font-size:calc(12.5px*var(--fs))}
+.menu-sizes button.on{background:linear-gradient(150deg,#F0859F,#D9557A);color:#fff;border-color:transparent}
 /* ===== 表情包 / 图片消息 ===== */
 .bubble.bubble-media{padding:6px!important;background:rgba(255,255,255,.72)!important;border:1px solid var(--glass-line)!important;box-shadow:0 6px 18px rgba(150,120,140,.14)!important}
 .bubble.bubble-media:after{display:none!important}
@@ -485,9 +493,7 @@ input:focus,textarea:focus{border-color:var(--green)}
 .widget.w-music .wm-btn{flex-shrink:0;width:38px;height:38px;min-height:38px;border-radius:50%;background:rgba(255,255,255,.8);color:#C4577E;box-shadow:0 3px 10px rgba(150,120,140,.14)}
 .widget.w-feed{min-height:104px}
 /* ===== 桌面小组件标题行 + 添加按钮 ===== */
-.wd-head{display:flex;align-items:center;justify-content:space-between;margin:2px 0 8px}
-.wd-head>span{font-size:calc(13px*var(--fs));color:var(--sub);letter-spacing:1.5px}
-.wd-add{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.72);border:1px solid var(--glass-line);color:#C4577E;font-size:calc(19px*var(--fs));line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(150,120,140,.12);min-height:0;padding:0}
+.wd-add{display:flex;align-items:center;justify-content:center;margin:2px 0 8px auto;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.72);border:1px solid var(--glass-line);color:#C4577E;font-size:calc(19px*var(--fs));line-height:1;box-shadow:0 3px 10px rgba(150,120,140,.12);min-height:0;padding:0}
 .wd-add:active{transform:scale(.92)}
 /* ===== 新组件：天气 / 相册 / 倒数日 / 进度环 ===== */
 .widget.w-weather{display:flex!important;align-items:center;gap:11px;min-height:74px}
@@ -998,7 +1004,15 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 /* 小组件自由摆放：容器留出高度，组件按存档里的百分比坐标绝对定位，
    这样长按拖动后可以停在任意位置（也自动适配不同屏幕宽度） */
 .widgets{position:relative}
-.widgets .widget.wfree{position:absolute;margin:0;left:0;cursor:grab;touch-action:none}
+/* 组件尺寸：m 宽条(整行) / s 小方块(半宽) / l 大方块(整行加高) */
+.widgets .widget.wfree{position:absolute;margin:0;left:0;width:100%;box-sizing:border-box;cursor:grab;touch-action:none}
+.widgets .widget.wfree.wsz-s{width:46%;padding:11px 12px}
+.widgets .widget.wfree.wsz-s .w-big{font-size:calc(26px*var(--fs))}
+.widgets .widget.wfree.wsz-s .widget-inline{font-size:calc(12px*var(--fs))}
+.widgets .widget.wfree.wsz-l{width:100%;min-height:150px;padding:16px 16px 14px}
+.widgets .widget.wfree.wsz-l .w-big{font-size:calc(42px*var(--fs))}
+.widgets .widget.wfree.wsz-s .w-sub,.widgets .widget.wfree.wsz-s .widget-note-txt{display:none}
+
 .widgets.editfree .widget.wfree{animation:appjig .42s ease-in-out infinite}
 /* 小组件单列排布：宽度跟随容器，绝不影响聊天气泡等其它元素 */
 .widgets .widget.wfree{width:100%}
@@ -1264,6 +1278,16 @@ function migrate(s){
   if(s.settings.patReplyPct===undefined)s.settings.patReplyPct=40;
   if(s.settings.ntfOn===undefined)s.settings.ntfOn=true;
   if(!Array.isArray(s.cardCats))s.cardCats=[];
+  /* 老存档里如果存过"文件夹"，摊平成普通图标，App 一个都不丢 */
+  if(Array.isArray(s.appOrder)&&s.appOrder.length){
+    var flat=[],fi;
+    for(fi=0;fi<s.appOrder.length;fi++){
+      var it=s.appOrder[fi];
+      if(it&&typeof it==='object'&&it.items){for(var fj=0;fj<it.items.length;fj++)flat.push(it.items[fj])}
+      else if(it)flat.push(it);
+    }
+    s.appOrder=flat;
+  }
   if(!s._smDeleted||typeof s._smDeleted!=='object')s._smDeleted={};
   if(s.settings.inviteOn===undefined)s.settings.inviteOn=true;
   if(s.settings.invitePct===undefined)s.settings.invitePct=30;
@@ -1894,48 +1918,43 @@ function renderHome(){
   var wk=['日','一','二','三','四','五','六'];
   var html='<div id="home" class="cbg" style="'+homeBgStyle()+'">';
   html+='<div class="home-pages" id="homePages">';
+
+  /* ===== 第一页：组件 + 状态卡 + 应用 ===== */
   html+='<div class="home-page" data-page="0">';
   html+='<div class="home-greet">'+greet+' · '+(d.getMonth()+1)+'月'+d.getDate()+'日</div>';
   html+='<div class="home-title">沉与昕之恋</div>';
   var wds=state.widgets||{clock:true,days:true,music:true,note:true};
-  var wdo=state.widgetOrder&&state.widgetOrder.length?state.widgetOrder:['clock','days','music','note','feed'];
-  html+='<div class="wd-head"><span>小组件</span><button class="wd-add" data-view="widgets" title="组件库">＋</button></div>';
-  html+='<div class="widgets" id="widgetGrid">';
-  html+=widgetGridInner(wdo,wds,wk,d);
-  html+='</div>';
+  var order=state.appOrder&&state.appOrder.length?state.appOrder:APPS.map(function(x){return x.v});
+  var wdo=widgetEnsureOrder();
+  html+='<button class="wd-add" data-view="widgets" data-page="0" title="添加组件">＋</button>';
+  html+='<div class="widgets" id="widgetGrid0">'+widgetGridInner(wdo,wds,wk,d,0)+'</div>';
   html+='<div class="status-card" data-view="chat">'+avatarHtml(c)+'<div class="sc-body"><div class="sc-name">'+esc(c.name)+'</div><div class="sc-chips"><span class="chip b-soft">'+esc(state.currentStatus.text)+'</span><span class="chip">'+esc(state.currentMood.text)+'</span></div></div></div>';
-  html+='<div class="app-sec-title">应用</div>';
-  var apps=APPS;  var order=state.appOrder&&state.appOrder.length?state.appOrder:apps.map(function(x){return x.v});
-  var PER=8,apg=state.appPage||0,appPages=Math.ceil(order.length/PER);
+
+  var apps=APPS;
+  var PER=8,apg=state.appPage||0;
   html+='<div class="app-grid" id="appGrid_0">';
   for(var i=0;i<order.length&&i<6;i++){
-    var v=order[i],a=null;
-    for(var k=0;k<apps.length;k++)if(apps[k].v===v){a=apps[k];break}
+    var a=appByKey(order[i]);
     if(!a)continue;
-    var ic=a.ic.replace(/stroke="#fff"/g,'stroke="'+a.c+'"').replace(/fill="#fff"/g,'fill="'+a.c+'"');
-    var hasIcon=!!state.appIcons[a.v];
-    /* 有自定义图标时：只渲染图片、底衬改成不透明白，彻底盖住原来的图形符号 */
-    if(hasIcon)ic='<img class="app-icon-img" src="'+state.appIcons[a.v]+'" alt="">';
-    html+='<div class="app-item" data-view="'+a.v+'"><div class="app-icon'+(hasIcon?' has-img':'')+'" style="background:'+(hasIcon?'#FFFFFF':'rgba(255,255,255,.34)')+'">'+ic+'</div>'+(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
+    html+=appItemHtml(a);
   }
   html+='</div>';
   html+='</div>';
+
+  /* ===== 第二页：组件 + 其余应用 ===== */
   html+='<div class="home-page" data-page="1">';
-  html+='<div class="home-title home-title-2">更多应用</div>';
-  html+='<div class="wd-head"><span>小组件</span><button class="wd-add" data-view="widgets" title="组件库">＋</button></div>';
-  html+='<div class="app-sec-title">应用</div><div class="app-grid" id="appGrid_1">';
-  for(var i=6;i<order.length;i++){
-    var v=order[i],a=null;
-    for(var k=0;k<apps.length;k++)if(apps[k].v===v){a=apps[k];break}
-    if(!a)continue;
-    var ic=a.ic.replace(/stroke="#fff"/g,'stroke="'+a.c+'"').replace(/fill="#fff"/g,'fill="'+a.c+'"');
-    var hasIcon=!!state.appIcons[a.v];
-    /* 有自定义图标时：只渲染图片、底衬改成不透明白，彻底盖住原来的图形符号 */
-    if(hasIcon)ic='<img class="app-icon-img" src="'+state.appIcons[a.v]+'" alt="">';
-    html+='<div class="app-item" data-view="'+a.v+'"><div class="app-icon'+(hasIcon?' has-img':'')+'" style="background:'+(hasIcon?'#FFFFFF':'rgba(255,255,255,.34)')+'">'+ic+'</div>'+(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
+  html+='<div class="home-title home-title-2">沉与昕之恋</div>';
+  html+='<button class="wd-add" data-view="widgets" data-page="1" title="添加组件">＋</button>';
+  html+='<div class="widgets" id="widgetGrid1">'+widgetGridInner(wdo,wds,wk,d,1)+'</div>';
+  html+='<div class="app-grid" id="appGrid_1">';
+  for(var i2=6;i2<order.length;i2++){
+    var a2=appByKey(order[i2]);
+    if(!a2)continue;
+    html+=appItemHtml(a2);
   }
   html+='</div>';
   html+='</div>';
+
   html+='</div>';
   html+='<div class="page-dots">';
   for(var pg=0;pg<2;pg++)html+='<span class="dot'+(pg===apg?' on':'')+'" data-act="home-page" data-p="'+pg+'"></span>';
@@ -1951,6 +1970,19 @@ function renderHome(){
   initDrag();
   initWidgetDrag();
 }
+/* 按 key 找 App 定义（两页共用） */
+function appByKey(v){
+  for(var i=0;i<APPS.length;i++)if(APPS[i].v===v)return APPS[i];
+  return null;
+}
+/* 单个 App 图标（两页共用） */
+function appItemHtml(a){
+  var ic=a.ic.replace(/stroke="#fff"/g,'stroke="'+a.c+'"').replace(/fill="#fff"/g,'fill="'+a.c+'"');
+  var hasIcon=!!state.appIcons[a.v];
+  if(hasIcon)ic='<img class="app-icon-img" src="'+state.appIcons[a.v]+'" alt="">';
+  return '<div class="app-item" data-view="'+a.v+'"><div class="app-icon'+(hasIcon?' has-img':'')+'" style="background:'+(hasIcon?'#FFFFFF':'rgba(255,255,255,.34)')+'">'+ic+'</div>'
+    +(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
+}
 /* ===== 小组件：自由摆放 ===== */
 var WIDGET_MINH={clock:62,days:62,weather:74,photo:150,count:70,progress:96,music:66,note:62,feed:112};
 function widgetPos(wv,idx){
@@ -1960,14 +1992,43 @@ function widgetPos(wv,idx){
   return null;   /* 没有存位置时由下面的自动排布决定 */
 }
 /** 默认排布：纵向依次往下排，绝不会有谁压到谁 */
-function widgetAutoPos(keys){
-  var y=0,out={},i;
+/* 尺寸 → 估计高度（渲染时先用它，之后 fit 再按真实高度校正） */
+function widgetEstH(k){
+  var base=WIDGET_MINH[k]||74;
+  var sz=widgetSizeOf(k);
+  if(sz==='l')return Math.max(base+46,150);
+  return base;
+}
+/* 排版核心：把组件按尺寸摆好，返回每个的位置和整个容器该有多高。
+   小的两个一行，其余各占一行，动态固定排最后。
+   渲染和 fit 都用这一个函数，避免两处算得不一样（以前就是这么错位的）。 */
+function widgetWalk(keys,measure){
+  var out={},y=0,half=null,i;
   for(i=0;i<keys.length;i++){
-    var k=keys[i],h=WIDGET_MINH[k]||74;
+    var k=keys[i];
+    if(k==='feed')continue;
+    var h=measure(k);
+    if(widgetSizeOf(k)==='s'){
+      if(!half){half={k:k,h:h};continue}
+      out[half.k]={x:0,y:y};
+      out[k]={x:52,y:y};
+      y+=Math.max(half.h,h)+12;
+      half=null;
+      continue;
+    }
+    if(half){out[half.k]={x:0,y:y};y+=half.h+12;half=null}
     out[k]={x:0,y:y};
     y+=h+12;
   }
-  return out;
+  if(half){out[half.k]={x:0,y:y};y+=half.h+12}
+  if(keys.indexOf('feed')>=0){
+    out.feed={x:0,y:y};
+    y+=measure('feed')+12;
+  }
+  return {pos:out,height:Math.max(0,y-12)};
+}
+function widgetAutoPos(keys){
+  return widgetWalk(keys,widgetEstH).pos;
 }
 function widgetInnerHtml(wv,wk,d){
   var st=state.settings||{};
@@ -2022,22 +2083,55 @@ function widgetInnerHtml(wv,wk,d){
   }
   return '';
 }
-function widgetGridInner(wdo,wds,wk,d){
-  var order=widgetEnsureOrder();
+/* 组件尺寸：s=小方块(半宽) m=宽条(整行) l=大方块(整行加高) */
+var WD_SIZES=[['s','小方块'],['m','宽条'],['l','大方块']];
+var WD_DEFAULT_SIZE={clock:'m',days:'m',weather:'m',photo:'l',count:'m',progress:'m',music:'m',note:'m',feed:'l'};
+function widgetSizeOf(k){
+  var s=(state.widgetSize||{})[k];
+  return (s==='s'||s==='m'||s==='l')?s:(WD_DEFAULT_SIZE[k]||'m');
+}
+function widgetSizeLabel(k){
+  var s=widgetSizeOf(k);
+  for(var i=0;i<WD_SIZES.length;i++)if(WD_SIZES[i][0]===s)return WD_SIZES[i][1];
+  return '宽条';
+}
+function widgetSetSize(k,s){
+  if(s!=='s'&&s!=='m'&&s!=='l')return;
+  state.widgetSize=state.widgetSize||{};
+  state.widgetSize[k]=s;
+  if(state.widgetPos)delete state.widgetPos[k];
+  save();closeSheet();renderHome();
+  toast('尺寸已改为'+widgetSizeLabel(k));
+}
+function widgetPageOf(k){
+  var p=state.widgetPage||{};
+  return p[k]===1?1:0;
+}
+function widgetPageLabel(k){return widgetPageOf(k)===1?'第二页':'第一页'}
+function widgetGridInner(wdo,wds,wk,d,page){
+  page=page?1:0;
   var keys=[],i;
-  for(i=0;i<order.length;i++){var k=order[i];if(k==='feed')continue;if(wds[k]!==false)keys.push(k)}
-  if(wds.feed!==false)keys.push('feed');
-  var auto=widgetAutoPos(keys);
+  for(i=0;i<wdo.length;i++){
+    var k=wdo[i];
+    if(widgetPageOf(k)!==page)continue;
+    if(wds[k]===false)continue;
+    if(k==='feed'&&page!==0)continue;
+    keys.push(k);
+  }
+  if(page===0&&wds.feed!==false&&keys.indexOf('feed')<0)keys.push('feed');
+  var walk=widgetWalk(keys,widgetEstH);
   var out='';
   for(i=0;i<keys.length;i++){
     var wv=keys[i];
-    var p=widgetPos(wv,i)||auto[wv]||{x:0,y:0};
+    var p=widgetPos(wv,i)||walk.pos[wv]||{x:0,y:0};
     var attr=(wv==='feed'?'':'data-wkey="'+wv+'" ');
+    var sz=widgetSizeOf(wv);
     var st='left:'+p.x+'%;top:'+p.y+'px;';
     if(state.widgetImgs&&state.widgetImgs[wv])st+="background-image:url('"+state.widgetImgs[wv]+"');background-size:cover;background-position:center;background-color:rgba(255,255,255,.7);background-blend-mode:overlay;";
-    out+='<div class="widget wfree w-'+wv+'" '+attr+'style="'+st+'"><span class="widget-grip"></span>'+widgetInnerHtml(wv,wk,d)+'</div>';
+    out+='<div class="widget wfree w-'+wv+' wsz-'+sz+'" '+attr+'style="'+st+'"><span class="widget-grip"></span>'+widgetInnerHtml(wv,wk,d)+'</div>';
   }
-  out+='<div class="wfree-spacer"></div>';
+  /* 高度直接写进去，不等 rAF —— 否则刚打开的一瞬间容器是 0 高，组件会压到 App 图标上 */
+  out+='<div class="wfree-spacer" style="height:'+walk.height+'px"></div>';
   return out;
 }
 /** 组件是绝对定位的，渲染后按实际高度重新码放，确保谁也不压谁 */
@@ -2050,26 +2144,39 @@ function fitWidgetGrid(){
   });
 }
 function fitWidgetGridNow(){
-  var grid=document.getElementById('widgetGrid');
-  if(!grid)return;
-  var ws=grid.querySelectorAll('.widget');
-  var sp=grid.querySelector('.wfree-spacer');
-  if(!ws.length){
-    if(sp&&sp.style.height!=='0px')sp.style.height='0px';
-    return;
+  var ids=['widgetGrid0','widgetGrid1'];
+  for(var g=0;g<ids.length;g++){
+    var grid=document.getElementById(ids[g]);
+    if(!grid)continue;
+    var els=grid.querySelectorAll('.widget');
+    var sp=grid.querySelector('.wfree-spacer');
+    if(!els.length){
+      if(sp&&sp.style.height!=='0px')sp.style.height='0px';
+      continue;
+    }
+    /* 先量真实高度（量不到就用估计值），再用同一套排版算出位置与总高 */
+    var keys=[],real={},i;
+    for(i=0;i<els.length;i++){
+      var el=els[i];
+      var k=wKeyOf(el);
+      keys.push(k);
+      var h=el.offsetHeight;
+      real[k]=(h&&h>=20)?h:widgetEstH(k);
+    }
+    var walk=widgetWalk(keys,function(k){return real[k]||widgetEstH(k)});
+    for(i=0;i<els.length;i++){
+      var el2=els[i];
+      var k2=wKeyOf(el2);
+      var p=walk.pos[k2];
+      if(!p)continue;
+      var top=p.y+'px';
+      if(el2.style.top!==top)el2.style.top=top;
+      var left=p.x+'%';
+      if(el2.style.left!==left)el2.style.left=left;
+    }
+    var want=walk.height+'px';
+    if(sp&&sp.style.height!==want)sp.style.height=want;
   }
-  /* 如果刚换过 DOM，offsetHeight 会是 0，这时候用之前的估高兜底 */
-  var y=0,changed=false;
-  for(var i=0;i<ws.length;i++){
-    var el=ws[i];
-    if(!el.classList.contains('wfree'))continue;
-    var h=el.offsetHeight||WIDGET_MINH[wKeyOf(el)]||74;
-    var top=y+'px';
-    if(el.style.top!==top)el.style.top=top;
-    y+=h+12;
-  }
-  var want=Math.max(0,y-12)+'px';
-  if(sp&&sp.style.height!==want)sp.style.height=want;
 }
 function wKeyOf(el){
   if(!el)return null;
@@ -3006,6 +3113,8 @@ var _cat='全部';
 var CARD_TAGS=['日常','想念','吵架','哄我','晚安'];
 var _lib='cards';
 var _cardQ='';
+/* 从哪一页点的 ＋，就在那一页添加组件 */
+var _wdTargetPage=0;
 /* 固定字卡库：状态 / 心情 / 拍一拍 / 写信。它们不参与聊天字卡分类，
    也不受"删除分类"影响；删掉后不会被默认值又填回来。 */
 function libIsFixed(k){return k==='status'||k==='mood'||k==='pat'||k==='writer'}
@@ -4098,10 +4207,9 @@ function checkinLater(id){
 function sheetTools(){
   var items=[
     {act:'image-send',n:'图片',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-4 4 3 4-4 5 4"/></svg>'},
-    {act:'emoji',n:'表情包',ic:ICON_EMOJI},
+    {act:'emoji',n:'表情',ic:ICON_EMOJI},
     {act:'checkin',n:'查岗',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 12h16M4 12a8 8 0 0 1 8-8m-8 8a8 8 0 0 0 8 8m8-8a8 8 0 0 0-8-8m8 8a8 8 0 0 1-8 8"/></svg>'},
     {act:'poll',n:'决策',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 20V10m5 10V4m5 16v-8m5 8V7"/></svg>'},
-    {act:'emoji',n:'表情',ic:ICON_EMOJI},
     {act:'call-voice',n:'语音电话',ic:ICON_CALL},
     {act:'call-video',n:'视频电话',ic:ICON_VIDEO},
     {act:'transfer-out',n:'转账',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8m-3-3l3 3-3 3"/></svg>'},
@@ -4688,7 +4796,12 @@ document.body.appendChild(fileInput);
 document.addEventListener('click',function(e){
   if(e.target&&e.target.id==='sheet-mask'){closeSheet();return}
   var v=e.target.closest('[data-view]');
-  if(v){goView(v.getAttribute('data-view'));return}
+  if(v){
+    var _pg=v.getAttribute('data-page');
+    if(_pg!==null&&_pg!==undefined&&_pg!=='')_wdTargetPage=parseInt(_pg,10)===1?1:0;
+    goView(v.getAttribute('data-view'));
+    return;
+  }
   /* 长按弹过消息菜单后，手指抬起产生的这次 click 不再触发其它动作 */
   if(_lpFired){_lpFired=0;if(e.target.closest&&e.target.closest('.bubble'))return}
   var btn=e.target.closest('[data-act]');
@@ -4780,12 +4893,15 @@ document.addEventListener('click',function(e){
     else if(act==='wd-img-clear'){wdImgClear()}
     else if(act==='wd-pos-reset'){widgetLayoutReset()}
     else if(act==='wdlib-toggle')wdlibToggle(btn.getAttribute('data-k'))
-    else if(act==='wdlib-content-save')wdlibContentSave()
+    else if(act==='wdlib-page'){_wdTargetPage=parseInt(btn.getAttribute('data-p'),10)===1?1:0;renderWidgetLib()}
+        else if(act==='wdlib-content-save')wdlibContentSave()
     else if(act==='wd-photo')wdPickPhoto()
     else if(act==='wd-sheet-img'){closeSheet();wdlibPickImg(btn.getAttribute('data-k'))}
     else if(act==='wd-sheet-photo'){closeSheet();wdPickPhoto()}
     else if(act==='wd-sheet-content'){closeSheet();goView('widgets')}
-    else if(act==='wd-sheet-resetone')widgetResetOne(btn.getAttribute('data-k'))
+    else if(act==='wd-sheet-move')widgetMovePage(btn.getAttribute('data-k'))
+    else if(act==='wd-size'||act==='wd-sheet-size')widgetSetSize(btn.getAttribute('data-k'),btn.getAttribute('data-s'))
+        else if(act==='wd-sheet-resetone')widgetResetOne(btn.getAttribute('data-k'))
     else if(act==='wd-sheet-del')widgetRemove(btn.getAttribute('data-k'))
     else if(act==='wdlib-img')wdlibPickImg(btn.getAttribute('data-k'))
     else if(act==='wdlib-img-clear')wdlibImgClear()
@@ -5415,18 +5531,25 @@ function renderWidgetLib(){
   widgetEnsureOrder();
   var defs=widgetDefs(),on=0,i;
   for(i=0;i<defs.length;i++)if(widgetOn(defs[i].k))on++;
+  var tgt=_wdTargetPage===1?1:0;
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">组件库</span><span class="pr"><button class="back" data-act="wdlib-close" title="完成">完成</button></span></div>';
   html+='<div class="screen">';
-  html+='<div class="note" style="margin-bottom:12px">已添加 '+on+' 个。点 <b>＋</b> 把组件放到桌面；桌面上长按组件可以拖到任意位置。</div>';
+  html+='<div class="cat-tabs" style="margin-bottom:10px">'
+    +'<button data-act="wdlib-page" data-p="0"'+(tgt===0?' class="on"':'')+'>加到第一页</button>'
+    +'<button data-act="wdlib-page" data-p="1"'+(tgt===1?' class="on"':'')+'>加到第二页</button>'
+    +'</div>';
+  html+='<div class="note" style="margin-bottom:12px">已添加 <b>'+on+'</b> / '+defs.length+' 个。当前会加到 <b>'+(tgt?'第二页':'第一页')+'</b>；桌面上长按组件可拖动换位，长按不放可以移除。</div>';
   html+='<div class="wdlib-list">';
   for(i=0;i<defs.length;i++){
     var w=defs[i],isOn=widgetOn(w.k);
-    html+='<div class="wdlib-item'+(isOn?' on':'')+'"><span class="wdlib-ic">'+widgetIconHtml(w.k)+'</span><div class="wdlib-tx"><b>'+w.n+'</b><span>'+w.d+'</span></div>'
+    var where=isOn?widgetPageLabel(w.k):'';
+    html+='<div class="wdlib-item'+(isOn?' on':'')+'"><span class="wdlib-ic">'+widgetIconHtml(w.k)+'</span>'
+      +'<div class="wdlib-tx"><b>'+w.n+(isOn?'<span class="wdlib-where">'+where+'</span>':'')+'</b><span>'+w.d+'</span></div>'
+
+      +((isOn)?('<span class="wdlib-sz"><button data-act="wd-size" data-k="'+w.k+'" data-s="s"'+(widgetSizeOf(w.k)==='s'?' class="on"':'')+'>小</button><button data-act="wd-size" data-k="'+w.k+'" data-s="m"'+(widgetSizeOf(w.k)==='m'?' class="on"':'')+'>宽</button><button data-act="wd-size" data-k="'+w.k+'" data-s="l"'+(widgetSizeOf(w.k)==='l'?' class="on"':'')+'>大</button></span>'):'')
       +'<button class="wdlib-btn'+(isOn?' added':'')+'" data-act="wdlib-toggle" data-k="'+w.k+'">'+(isOn?'已添加':'＋ 添加')+'</button></div>';
   }
   html+='</div>';
-
-  /* 需要填内容 / 换图的组件，直接在这里设 */
   html+='<div class="me-sec" style="margin-top:16px"><h3>组件内容</h3><div class="card">';
   html+='<div class="rhy-grid">';
   var wp=state.widgetWeather||{};
@@ -5472,12 +5595,33 @@ function wdlibImgClear(){state.widgetImgs={};save();renderWidgetLib();toast('已
 function wdPickPhoto(){_wdImgKey='__photo';var f=document.getElementById('wdImgFile');if(f)f.click()}
 var _wdImgKey=null;
 function wdlibToggle(k){
-  state.widgets=state.widgets||{clock:true,days:true,music:true,note:true,feed:true};
-  state.widgets[k]=!(state.widgets[k]!==false);
-  if(state.widgets[k]===true&&state.widgetPos&&state.widgetPos[k])delete state.widgetPos[k];
+  state.widgets=state.widgets||{};
+  state.widgetPage=state.widgetPage||{};
+  var isOn=(state.widgets[k]!==false);
+  if(isOn){
+    state.widgets[k]=false;
+    if(state.widgetPos)delete state.widgetPos[k];
+  }else{
+    state.widgets[k]=true;
+    /* 动态固定在第一页 */
+    state.widgetPage[k]=(k==='feed')?0:(_wdTargetPage===1?1:0);
+    if(state.widgetPos)delete state.widgetPos[k];
+  }
   save();renderWidgetLib();
-  var d=null;var defs=widgetDefs();for(var i=0;i<defs.length;i++)if(defs[i].k===k)d=defs[i];
-  toast((state.widgets[k]?'已添加':'已移除')+(d?d.n:'组件'));
+  var d=null,defs=widgetDefs();
+  for(var i=0;i<defs.length;i++)if(defs[i].k===k)d=defs[i];
+  toast((isOn?'已移除 ':'已添加到'+(state.widgetPage[k]===1?'第二页 ':'第一页 '))+(d?d.n:'组件'));
+}
+/** 把某个组件在 第一页 / 第二页 之间搬家 */
+function widgetMovePage(k){
+  state.widgets=state.widgets||{};
+  state.widgetPage=state.widgetPage||{};
+  if(k==='feed'){toast('陆沉动态固定在第一页');return}
+  state.widgetPage[k]=widgetPageOf(k)===1?0:1;
+  if(state.widgetPos)delete state.widgetPos[k];
+  state.widgets[k]=true;
+  save();closeSheet();renderHome();
+  toast('已移到'+(state.widgetPage[k]===1?'第二页':'第一页'));
 }
 function wdlibPickImg(k){_wdImgKey=k;var f=document.getElementById('wdImgFile');if(f)f.click()}
 /** 长按桌面小组件弹出的操作面板：换底图 / 移除 / 回默认位置 */
@@ -5489,7 +5633,10 @@ function sheetWidget(k){
     +'<button class="menu-item" data-act="wd-sheet-img" data-k="'+k+'">换这张组件的底图</button>'
     +'<button class="menu-item" data-act="wd-sheet-photo" data-k="'+k+'">放一张照片（相册组件）</button>'
     +'<button class="menu-item" data-act="wd-sheet-content">编辑组件内容…</button>'
-    +'<button class="menu-item" data-act="wd-sheet-resetone" data-k="'+k+'">这张回到默认位置</button>'
+
+    +'<div class="menu-sizes"><span>尺寸</span><button data-act="wd-sheet-size" data-k="'+k+'" data-s="s"'+(widgetSizeOf(k)==='s'?' class="on"':'')+'>小方块</button><button data-act="wd-sheet-size" data-k="'+k+'" data-s="m"'+(widgetSizeOf(k)==='m'?' class="on"':'')+'>宽条</button><button data-act="wd-sheet-size" data-k="'+k+'" data-s="l"'+(widgetSizeOf(k)==='l'?' class="on"':'')+'>大方块</button></div>'
+    +'<button class="menu-item" data-act="wd-sheet-move" data-k="'+k+'">移到'+(widgetPageOf(k)===1?'第一页':'第二页')+'</button>'
+        +'<button class="menu-item" data-act="wd-sheet-resetone" data-k="'+k+'">这张回到默认位置</button>'
     +'<button class="menu-item danger" data-act="wd-sheet-del" data-k="'+k+'">从桌面移除</button>'
     +'<div class="actions"><button class="cancel" data-act="sheet-close">取消</button></div>');
 }
@@ -5508,10 +5655,13 @@ function widgetResetOne(k){
   if(state.widgetPos)delete state.widgetPos[k];
   save();closeSheet();renderHome();toast('已回到默认位置');
 }
-function wdlibImgClear(){state.widgetImgs={};save();renderWidgetLib();toast('已清除组件底图')}
 function initWidgetDrag(){
-  var grid=document.getElementById('widgetGrid');if(!grid)return;
   fitWidgetGrid();
+  var _wgs=[document.getElementById('widgetGrid0'),document.getElementById('widgetGrid1')];
+  for(var _wi=0;_wi<_wgs.length;_wi++)initOneWidgetDrag(_wgs[_wi]);
+}
+function initOneWidgetDrag(grid){
+  if(!grid)return;
   var drag=null,timer=null,ghost=null,startX=0,startY=0,offX=0,offY=0,manageTimer=null,movedFlag=0;
   function findW(t){var el=t;while(el&&el!==grid&&!el.classList.contains('widget'))el=el.parentNode;return el===grid?null:el}
   function clampN(v,a,b){return Math.max(a,Math.min(b,v))}
@@ -5548,7 +5698,7 @@ function initWidgetDrag(){
     if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
     ghost=null;
     if(drag)drag.classList.remove('dragging');
-    var g=document.getElementById('widgetGrid');
+    var g=document.getElementById('widgetGrid0')||document.getElementById('widgetGrid1');
     if(g)g.classList.remove('editfree');
     drag=null;
   }
@@ -6021,7 +6171,14 @@ function bindAppDrag(grid,allGrids){
       }
     }
     var prev=state.appOrder||[];
-    for(var p2=0;p2<prev.length;p2++)if(all.indexOf(prev[p2])<0)all.push(prev[p2]);
+    for(var p2=0;p2<prev.length;p2++){
+      var pv=prev[p2];
+      if(pv&&typeof pv==='object'&&pv.items){          /* 老存档里的文件夹 → 摊平 */
+        for(var q2=0;q2<pv.items.length;q2++)if(all.indexOf(pv.items[q2])<0)all.push(pv.items[q2]);
+        continue;
+      }
+      if(all.indexOf(pv)<0)all.push(pv);
+    }
     state.appOrder=all;
     save();
     drag=null;
