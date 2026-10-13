@@ -772,6 +772,9 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 'use strict';
 /* ================= 基础 ================= */
 var KEY='zika_site_v3';
+/* 冗余存储键：主键坏了/被系统清掉时，还有镜像与上一份好数据可以救回来 */
+var KEY_MIRROR=KEY+'_mirror';
+var KEY_RAW=KEY+'_rawfail';
 var $=function(s){return document.querySelector(s)};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
 function now(){return Date.now()}
@@ -884,6 +887,30 @@ function defaultState(){
   };
 }
 function migrate(s){
+  /* 存储里存过什么奇怪东西都不能让读取失败：坏字段就地修好，绝不让整个存档报废 */
+  if(!s||typeof s!=='object')return s;
+  if(!Array.isArray(s.contacts)||!s.contacts.length){
+    if(s.contacts&&typeof s.contacts==='object'){
+      var _cs=[];for(var _ck in s.contacts){var _cc=s.contacts[_ck];if(_cc&&typeof _cc==='object')_cs.push(_cc)}
+      s.contacts=_cs;
+    }else s.contacts=[];
+  }
+  s.contacts=s.contacts.filter(function(c){return c&&typeof c==='object'});
+  if(!s.contacts.length)s.contacts=defaultState().contacts.slice();
+  if(!Array.isArray(s.messages))s.messages=[];
+  if(!Array.isArray(s.letters))s.letters=[];
+  if(!Array.isArray(s.transfers))s.transfers=[];
+  if(!Array.isArray(s.cards))s.cards=[];
+  if(s.diary&&typeof s.diary!=='object')s.diary={};
+  if(!s.settings||typeof s.settings!=='object')s.settings={};
+  for(var pd=0;pd<s.contacts.length;pd++){
+    var cp=s.contacts[pd];
+    if(!cp.id)cp.id='c'+pd+uid();
+    if(typeof cp.name!=='string'||!cp.name)cp.name='联系人';
+  }
+  if(typeof s.activeContact!=='string'||!s.activeContact)s.activeContact=s.contacts[0].id;
+  var _act=false;for(var ac0=0;ac0<s.contacts.length;ac0++)if(s.contacts[ac0].id===s.activeContact)_act=true;
+  if(!_act)s.activeContact=s.contacts[0].id;
   if(!s.version||s.version<4){
     for(var iv=0;iv<s.contacts.length;iv++){
       var cv=s.contacts[iv];
@@ -1034,98 +1061,221 @@ function migrate(s){
   if(s.contacts)for(var _ci=0;_ci<s.contacts.length;_ci++){var _cn=s.contacts[_ci];if(_cn&&_cn.name===('梦'+'角哥'))_cn.name='陆沉'}
   return s;
 }
+var BIG_KEYS=['messages','posts','letters','cards','transfers'];
+
+/* ===== 存档读取：主键 → 镜像 → 上一份好数据 → IndexedDB；任何一步出错都不丢设置 ===== */
+function plainCopy(o){
+  var out={};
+  for(var k in o){
+    if(k==='_dbLoaded'||k==='_dbPending')continue;
+    if(k.indexOf('__big__')===0)continue;
+    out[k]=o[k];
+  }
+  return out;
+}
+function normalizeBig(d,keys){
+  if(!d||typeof d!=='object')return d;
+  if(Array.isArray(d.bigKeys)&&d.bigKeys.length){
+    for(var b=0;b<d.bigKeys.length;b++)if(d[d.bigKeys[b]]==='__IDB__')d[d.bigKeys[b]]=[];
+  }
+  delete d.bigKeys;
+  for(var i=0;i<BIG_KEYS.length;i++)if(!Array.isArray(d[BIG_KEYS[i]]))d[BIG_KEYS[i]]=[];
+  return d;
+}
+/* ===== 大图（壁纸/头像/封面）改放 IndexedDB =====
+   一张照片动辄几 MB，塞进 localStorage 会把存档撑到配额边缘，
+   iOS 一旦觉得"这站占地方"就更容易清理它。所以：
+   · localStorage/IndexedDB 的整份副本里只留一个路径清单 _imgs；
+   · 图片本体单独存在 IndexedDB 的 images 里，启动时读回；
+   · 导出的备份文件仍然包含完整图片（导出用的是内存里的 state）。 */
+var IMG_PATHS=['settings.coverImg','settings.homeBgImg','settings.chatBgImg','settings.callBgImg','me.avatarImg','companion.bgImg'];
+var IMG_SAFE=4000;   /* 超过这个长度就当大图，挪去 IndexedDB */
+function imgAt(o,path){
+  var p=path.split('.');
+  for(var j=0;j<p.length-1;j++)o=o&&o[p[j]];
+  return o?o[p[p.length-1]]:'';
+}
+function imgSet(o,path,val){
+  var p=path.split('.');
+  for(var j=0;j<p.length-1;j++)o=o&&o[p[j]];
+  if(o)o[p[p.length-1]]=val;
+}
+function isBig(v){return typeof v==='string'&&v.length>IMG_SAFE}
+function imgValues(root){
+  root=root||state;
+  var out={};
+  for(var i=0;i<IMG_PATHS.length;i++){var v=imgAt(root,IMG_PATHS[i]);if(isBig(v))out[IMG_PATHS[i]]=v}
+  if(root.widgetImgs){for(var wk in root.widgetImgs){var wv=root.widgetImgs[wk];if(isBig(wv))out['widgetImgs.'+wk]=wv}}
+  if(root.contacts)for(var ci=0;ci<root.contacts.length;ci++){var av=root.contacts[ci]&&root.contacts[ci].avatarImg;if(isBig(av))out['contacts.'+ci+'.avatarImg']=av}
+  return out;
+}
+function dumpImages(){
+  var imgs=imgValues(),n=0;
+  for(var k in imgs)n++;
+  if(!n)return;
+  try{idbPut('images',imgs)}catch(e){}
+}
+/** 存档瘦身：把大图从本地副本里摘掉，只留清单；图片本体稍后由 hydrateImages 读回 */
+function slimForLocal(obj){
+  var imgs=imgValues(obj),keys=[];
+  for(var k in imgs)keys.push(k);
+  if(!keys.length)return;                 /* 没有大图就不用清单 */
+  for(var i=0;i<keys.length;i++)imgSet(obj,keys[i],'');
+  obj._imgs=keys;
+}
+var _imgHydrating=false;
+function hydrateImages(d){
+  if(_imgHydrating)return;
+  var need=[];
+  var list=d&&Array.isArray(d._imgs)?d._imgs:null;
+  if(list){
+    for(var i=0;i<list.length;i++)if(!isBig(imgAt(d,list[i])))need.push(list[i]);
+  }else{
+    /* 兼容没有清单的旧存档 */
+    for(var j=0;j<IMG_PATHS.length;j++)if(!imgAt(d,IMG_PATHS[j]))need.push(IMG_PATHS[j]);
+  }
+  if(!need.length)return;
+  var todo=need.slice();
+  _imgHydrating=true;
+  idbGet('images').then(function(map){
+    if(!map||typeof map!=='object')return;
+    var got=false;
+    for(var i=0;i<todo.length;i++){
+      var k=todo[i],v=map[k];
+      if(isBig(v)){imgSet(d,k,v);got=true}
+    }
+    if(got){
+      window.__loadNote='壁纸/头像已从大容量存储读回';
+      try{save()}catch(e){}
+      if(typeof renderAll==='function')renderAll();
+    }
+  }).catch(function(){}).then(function(){_imgHydrating=false});
+}
+/** 把 IndexedDB 里的大数组读回内存；设置部分留在对象里，不依赖这一步 */
+function hydrateBig(d){
+  if(!d||typeof d!=='object')return;
+  var need=false;
+  for(var i=0;i<BIG_KEYS.length;i++)if(d['__big__'+BIG_KEYS[i]])need=true;
+  if(!need)return;
+  idbGet('big').then(function(big){
+    var any=false;
+    for(var i=0;i<BIG_KEYS.length;i++){
+      var k=BIG_KEYS[i];
+      if(!d['__big__'+k])continue;
+      var v=big&&big[k];
+      if(Array.isArray(v)&&v.length){d[k]=v;any=true}
+      else if(!Array.isArray(d[k]))d[k]=[];
+      delete d['__big__'+k];
+    }
+    if(any)window.__loadNote='聊天记录已从大容量存储读回';
+    else if(window.__loadStatus==='dbonly')window.__loadStatus='settings-only';
+    try{save()}catch(e){}
+    if(typeof renderAll==='function')renderAll();
+  }).catch(function(){
+    for(var i=0;i<BIG_KEYS.length;i++){var k=BIG_KEYS[i];if(d['__big__'+k]){if(!Array.isArray(d[k]))d[k]=[];delete d['__big__'+k]}}
+    try{save()}catch(e){}
+    if(typeof renderAll==='function')renderAll();
+  });
+}
+window.__restoreCandidate=null;
+window.__loadStatus='empty';
+window.__loadNote='';
 function load(){
+  function parseGood(txt){
+    if(!txt)return null;
+    try{
+      var o=JSON.parse(txt);
+      if(o&&typeof o==='object'&&o.contacts!==undefined)return o;
+    }catch(e){}
+    return null;
+  }
   try{
-    var raw=localStorage.getItem(KEY);
+    var raw=null;
+    try{raw=localStorage.getItem(KEY)}catch(e){}
+    if(!raw)try{raw=localStorage.getItem(KEY_MIRROR)}catch(e){}
     if(!raw){
-      var bak=null;
-      try{bak=localStorage.getItem(KEY+'_bak')}catch(e){}
-      if(bak){
-        try{
-          var db=JSON.parse(bak);
-          if(db&&db.contacts&&Array.isArray(db.contacts)){
-            window.__restoreCandidate=db;
-            return db;
-          }
-        }catch(e){}
+      var bakTxt=null;
+      try{bakTxt=localStorage.getItem(KEY+'_bak')}catch(e){}
+      var bakObj=parseGood(bakTxt);
+      if(bakObj){
+        window.__loadStatus='restored';
+        window.__loadNote='已从上一份存档恢复';
+        hydrateImages(bakObj);
+        return normalizeBig(bakObj);
       }
-      idbGet('full').then(function(full){
-        if(full&&typeof full==='string'){
-          try{
-            var d=JSON.parse(full);
-            if(d&&d.contacts&&Array.isArray(d.contacts)){
-              if(window.__restoreCandidate===null){
-                window.__restoreCandidate=d;
-                if(typeof state!=='undefined'&&state&&state.contacts){
-                  restoreFull(window.__restoreCandidate,state);
-                  window.__restoreCandidate=null;
-                  if(typeof renderAll==='function')renderAll();
-                  try{save()}catch(e){}
-                  toast('已从大容量备份恢复全部数据');
-                }
-              }
-            }
-          }catch(e){}
-        }
-      }).catch(function(){});
+      /* 本地存档一片空白：先别急着下结论，交给 storageHealthCheck 去 IndexedDB 里找 */
+      window.__loadStatus='dbonly';
       return null;
     }
-    try{localStorage.setItem(KEY+'_bak',raw)}catch(e){}
-    var d=JSON.parse(raw);
-    if(d&&d.contacts&&Array.isArray(d.contacts)){
-      if(d.bigKeys&&Array.isArray(d.bigKeys)){
-        var bk=d.bigKeys;
-        delete d.bigKeys;
-        var has=false;
-        for(var i=0;i<bk.length;i++)if(d[bk[i]]==='__IDB__'){d[bk[i]]=[];has=true}
-        if(has){
-          d._dbLoaded=false;
-          idbGet('big').then(function(big){
-            if(big)for(var j=0;j<bk.length;j++)if(big[bk[j]]!=null)d[bk[j]]=big[bk[j]];
-            d._dbLoaded=true;
-            try{save()}catch(e){}
-            if(typeof renderAll==='function')renderAll();
-          }).catch(function(){
-            d._dbLoaded=true;
-            try{save()}catch(e){}
-            if(typeof renderAll==='function')renderAll();
-            toast('提示：大容量记录读回失败，已恢复其他设置');
-          });
-        }
-        else d._dbLoaded=true;
+    var d=parseGood(raw);
+    if(d){
+      normalizeBig(d);
+      var migratedOK=true;
+      try{d=migrate(d)}catch(e){
+        migratedOK=false;
+        try{localStorage.setItem(KEY_RAW,raw)}catch(e2){}
+        try{
+          var d3=JSON.parse(raw);
+          if(d3&&typeof d3==='object'){
+            if(!Array.isArray(d3.contacts))d3.contacts=[];
+            d3.contacts=d3.contacts.filter(function(c){return c&&typeof c==='object'});
+            if(!d3.contacts.length)d3.contacts=defaultState().contacts.slice();
+            /* settings 坏掉时不要整个丢掉：把还能认出是设置字段的项捡回来 */
+            if(!d3.settings||typeof d3.settings!=='object'){
+              var _kept={};
+              for(var _mk in d3){
+                if(_mk==='contacts'||_mk==='version')continue;
+                if(typeof d3[_mk]!=='object'&&typeof d3[_mk]!=='function')_kept[_mk]=d3[_mk];
+              }
+              d3.settings=_kept;
+            }
+            d=d3;migratedOK=true;
+          }
+        }catch(e3){}
       }
-      else d._dbLoaded=true;
-      return migrate(d);
+      /* 只有确认这份存档是好的，才用它覆盖"上一份好数据" */
+      try{localStorage.setItem(KEY+'_bak',JSON.stringify(d))}catch(e6){}
+      if(migratedOK){
+        if(window.__loadStatus==='empty')window.__loadStatus='ok';
+        hydrateBig(d);
+        hydrateImages(d);
+        return d;
+      }
+      window.__loadStatus='fallback';
+      window.__loadNote='存档结构异常，已尽量保留原有设置';
+      hydrateImages(d);
+      return d;
+    }
+    /* 解析都失败：原始文本另存一份，不要把用户存档直接覆盖掉 */
+    try{localStorage.setItem(KEY_RAW,raw)}catch(e4){}
+    var d2=parseGood(localStorage.getItem(KEY+'_bak'));
+    if(d2){
+      window.__loadStatus='fallback';
+      window.__loadNote='主存档损坏，已用上一份备份启动';
+      try{localStorage.setItem(KEY_RAW,raw)}catch(e5){}
+      return normalizeBig(d2);
     }
   }catch(e){
     try{
-      var bak=localStorage.getItem(KEY+'_bak');
-      if(bak){var d2=JSON.parse(bak);if(d2&&d2.contacts&&Array.isArray(d2.contacts))return migrate(d2)}
+      var b2=parseGood(localStorage.getItem(KEY+'_bak'));
+      if(b2){window.__loadStatus='fallback';window.__loadNote='读取出错，已用上一份备份启动';return normalizeBig(b2)}
     }catch(e2){}
   }
+  window.__loadStatus='empty';
   return null;
 }
 function restoreFull(d,tgt){
   var T=tgt||state;
-  var ks=d.bigKeys&&Array.isArray(d.bigKeys)?d.bigKeys:[];
   for(var k in d){
-    if(ks.indexOf(k)>=0){T[k]=[];continue}
+    if(k==='bigKeys'||k.indexOf('__big__')===0)continue;
     T[k]=d[k];
   }
-  if(ks.length){
-    T._dbLoaded=false;
-    idbGet('big').then(function(big){
-      if(big)for(var j=0;j<ks.length;j++)if(big[ks[j]]!=null)T[ks[j]]=big[ks[j]];
-      T._dbLoaded=true;
-      try{save()}catch(e){}
-      if(typeof renderAll==='function')renderAll();
-    }).catch(function(){T._dbLoaded=true;try{save()}catch(e){}});
-  }
-  else T._dbLoaded=true;
+  for(var i=0;i<BIG_KEYS.length;i++)if(!Array.isArray(T[BIG_KEYS[i]]))T[BIG_KEYS[i]]=[];
+  try{save()}catch(e){}
+  if(typeof renderAll==='function')renderAll();
 }
-window.__restoreCandidate=null;
 var state=load()||defaultState();
-if(window.__restoreCandidate){restoreFull(window.__restoreCandidate,state);window.__restoreCandidate=null}
+if(window.__restoreCandidate){var _rc=window.__restoreCandidate;window.__restoreCandidate=null;restoreFull(_rc,state)}
 function idbOpen(){
   return new Promise(function(res,rej){
     try{
@@ -1133,8 +1283,14 @@ function idbOpen(){
       r.onupgradeneeded=function(){try{r.result.createObjectStore('big')}catch(e){}}
       r.onsuccess=function(){res(r.result)}
       r.onerror=function(){rej(r.error)}
+      r.onblocked=function(){rej(new Error('blocked'))}
     }catch(e){rej(e)}
   });
+}
+var _idbWarned=false;
+function idbWarn(){
+  if(_idbWarned)return;_idbWarned=true;
+  if(typeof toast==='function')toast('提示：浏览器大容量存储不可用，聊天记录会改用本地存档保存，建议在 设置→备份 导出备份');
 }
 function idbPut(key,val){
   return idbOpen().then(function(db){
@@ -1144,9 +1300,10 @@ function idbPut(key,val){
         tx.objectStore('big').put(val,key);
         tx.oncomplete=function(){res(1)}
         tx.onerror=function(){rej(tx.error)}
+        tx.onabort=function(){rej(tx.error)}
       }catch(e){rej(e)}
     });
-  }).catch(function(){toast('提示：大容量存储不可用，聊天记录超限时请及时在 设置→备份 导出')});
+  }).catch(function(){idbWarn()});
 }
 function idbGet(key){
   return idbOpen().then(function(db){
@@ -1160,67 +1317,171 @@ function idbGet(key){
     });
   }).catch(function(){return null});
 }
-var BIG_KEYS=['messages','posts','letters','cards','transfers'];
+/* 有些浏览器（含 iOS 无痕、file://）不支持持久存储，申请一下能显著降低被系统清理的概率 */
+try{
+  if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
+}catch(e){}
+
+/** 写入一份存档。设置永远先同步落盘；大图只留清单（本体在 IndexedDB）；
+ *  实在写不下才逐级瘦身，绝不把用户设置丢掉。返回实际写入的文本。 */
+function writeLocal(json){
+  var obj=null;
+  try{obj=JSON.parse(json)}catch(e2){return {ok:false,json:null}}
+  /* 第一步：把大图摘出去，让本地副本保持轻量（配额越紧，系统越容易清理） */
+  var slim=null;
+  try{slim=JSON.parse(json);slimForLocal(slim);slim=JSON.stringify(slim)}catch(e0){slim=null}
+  var cands=[slim,json];
+  for(var q=0;q<cands.length;q++){
+    if(!cands[q])continue;
+    try{localStorage.setItem(KEY,cands[q]);return {ok:true,json:cands[q]}}catch(e){}
+  }
+  var cand=[];
+  function consider(owner,key){
+    try{if(owner&&typeof owner[key]==='string'&&owner[key].length>4000)cand.push({o:owner,k:key,n:owner[key].length})}catch(e){}
+  }
+  var st=obj.settings||{};
+  var ks=['coverImg','homeBgImg','chatBgImg','callBgImg'];
+  for(var i=0;i<ks.length;i++)consider(st,ks[i]);
+  if(obj.widgetImgs){for(var wk in obj.widgetImgs)consider(obj.widgetImgs,wk)}
+  if(obj.me)consider(obj.me,'avatarImg');
+  if(Array.isArray(obj.contacts))for(var ci=0;ci<obj.contacts.length;ci++)consider(obj.contacts[ci],'avatarImg');
+  if(Array.isArray(obj.posts))for(var pi=0;pi<obj.posts.length;pi++){
+    var po=obj.posts[pi];
+    if(po&&po.avatarImg)cand.push({o:po,k:'avatarImg',n:String(po.avatarImg).length});
+    if(po&&Array.isArray(po.imgs))for(var ii=0;ii<po.imgs.length;ii++)if(typeof po.imgs[ii]==='string'&&po.imgs[ii].length>4000)cand.push({o:po.imgs,k:String(ii),n:po.imgs[ii].length});
+  }
+  cand.sort(function(a,b){return b.n-a.n});
+  for(var c=0;c<cand.length;c++){
+    /* 先把大图送进 IndexedDB，再从 localStorage 副本里去掉，保证图片不丢 */
+    try{dumpImages()}catch(e){}
+    cand[c].o[cand[c].k]='';
+    try{
+      var _t=JSON.stringify(obj);
+      localStorage.setItem(KEY,_t);
+      window.__saveNote='存储空间偏紧，大图已改存大容量存储，其他设置已保存';
+      window.__saveStatus='slim';
+      return {ok:true,json:_t};
+    }catch(e){}
+  }
+  /* 还不够：从最旧的聊天记录开始瘦身（只影响本机副本，IndexedDB 里仍是完整的） */
+  if(Array.isArray(obj.messages)&&obj.messages.length){
+    var trimmed=0;
+    while(trimmed<obj.messages.length){
+      var drop=Math.max(1,Math.ceil((obj.messages.length-trimmed)/4));
+      obj.messages=obj.messages.slice(drop);
+      trimmed+=drop;
+      try{
+        var _t2=JSON.stringify(obj);
+        localStorage.setItem(KEY,_t2);
+        window.__saveNote='存储空间不足，本机存档已省略最早的 '+trimmed+' 条聊天记录（其他设置都在）';
+        window.__saveStatus='slim';
+        return {ok:true,json:_t2};
+      }catch(e){}
+    }
+  }
+  window.__saveStatus='failed';
+  return {ok:false,json:null};
+}
+/** 写主键 + 镜像键（镜像与主键内容一致，互为备份） */
+function writeBoth(json){
+  var res=writeLocal(json);
+  if(res.ok&&res.json)try{localStorage.setItem(KEY_MIRROR,res.json)}catch(e){}
+  window.__saveRaw=res.json||json;
+  return res.ok;
+}
+function idbDump(){
+  var big={},has=false;
+  for(var i=0;i<BIG_KEYS.length;i++){var v=state[BIG_KEYS[i]];if(Array.isArray(v)&&v.length){big[BIG_KEYS[i]]=v;has=true}}
+  if(!has)return;
+  try{idbPut('big',big)}catch(e){}
+}
+/** 自检：写不进大容量存储时明确告诉用户，别让他以为有双保险 */
+var _idbChecked=false;
+function idbSelfCheck(){
+  if(_idbChecked)return;
+  _idbChecked=true;
+  try{
+    idbPut('__probe','1').then(function(){
+      idbGet('__probe').then(function(v){
+        if(v!=='1'&&typeof toast==='function')toast('提示：浏览器大容量存储不可用，聊天记录与壁纸只保存在本机存档里，建议到 设置→备份 导出备份');
+      });
+    });
+  }catch(e){}
+}
+/** 每次存档都把大数组与大图同步进 IndexedDB 副本（合并写入，避免频繁触发） */
+var _bigTimer=null,_bigDirty=false;
+function idbSync(){
+  try{idbDump()}catch(e){}
+  try{dumpImages()}catch(e){}
+}
+function finalizeWrite(){
+  _bigDirty=true;
+  if(_bigTimer)return;
+  _bigTimer=setTimeout(function(){_bigTimer=null;if(_bigDirty){_bigDirty=false;idbSync()}},400);
+}
+function flushBig(){
+  if(_bigTimer){clearTimeout(_bigTimer);_bigTimer=null}
+  _bigDirty=false;
+  idbSync();
+}
 function save(){
-  if(state._dbLoaded===false)return false;
   try{
-    var json=JSON.stringify(state);
-    if(json.length<1100000){
-      try{localStorage.setItem(KEY,json)}catch(e){return saveBig()}
+    var json=JSON.stringify(plainCopy(state));
+    var pre=null;
+    try{pre=localStorage.getItem(KEY)}catch(e){}
+    var ok=writeBoth(json);
+    if(ok){
+      window.__saveStatus='ok';
+      /* 脏数据保护：如果这份存档明显比备份里的还“空”，就不要拿它覆盖备份，
+         免得刚出问题时一个默认存档把还能救回来的数据冲掉 */
+      var _rich=true;
+      if(!pre){
+        _rich=false;
+        try{
+          var _m=localStorage.getItem(KEY_MIRROR),_b=localStorage.getItem(KEY+'_bak');
+          var _o=null;
+          try{_o=JSON.parse(json)}catch(e0){}
+          var _kn=_o?Object.keys(_o).length:0;
+          var _cands=[_m,_b];
+          for(var _q=0;_q<_cands.length;_q++){
+            if(!_cands[_q])continue;
+            try{var _p=JSON.parse(_cands[_q]);if(_p&&Object.keys(_p).length>_kn+2)_rich=true}catch(e1){}
+          }
+        }catch(e2){}
+      }
+      if(_rich){
+        /* 整份存档也留一份到 IndexedDB，作为 localStorage 被清掉时的第二副本 */
+        try{idbPut('full',json)}catch(e){}
+      }else{
+        window.__saveSkippedBackup=1;
+      }
+    }else{
+      window.__saveStatus='local-failed';
+      /* localStorage 完全写不进：设置至少留在 IndexedDB 里 */
       try{idbPut('full',json)}catch(e){}
-      return true;
     }
-    return saveBig();
-  }catch(e){return saveFallback()}
-}
-function saveBig(){
-  try{
-    var big={},bigKeys=[];
-    for(var i=0;i<BIG_KEYS.length;i++){
-      var v=state[BIG_KEYS[i]];
-      if(Array.isArray(v)&&v.length){big[BIG_KEYS[i]]=v;bigKeys.push(BIG_KEYS[i])}
-    }
-    if(!bigKeys.length)return saveFallback();
-    var small={};
-    for(var k in state)small[k]=state[k];
-    for(var j=0;j<bigKeys.length;j++)small[bigKeys[j]]='__IDB__';
-    small.bigKeys=bigKeys;
-    try{localStorage.setItem(KEY,JSON.stringify(small))}catch(e){return saveFallback()}
-    try{idbPut('full',JSON.stringify(small))}catch(e){}
-    state._dbPending=1;
-    idbPut('big',big).then(function(){
-      state._dbPending=0;
-      try{localStorage.setItem(KEY+'_idbok','1')}catch(e){}
-    }).catch(function(){state._dbPending=0});
-    return true;
-  }catch(e){return saveFallback()}
-}
-function saveFallback(){
-  try{
-    var st9=state.settings||{},best=null,bl=0,i,j,k;
-    var keys=['coverImg','homeBgImg','chatBgImg','callBgImg'];
-    for(i=0;i<keys.length;i++)if(st9[keys[i]]&&st9[keys[i]].length>bl){bl=st9[keys[i]].length;best={p:st9,k:keys[i]}}
-    for(j=0;j<state.contacts.length;j++){var ct=state.contacts[j];if(ct.avatarType==='img'&&ct.avatarImg&&ct.avatarImg.length>bl){bl=ct.avatarImg.length;best={p:ct,k:'avatarImg'}}}
-    if(state.me&&state.me.avatarType==='img'&&state.me.avatarImg&&state.me.avatarImg.length>bl){bl=state.me.avatarImg.length;best={p:state.me,k:'avatarImg'}}
-    for(k in (state.appIcons||{}))if(state.appIcons[k]&&state.appIcons[k].length>bl){bl=state.appIcons[k].length;best={p:state.appIcons,k:k}}
-    if(best){
-      best.p[best.k]='';
-      localStorage.setItem(KEY,JSON.stringify(state));
-      toast('存储快满了，已自动移除一张大图，其他设置已保存');
-      return true;
-    }
-    toast('保存失败：浏览器存储已满');
+    finalizeWrite();
+    announceSave(ok,pre,json);
+    return ok;
+  }catch(e){
+    if(typeof toast==='function')toast('保存失败：浏览器存储异常');
     return false;
-  }catch(e2){toast('保存失败：浏览器存储已满');return false}
+  }
+}
+/** 存档出问题时主动告诉用户，而不是默默把设置恢复成默认 */
+function announceSave(ok,pre,json){
+  try{
+    if(!ok&&typeof toast==='function')toast('保存失败：浏览器存储异常，请到 设置→备份 导出备份');
+    if(window.__saveStatus==='slim'&&window.__saveNote&&!window.__saveNotified){
+      window.__saveNotified=1;
+      if(typeof toast==='function')toast(window.__saveNote);
+    }
+  }catch(e){}
 }
 window.addEventListener('pagehide',function(){
-  if(state&&state._dbPending===1){
-    var big={},bks=[];
-    for(var i=0;i<BIG_KEYS.length;i++){var v=state[BIG_KEYS[i]];if(Array.isArray(v)&&v.length){big[BIG_KEYS[i]]=v;bks.push(BIG_KEYS[i])}}
-    if(bks.length)try{idbPut('big',big)}catch(e){}
-  }
+  try{if(window.__saveRaw)localStorage.setItem(KEY_MIRROR,window.__saveRaw)}catch(e){}
+  flushBig();
 });
-
 /* ================= 壁纸 / 封面 ================= */
 var BG_PRESETS={
   bg1:'linear-gradient(180deg,#F6F1E8,#EFE7D6)',
@@ -2513,10 +2774,37 @@ function renderMe(){
   html+='<div class="me-sec"><h3>数据</h3><div class="stats">';
   html+='<div class="stat"><b>'+state.cards.length+'</b><span>字卡</span></div><div class="stat"><b>'+mc+'</b><span>消息</span></div><div class="stat"><b>'+pc+'</b><span>朋友圈</span></div><div class="stat"><b>'+lc+'</b><span>信件</span></div>';
   html+='<div class="stat"><b>¥'+state.receivedTotal.toFixed(2)+'</b><span>已收转账</span></div></div></div>';
-  html+='<div class="me-sec"><h3>备份</h3><div style="display:flex;gap:10px"><button class="btn" style="flex:1" data-act="backup-export">导出备份</button><button class="btn ghost" style="flex:1" data-act="backup-import">导入备份</button></div><p class="meta" style="margin-top:6px">全量备份：联系人、字卡、消息、朋友圈、信件、日记、转账。换手机也不丢。</p></div>';
+  html+='<div class="me-sec"><h3>备份</h3><div style="display:flex;gap:10px"><button class="btn" style="flex:1" data-act="backup-export">导出备份</button><button class="btn ghost" style="flex:1" data-act="backup-import">导入备份</button></div><p class="meta" style="margin-top:6px">全量备份：联系人、字卡、消息、朋友圈、信件、日记、转账、壁纸。换手机也不丢。</p></div>';
+  html+='<div class="me-sec"><h3>存档安全</h3>'+storageHealthHtml()+'<p class="meta" style="margin-top:8px">iPhone 会在存储紧张或长期不打开时清理网页数据，这是系统行为、任何网页都躲不过。导出一份备份文件（可存到「文件」App 或发给自己），换机、清理后都能一键恢复。</p></div>';
   html+='<div class="me-sec"><h3>后台保活说明</h3><div class="note">手机浏览器切到后台时网页会被系统暂停，这是 iOS 的正常机制。每次回到页面时会自动补发离线期间的消息、朋友圈评论、回信和缺失的日记，不会断档。</div></div>';
   html+='</div>';
   $('#view').innerHTML=html;
+}
+/** 设置页里的存档状态卡片 */
+function storageHealthHtml(){
+  var h='<div class="card">';
+  var paint='#5F8F7B',persistTxt='未知';
+  var p=(navigator.storage&&navigator.storage.persisted)?navigator.storage.persisted():null;
+  if(p&&typeof p.then==='function'){
+    p.then(function(v){
+      try{
+        var el=document.getElementById('shPersist');
+        if(el)el.textContent=v?'已申请持久保留（系统仍可能清理，请定期导出）':'未获持久保留（建议定期导出备份）';
+      }catch(e){}
+    }).catch(function(){});
+  }
+  h+='<div class="row" style="justify-content:space-between"><b>本机存档</b><span class="meta" id="shState">正常</span></div>';
+  h+='<div class="meta" id="shPersist">持久存储状态检测中…</div>';
+  try{
+    var main=localStorage.getItem(KEY)||'';
+    var mir=localStorage.getItem(KEY_MIRROR)||'';
+    var bak=localStorage.getItem(KEY+'_bak')||'';
+    var total=0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);total+=k.length+String(localStorage.getItem(k)).length}
+    h+='<div class="meta" style="margin-top:6px">主存档 '+(main?Math.round(main.length/1024)+' KB':'丢失')+' · 镜像 '+(mir?Math.round(mir.length/1024)+' KB':'无')+' · 上一份 '+(bak?Math.round(bak.length/1024)+' KB':'无')+' · 占用约 '+Math.round(total/1024)+' KB</div>';
+    if(!main&&!mir&&!bak)h+='<div class="note" style="margin-top:8px;border-color:#E7B7B0">本机还没有存档。如果你之前设置过内容却看到这一行，说明系统把网页数据清掉了——请点上面的「导入备份」恢复。</div>';
+  }catch(e){}
+  h+='</div>';
+  return h;
 }
 function saveGen(){
   state.settings.diaryCount=clamp(parseInt($('#setDiary').value,10)||3,1,8);
@@ -2726,7 +3014,14 @@ function contactDel(id){
 
 /* ================= 备份 ================= */
 function backupExport(){
-  var d={app:'zika-site',version:5,exported:new Date().toISOString(),state:state};
+  var d={app:'zika-site',version:6,exported:new Date().toISOString(),state:plainCopy(state)};
+  try{delete d.state._imgs}catch(e){}
+  /* 备份要能独立恢复：把 IndexedDB 里的大图也一起带上 */
+  try{
+    var live=imgValues(state);
+    var n=0;for(var k in live)n++;
+    if(n)d.images=live;
+  }catch(e){}
   var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   var dt=new Date();
@@ -2743,6 +3038,15 @@ function importBackup(file){
       var d=JSON.parse(fr.result);
       if(!d||d.app!=='zika-site'||!d.state||!Array.isArray(d.state.contacts)){toast('文件格式不对，请选字卡备份文件');return}
       var s=migrate(d.state);
+      /* 备份里带的大图（壁纸/头像）：先放回内存，再存进 IndexedDB */
+      var _migratedImgs=null;
+      if(d.images&&typeof d.images==='object'){
+        _migratedImgs={};
+        for(var _ik in d.images){
+          if(isBig(d.images[_ik])){imgSet(s,_ik,d.images[_ik]);_migratedImgs[_ik]=d.images[_ik]}
+        }
+      }
+      try{delete s._imgs}catch(e){}
       if(!s.cards||!Array.isArray(s.cards))s.cards=[];
       if(!s.statusCards||!Array.isArray(s.statusCards))s.statusCards=defaultState().statusCards;
       if(!s.moodCards||!Array.isArray(s.moodCards))s.moodCards=defaultState().moodCards;
@@ -2757,8 +3061,10 @@ function importBackup(file){
       if(!ok&&s.contacts.length)s.activeContact=s.contacts[0].id;
       if(!s.contacts.length){toast('备份里没有联系人');return}
       s.lastActive=now();
-      state=s;save();closeSheet();renderAll();schedule();
-      toast('备份导入成功');
+      state=s;
+      if(_migratedImgs)try{idbPut('images',_migratedImgs)}catch(e){}
+      save();closeSheet();renderAll();schedule();
+      toast('备份导入成功'+(_migratedImgs?'（含壁纸/头像）':''));
     }catch(e){toast('导入失败：文件无法读取')}
   };
   fr.readAsText(file.files[0]);
@@ -3475,22 +3781,62 @@ function kaStart(){try{
 }catch(e){}}
 function kaStop(){try{if(_kaCtx&&_kaCtx.state==='running')_kaCtx.suspend()}catch(e){}}
 document.addEventListener('visibilitychange',function(){
-  if(document.hidden){kaStart()}
+  if(document.hidden){try{flushBig()}catch(e){}kaStart()}
   else{kaStop();if(!document.hidden)syncCatchUp()}
 });
 var _kaUnlock=function(){try{var AC=window.AudioContext||window.webkitAudioContext;if(AC&&!_kaCtx)_kaCtx=new AC();if(_kaCtx&&_kaCtx.state==='suspended')_kaCtx.resume()}catch(e){};document.removeEventListener('touchstart',_kaUnlock)};
 document.addEventListener('touchstart',_kaUnlock);
 window.addEventListener('focus',syncCatchUp);
+/* ===== 存档健康检查：被系统清理或读取失败时，明确告诉用户并引导恢复 ===== */
+function storageHealthCheck(){
+  try{
+    if(typeof Notification!=='undefined'&&Notification.permission==='granted'&&navigator.storage&&navigator.storage.persist)navigator.storage.persist();
+  }catch(e){}
+  try{
+    var st=window.__loadStatus,note=window.__loadNote||'';
+    window.__loadStatus='';
+    if(st==='fallback'){toast((note||'存档读取异常')+'，建议立刻到 设置→备份 导出备份');return}
+    if(st==='restored'){if(note)toast(note);return}
+    if(st==='dbonly'){
+      /* 本地存档是空的：去大容量备份里找一找，找到就问用户要不要恢复 */
+      idbGet('full').then(function(full){
+        var ok=false;
+        if(typeof full==='string'&&full.length>200){
+          try{var t=JSON.parse(full);if(t&&t.contacts&&t.contacts.length)ok=true}catch(e){}
+        }
+        if(ok){
+          if(confirm('检测到之前的完整备份还在，要现在恢复吗？（恢复后设置和聊天记录都会回来）'))importFromIdbFull(full);
+        }else{
+          idbGet('images').then(function(imgs){
+            var n=0;if(imgs&&typeof imgs==='object')for(var k in imgs)n++;
+            if(n)toast('检测到您之前设置过壁纸，但存档已被系统清理；请到 设置→备份 导入最近的备份文件');
+          }).catch(function(){});
+        }
+      }).catch(function(){});
+    }
+  }catch(e){}
+}
+/** 从 IndexedDB 的整份备份里恢复存档 */
+function importFromIdbFull(full){
+  try{
+    var d=JSON.parse(full);
+    if(!d||!d.contacts){toast('备份内容无法识别');return}
+    normalizeBig(d);
+    try{d=migrate(d)}catch(e){}
+    state=d;
+    _imgHydrating=false;
+    hydrateImages(state);
+    try{save()}catch(e){}
+    if(typeof renderAll==='function')renderAll();
+    toast('已恢复存档');
+  }catch(e){toast('恢复失败，请用 设置→备份 导入备份文件')}
+}
 window.addEventListener('load',function(){
-  state.lastActive=now();
-  ensureDiary(now());
-  refreshMood();
-  applyTheme();
-  applyChatCss();
-  dailyPost();
-  syncCatchUp();
-  router();
-  rollLoginEvents();
+  /* 存档检查放在最前面且各自兜底：万一某个界面渲染出错，也还能救数据 */
+  try{storageHealthCheck()}catch(e){}
+  try{idbSelfCheck()}catch(e){}
+  var boot=[function(){state.lastActive=now()},function(){ensureDiary(now())},function(){refreshMood()},function(){applyTheme()},function(){applyChatCss()},function(){dailyPost()},function(){syncCatchUp()},function(){router()},function(){rollLoginEvents()}];
+  for(var i=0;i<boot.length;i++){try{boot[i]()}catch(e){}}
 });
 /* ===== v7：全局均匀抽卡（每张字卡等概率，不含状态/心情卡） ===== */
 function pickCardText(){
