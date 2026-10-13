@@ -2153,7 +2153,7 @@ function widgetWalk(keys,measure){
       slot(0,ww,h);
       out[half.k]={x:0,y:y};
       out[k]={x:52,y:y};
-      y+=Math.max(half.h,h)+12;
+      y+=Math.max(half.h,h)+10;
       half=null;
       continue;
     }
@@ -2165,7 +2165,7 @@ function widgetWalk(keys,measure){
     }
     slot(0,ww,h);
     out[k]={x:0,y:y};
-    y+=h+12;
+    y+=h+10;
   }
   if(half){
     slot(0,46,half.h);
@@ -2175,7 +2175,7 @@ function widgetWalk(keys,measure){
   if(keys.indexOf('feed')>=0&&!widgetHasPos('feed')){
     slot(0,100,measure('feed'));
     out.feed={x:0,y:y};
-    y+=measure('feed')+12;
+    y+=measure('feed')+10;
   }
   return {pos:out,height:Math.max(0,y-12)};
 }
@@ -2237,7 +2237,7 @@ function widgetInnerHtml(wv,wk,d){
 }
 /* 组件尺寸：s=小方块(半宽) m=宽条(整行) l=大方块(整行加高) */
 var WD_SIZES=[['s','小方块'],['m','宽条'],['l','大方块']];
-var WD_DEFAULT_SIZE={clock:'m',days:'m',weather:'m',photo:'l',count:'m',progress:'m',music:'m',note:'m',feed:'l'};
+var WD_DEFAULT_SIZE={clock:'m',days:'m',weather:'m',photo:'l',count:'m',progress:'m',music:'m',note:'m',feed:'m'};
 function widgetSizeOf(k){
   var s=(state.widgetSize||{})[k];
   return (s==='s'||s==='m'||s==='l')?s:(WD_DEFAULT_SIZE[k]||'m');
@@ -2333,7 +2333,8 @@ function fitWidgetGridNow(){
     for(i=0;i<els.length;i++){
       var el3=els[i];
       var k3=wKeyOf(el3);
-      var h3=Math.max(el3.offsetHeight||0,widgetEstH(k3));
+      var h3=el3.offsetHeight||0;
+      if(!h3||h3<20)h3=widgetEstH(k3);      /* 量不到才用估计值 */
       var b=((el3.offsetTop||0)+h3+12);
       var br=el3.getBoundingClientRect().bottom-gr.top+12;
       if(br>b)b=br;
@@ -3900,6 +3901,7 @@ function renderMe(){
   }
   html+='</div></div>';
   html+='<div class="me-sec"><h3>壁纸与封面</h3><div class="stats">';
+  html+='<div class="stat" style="cursor:pointer" data-act="bg-sheet"><b>聊天壁纸</b><span>聊天背景</span></div><div class="stat" style="cursor:pointer" data-act="home-sheet"><b>主页壁纸</b><span>桌面背景</span></div><div class="stat" style="cursor:pointer" data-act="cover-sheet"><b>朋友圈封面</b><span>封面图</span></div><div class="stat" style="cursor:pointer" data-act="callbg-sheet"><b>通话背景</b><span>预设+上传</span></div></div></div>';
   html+='<div class="me-sec"><h3>字体大小</h3><div class="fs-row"><button class="fs-btn" data-act="font-down">A−</button><span class="fs-val">'+Math.round(((state.settings&&state.settings.fontScale)||1)*100)+'%</span><button class="fs-btn" data-act="font-up">A+</button></div></div>';
   html+='<div class="me-sec"><h3>主界面装修</h3><div class="card" style="padding:0 12px">';
   for(var ia=0;ia<APPS.length;ia++){
