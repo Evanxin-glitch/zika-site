@@ -70,15 +70,54 @@ input:focus,textarea:focus{border-color:var(--green)}
 .chat-top .ct-name{font-family:var(--serif);font-size:calc(16px*var(--fs));font-weight:700;display:flex;align-items:center;gap:6px}
 .chat-top .ct-chips{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap}
 .chat-top .ct-chips .chip{font-size:calc(10.5px*var(--fs));padding:2px 8px}
-.chat-wrap{display:flex;flex-direction:column;height:calc(100dvh - 96px)}
+.chat-wrap{display:flex;flex-direction:column;flex:1;min-height:0}
+/* 聊天页：整体按视口高度排，顶栏/底栏各自撑开，中间消息区吃掉剩余空间。
+   原来写死 height:calc(100dvh - 96px)，顶栏实际更高时就会多出一截空白，
+   看起来像上边框被拉长。 */
+#view>.chat-top{flex-shrink:0}
+#view:has(.chat-top){display:flex;flex-direction:column;height:100dvh;max-height:100dvh;overflow:hidden}
 #chatList{flex:1;overflow-y:auto;padding:12px 12px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch;background-size:cover;background-position:center;background-attachment:local}
-.msg-row{display:flex;align-items:flex-end;gap:8px;margin-bottom:12px;padding:0 10px}
+/* ===== 气泡：内容自适应宽度，时间/已读挪到气泡外面 ===== */
+.msg-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:12px;padding:0 10px}
 .msg-row.in{justify-content:flex-start}
 .msg-row.out{flex-direction:row-reverse}
+.msg-col{display:flex;flex-direction:column;max-width:76%;min-width:0}
+.msg-row.out .msg-col{align-items:flex-end}
+.msg-row.in .msg-col{align-items:flex-start}
+.msg-col .bubble{width:fit-content;max-width:100%;align-self:inherit}
+.msg-row.out .msg-col .bubble{align-self:flex-end}
+.msg-row.in .msg-col .bubble{align-self:flex-start}
+.msg-meta{display:flex;align-items:center;gap:5px;margin-top:4px;padding:0 4px;line-height:1.2}
+.msg-meta .t{font-size:calc(10.5px*var(--fs));color:var(--sub);white-space:nowrap}
+.msg-meta .st{font-size:calc(10.5px*var(--fs));color:#7FA8D9;font-weight:700;white-space:nowrap}
+.msg-meta .st.gray{color:#C9B4BB;font-weight:400}
+.msg-meta .msg-menu-btn{color:var(--sub);font-size:calc(15px*var(--fs));line-height:1;padding:2px 4px;opacity:.65;min-height:0}
+.msg-meta .msg-menu-btn:active{opacity:1}
+/* 气泡里的时间行已废弃，兜底隐藏 */
+.bubble>.t{display:none}
+/* 消息操作面板 */
+.msg-menu-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px;margin:4px 0 6px}
+.msg-menu-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px;border-radius:16px;background:rgba(255,255,255,.6);border:1px solid var(--glass-line);font-size:calc(12px*var(--fs));color:var(--ink);min-height:0}
+.msg-menu-item .mm-ic{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.8);box-shadow:0 3px 10px rgba(150,120,140,.1)}
+.msg-menu-item.danger{color:#C25B5B}
+.msg-menu-item:active{transform:scale(.96)}
+.msg-menu-quote{font-size:calc(12.5px*var(--fs));color:var(--sub);background:rgba(138,116,88,.08);border-radius:12px;padding:8px 11px;margin-bottom:10px;max-height:64px;overflow:hidden}
+/* ===== 多选模式 ===== */
+.msg-row.multi-on .bubble{cursor:pointer}
+.msg-row.multi-on .msg-col{max-width:calc(76% - 30px)}
+.multi-tick{width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(180,150,165,.55);display:none;align-items:center;justify-content:center;flex-shrink:0;font-size:calc(12px*var(--fs));color:#fff;background:rgba(255,255,255,.7);align-self:center;margin-bottom:14px}
+.msg-row.multi-on .multi-tick{display:flex}
+.msg-row.multi-on.picked .multi-tick{background:linear-gradient(150deg,#F9AEC2,#EE7BA4);border-color:transparent}
+.msg-row.multi-on.picked .bubble{outline:2px solid rgba(242,143,176,.6);outline-offset:1px}
+.multi-bar{display:flex;flex-direction:column;gap:8px;padding:8px 12px;background:linear-gradient(0deg,rgba(255,255,255,.82),rgba(255,255,255,.6));backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border-top:1px solid var(--glass-line);flex-shrink:0}
+.multi-bar .mb-n{font-size:calc(12.5px*var(--fs));color:var(--sub);white-space:nowrap}
+.multi-bar .mb-btns{display:flex;gap:6px;flex-wrap:wrap}
+.multi-bar .mb-btns button{flex:1 1 0;min-width:64px;font-size:calc(12.5px*var(--fs));padding:8px 6px;border-radius:20px;background:rgba(255,255,255,.8);border:1px solid var(--glass-line);color:var(--ink);min-height:38px}
+.multi-bar .mb-btns button.danger{color:#C25B5B}
 .bubble-av{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:calc(15px*var(--fs));font-weight:600;overflow:hidden;color:#fff;box-shadow:var(--shadow)}
 .bubble-av img{width:100%;height:100%;object-fit:cover}
 .bubble-av i{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-style:normal;color:#fff}
-.bubble{max-width:76%;padding:9px 12px;border-radius:17px;font-size:calc(15px*var(--fs));position:relative;word-break:break-word;white-space:pre-wrap;cursor:pointer}
+.bubble{max-width:100%;padding:9px 12px;border-radius:17px;font-size:calc(15px*var(--fs));position:relative;word-break:break-word;white-space:pre-wrap;cursor:pointer}
 .bubble.out{background:var(--green);border-bottom-right-radius:5px;color:#fff}
 .bubble.out .t{color:rgba(255,255,255,.72)}
 .bubble.in{background:var(--glass-strong);border:1px solid var(--glass-brd);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom-left-radius:5px}
@@ -390,6 +429,28 @@ input:focus,textarea:focus{border-color:var(--green)}
 .widget.w-music .wm-tx span{font-size:calc(11px*var(--fs));color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .widget.w-music .wm-btn{flex-shrink:0;width:38px;height:38px;min-height:38px;border-radius:50%;background:rgba(255,255,255,.8);color:#C4577E;box-shadow:0 3px 10px rgba(150,120,140,.14)}
 .widget.w-feed{min-height:104px}
+/* ===== 桌面小组件标题行 + 添加按钮 ===== */
+.wd-head{display:flex;align-items:center;justify-content:space-between;margin:2px 0 8px}
+.wd-head>span{font-size:calc(13px*var(--fs));color:var(--sub);letter-spacing:1.5px}
+.wd-add{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.72);border:1px solid var(--glass-line);color:#C4577E;font-size:calc(19px*var(--fs));line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(150,120,140,.12);min-height:0;padding:0}
+.wd-add:active{transform:scale(.92)}
+/* ===== 新组件：天气 / 相册 / 倒数日 / 进度环 ===== */
+.widget.w-weather{display:flex!important;align-items:center;gap:11px;min-height:74px}
+.widget.w-weather .wx-ic{font-size:calc(26px*var(--fs));line-height:1;flex-shrink:0}
+.widget.w-weather .wx-tx{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.widget.w-weather .wx-tx b{font-size:calc(21px*var(--fs))}
+.widget.w-weather .wx-tx span{font-size:calc(11.5px*var(--fs));color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.widget.w-photo{display:flex!important;flex-direction:column;gap:8px;min-height:150px;padding:10px!important}
+.widget.w-photo .ph-img{display:block;width:100%;height:104px;border-radius:14px;background-size:cover;background-position:center;box-shadow:0 4px 14px rgba(150,120,140,.16)}
+.widget.w-photo .ph-cap{font-size:calc(12.5px*var(--fs));color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.widget.w-photo .ph-empty{display:flex;align-items:center;justify-content:center;height:104px;border-radius:14px;border:1px dashed rgba(201,123,142,.5);color:var(--sub);font-size:calc(12.5px*var(--fs));background:rgba(255,255,255,.4)}
+.widget.w-count{display:flex!important;flex-direction:column;gap:4px;justify-content:center;min-height:70px}
+.widget.w-count span{font-size:calc(12px*var(--fs));color:var(--sub)}
+.widget.w-count b{font-size:calc(17px*var(--fs));color:var(--orange)}
+.widget.w-progress{display:flex!important;align-items:center;gap:12px;min-height:96px}
+.widget.w-progress .pg-ring{position:relative;width:60px;height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.widget.w-progress .pg-ring i{position:absolute;font-size:calc(13px*var(--fs));font-weight:700;font-style:normal;color:#C4577E}
+.widget.w-progress .pg-lb{font-size:calc(14px*var(--fs))}
 /* 动态小组件里每条小项更轻 */
 .wf-item{background:rgba(255,255,255,.42);border-radius:12px;padding:4px 8px}
 /* 聊天顶栏：悬浮玻璃条 */
@@ -1708,6 +1769,7 @@ function renderHome(){
   html+='<div class="home-title">沉与昕之恋</div>';
   var wds=state.widgets||{clock:true,days:true,music:true,note:true};
   var wdo=state.widgetOrder&&state.widgetOrder.length?state.widgetOrder:['clock','days','music','note','feed'];
+  html+='<div class="wd-head"><span>小组件</span><button class="wd-add" data-view="widgets" title="组件库">＋</button></div>';
   html+='<div class="widgets" id="widgetGrid">';
   html+=widgetGridInner(wdo,wds,wk,d);
   html+='</div>';
@@ -1768,7 +1830,7 @@ function renderHome(){
   initWidgetDrag();
 }
 /* ===== 小组件：自由摆放 ===== */
-var WIDGET_MINH={clock:74,days:74,music:74,note:74,feed:130};
+var WIDGET_MINH={clock:62,days:62,weather:74,photo:150,count:70,progress:96,music:66,note:62,feed:112};
 function widgetPos(wv,idx){
   var p=(state.widgetPos||{})[wv];
   if(p&&typeof p.x==='number'&&typeof p.y==='number'){
@@ -1786,10 +1848,64 @@ function widgetAutoPos(keys){
   }
   return out;
 }
+function widgetInnerHtml(wv,wk,d){
+  var st=state.settings||{};
+  if(wv==='clock')return '<b id="wClock">'+fmtClock()+'</b><span>星期'+wk[d.getDay()]+' · '+(d.getMonth()+1)+'月'+d.getDate()+'日</span>';
+  if(wv==='days'){
+    var wd=state.widgetCalendar&&state.widgetCalendar.date;
+    var n=state.anniversaryDays;
+    if(wd){var dd=new Date(wd+'T00:00:00');n=Math.floor((Date.now()-dd.getTime())/86400000)}
+    var lbl=state.widgetDaysLabel||'在一起';
+    return '<span>'+esc(lbl)+'</span><b>'+n+'</b><span>'+(state.widgetDaysUnit||'天')+'</span>';
+  }
+  if(wv==='weather'){
+    var wx=state.widgetWeather||{city:'城市',temp:26,text:'晴'};
+    var ic=wx.text&&wx.text.indexOf('雨')>=0?'☔':(wx.text&&wx.text.indexOf('云')>=0?'☁️':(wx.text&&wx.text.indexOf('雪')>=0?'❄️':'☀️'));
+    return '<span class="wx-ic">'+ic+'</span><div class="wx-tx"><b>'+esc(wx.temp)+'°</b><span>'+esc(wx.city)+' · '+esc(wx.text)+'</span></div>';
+  }
+  if(wv==='photo'){
+    var ph=state.widgetPhoto||{};
+    if(ph.img)return '<span class="ph-img" style="background-image:url(\''+ph.img+'\')"></span>'+(ph.cap?'<span class="ph-cap">'+esc(ph.cap)+'</span>':'');
+    return '<span class="ph-empty" data-act="wd-photo">点这里放一张照片</span>';
+  }
+  if(wv==='count'){
+    var ct=state.widgetCount||{title:'纪念日',date:''};
+    var left='';
+    if(ct.date){
+      var dd2=new Date(ct.date+'T00:00:00');
+      var diff=Math.ceil((dd2.getTime()-new Date(new Date().toDateString()).getTime())/86400000);
+      left=diff>=0?('还有 '+diff+' 天'):('已过 '+Math.abs(diff)+' 天');
+    }
+    return '<span>'+esc(ct.title)+'</span><b>'+(ct.date?left:'未设置日期')+'</b>';
+  }
+  if(wv==='progress'){
+    var pr=state.widgetProgress||{label:'心情',value:70};
+    var v=Math.max(0,Math.min(100,parseFloat(pr.value)||0));
+    var r=26,cir=2*Math.PI*r,off=cir*(1-v/100);
+    return '<span class="pg-ring"><svg viewBox="0 0 64 64" width="60" height="60">'
+      +'<circle cx="32" cy="32" r="'+r+'" fill="none" stroke="rgba(180,160,175,.25)" stroke-width="7"/>'
+      +'<circle cx="32" cy="32" r="'+r+'" fill="none" stroke="url(#pgg)" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+cir.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 32 32)"/>'
+      +'<defs><linearGradient id="pgg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F9AEC2"/><stop offset="1" stop-color="#EE7BA4"/></linearGradient></defs>'
+      +'</svg><i>'+Math.round(v)+'%</i></span><span class="pg-lb">'+esc(pr.label)+'</span>';
+  }
+  if(wv==='music')return '<span class="wm-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="#fff" stroke="#fff" stroke-width="1.5"><path d="M9 18V6l10-2v11"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="15" r="2.4"/></svg></span><div class="wm-tx"><b>'+esc(state.widgetMusic.song)+'</b><span>'+esc(state.widgetMusic.artist)+'</span></div><button class="wm-btn" data-act="music-play" title="播放/暂停">'+(state._mPlay?'▐▐':'▶')+'</button>';
+  if(wv==='note')return '<span>便签</span><b>'+esc(state.widgetNote||'')+'</b>';
+  if(wv==='feed'){
+    var feList=feedRecent(4),inn='<span class="wf-tt">陆沉动态</span><div class="wf-list">';
+    if(!feList.length)inn+='<div class="wf-empty">等陆沉来更新</div>';
+    for(var fi=0;fi<feList.length;fi++){
+      var f2=feList[fi];
+      inn+='<div class="wf-item" data-view="'+(f2.view||'chat')+'"><span class="wf-dot"></span><span class="wf-tx">'+esc(f2.text)+'</span><span class="wf-tm">'+fmtAgo(f2.ts)+'</span></div>';
+    }
+    return inn+'</div>';
+  }
+  return '';
+}
 function widgetGridInner(wdo,wds,wk,d){
+  var order=widgetEnsureOrder();
   var keys=[],i;
-  for(i=0;i<wdo.length;i++)if(wds[wdo[i]]&&wdo[i]!=='feed')keys.push(wdo[i]);
-  for(i=0;i<wdo.length;i++)if(wds[wdo[i]]&&wdo[i]==='feed')keys.push(wdo[i]);
+  for(i=0;i<order.length;i++){var k=order[i];if(k==='feed')continue;if(wds[k]!==false)keys.push(k)}
+  if(wds.feed!==false)keys.push('feed');
   var auto=widgetAutoPos(keys);
   var out='';
   for(i=0;i<keys.length;i++){
@@ -1798,22 +1914,7 @@ function widgetGridInner(wdo,wds,wk,d){
     var attr=(wv==='feed'?'':'data-wkey="'+wv+'" ');
     var st='left:'+p.x+'%;top:'+p.y+'px;';
     if(state.widgetImgs&&state.widgetImgs[wv])st+="background-image:url('"+state.widgetImgs[wv]+"');background-size:cover;background-position:center;background-color:rgba(255,255,255,.7);background-blend-mode:overlay;";
-    var inner='';
-    if(wv==='clock')inner='<b id="wClock">'+fmtClock()+'</b><span>星期'+wk[d.getDay()]+' · '+(d.getMonth()+1)+'月'+d.getDate()+'日</span>';
-    else if(wv==='days')inner='<span>'+(state.widgetDaysLabel||'在一起')+'</span><b>'+state.anniversaryDays+'</b><span>'+(state.widgetDaysUnit||'天')+'</span>';
-    else if(wv==='music')inner='<span class="wm-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="#fff" stroke="#fff" stroke-width="1.5"><path d="M9 18V6l10-2v11"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="15" r="2.4"/></svg></span><div class="wm-tx"><b>'+esc(state.widgetMusic.song)+'</b><span>'+esc(state.widgetMusic.artist)+'</span></div><button class="wm-btn" data-act="music-play" title="播放/暂停">'+(state._mPlay?'▐▐':'▶')+'</button>';
-    else if(wv==='note')inner='<span>便签</span><b>'+esc(state.widgetNote||'')+'</b>';
-    else if(wv==='feed'){
-      inner='<span class="wf-tt">陆沉动态</span><div class="wf-list">';
-      var feList=feedRecent(4);
-      if(!feList.length)inner+='<div class="wf-empty">等陆沉来更新</div>';
-      for(var fi=0;fi<feList.length;fi++){
-        var f2=feList[fi];
-        inner+='<div class="wf-item" data-view="'+(f2.view||'chat')+'"><span class="wf-dot"></span><span class="wf-tx">'+esc(f2.text)+'</span><span class="wf-tm">'+fmtAgo(f2.ts)+'</span></div>';
-      }
-      inner+='</div>';
-    }
-    out+='<div class="widget wfree w-'+wv+'" '+attr+'style="'+st+'"><span class="widget-grip"></span>'+inner+'</div>';
+    out+='<div class="widget wfree w-'+wv+'" '+attr+'style="'+st+'"><span class="widget-grip"></span>'+widgetInnerHtml(wv,wk,d)+'</div>';
   }
   out+='<div class="wfree-spacer"></div>';
   return out;
@@ -2335,6 +2436,8 @@ function postComment(p){
 
 /* ================= 聊天 ================= */
 var _quoteId=null;
+var _multiSel=null;   /* 多选：选中的那一条 */
+var _lpFired=0;       /* 长按是否已经弹出菜单 */
 function trunc(s,n){s=String(s||'');return s.length>n?s.slice(0,n)+'…':s}
 var ICON_PLUS='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 var ICON_EMOJI='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14.5c1.2 1.2 2.6 1.8 4 1.8s2.8-.6 4-1.8M8.8 9.5h.1M15.2 9.5h.1"/></svg>';
@@ -2365,6 +2468,7 @@ function renderChat(){
   if(_quoteId){
     body+='<div class="quote-bar"><span class="txt">回复：'+esc(trunc(msgText(_quoteId),26))+'</span><button data-act="quote-cancel">取消</button></div>';
   }
+  body+=multiBarHtml();
   body+='<div class="chat-input"><button class="tool-btn" data-act="tools">'+ICON_PLUS+'</button><textarea id="chatText" rows="1" placeholder="说点什么…"></textarea><button class="tool-btn" data-act="emoji">'+ICON_EMOJI+'</button><button data-act="send-chat">发送</button></div></div>';
   if(inChatView()){
     $('#view').innerHTML=top+body;
@@ -2420,18 +2524,28 @@ function bubbleHtml(m,c){
   var q='';
   if(m.replyTo){
     var om=byId(state.messages,m.replyTo);
-    q='<div class="quote-box">'+(om?(om.type==='img'?'[图片]':'回复 @'+esc(c.name)+'：'+esc(trunc(om.text,30))):'（原消息已删除）')+'</div>';
+    q='<div class="quote-box">'+(om?((om.type==='img'||om.type==='imgcleared')?'[图片]':'回复 @'+esc(c.name)+'：'+esc(trunc(om.text,30))):'（原消息已删除）')+'</div>';
   }
-  var body=m.type==='img'?'<img class="msg-img" src="'+m.img+'" alt="">':esc(m.text);
-  var t='<span class="t">'+fmtTime(m.ts)+' ';
-  if(m.dir==='out'){
-    if(state.settings&&state.settings.readReceipt===false){}
-    else t+='<span class="st'+(m.read?'':' gray')+'">'+(m.read?'✓✓':'✓')+'</span>';
-  }
-  if(state.settings&&state.settings.msgMenu!==false)t+='<button class="msg-menu-btn" data-act="msg-menu" data-id="'+m.id+'" title="消息操作">⋮</button>';
-  t+='</span>';
+  /* 图片消息已停用：老存档里的图一律清掉，只留一行提示，避免卡顿 */
+  if(m.type==='img'||m.type==='imgcleared'){
+    stripImgMsg(m);
+    var body='<span style="color:var(--sub)">[图片消息已移除]</span>';
+  }else var body=esc(m.text);
+  var meta='<div class="msg-meta">'
+    +'<span class="t">'+fmtTime(m.ts)+'</span>'
+    +((m.dir==='out'&&!(state.settings&&state.settings.readReceipt===false))?'<span class="st'+((m.read)?'':' gray')+'">'+(m.read?'✓✓':'✓')+'</span>':'')
+    +((state.settings&&state.settings.msgMenu!==false)?'<button class="msg-menu-btn" data-act="msg-menu" data-id="'+m.id+'" title="消息操作">⋮</button>':'')
+    +'</div>';
   var av=m.dir==='out'?meAvatar():cAvatar(c);
-  return '<div class="msg-row '+m.dir+'"><span class="bubble-av">'+av+'</span><div class="bubble '+m.dir+'" data-act="quote" data-id="'+m.id+'">'+q+body+t+'</div></div>';
+  var inMulti=!!(_multiSel&&_multiSel.on);
+  var picked=inMulti&&_multiSel.ids[m.id]?1:0;
+  var tapAct=inMulti?'msg-multi-pick':'quote';
+  return '<div class="msg-row '+m.dir+(inMulti?' multi-on':'')+(picked?' picked':'')+'"><span class="bubble-av">'+av+'</span>'
+    +'<span class="multi-tick">'+(picked?'✓':'')+'</span>'
+    +'<div class="msg-col">'
+    +'<div class="bubble '+m.dir+'" data-act="'+tapAct+'" data-id="'+m.id+'">'+q+body+'</div>'
+    +(inMulti?'':meta)
+    +'</div></div>';
 }
 function sendChat(){
   var ta=$('#chatText');if(!ta)return;
@@ -2603,11 +2717,6 @@ function readIconFile(input){
   };
   fr.readAsDataURL(input.files[0]);
   input.value='';
-}
-var _imgInput=null;
-function ensureImgInput(){
-  if(!_imgInput){_imgInput=document.createElement('input');_imgInput.type='file';_imgInput.id='imgFile';_imgInput.accept='image/*';_imgInput.style.display='none';document.body.appendChild(_imgInput)}
-  return _imgInput;
 }
 function sheetCheckinAdd(){
   openSheet('<h2>添加查岗预设</h2><label>查岗内容</label><input id="ckAdd" placeholder="如：在干嘛"><div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="checkin-add-save">添加</button></div>');
@@ -3615,7 +3724,6 @@ function sendCheckin(text){
 }
 function sheetTools(){
   var items=[
-    {act:'image-send',n:'图片',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-4 4 3 4-4 5 4"/></svg>'},
     {act:'checkin',n:'查岗',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 12h16M4 12a8 8 0 0 1 8-8m-8 8a8 8 0 0 0 8 8m8-8a8 8 0 0 0-8-8m8 8a8 8 0 0 1-8 8"/></svg>'},
     {act:'poll',n:'决策',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 20V10m5 10V4m5 16v-8m5 8V7"/></svg>'},
     {act:'emoji',n:'表情',ic:ICON_EMOJI},
@@ -3650,24 +3758,11 @@ function sendSticker(id){
   state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'img',img:st.img,ts:now(),replyDue:now()+rndDelay(c)});
   save();closeSheet();renderChat();schedule();
 }
-function sendImageMsg(input){
-  if(!input.files||!input.files[0])return;
-  var fr=new FileReader();
-  fr.onload=function(){
-    var img=new Image();
-    img.onload=function(){
-      var MAX=900,sc=Math.min(1,MAX/Math.max(img.width,img.height));
-      var cw=document.createElement('canvas');cw.width=Math.round(img.width*sc);cw.height=Math.round(img.height*sc);
-      var cx=cw.getContext('2d');cx.drawImage(img,0,0,cw.width,cw.height);
-      var data=cw.toDataURL('image/jpeg',.88);
-      var c=activeContact();
-      state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'img',img:data,ts:now(),replyDue:now()+rndDelay(c)});
-      save();closeSheet();renderChat();schedule();
-    };
-    img.src=fr.result;
-  };
-  fr.readAsDataURL(input.files[0]);
-  input.value='';
+/* 内置图片消息已移除：体积大、解码慢，一点就卡。
+   老存档里如果有图片消息，渲染时降级成一行文字并把数据丢掉，避免继续拖慢页面。 */
+function stripImgMsg(m){
+  if(m&&m.type==='img'&&m.img){try{delete m.img}catch(e){m.img=''}m.type='imgcleared'}
+  return m;
 }
 function addStickerFile(input){
   if(!input.files||!input.files[0])return;
@@ -4098,6 +4193,8 @@ document.addEventListener('click',function(e){
   if(e.target&&e.target.id==='sheet-mask'){closeSheet();return}
   var v=e.target.closest('[data-view]');
   if(v){goView(v.getAttribute('data-view'));return}
+  /* 长按弹过消息菜单后，手指抬起产生的这次 click 不再触发其它动作 */
+  if(_lpFired){_lpFired=0;if(e.target.closest&&e.target.closest('.bubble'))return}
   var btn=e.target.closest('[data-act]');
   if(btn){
     var act=btn.getAttribute('data-act'),id=btn.getAttribute('data-id');
@@ -4174,6 +4271,8 @@ document.addEventListener('click',function(e){
     else if(act==='wd-img-clear'){wdImgClear()}
     else if(act==='wd-pos-reset'){widgetLayoutReset()}
     else if(act==='wdlib-toggle')wdlibToggle(btn.getAttribute('data-k'))
+    else if(act==='wdlib-content-save')wdlibContentSave()
+    else if(act==='wd-photo')wdPickPhoto()
     else if(act==='wdlib-img')wdlibPickImg(btn.getAttribute('data-k'))
     else if(act==='wdlib-img-clear')wdlibImgClear()
     else if(act==='wdlib-reset'){widgetLayoutReset();renderWidgetLib()}
@@ -4188,13 +4287,18 @@ document.addEventListener('click',function(e){
     else if(act==='msg-menu'){sheetMsgMenu(id)}
     else if(act==='msg-copy'){msgCopy(id)}
     else if(act==='msg-del'){msgDel(id)}
+    else if(act==='msg-multi')msgMultiEnter(id);
+    else if(act==='msg-multi-pick')msgMultiToggle(id);
+    else if(act==='msg-multi-copy')msgMultiCopy();
+    else if(act==='msg-multi-save')msgMultiSave();
+    else if(act==='msg-multi-del')msgMultiDelSafe();
+    else if(act==='msg-multi-exit')exitMulti();
     else if(act==='msg-recall'){msgRecall(id)}
     else if(act==='msg-save'){msgSave(id)}
     else if(act==='my-saves'){mySavesSheet()}
     else if(act==='save-copy'){saveCopy(parseInt(btn.getAttribute('data-idx'),10))}
     else if(act==='save-clear'){saveClear()}
     else if(act==='home-page'){var _hpEl=document.getElementById('homePages');if(_hpEl)_hpEl.scrollTo({left:_hpEl.clientWidth*(parseInt(btn.getAttribute('data-p'),10)||0),behavior:'smooth'})}
-    else if(act==='image-send'){ensureImgInput().click()}
     else if(act==='call-voice'){closeSheet();showCall('voice')}
     else if(act==='call-video'){closeSheet();showCall('video')}
     else if(act==='lib'){_lib=btn.getAttribute('data-lib');renderCards()}
@@ -4284,7 +4388,6 @@ document.addEventListener('change',function(e){
   else if(e.target.id==='iconFile')readIconFile(e.target);
   else if(e.target.id==='homeBgFile')readUploadImg(e.target,'home');
   else if(e.target.id==='cbFile')readUploadImg(e.target,'cb');
-  else if(e.target.id==='imgFile')sendImageMsg(e.target);
   else if(e.target.id==='meAvatarFile')readMeFile(e.target);
   else if(e.target.id==='callBgFile')readCallBgFile(e.target);
 });
@@ -4725,10 +4828,22 @@ function tideDel(idx){
 }
 /* ===== 小组件背景上传 / 拖拽 ===== */
 function readWidgetImg(input){
+  var key=_wdImgKey;
   pickImageFile(input,function(img){
-    state.widgetImgs=state.widgetImgs||{};
-    state.widgetImgs[_wdImgKey||'clock']=encodeImg(img,1400,{q:.94});
-    save();toast('组件背景已更新');
+    var data=encodeImg(img,1400,{q:.94});
+    if(key==='__photo'){
+      state.widgetPhoto=state.widgetPhoto||{};
+      state.widgetPhoto.img=data;
+      /* 相册组件没开就顺手打开，不然刚选的图看不到 */
+      state.widgets=state.widgets||{};
+      if(state.widgets.photo===false)state.widgets.photo=true;
+      toast('照片已放进相册组件');
+    }else{
+      state.widgetImgs=state.widgetImgs||{};
+      state.widgetImgs[key||'clock']=data;
+      toast('组件背景已更新');
+    }
+    save();
     if(location.hash.replace('#','')==='widgets')renderWidgetLib();else renderHome();
   });
 }
@@ -4744,68 +4859,101 @@ function widgetLayoutReset(){
 /* ================= 组件库（自由添加 / 装修小组件） ================= */
 function widgetDefs(){
   return [
-    {k:'clock',n:'时间',d:'大时钟 + 星期日期',ic:'clock'},
-    {k:'days',n:'在一起天数',d:'纪念日倒数',ic:'days'},
-    {k:'music',n:'音乐播放',d:'正在听的歌',ic:'music'},
-    {k:'note',n:'便签',d:'一句话贴纸',ic:'note'},
-    {k:'feed',n:'陆沉动态',d:'日记 / 消息 / 朋友圈 / 塔罗通知',ic:'feed'}
+    {k:'clock',   n:'时间',      d:'大时钟 + 星期日期'},
+    {k:'days',    n:'在一起',    d:'恋爱天数 / 纪念日倒数'},
+    {k:'weather', n:'天气',      d:'手动设置的城市天气'},
+    {k:'photo',   n:'相册',      d:'放一张照片 + 一句话'},
+    {k:'count',   n:'倒数日',    d:'距离某天还有多久'},
+    {k:'progress',n:'进度环',    d:'圆环进度条，可记心情'},
+    {k:'music',   n:'音乐播放',  d:'正在听的歌'},
+    {k:'note',    n:'便签',      d:'一句话贴纸'},
+    {k:'feed',    n:'陆沉动态',  d:'日记 / 消息 / 朋友圈 / 塔罗通知'}
   ];
 }
+var WD_ORDER=['clock','days','weather','photo','count','progress','music','note','feed'];
 function widgetIconHtml(k){
   var c='#F28FB0';
   if(k==='clock')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
   if(k==='days')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/></svg>';
   if(k==='music')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7"><path d="M9 18V6l10-2v11"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="15" r="2.4"/></svg>';
   if(k==='note')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linejoin="round"><path d="M5 4h9l5 5v11H5z"/><path d="M14 4v5h5"/></svg>';
+  if(k==='weather')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="9" r="3.4"/><path d="M9 3.2v1.6M3.2 9h1.6M4.9 4.9l1.1 1.1M13.1 4.9l-1.1 1.1M9 13.2V15"/><path d="M9.5 17.5h7.2a2.6 2.6 0 0 0 0-5.2 3.4 3.4 0 0 0-6.4 1 2.2 2.2 0 0 0-.8 4.2z"/></svg>';
+  if(k==='photo')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><circle cx="8.5" cy="10" r="1.6"/><path d="M3.5 17l4.8-4 3.7 3 3.6-3.6L20.5 17"/></svg>';
+  if(k==='count')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21h14"/><path d="M7 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M9 21v-6h6v6"/><path d="M9 7h2M13 7h2"/></svg>';
+  if(k==='progress')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.5" opacity=".28"/><path d="M12 3.5a8.5 8.5 0 0 1 7.4 12.7"/></svg>';
   return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>';
+}
+function widgetEnsureOrder(){
+  var base=state.widgetOrder&&state.widgetOrder.length?state.widgetOrder.slice():WD_ORDER.slice();
+  for(var i=0;i<WD_ORDER.length;i++)if(base.indexOf(WD_ORDER[i])<0)base.push(WD_ORDER[i]);
+  var cleaned=[];
+  for(var j=0;j<base.length;j++)if(WD_ORDER.indexOf(base[j])>=0&&cleaned.indexOf(base[j])<0)cleaned.push(base[j]);
+  state.widgetOrder=cleaned;
+  return cleaned;
 }
 function widgetOn(k){
   var w=state.widgets||{};
   return w[k]!==false;
 }
-function widgetEnsureOrder(){
-  var base=state.widgetOrder&&state.widgetOrder.length?state.widgetOrder.slice():['clock','days','music','note','feed'];
-  var defs=widgetDefs();
-  for(var i=0;i<defs.length;i++)if(base.indexOf(defs[i].k)<0)base.push(defs[i].k);
-  state.widgetOrder=base;
-  return base;
-}
 function renderWidgetLib(){
-  var order=widgetEnsureOrder();
-  var defs=widgetDefs();
-  var on=0;
-  for(var i=0;i<defs.length;i++)if(widgetOn(defs[i].k))on++;
+  widgetEnsureOrder();
+  var defs=widgetDefs(),on=0,i;
+  for(i=0;i<defs.length;i++)if(widgetOn(defs[i].k))on++;
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">组件库</span><span class="pr"><button class="back" data-act="wdlib-close" title="完成">完成</button></span></div>';
   html+='<div class="screen">';
-  html+='<div class="note" style="margin-bottom:12px">已添加 '+on+' / '+defs.length+' 个。点「添加」放到桌面，长按桌面上的组件可以拖到任意位置。</div>';
+  html+='<div class="note" style="margin-bottom:12px">已添加 '+on+' 个。点 <b>＋</b> 把组件放到桌面；桌面上长按组件可以拖到任意位置。</div>';
   html+='<div class="wdlib-list">';
-  for(var j=0;j<defs.length;j++){
-    var w=defs[j],isOn=widgetOn(w.k);
-    html+='<div class="wdlib-item'+(isOn?' on':'')+'"><span class="wdlib-ic">'+widgetIconHtml(w.k)+'</span><div class="wdlib-tx"><b>'+w.n+'</b><span>'+w.d+'</span></div><button class="wdlib-btn'+(isOn?' added':'')+'" data-act="wdlib-toggle" data-k="'+w.k+'">'+(isOn?'已添加':'添加')+'</button></div>';
+  for(i=0;i<defs.length;i++){
+    var w=defs[i],isOn=widgetOn(w.k);
+    html+='<div class="wdlib-item'+(isOn?' on':'')+'"><span class="wdlib-ic">'+widgetIconHtml(w.k)+'</span><div class="wdlib-tx"><b>'+w.n+'</b><span>'+w.d+'</span></div>'
+      +'<button class="wdlib-btn'+(isOn?' added':'')+'" data-act="wdlib-toggle" data-k="'+w.k+'">'+(isOn?'已添加':'＋ 添加')+'</button></div>';
   }
   html+='</div>';
-  html+='<div class="me-sec" style="margin-top:16px"><h3>装修</h3><div class="card">';
-  html+='<div class="meta" style="margin-bottom:8px">组件背景图（点一个组件换它的底图）</div><div class="wdlib-imgrow">';
-  for(var m=0;m<defs.length;m++){
-    if(!widgetOn(defs[m].k))continue;
-    html+='<button class="preset-btn" data-act="wdlib-img" data-k="'+defs[m].k+'">'+defs[m].n+'底图</button>';
-  }
+
+  /* 需要填内容 / 换图的组件，直接在这里设 */
+  html+='<div class="me-sec" style="margin-top:16px"><h3>组件内容</h3><div class="card">';
+  html+='<div class="rhy-grid">';
+  var wp=state.widgetWeather||{};
+  html+='<div class="inl"><label>天气 · 城市</label><input id="wdCity" value="'+esc(wp.city||'')+'" placeholder="如：上海"></div>';
+  html+='<div class="inl"><label>温度 ℃</label><input id="wdTemp" type="number" value="'+(wp.temp==null?'':wp.temp)+'" placeholder="26"></div>';
+  html+='<div class="inl"><label>天气状况</label><input id="wdText" value="'+esc(wp.text||'')+'" placeholder="晴 / 多云 / 小雨"></div>';
+  var cnt=state.widgetCount||{};
+  html+='<div class="inl"><label>倒数日 · 标题</label><input id="wdCntTitle" value="'+esc(cnt.title||'')+'" placeholder="纪念日"></div>';
+  html+='<div class="inl"><label>倒数日 · 日期</label><input id="wdCntDate" type="date" value="'+esc(cnt.date||'')+'"></div>';
+  var pr=state.widgetProgress||{};
+  html+='<div class="inl"><label>进度环 · 名称</label><input id="wdPrLabel" value="'+esc(pr.label||'')+'" placeholder="心情"></div>';
+  html+='<div class="inl"><label>进度环 · 百分比</label><input id="wdPrVal" type="number" min="0" max="100" value="'+(pr.value==null?'':pr.value)+'"></div>';
+  html+='<div class="inl" style="width:100%"><label>相册 · 配文</label><input id="wdPhCap" value="'+esc((state.widgetPhoto||{}).cap||'')+'" placeholder="一句话说明"></div>';
+  html+='<div class="inl" style="width:100%"><label>在一起 · 起始日期（留空则用天数设置）</label><input id="wdCalDate" type="date" value="'+esc((state.widgetCalendar||{}).date||'')+'"></div>';
   html+='</div>';
-  html+='<button class="btn ghost" style="width:100%;margin-top:10px" data-act="wdlib-img-clear">清除全部组件底图</button>';
+  html+='<div class="wdlib-imgrow" style="margin-top:10px">'
+    +'<button class="preset-btn" data-act="wd-photo">相册封面图</button>'
+    +'<button class="preset-btn" data-act="wdlib-img" data-k="clock">时间底图</button>'
+    +'<button class="preset-btn" data-act="wdlib-img" data-k="weather">天气底图</button>'
+    +'<button class="preset-btn" data-act="wdlib-img" data-k="days">在一起底图</button>'
+    +'<button class="preset-btn" data-act="wdlib-img" data-k="music">音乐底图</button>'
+    +'<button class="preset-btn" data-act="wdlib-img" data-k="note">便签底图</button>'
+    +'</div>';
+  html+='<button class="btn" style="width:100%;margin-top:10px" data-act="wdlib-content-save">保存组件内容</button>';
+  html+='<button class="btn ghost" style="width:100%;margin-top:8px" data-act="wdlib-img-clear">清除全部组件底图</button>';
   html+='<button class="btn ghost" style="width:100%;margin-top:8px" data-act="wdlib-reset">组件回到默认位置</button>';
   html+='</div></div>';
-  html+='<div class="me-sec"><h3>顺序</h3><div class="card"><div class="meta" style="margin-bottom:8px">桌面上组件的排列顺序（拖动桌面组件也会自动更新）</div><div class="wdlib-order">';
-  var shown=0;
-  for(var q=0;q<order.length;q++){
-    var kk=order[q];if(!widgetOn(kk))continue;shown++;
-    var nm=kk;for(var z=0;z<defs.length;z++)if(defs[z].k===kk)nm=defs[z].n;
-    html+='<span class="wdlib-chip">'+nm+'</span>';
-  }
-  if(!shown)html+='<span class="meta">还没有添加组件</span>';
-  html+='</div></div></div>';
   html+='</div>';
   $('#view').innerHTML=html;
 }
+function wdlibContentSave(){
+  state.widgetWeather={city:val('#wdCity'),temp:clamp(parseInt(val('#wdTemp'),10)||0,-50,60),text:val('#wdText')||'晴'};
+  state.widgetCount={title:val('#wdCntTitle')||'纪念日',date:val('#wdCntDate')};
+  state.widgetProgress={label:val('#wdPrLabel')||'心情',value:clamp(parseFloat(val('#wdPrVal'))||0,0,100)};
+  state.widgetPhoto=state.widgetPhoto||{};
+  state.widgetPhoto.cap=val('#wdPhCap');
+  state.widgetCalendar={date:val('#wdCalDate')};
+  save();toast('组件内容已保存');renderWidgetLib();
+}
+function val(sel){var el=document.querySelector(sel);return el?String(el.value||'').trim():''}
+function wdlibImgClear(){state.widgetImgs={};save();renderWidgetLib();toast('已清除组件底图')}
+/* 相册封面：走同一个隐藏 input，用 _wdImgKey='photo' 区分 */
+function wdPickPhoto(){_wdImgKey='__photo';var f=document.getElementById('wdImgFile');if(f)f.click()}
 var _wdImgKey=null;
 function wdlibToggle(k){
   state.widgets=state.widgets||{clock:true,days:true,music:true,note:true,feed:true};
@@ -4972,15 +5120,106 @@ function saveAllPct(){
   }
   save();toast('概率已保存');
 }
+function msgMenuIcon(k){
+  var s='fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+  if(k==='copy')return '<svg viewBox="0 0 24 24" width="19" height="19" '+s+'><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 5.5H6.5A1.5 1.5 0 0 0 5 7v8.5"/></svg>';
+  if(k==='quote')return '<svg viewBox="0 0 24 24" width="19" height="19" '+s+'><path d="M9 14L4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 7 7v4"/></svg>';
+  if(k==='save')return '<svg viewBox="0 0 24 24" width="19" height="19" '+s+'><path d="M6 4h12v16l-6-4-6 4z"/></svg>';
+  if(k==='recall')return '<svg viewBox="0 0 24 24" width="19" height="19" '+s+'><path d="M3 10h11a6 6 0 0 1 0 12H8"/><path d="M7 6l-4 4 4 4"/></svg>';
+  if(k==='select')return '<svg viewBox="0 0 24 24" width="19" height="19" '+s+'><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8.5 12.2l2.4 2.4 4.6-4.8"/></svg>';
+  return '<svg viewBox="0 0 24 24" width="19" height="19" '+s+'><path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13"/></svg>';
+}
 function sheetMsgMenu(id){
   var m=byId(state.messages,id);if(!m)return;
-  var items='';
-  if(m.text)items+='<div class="menu-item" data-act="msg-copy" data-id="'+m.id+'">复制文本</div>';
-  if(m.dir==='out'&&!m.kind)items+='<div class="menu-item" data-act="quote" data-id="'+m.id+'">引用回复</div>';
-  if(m.text||m.kind)items+='<div class="menu-item" data-act="msg-save" data-id="'+m.id+'">收藏消息</div>';
-  if(m.dir==='out'&&!m.recalled)items+='<div class="menu-item" data-act="msg-recall" data-id="'+m.id+'">撤回</div>';
-  items+='<div class="menu-item danger" data-act="msg-del" data-id="'+m.id+'">删除</div>';
-  openSheet('<h2>消息操作</h2>'+items+'<div class="actions"><button class="cancel" data-act="sheet-close">关闭</button></div>');
+  var c=activeContact();
+  var body=m.kind==='transfer'?('转账 ¥'+(m.amount||0).toFixed(2)):(m.kind==='poll'?('决策：'+(m.question||'')):(m.kind==='checkin'?('查岗：'+(m.text||'')):(m.recalled?'（已撤回）':(m.text||''))));
+  var items=[
+    {a:'msg-copy',   n:'复制',   ic:'copy',   show:!!m.text},
+    {a:'quote',      n:'引用回复',ic:'quote',  show:m.dir==='out'&&!m.kind&&!m.recalled},
+    {a:'msg-save',   n:'收藏',   ic:'save',   show:!(m.recalled),combo:!!m.text},
+    {a:'msg-recall', n:'撤回',   ic:'recall', show:m.dir==='out'&&!m.recalled},
+    {a:'msg-multi',  n:'多选',   ic:'select', show:true,combo:true},
+    {a:'msg-del',    n:'删除',   ic:'del',    show:true,danger:true}
+  ];
+  var grid='';
+  for(var i=0;i<items.length;i++){
+    var it=items[i];if(!it.show)continue;
+    grid+='<button class="msg-menu-item'+(it.danger?' danger':'')+'" data-act="'+it.a+'" data-id="'+m.id+'"'+(it.combo?' data-combo="1"':'')+'>'
+      +'<span class="mm-ic">'+msgMenuIcon(it.ic)+'</span>'+it.n+'</button>';
+  }
+  var head='<h2>消息操作</h2><div class="msg-menu-quote">'+esc(trunc(body||'（无文字内容）',60))+'</div>';
+  openSheet(head+'<div class="msg-menu-grid">'+grid+'</div>'
+    +'<div class="actions"><button class="cancel" data-act="sheet-close">关闭</button>'+(m.dir==='out'&&!m.recalled?'<button class="ok" data-act="msg-recall" data-id="'+m.id+'">撤回</button>':'')+'</div>');
+}
+/* ===== 多选模式 ===== */
+function msgMultiEnter(id){
+  _multiSel={on:true,ids:{}};
+  if(id)_multiSel.ids[id]=1;
+  closeSheet();renderChat();
+  toast('多选模式：点消息选中，可批量复制/收藏/删除');
+}
+function msgMultiToggle(id){
+  if(!_multiSel||!_multiSel.on)return;
+  if(_multiSel.ids[id])delete _multiSel.ids[id];else _multiSel.ids[id]=1;
+  renderChat();
+}
+function msgMultiCount(){var n=0;if(_multiSel)for(var k in _multiSel.ids)n++;return n}
+function msgMultiList(){
+  var out=[];
+  if(!_multiSel)return out;
+  for(var i=0;i<state.messages.length;i++)if(_multiSel.ids[state.messages[i].id])out.push(state.messages[i]);
+  return out;
+}
+function msgMultiText(m){
+  if(m.kind==='transfer')return '转账 ¥'+(m.amount||0).toFixed(2);
+  if(m.kind==='poll')return '决策：'+(m.question||'');
+  if(m.kind==='checkin')return '查岗：'+(m.text||'');
+  return m.text||'';
+}
+function msgMultiCopy(){
+  var list=msgMultiList();
+  if(!list.length){toast('还没有选中消息');return}
+  var txt=[];
+  for(var i=0;i<list.length;i++)txt.push(msgMultiText(list[i]));
+  txt=txt.join('\n');
+  var done=function(){exitMulti();toast('已复制 '+list.length+' 条')};
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,function(){toast('复制失败，可长按单条复制')});
+    else done();
+  }catch(e){done()}
+}
+function msgMultiSave(){
+  var list=msgMultiList();
+  if(!list.length){toast('还没有选中消息');return}
+  if(!state.mySaves)state.mySaves=[];
+  for(var i=0;i<list.length;i++){
+    var m=list[i];
+    state.mySaves.unshift({id:m.id,text:msgMultiText(m)||'[卡片]',ts:m.ts,dir:m.dir});
+  }
+  save();exitMulti();toast('已收藏 '+list.length+' 条');
+}
+function msgMultiDelSafe(){msgMultiDelete()}
+function msgMultiDelete(){
+  var list=msgMultiList();
+  if(!list.length){toast('还没有选中消息');return}
+  if(!confirm('删除选中的 '+list.length+' 条消息？'))return;
+  var ids={};for(var i=0;i<list.length;i++)ids[list[i].id]=1;
+  var keep=[];
+  for(var j=0;j<state.messages.length;j++)if(!ids[state.messages[j].id])keep.push(state.messages[j]);
+  state.messages=keep;
+  save();exitMulti();toast('已删除 '+list.length+' 条');
+}
+function exitMulti(){_multiSel=null;renderChat()}
+function multiBarHtml(){
+  if(!_multiSel||!_multiSel.on)return '';
+  var n=msgMultiCount();
+  return '<div class="multi-bar"><span class="mb-n">已选 '+n+' 条</span>'
+    +'<div class="mb-btns">'
+    +'<button data-act="msg-multi-copy">复制</button>'
+    +'<button data-act="msg-multi-save">收藏</button>'
+    +'<button class="danger" data-act="msg-multi-del">删除</button>'
+    +'<button data-act="msg-multi-exit">取消</button>'
+    +'</div></div>';
 }
 function msgCopy(id){
   var m=byId(state.messages,id);if(!m)return;
@@ -5026,7 +5265,7 @@ function bindBubbleLongpress(){
     if(el.querySelector('button'))return;
     var mid=el.getAttribute('data-id');
     if(!mid)return;
-    var tid=setTimeout(function(){sheetMsgMenu(mid)},480);
+    var tid=setTimeout(function(){_lpFired=1;sheetMsgMenu(mid)},480);
     function gone(){clearTimeout(tid);document.removeEventListener('touchend',gone);document.removeEventListener('touchmove',moved)}
     function moved(){clearTimeout(tid);document.removeEventListener('touchend',gone);document.removeEventListener('touchmove',moved)}
     document.addEventListener('touchend',gone);
@@ -5122,16 +5361,42 @@ function initDrag(){
   var grids=document.querySelectorAll('.app-grid');
   for(var gi=0;gi<grids.length;gi++)bindAppDrag(grids[gi],grids);
 }
+/* 图标拖拽：同一页内换位 + 拖到屏幕边缘自动翻页（跨页搬运） */
 function bindAppDrag(grid,allGrids){
-  var drag=null,timer=null,ghost=null,startX=0,startY=0,lastX=0,lastY=0;
+  var drag=null,timer=null,ghost=null,startX=0,startY=0;
+  var edgeDir=0,edgeSince=0;
+  var EDGE_PX=42,HOLD_MS=280;
   function findApp(t){var el=t;while(el&&el!==grid&&!el.classList.contains('app-item'))el=el.parentNode;return el===grid?null:el}
+  function pageOf(g){return parseInt(g.getAttribute('data-page'),10)||0}
+  function scrollToPage(n){
+    var sc=document.getElementById('homePages');
+    if(!sc)return;
+    var g=allGrids[n];
+    if(!g)return;
+    var pg=g.closest?g.closest('.home-page'):null;
+    var left=pg?pg.offsetLeft:0;
+    sc.scrollTo({left:Math.max(0,left),behavior:'auto'});
+  }
+  function detachTo(target){
+    if(!drag||!target||drag.parentNode===target)return;
+    var g0=document.querySelector('.app-grid.editing');
+    if(g0&&g0!==grid)g0.classList.remove('editing');
+    if(drag.parentNode)drag.parentNode.removeChild(drag);
+    target.appendChild(drag);
+    grid=target;
+    grid.classList.add('editing');
+    scrollToPage(pageOf(target));
+  }
   function begin(x,y,target){
     var el=findApp(target);if(!el)return;
-    startX=x;startY=y;lastX=x;lastY=y;
+    startX=x;startY=y;
+    edgeDir=0;edgeSince=0;
     timer=setTimeout(function(){
       if(!el.parentNode)return;
       drag=el;
       el.classList.add('dragging');
+      var g0=document.querySelector('.app-grid.editing');
+      if(g0&&g0!==grid)g0.classList.remove('editing');
       grid.classList.add('editing');
       ghost=el.cloneNode(true);
       ghost.id='dragGhost';
@@ -5149,58 +5414,62 @@ function bindAppDrag(grid,allGrids){
     rafT=requestAnimationFrame(function(){
       rafT=null;
       if(ghost)ghost.style.transform='translate3d('+(x-ghost.offsetWidth/2)+'px,'+(y-ghost.offsetHeight/2)+'px,0)';
-      var gr=grid.getBoundingClientRect();
-      if(allGrids&&allGrids.length>1&&(x<gr.left+6||x>gr.right-6)){
-        var cur=parseInt(grid.getAttribute('data-page'),10)||0;
-        var nxt=x<gr.left+6?cur-1:cur+1;
-        if(nxt>=0&&nxt<allGrids.length){
-          var tgt=allGrids[nxt];
-          var sc=document.getElementById('homePages');
-          if(sc)sc.scrollTo({left:nxt*sc.clientWidth,behavior:'smooth'});
-          if(drag.parentNode===grid)grid.removeChild(drag);
-          tgt.appendChild(drag);
-          grid.classList.remove('editing');
-          grid=tgt;
-          grid.classList.add('editing');
+      var cur=pageOf(grid);
+      var dir=0;
+      if(x<=EDGE_PX&&cur>0)dir=-1;
+      else if(x>=(window.innerWidth-EDGE_PX)&&cur<allGrids.length-1)dir=1;
+      if(dir===0){edgeDir=0;edgeSince=0}
+      else{
+        var nowT=Date.now();
+        if(dir!==edgeDir){edgeDir=dir;edgeSince=nowT}
+        else if(nowT-edgeSince>=HOLD_MS){
+          var tgt=allGrids[cur+dir];
+          if(tgt){detachTo(tgt);edgeSince=nowT}
         }
       }
       var items=grid.querySelectorAll('.app-item');
-    for(var i=0;i<items.length;i++){
-      var it=items[i];
-      if(it===drag||it.classList.contains('dragging'))continue;
-      var r=it.getBoundingClientRect();
-      if(x>r.left-6&&x<r.right+6&&y>r.top-6&&y<r.bottom+6){
-        var a=drag,b=it;
-        var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();
-        if(br.top<(ar.top+ar.height/2))grid.insertBefore(a,b);
-        else grid.insertBefore(a,b.nextSibling);
-        break;
+      for(var i=0;i<items.length;i++){
+        var it=items[i];
+        if(it===drag||it.classList.contains('dragging'))continue;
+        var r=it.getBoundingClientRect();
+        if(x>r.left-6&&x<r.right+6&&y>r.top-6&&y<r.bottom+6){
+          var a=drag,b=it;
+          var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();
+          if(br.top<(ar.top+ar.height/2))grid.insertBefore(a,b);
+          else grid.insertBefore(a,b.nextSibling);
+          break;
+        }
       }
-    }
     });
   }
   function end(){
     if(timer){clearTimeout(timer);timer=null}
+    edgeDir=0;edgeSince=0;
     if(!drag)return;
     drag.classList.remove('dragging');
-    grid.classList.remove('editing');
+    for(var e2=0;e2<allGrids.length;e2++)allGrids[e2].classList.remove('editing');
     if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
     ghost=null;
-    var order=[],its=grid.querySelectorAll('.app-item');
-    for(var i=0;i<its.length;i++)order.push(its[i].getAttribute('data-view'));
-    var pg0=parseInt(grid.getAttribute('data-page'),10)||0;
-    var PER2=6;
-    var all=(state.appOrder&&state.appOrder.length)?state.appOrder.slice():[];
-    if(pg0===0){for(var ii=0;ii<order.length&&ii<all.length;ii++)all[ii]=order[ii]}
-    else{for(var ii=PER2,kk=0;ii<all.length&&kk<order.length;ii++,kk++)all[ii]=order[kk]}
-    state.appOrder=all;save();
+    var all=[];
+    for(var pg2=0;pg2<allGrids.length;pg2++){
+      var its=allGrids[pg2].querySelectorAll('.app-item');
+      for(var i2=0;i2<its.length;i2++){
+        var v=its[i2].getAttribute('data-view');
+        if(v&&all.indexOf(v)<0)all.push(v);
+      }
+    }
+    var prev=state.appOrder||[];
+    for(var p2=0;p2<prev.length;p2++)if(all.indexOf(prev[p2])<0)all.push(prev[p2]);
+    state.appOrder=all;
+    save();
     drag=null;
   }
   grid.addEventListener('touchstart',function(e){var t=e.touches[0];begin(t.clientX,t.clientY,e.target)},{passive:true});
   grid.addEventListener('touchmove',function(e){
-    if(!drag)return;
-    var t=e.touches[0];move(t.clientX,t.clientY);
-    if(drag)e.preventDefault();
+    var t=e.touches[0];
+    if(!drag){if(timer)move(t.clientX,t.clientY);return}
+    move(t.clientX,t.clientY);
+    if(e.cancelable)e.preventDefault();
   },{passive:false});
   grid.addEventListener('touchend',function(){end()});
   grid.addEventListener('touchcancel',function(){end()});
@@ -5208,6 +5477,7 @@ function bindAppDrag(grid,allGrids){
   document.addEventListener('mousemove',function(e){if(drag){move(e.clientX,e.clientY);e.preventDefault()}});
   document.addEventListener('mouseup',function(){end()});
 }
+
 (function(){
   document.addEventListener('click',function(e){
     var b=e.target.closest('[data-act=music-play]');
