@@ -327,6 +327,111 @@ input:focus,textarea:focus{border-color:var(--green)}
 .tcard{position:relative}
 .tcard.rev{border:1px solid rgba(178,94,139,.5);box-shadow:0 8px 22px rgba(178,94,139,.28)}
 .tcard.rev .trv{position:absolute;right:6px;bottom:6px;font-size:calc(10px*var(--fs));color:#B25E8B;font-weight:700;background:rgba(255,255,255,.85);padding:2px 6px;border-radius:8px}
+/* 今日运势还没抽时的空卡（可点） */
+.tcard-empty{cursor:pointer;border:1px dashed rgba(201,123,142,.55);background:rgba(255,255,255,.42)}
+.tcard-empty .tck{font-size:calc(11.5px*var(--fs));line-height:1.5}
+.tcard-empty:active{transform:scale(.97)}
+/* 通知设置面板 */
+.ntf-tag{font-size:calc(11.5px*var(--fs));font-weight:700;background:rgba(95,143,123,.12);border-radius:20px;padding:3px 10px;white-space:nowrap}
+.sw-row>span{flex-shrink:0}
+/* ===== 组件库 ===== */
+.wdlib-list{display:flex;flex-direction:column;gap:10px}
+.wdlib-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:20px;background:linear-gradient(150deg,rgba(255,255,255,.72),rgba(255,255,255,.5));backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.85);box-shadow:0 6px 20px rgba(150,120,140,.08)}
+.wdlib-item.on{border-color:rgba(242,143,176,.5);box-shadow:0 8px 22px rgba(242,143,176,.16)}
+.wdlib-ic{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.9);flex-shrink:0}
+.wdlib-tx{flex:1;min-width:0}
+.wdlib-tx b{display:block;font-size:calc(15px*var(--fs))}
+.wdlib-tx span{font-size:calc(11.5px*var(--fs));color:var(--sub)}
+.wdlib-btn{flex-shrink:0;font-size:calc(13px*var(--fs));padding:7px 14px;border-radius:20px;background:rgba(242,143,176,.14);color:#C4577E;font-weight:700;min-height:36px}
+.wdlib-btn.added{background:rgba(120,100,80,.1);color:var(--sub);font-weight:400}
+.wdlib-order{display:flex;flex-wrap:wrap;gap:6px}
+.wdlib-chip{font-size:calc(12.5px*var(--fs));background:rgba(255,255,255,.7);border:1px solid var(--glass-brd);border-radius:20px;padding:4px 12px;color:var(--ink)}
+/* 装修区的底图按钮：网格排布，文字不再被挤断行 */
+.wdlib-imgrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(102px,1fr));gap:8px}
+.wdlib-imgrow .preset-btn{width:auto;min-height:42px;font-size:calc(12.5px*var(--fs));padding:8px 6px;white-space:nowrap}
+.wdlib-btn{min-width:74px;text-align:center}
+/* ============================================================
+   高透玻璃 ins 风（统一材质层）
+   思路：更透的底 + 更大的模糊与饱和 + 顶部高光内阴影 + 极细描边
+   ============================================================ */
+:root{
+  --glass-1:rgba(255,255,255,.44);
+  --glass-2:rgba(255,255,255,.62);
+  --glass-3:rgba(255,255,255,.76);
+  --glass-line:rgba(255,255,255,.78);
+  --glass-line-2:rgba(255,255,255,.5);
+  --glass-shadow:0 10px 30px rgba(150,120,140,.13);
+  --glass-inset:inset 0 1px 0 rgba(255,255,255,.9);
+  --blur:blur(24px) saturate(180%);
+}
+/* 小组件：通透玻璃 */
+.widget{
+  background:linear-gradient(155deg,rgba(255,255,255,.5),rgba(255,244,249,.3) 55%,rgba(255,255,255,.42))!important;
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-line)!important;
+  box-shadow:var(--glass-shadow),var(--glass-inset)!important;
+  border-radius:22px!important;
+}
+.widget.w-time b{letter-spacing:.5px}
+/* 组件内部排版压紧：每一类都排成一行高度，避免占两层 */
+.widget.w-time,.widget.w-clock{display:flex!important;flex-direction:row!important;align-items:baseline;gap:9px;min-height:62px;grid-column:auto!important}
+.widget.w-time b,.widget.w-clock b{font-size:calc(30px*var(--fs));line-height:1.1;font-variant-numeric:tabular-nums}
+.widget.w-time span,.widget.w-clock span{font-size:calc(12.5px*var(--fs));color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.widget.w-days{display:flex!important;flex-direction:row!important;align-items:baseline;gap:8px;min-height:62px}
+.widget.w-days b{font-size:calc(26px*var(--fs));line-height:1.1}
+.widget.w-days span{font-size:calc(12.5px*var(--fs));color:var(--sub)}
+.widget.w-note{display:flex!important;flex-direction:row!important;align-items:baseline;gap:8px;min-height:62px}
+.widget.w-note span{font-size:calc(12.5px*var(--fs));color:var(--sub)}
+.widget.w-note b{font-size:calc(15.5px*var(--fs));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.widget.w-music{display:flex!important;align-items:center;gap:10px;min-height:66px}
+.widget.w-music .wm-ic,.wfree .wm-ic{width:36px;height:36px;border-radius:13px;background:linear-gradient(150deg,#F9AEC2,#EE7BA4);flex-shrink:0;box-shadow:0 4px 12px rgba(242,143,176,.3)}
+.widget.w-music .wm-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.28}
+.widget.w-music .wm-tx b{font-size:calc(14px*var(--fs));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.widget.w-music .wm-tx span{font-size:calc(11px*var(--fs));color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.widget.w-music .wm-btn{flex-shrink:0;width:38px;height:38px;min-height:38px;border-radius:50%;background:rgba(255,255,255,.8);color:#C4577E;box-shadow:0 3px 10px rgba(150,120,140,.14)}
+.widget.w-feed{min-height:104px}
+/* 动态小组件里每条小项更轻 */
+.wf-item{background:rgba(255,255,255,.42);border-radius:12px;padding:4px 8px}
+/* 聊天顶栏：悬浮玻璃条 */
+.chat-top{
+  background:linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.42))!important;
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-bottom:1px solid var(--glass-line-2)!important;
+  box-shadow:0 6px 22px rgba(150,120,140,.1),var(--glass-inset)!important;
+}
+.chat-top .ct-name{letter-spacing:.3px}
+.chat-top .back,.chat-top .pat-av .avatar{background:rgba(255,255,255,.6);border:1px solid var(--glass-line);box-shadow:0 3px 10px rgba(150,120,140,.1)}
+/* 聊天底栏：悬浮玻璃输入条 */
+.chat-input{
+  background:linear-gradient(0deg,rgba(255,255,255,.72),rgba(255,255,255,.46))!important;
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-top:1px solid var(--glass-line-2)!important;
+  box-shadow:0 -6px 22px rgba(150,120,140,.1),inset 0 1px 0 rgba(255,255,255,.9)!important;
+  gap:9px;
+}
+.chat-input textarea{background:rgba(255,255,255,.62)!important;border:1px solid var(--glass-line)!important;box-shadow:inset 0 1px 3px rgba(150,120,140,.08),0 1px 0 rgba(255,255,255,.7)}
+.chat-input button[data-act="send-chat"]{background:linear-gradient(150deg,#F9AEC2,#EE7BA4)!important;box-shadow:0 6px 16px rgba(242,143,176,.34),inset 0 1px 0 rgba(255,255,255,.5)}
+.chat-input .tool-btn{background:rgba(255,255,255,.64)!important;border:1px solid var(--glass-line);box-shadow:0 2px 8px rgba(150,120,140,.08)}
+/* 通用卡片 / 页面顶栏也统一材质 */
+.card,.me-sec .card{background:linear-gradient(155deg,var(--glass-2),var(--glass-1))!important;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-line)!important;box-shadow:var(--glass-shadow),var(--glass-inset)!important}
+.page-top{background:linear-gradient(180deg,rgba(255,255,255,.66),rgba(255,255,255,.46))!important;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-bottom:1px solid var(--glass-line-2)!important;box-shadow:0 6px 20px rgba(150,120,140,.08),var(--glass-inset)!important}
+.page-top .back{background:rgba(255,255,255,.62);border:1px solid var(--glass-line);box-shadow:0 3px 10px rgba(150,120,140,.1)}
+.status-card{background:linear-gradient(155deg,rgba(255,255,255,.52),rgba(255,240,247,.34))!important;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-line)!important;box-shadow:var(--glass-shadow),var(--glass-inset)!important}
+.app-icon{box-shadow:0 8px 22px rgba(150,120,140,.16),inset 0 1px 0 rgba(255,255,255,.7)!important}
+/* 输入框、开关、按钮统一柔和质感 */
+input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(--glass-line)!important}
+.btn{background:linear-gradient(150deg,#7BA893,#5F8F7B)!important;box-shadow:0 6px 18px rgba(95,143,123,.26),inset 0 1px 0 rgba(255,255,255,.35)}
+.btn.ghost{background:rgba(255,255,255,.62)!important;color:var(--green)!important;border:1px solid var(--glass-line)!important;box-shadow:0 3px 10px rgba(150,120,140,.08)}
+.chip{background:rgba(255,255,255,.6)!important;border:1px solid var(--glass-line);color:#6B5A6A}
+.chip.b-soft{background:rgba(233,240,233,.75)!important;color:#3F6B58}
+.sheet{background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(255,252,254,.94))!important;backdrop-filter:blur(30px) saturate(170%);-webkit-backdrop-filter:blur(30px) saturate(170%);border:1px solid var(--glass-line);box-shadow:0 -10px 40px rgba(150,120,140,.18)}
+.post,.mail-item,.diary-item,.daily-card,.saved-item,.tr-item{background:linear-gradient(155deg,rgba(255,255,255,.6),rgba(255,255,255,.42))!important;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-line)!important;box-shadow:0 8px 24px rgba(150,120,140,.1),var(--glass-inset)!important}
+.bubble.in{backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%)}
+/* 组件库条目也走高透 */
+.wdlib-item{background:linear-gradient(155deg,rgba(255,255,255,.66),rgba(255,255,255,.44))!important}
+@media (prefers-reduced-transparency:reduce){
+  .widget,.card,.chat-top,.chat-input,.page-top{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(255,255,255,.92)!important}
+}
 
 /* ============ 通用 ============ */
 .card{background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--glass-brd);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--glass-sh)}
@@ -746,6 +851,18 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .tide-hist-item b{flex:1;font-size:calc(14px*var(--fs))}
 .widgets .widget{cursor:grab}
 .widgets .widget.dragging{opacity:.3}
+/* 小组件自由摆放：容器留出高度，组件按存档里的百分比坐标绝对定位，
+   这样长按拖动后可以停在任意位置（也自动适配不同屏幕宽度） */
+.widgets{position:relative}
+.widgets .widget.wfree{position:absolute;margin:0;left:0;cursor:grab;touch-action:none}
+.widgets.editfree .widget.wfree{animation:appjig .42s ease-in-out infinite}
+/* 小组件单列排布：宽度跟随容器，绝不影响聊天气泡等其它元素 */
+.widgets .widget.wfree{width:100%}
+/* 容器改成块级定位上下文：grid 会把撑高用的占位块塞进某一列，导致右侧留白、高度算错 */
+.widgets{display:block;padding-top:0}
+.widgets .wfree-spacer{display:block;width:100%;height:0}
+.widgets .wfree .widget-grip{position:absolute;right:7px;top:6px;width:14px;height:14px;opacity:.0;pointer-events:none;background:radial-gradient(currentColor 1.2px,transparent 1.3px);background-size:5px 5px;color:var(--sub)}
+.widgets.editfree .wfree .widget-grip{opacity:.55}
 #callOverlay.show.mini{inset:auto;top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;height:auto;background:none;box-shadow:none;pointer-events:none}
 #callOverlay.show.mini .call-mini{pointer-events:auto;position:relative;background:linear-gradient(150deg,rgba(255,255,255,.9),rgba(255,238,244,.82));backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(255,140,180,.3),inset 0 1px 0 rgba(255,255,255,.85);border-radius:30px;display:flex;flex-direction:row;align-items:center;gap:9px;padding:7px 10px;touch-action:none;cursor:grab;width:auto;max-width:calc(100vw - 20px);height:auto}
 #callOverlay.show.mini .call-mini .cm-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:var(--serif);font-size:calc(14px*var(--fs));font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(80,60,40,.18)}
@@ -757,6 +874,12 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 #callOverlay.show.mini .call-mini button{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;min-width:0;border:none;cursor:pointer;background:rgba(255,255,255,.75);color:#B25E8B;box-shadow:0 2px 8px rgba(255,140,180,.22)}
 #callOverlay.show.mini .call-mini button.duan{background:linear-gradient(150deg,#FF7B8E,#FF5A76);color:#fff}
 #callOverlay.show.mini .call-mini button svg{width:16px;height:16px}
+/* 拖动过的通话条：位置由内联样式决定（只在够宽的屏幕上生效） */
+@media(min-width:600px){
+  #callOverlay.show.mini.dragged{left:auto;right:auto;transform:none;max-width:none}
+}
+#callOverlay.show{display:block}
+#callOverlay.show.full,#callOverlay.show.ring{left:0;right:0;top:0}
 </style>
 </head>
 <body>
@@ -993,6 +1116,14 @@ function migrate(s){
   if(s.settings.patOn===undefined)s.settings.patOn=true;
   if(s.settings.patReplyPct===undefined)s.settings.patReplyPct=40;
   if(s.settings.ntfOn===undefined)s.settings.ntfOn=true;
+  if(s.settings.ntfPreview===undefined)s.settings.ntfPreview='full';
+  if(s.settings.ntfBgOnly===undefined)s.settings.ntfBgOnly=false;
+  if(s.settings.ntfSound===undefined)s.settings.ntfSound=true;
+  if(s.settings.ntfVibe===undefined)s.settings.ntfVibe=true;
+  if(s.settings.ntfStrong===undefined)s.settings.ntfStrong=false;
+  if(s.settings.ntfSticky===undefined)s.settings.ntfSticky=true;
+  if(s.settings.ntfBadge===undefined)s.settings.ntfBadge=true;
+  if(s.settings.ntfSw===undefined)s.settings.ntfSw=true;
   if(s.settings.dailyOn===undefined)s.settings.dailyOn=true;
   if(!s.settings.homeTheme)s.settings.homeTheme='aurora';
   if(!s.settings.auroraTint)s.settings.auroraTint='cream';
@@ -1275,6 +1406,8 @@ function restoreFull(d,tgt){
   if(typeof renderAll==='function')renderAll();
 }
 var state=load()||defaultState();
+/* 全新安装也要跑一次迁移：否则本版本新增的设置项会缺失（保存时又不会补） */
+try{state=migrate(state)}catch(e){}
 if(window.__restoreCandidate){var _rc=window.__restoreCandidate;window.__restoreCandidate=null;restoreFull(_rc,state)}
 function idbOpen(){
   return new Promise(function(res,rej){
@@ -1373,7 +1506,7 @@ function writeLocal(json){
       try{
         var _t2=JSON.stringify(obj);
         localStorage.setItem(KEY,_t2);
-        window.__saveNote='存储空间不足，本机存档已省略最早的 '+trimmed+' 条聊天记录（其他设置都在）';
+        window.__saveNote='本机存档空间已满，最早的 '+trimmed+' 条聊天记录不再重复保存在本机副本里（设置和其他内容都在）。完整记录请用 设置→备份 导出保存';
         window.__saveStatus='slim';
         return {ok:true,json:_t2};
       }catch(e){}
@@ -1521,11 +1654,22 @@ function coverStyle(){
 }
 
 /* ================= 路由 ================= */
-var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot'];
+var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets'];
 function router(){
   var h=location.hash.replace('#','');
-  if(VIEWS.indexOf(h)<0){location.hash='home';return}
+  if(VIEWS.indexOf(h)<0){goView('home');return}
   render(h);
+}
+/** 统一的页面跳转。原来直接改 location.hash：
+ *  如果目标 hash 和当前一样（例如来电时先把界面画成了聊天页，但地址还停在 #home），
+ *  浏览器不会触发 hashchange，界面就卡住不动——返回按钮点了没反应就是这个原因。
+ *  这里 hash 相同也强制重绘一次。 */
+function goView(v,force){
+  v=v||'home';
+  if(VIEWS.indexOf(v)<0)v='home';
+  var cur=location.hash.replace('#','');
+  if(cur!==v){location.hash=v;return}
+  if(force!==false)render(v);
 }
 function render(v){
   v=v||location.hash.replace('#','')||'home';
@@ -1540,6 +1684,7 @@ function render(v){
   else if(v==='tide')renderTide();
   else if(v==='wallet')renderWallet();
   else if(v==='tarot')renderTarot();
+  else if(v==='widgets')renderWidgetLib();
   else renderMe();
   schedule();
 }
@@ -1564,23 +1709,7 @@ function renderHome(){
   var wds=state.widgets||{clock:true,days:true,music:true,note:true};
   var wdo=state.widgetOrder&&state.widgetOrder.length?state.widgetOrder:['clock','days','music','note','feed'];
   html+='<div class="widgets" id="widgetGrid">';
-  for(var wi=0;wi<wdo.length;wi++){
-    var wv=wdo[wi];
-    if(!wds[wv])continue;
-    var wbg=state.widgetImgs&&state.widgetImgs[wv]?' style="background-image:url(\''+state.widgetImgs[wv]+'\');background-size:cover;background-position:center;background-color:rgba(255,255,255,.7);background-blend-mode:overlay"':'';
-    if(wv==='clock')html+='<div class="widget w-time"'+wbg+'><b id="wClock">'+fmtClock()+'</b><span>星期'+wk[d.getDay()]+' · '+(d.getMonth()+1)+'月'+d.getDate()+'日</span></div>';
-    else if(wv==='days')html+='<div class="widget w-days"'+wbg+'><span>'+(state.widgetDaysLabel||'在一起')+'</span><b>'+state.anniversaryDays+'</b><span>'+(state.widgetDaysUnit||'天')+'</span></div>';
-    else if(wv==='music')html+='<div class="widget w-music"'+wbg+'><span class="wm-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="#fff" stroke="#fff" stroke-width="1.5"><path d="M9 18V6l10-2v11"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="15" r="2.4"/></svg></span><div class="wm-tx"><b>'+esc(state.widgetMusic.song)+'</b><span>'+esc(state.widgetMusic.artist)+'</span></div><button class="wm-btn" data-act="music-play" title="播放/暂停">'+(state._mPlay?'▐▐':'▶')+'</button></div>';
-    else if(wv==='note')html+='<div class="widget w-note"'+wbg+'><span>便签</span><b>'+esc(state.widgetNote||'')+'</b></div>';
-    else if(wv==='feed'){html+='<div class="widget w-feed"><span class="wf-tt">陆沉动态</span><div class="wf-list">';
-      var fe=state.feedEvents||[];var feList=fe.slice().sort(function(a,b){return b.ts-a.ts}).slice(0,5);
-      if(!feList.length)html+='<div class="wf-empty">等陆沉来更新</div>';
-      for(var fi=0;fi<feList.length;fi++){
-        var f2=feList[fi];
-        html+='<div class="wf-item" data-view="'+(f2.view||'chat')+'"><span class="wf-dot"></span><span class="wf-tx">'+esc(f2.text)+'</span><span class="wf-tm">'+fmtAgo(f2.ts)+'</span></div>';
-      }
-      html+='</div></div>';}
-  }
+  html+=widgetGridInner(wdo,wds,wk,d);
   html+='</div>';
   html+='<div class="status-card" data-view="chat">'+avatarHtml(c)+'<div class="sc-body"><div class="sc-name">'+esc(c.name)+'</div><div class="sc-chips"><span class="chip b-soft">'+esc(state.currentStatus.text)+'</span><span class="chip">'+esc(state.currentMood.text)+'</span></div></div></div>';
   html+='<div class="app-sec-title">应用</div>';
@@ -1595,7 +1724,8 @@ function renderHome(){
     {v:'me',n:'设置',c:'#6E7F5E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>'},
     {v:'tide',n:'潮汐',c:'#D98CA8',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/><path d="M3 13c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/><path d="M3 18c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/></svg>'},
     {v:'wallet',n:'钱包',c:'#C9A227',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="15" r="1.4" fill="#fff"/></svg>'},
-    {v:'tarot',n:'塔罗',c:'#7B6BB0',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><circle cx="12" cy="12" r="3"/></svg>'},  ];
+    {v:'tarot',n:'塔罗',c:'#7B6BB0',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><circle cx="12" cy="12" r="3"/></svg>'},
+    {v:'widgets',n:'组件库',c:'#8E9BB3',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2"/></svg>'},  ];
   var order=state.appOrder&&state.appOrder.length?state.appOrder:apps.map(function(x){return x.v});
   var PER=8,apg=state.appPage||0,appPages=Math.ceil(order.length/PER);
   html+='<div class="app-grid" id="appGrid_0">';
@@ -1631,20 +1761,122 @@ function renderHome(){
     var _p=Math.round(this.scrollLeft/this.clientWidth);
     if(_p!==state.appPage&&_p<2){state.appPage=_p;save();var _ds=document.querySelectorAll('.page-dots .dot');for(var _i=0;_i<_ds.length;_i++)_ds[_i].classList.toggle('on',_i===_p)}
   });}
-  html+='<div class="home-foot">长按图标可拖动换位 · 数据保存在本机浏览器<br>换手机记得在 设置 → 备份 里导出</div>';
+  html+='<div class="home-foot">长按图标或小组件即可拖动换位 · 数据保存在本机浏览器<br>换手机记得在 设置 → 备份 里导出</div>';
   html+='</div>';
   $('#view').innerHTML=html;
   initDrag();
   initWidgetDrag();
+}
+/* ===== 小组件：自由摆放 ===== */
+var WIDGET_MINH={clock:74,days:74,music:74,note:74,feed:130};
+function widgetPos(wv,idx){
+  var p=(state.widgetPos||{})[wv];
+  if(p&&typeof p.x==='number'&&typeof p.y==='number'){
+    return {x:clamp(p.x,0,0),y:Math.max(0,p.y)};
+  }
+  return null;   /* 没有存位置时由下面的自动排布决定 */
+}
+/** 默认排布：纵向依次往下排，绝不会有谁压到谁 */
+function widgetAutoPos(keys){
+  var y=0,out={},i;
+  for(i=0;i<keys.length;i++){
+    var k=keys[i],h=WIDGET_MINH[k]||74;
+    out[k]={x:0,y:y};
+    y+=h+12;
+  }
+  return out;
+}
+function widgetGridInner(wdo,wds,wk,d){
+  var keys=[],i;
+  for(i=0;i<wdo.length;i++)if(wds[wdo[i]]&&wdo[i]!=='feed')keys.push(wdo[i]);
+  for(i=0;i<wdo.length;i++)if(wds[wdo[i]]&&wdo[i]==='feed')keys.push(wdo[i]);
+  var auto=widgetAutoPos(keys);
+  var out='';
+  for(i=0;i<keys.length;i++){
+    var wv=keys[i];
+    var p=widgetPos(wv,i)||auto[wv]||{x:0,y:0};
+    var attr=(wv==='feed'?'':'data-wkey="'+wv+'" ');
+    var st='left:'+p.x+'%;top:'+p.y+'px;';
+    if(state.widgetImgs&&state.widgetImgs[wv])st+="background-image:url('"+state.widgetImgs[wv]+"');background-size:cover;background-position:center;background-color:rgba(255,255,255,.7);background-blend-mode:overlay;";
+    var inner='';
+    if(wv==='clock')inner='<b id="wClock">'+fmtClock()+'</b><span>星期'+wk[d.getDay()]+' · '+(d.getMonth()+1)+'月'+d.getDate()+'日</span>';
+    else if(wv==='days')inner='<span>'+(state.widgetDaysLabel||'在一起')+'</span><b>'+state.anniversaryDays+'</b><span>'+(state.widgetDaysUnit||'天')+'</span>';
+    else if(wv==='music')inner='<span class="wm-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="#fff" stroke="#fff" stroke-width="1.5"><path d="M9 18V6l10-2v11"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="15" r="2.4"/></svg></span><div class="wm-tx"><b>'+esc(state.widgetMusic.song)+'</b><span>'+esc(state.widgetMusic.artist)+'</span></div><button class="wm-btn" data-act="music-play" title="播放/暂停">'+(state._mPlay?'▐▐':'▶')+'</button>';
+    else if(wv==='note')inner='<span>便签</span><b>'+esc(state.widgetNote||'')+'</b>';
+    else if(wv==='feed'){
+      inner='<span class="wf-tt">陆沉动态</span><div class="wf-list">';
+      var feList=feedRecent(4);
+      if(!feList.length)inner+='<div class="wf-empty">等陆沉来更新</div>';
+      for(var fi=0;fi<feList.length;fi++){
+        var f2=feList[fi];
+        inner+='<div class="wf-item" data-view="'+(f2.view||'chat')+'"><span class="wf-dot"></span><span class="wf-tx">'+esc(f2.text)+'</span><span class="wf-tm">'+fmtAgo(f2.ts)+'</span></div>';
+      }
+      inner+='</div>';
+    }
+    out+='<div class="widget wfree w-'+wv+'" '+attr+'style="'+st+'"><span class="widget-grip"></span>'+inner+'</div>';
+  }
+  out+='<div class="wfree-spacer"></div>';
+  return out;
+}
+/** 组件是绝对定位的，渲染后按实际高度重新码放，确保谁也不压谁 */
+function fitWidgetGrid(){
+  var grid=document.getElementById('widgetGrid');
+  if(!grid)return;
+  var ws=grid.querySelectorAll('.widget');
+  var sp=grid.querySelector('.wfree-spacer');
+  if(!ws.length){
+    if(sp)sp.style.height='0px';
+    return;
+  }
+  /* 如果刚换过 DOM，offsetHeight 会是 0，这时候用之前的估高兜底 */
+  var y=0;
+  for(var i=0;i<ws.length;i++){
+    var el=ws[i];
+    if(!el.classList.contains('wfree'))continue;
+    var h=el.offsetHeight||WIDGET_MINH[wKeyOf(el)]||74;
+    el.style.top=y+'px';
+    y+=h+12;
+  }
+  if(sp)sp.style.height=Math.max(0,y-12)+'px';
+}
+function wKeyOf(el){
+  if(!el)return null;
+  var k=el.getAttribute&&el.getAttribute('data-wkey');
+  if(k)return k;
+  var cls=(el.className||'')+'';
+  if(cls.indexOf('w-music')>-1)return 'music';
+  if(cls.indexOf('w-note')>-1)return 'note';
+  if(cls.indexOf('w-days')>-1)return 'days';
+  if(cls.indexOf('w-time')>-1||cls.indexOf('w-clock')>-1)return 'clock';
+  if(cls.indexOf('w-feed')>-1)return 'feed';
+  return null;
 }
 
 
 /* ================= 动态通知 ================= */
 function feedEvent(text,view){
   state.feedEvents=state.feedEvents||[];
-  state.feedEvents.push({ts:now(),text:text,view:view||'chat'});
+  var t=now();
+  /* 同一条动态在很短时间里重复出现就不再叠加，避免刷成一串 */
+  for(var i=state.feedEvents.length-1;i>=0;i--){
+    var e=state.feedEvents[i];
+    if(e.text===text&&t-e.ts<6*3600*1000){e.ts=t;if(state.feedEvents.length>20)state.feedEvents=state.feedEvents.slice(-20);save();return}
+    if(t-e.ts>6*3600*1000)break;
+  }
+  state.feedEvents.push({ts:t,text:text,view:view||'chat'});
   if(state.feedEvents.length>20)state.feedEvents=state.feedEvents.slice(-20);
   save();
+}
+/** 动态列表：按时间倒序，并且同一条文字只保留最近一次 */
+function feedRecent(n){
+  var fe=(state.feedEvents||[]).slice().sort(function(a,b){return b.ts-a.ts});
+  var seen={},out=[];
+  for(var i=0;i<fe.length&&out.length<n;i++){
+    var k=fe[i].text;
+    if(seen[k])continue;
+    seen[k]=1;out.push(fe[i]);
+  }
+  return out;
 }
 
 /* ================= 塔罗 ================= */
@@ -1700,17 +1932,11 @@ var TAROT_SPREADS=[
 ];
 var _tSpread='daily';
 function renderTarot(){
-  tarotDailyEnsure();
+  tarotDailyToday();
   var c=activeContact();
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">塔罗</span></div><div class="screen">';
-  // 今日运势
-  var td=state.tarotDaily||{};
-  var myC=td.myIdx!=null?tarotCardAt(td.myIdx):null,hisC=td.hisIdx!=null&&td.hisIdx>=0?tarotCardAt(td.hisIdx):null;
-  if(myC)myC.rev=td.myRev||0;if(hisC)hisC.rev=td.hisRev||0;
-  html+='<div class="me-sec"><h3>今日运势</h3><div class="td-row">';
-  html+='<div class="td-card">'+tarotCardHtml(myC,'我')+'</div>';
-  html+='<div class="td-card'+(hisC?'':' td-off')+'">'+tarotCardHtml(hisC||{name:'未抽牌',key:'陆沉今天没有抽牌'},c.name)+'</div>';
-  html+='</div></div>';
+  // 今日运势（抽过才显示）
+  html+='<div class="me-sec"><h3>今日运势</h3><div id="tarotDailyBox">'+tarotDailyHtml()+'</div></div>';
   // 牌阵选择
   html+='<div class="me-sec"><h3>选牌阵</h3><div class="ts-grid">';
   for(var i=0;i<TAROT_SPREADS.length;i++){
@@ -1772,6 +1998,7 @@ function tarotDraw(){
   var q=$('#tarotQ')?$('#tarotQ').value:'';
   var n=$('#tarotNums')?$('#tarotNums').value:'';
   tarotDoDraw(n||'7','我',q,'');
+  tarotDailyDraw('me');
   $('#tarotRes').innerHTML=tarotResHtml();
 }
 function tarotLu(){
@@ -1786,21 +2013,55 @@ function tarotLu(){
     for(var k2=0;k2<cnt;k2++)nums.push(1+Math.floor(Math.random()*99));
     var n2=nums.join(' ');
     tarotDoDraw(n2,c.name,q,'');
+    tarotDailyDraw('his');
     feedEvent(c.name+' 抽了一张塔罗牌：'+state._tarotLast.cards[0].name,'tarot');
     $('#tarotRes').innerHTML='<div class="tr-nums"><span class="meta">'+esc(c.name)+' 选了数字 '+esc(n2)+'</span></div>'+tarotResHtml();
     if(btn){btn.disabled=false;btn.textContent='邀请'+esc(c.name)+'抽牌'}
+    renderTarotTop();
   },1600);
 }
-function tarotDailyEnsure(){
+/** 今日运势只在用户真的抽了牌之后才出现，不再一打开网页就自动生成 */
+function tarotDailyToday(){
   var t=dateStr(now());
-  if(state.tarotDaily&&state.tarotDaily.date===t)return;
+  if(!state.tarotDaily||state.tarotDaily.date!==t){
+    state.tarotDaily={date:t,myIdx:-1,myRev:0,hisIdx:-1,hisRev:0,hisPct:null};
+  }
+  return state.tarotDaily;
+}
+function tarotDailyDraw(who){
+  var td=tarotDailyToday();
   var rp4=((state.settings&&state.settings.tarotRevPct)!=null?state.settings.tarotRevPct:50);
   var dp4=((state.settings&&state.settings.tarotDailyPct)!=null?state.settings.tarotDailyPct:40);
-  var myIdx=Math.floor(Math.random()*78);
-  var hisIdx=Math.random()*100<dp4?Math.floor(Math.random()*78):-1;
-  state.tarotDaily={date:t,myIdx:myIdx,myRev:Math.random()*100<rp4?1:0,hisIdx:hisIdx,hisRev:hisIdx>=0&&Math.random()*100<rp4?1:0};
-  if(hisIdx>=0)feedEvent(activeContact().name+' 抽了今日塔罗牌','tarot');
+  if(who==='me'&&td.myIdx<0){
+    td.myIdx=Math.floor(Math.random()*78);
+    td.myRev=Math.random()*100<rp4?1:0;
+  }
+  if(who==='his'&&td.hisIdx<0){
+    if(td.hisPct===null||td.hisPct===undefined)td.hisPct=Math.random()*100<dp4?1:0;
+    if(td.hisPct){td.hisIdx=Math.floor(Math.random()*78);td.hisRev=Math.random()*100<rp4?1:0}
+  }
   save();
+  renderTarotTop();
+}
+function renderTarotTop(){
+  var box=document.getElementById('tarotDailyBox');
+  if(box)box.innerHTML=tarotDailyHtml();
+}
+function tarotDailyHtml(){
+  var td=state.tarotDaily||{};
+  var c=activeContact();
+  var myC=td.myIdx!=null&&td.myIdx>=0?tarotCardAt(td.myIdx):null;
+  var hisC=td.hisIdx!=null&&td.hisIdx>=0?tarotCardAt(td.hisIdx):null;
+  if(myC)myC.rev=td.myRev||0;
+  if(hisC)hisC.rev=td.hisRev||0;
+  var h='<div class="td-row">';
+  h+='<div class="td-card">'+(myC?tarotCardHtml(myC,'我'):
+      '<button class="tcard tcard-empty" data-act="tarot-daily-me"><span class="tcm">今日运势</span><span class="tck">点这里抽一张<br>看看今天</span><span class="tcl">我</span></button>')+'</div>';
+  h+='<div class="td-card'+(hisC?'':' td-off')+'">'+(hisC?tarotCardHtml(hisC,c.name):
+      '<button class="tcard tcard-empty" data-act="tarot-daily-his"><span class="tcm">'+(c?esc(c.name):'对方')+'</span><span class="tck">点这里邀请TA<br>抽今日运牌</span><span class="tcl">今天</span></button>')+'</div>';
+  h+='</div>';
+  h+='<p class="meta" style="margin-top:6px">'+(myC?'今日已抽牌，明天可以再抽一张':'今天的运势还没抽，点上面的卡片就能抽')+'</p>';
+  return h;
 }
 
 /* ================= 状态 / 心情 ================= */
@@ -1825,24 +2086,70 @@ function drawCards(n,poolArr){
 }
 var FALLBACK=['收到，我在。','嗯，我在听。','记下了。','好，就这么说定了。'];
 function drawCardText(){var d=drawCards(1);return d.length?d[0]:pick(FALLBACK)}
-function pickCardText(){
-  if(state.cards.length){
-    var groups={};
+function pickCardText(used){
+  if(!state.cards.length)return drawCardText();
+  /* 按分类分组并缓存（字卡库变了自动失效） */
+  var sig=state.cards.length+':'+(state.cards[state.cards.length-1].id||'');
+  if(_cardGroups&&_cardSig!==sig){_cardGroups=null;_cardKeys=null}
+  _cardSig=sig;
+  var groups=_cardGroups;
+  if(!groups){
+    groups={};
     for(var i=0;i<state.cards.length;i++){var tg=state.cards[i].tag||'';(groups[tg]=groups[tg]||[]).push(state.cards[i])}
-    var keys=Object.keys(groups);
-    var g=groups[keys[Math.floor(Math.random()*keys.length)]];
-    return g[Math.floor(Math.random()*g.length)].text;
+    _cardGroups=groups;
+    _cardKeys=null;
   }
-  return drawCardText();
+  var keys=_cardKeys;
+  if(!keys){keys=[];for(var kk in groups)keys.push(kk);_cardKeys=keys}
+  /* 分类等概率 -> 分类内"不放回"地挑，保证同一条消息里不会重复用同一张字卡 */
+  var order=_shuffleKeys(keys),fallback='';
+  for(var a=0;a<order.length;a++){
+    var g=groups[order[a]];
+    if(!g||!g.length)continue;
+    var pool=_unusedTexts(g,used);
+    if(!pool.length)continue;
+    var text=pool[Math.floor(Math.random()*pool.length)];
+    if(!fallback)fallback=text;
+    if(!used||used.indexOf(text)<0)return text;
+  }
+  return fallback||drawCardText();
 }
-function drawBalancedCards(n){
+function _shuffleKeys(keys){
+  var a=keys.slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}
+  return a;
+}
+function _unusedTexts(g,used){
   var out=[];
-  for(var i=0;i<n;i++)out.push(pickCardText());
+  for(var i=0;i<g.length;i++){
+    var tx=g[i].text;
+    if(!used||used.indexOf(tx)<0)out.push(tx);
+  }
   return out;
 }
-function composeText(c){
-  if(c&&c.puzzle&&state.cards.length)return drawBalancedCards(rnd(2,3)).join('\n\n');
-  return pickCardText();
+var _cardGroups=null,_cardKeys=null,_cardSig=null;
+function cardLibChanged(){_cardGroups=null;_cardKeys=null}
+function drawBalancedCards(n){
+  var out=[],used=[];
+  for(var i=0;i<n;i++){
+    var t=pickCardText(used);
+    if(!t)break;
+    out.push(t);used.push(t);
+  }
+  return out;
+}
+function composeText(c,avoid){
+  var text;
+  if(c&&c.puzzle&&state.cards.length)text=drawBalancedCards(rnd(2,3)).join('\n\n');
+  else text=pickCardText();
+  /* 连发时尽量不出现两条一模一样的内容 */
+  if(avoid!=null&&text===avoid&&state.cards.length>1){
+    for(var t=0;t<3;t++){
+      var alt=(c&&c.puzzle&&state.cards.length)?drawBalancedCards(rnd(2,3)).join('\n\n'):pickCardText();
+      if(alt!==avoid){text=alt;break}
+    }
+  }
+  return text;
 }
 
 /* ================= 节奏与连发 ================= */
@@ -1869,8 +2176,14 @@ function pushIn(cid,text,t,replyTo){
   return m;
 }
 function pushBurst(c,baseTs,count,quoteId){
-  pushIn(c.id,composeText(c),baseTs,quoteId);
-  for(var i=1;i<count;i++)pushIn(c.id,composeText(c),baseTs+i*rnd(20,50)*1000);
+  var prev=null;
+  pushIn(c.id,composeText(c,prev),baseTs,quoteId);
+  prev=state.messages[state.messages.length-1].text;
+  for(var i=1;i<count;i++){
+    var txt=composeText(c,prev);
+    pushIn(c.id,txt,baseTs+i*rnd(20,50)*1000);
+    prev=txt;
+  }
 }
 function maybePost(c,t){
   var d0=new Date(t);d0.setHours(0,0,0,0);
@@ -1947,7 +2260,10 @@ function schedule(){
     var cmn=(state.settings.callMin!=null?state.settings.callMin:15),cmx=(state.settings.callMax!=null?state.settings.callMax:60);
     if(cmn>cmx){var cq0=cmn;cmn=cmx;cmx=cq0}
     if(!state.nextCallDue)state.nextCallDue=t+rnd(cmn,cmx)*60000;
-    items.push({ts:state.nextCallDue,fn:(function(cc){return function(){if(Math.random()*100<(cc.callPct==null?30:cc.callPct))incomingCall('voice');state.nextCallDue=now()+rnd(cmn,cmx)*60000;save();schedule()}})(acX)});
+    items.push({ts:state.nextCallDue,fn:(function(cc){return function(){
+      if(Math.random()*100<(cc.callPct==null?30:cc.callPct))beginCall('voice');
+      state.nextCallDue=now()+rnd(cmn,cmx)*60000;save();schedule();
+    }})(acX)});
   }
   if(acX&&state.settings&&state.settings.letterInitOn!==false){
     var lmn=(state.settings.letterInitMin!=null?state.settings.letterInitMin:180),lmx=(state.settings.letterInitMax!=null?state.settings.letterInitMax:1920);
@@ -2024,7 +2340,13 @@ var ICON_PLUS='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" strok
 var ICON_EMOJI='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 14.5c1.2 1.2 2.6 1.8 4 1.8s2.8-.6 4-1.8M8.8 9.5h.1M15.2 9.5h.1"/></svg>';
 var ICON_CALL='<svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>';
 var ICON_VIDEO='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2" y="6" width="13" height="12" rx="2.5"/><path d="M15 10l7-3v10l-7-3z"/></svg>';
+function inChatView(){
+  return location.hash.replace('#','')==='chat';
+}
 function renderChat(){
+  /* 只有正停在聊天页时才整页重绘。否则（例如来电时）只更新聊天列表那一块，
+     绝不把用户当前所在的页面覆盖成聊天页 */
+  if(!inChatView()&&!document.getElementById('chatList'))return;
   var c=activeContact(),msgs=[];
   if(state.unread){state.unread=0;save()}
   var t=now();
@@ -2032,21 +2354,33 @@ function renderChat(){
     var m=state.messages[i];
     if(m.contactId===c.id&&m.ts<=t)msgs.push(m);
   }
-  var html='<div class="chat-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pat-av" data-act="pat">'+avatarHtml(c,32)+'</span><div class="ct-who"><div class="ct-name">'+esc(c.name)+'</div><div class="ct-chips">'+statusChip()+'</div></div><div class="pr"><button class="back" data-act="call-voice" title="语音电话">'+ICON_CALL+'</button><button class="back" data-act="call-video" title="视频电话">'+ICON_VIDEO+'</button><button class="back" data-act="chat-room" title="聊天室设置">'+ICON_MORE+'</button></div></div>';
-  html+='<div class="chat-wrap"><div id="chatList" style="'+chatBgStyle()+'">';
-  if(!msgs.length)html+='<div class="empty"><span class="big">字</span>还没有消息，先打个招呼吧</div>';
-  for(var j=0;j<msgs.length;j++)html+=bubbleHtml(msgs[j],c);
+  var top='<div class="chat-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pat-av" data-act="pat">'+avatarHtml(c,32)+'</span><div class="ct-who"><div class="ct-name">'+esc(c.name)+'</div><div class="ct-chips">'+statusChip()+'</div></div><div class="pr"><button class="back" data-act="call-voice" title="语音电话">'+ICON_CALL+'</button><button class="back" data-act="call-video" title="视频电话">'+ICON_VIDEO+'</button><button class="back" data-act="chat-room" title="聊天室设置">'+ICON_MORE+'</button></div></div>';
+  var body='<div class="chat-wrap"><div id="chatList" style="'+chatBgStyle()+'">';
+  if(!msgs.length)body+='<div class="empty"><span class="big">字</span>还没有消息，先打个招呼吧</div>';
+  for(var j=0;j<msgs.length;j++)body+=bubbleHtml(msgs[j],c);
   if((state.settings&&state.settings.typingOn!==false)&&_typing&&_typing.contactId===c.id&&(_typing.hold||now()-_typing.ts<8000)){
-    html+=typingRow(c);
+    body+=typingRow(c);
   }
-  html+='</div>';
+  body+='</div>';
   if(_quoteId){
-    html+='<div class="quote-bar"><span class="txt">回复：'+esc(trunc(msgText(_quoteId),26))+'</span><button data-act="quote-cancel">取消</button></div>';
+    body+='<div class="quote-bar"><span class="txt">回复：'+esc(trunc(msgText(_quoteId),26))+'</span><button data-act="quote-cancel">取消</button></div>';
   }
-  html+='<div class="chat-input"><button class="tool-btn" data-act="tools">'+ICON_PLUS+'</button><textarea id="chatText" rows="1" placeholder="说点什么…"></textarea><button class="tool-btn" data-act="emoji">'+ICON_EMOJI+'</button><button data-act="send-chat">发送</button></div></div>';
-  $('#view').innerHTML=html;
+  body+='<div class="chat-input"><button class="tool-btn" data-act="tools">'+ICON_PLUS+'</button><textarea id="chatText" rows="1" placeholder="说点什么…"></textarea><button class="tool-btn" data-act="emoji">'+ICON_EMOJI+'</button><button data-act="send-chat">发送</button></div></div>';
+  if(inChatView()){
+    $('#view').innerHTML=top+body;
+  }else{
+    /* 不在聊天页：只把聊天列表那一块更新掉，不动当前页面 */
+    var list=document.getElementById('chatList');
+    if(!list)return;
+    var wrap=list.parentNode;
+    if(!wrap)return;
+    var holder=document.createElement('div');
+    holder.innerHTML=body;
+    var fresh=holder.querySelector('.chat-wrap');
+    if(fresh)wrap.innerHTML=fresh.innerHTML;
+  }
   applyChatCss();
-  var list=$('#chatList');if(list)list.scrollTop=list.scrollHeight;
+  var list2=$('#chatList');if(list2)list2.scrollTop=list2.scrollHeight;
   var ta=$('#chatText');
   if(ta){
     ta.addEventListener('input',function(){ta.style.height='auto';ta.style.height=Math.min(96,ta.scrollHeight)+'px'});
@@ -2212,23 +2546,43 @@ function sheetHomeBg(){
 }
 function pickHomeBg(key){state.settings.homeBg=key;state.settings.homeBgImg='';save();closeSheet();renderHome();toast('主页壁纸已更换')}
 function clearHomeBg(){state.settings.homeBgImg='';save();closeSheet();renderHome();toast('已恢复默认')}
-function readUploadImg(input,kind){
+/* ===== 图片选取：尽量不损失画质 =====
+   以前壁纸会被压到最长边 1600 再用 JPEG 0.92 重编码，iPhone 截图（1179×2556）
+   缩放后必然发糊。现在：壁纸/封面在安全范围内保持原分辨率，并且用无损 PNG，
+   只有实在过大时才适度缩小。 */
+function encodeImg(img,maxSide,opts){
+  opts=opts||{};
+  var w=img.width,h=img.height;
+  var sc=Math.min(1,maxSide/Math.max(w,h));
+  var cw=document.createElement('canvas');
+  cw.width=Math.max(1,Math.round(w*sc));cw.height=Math.max(1,Math.round(h*sc));
+  var cx=cw.getContext('2d');
+  cx.imageSmoothingEnabled=true;
+  cx.imageSmoothingQuality='high';
+  cx.drawImage(img,0,0,cw.width,cw.height);
+  /* 没有缩小就优先无损 PNG，彻底避免二次压缩发糊 */
+  if(sc>=1&&opts.allowPng!==false){
+    try{var png=cw.toDataURL('image/png');if(png&&png.length<4200000)return png}catch(e){}
+  }
+  return cw.toDataURL(opts.mime||'image/jpeg',opts.q==null?0.95:opts.q);
+}
+function pickImageFile(input,onDone){
   if(!input.files||!input.files[0])return;
   var fr=new FileReader();
   fr.onload=function(){
     var img=new Image();
-    img.onload=function(){
-      var MAX=1600,sc=Math.min(1,MAX/Math.max(img.width,img.height));
-      var cw=document.createElement('canvas');cw.width=Math.round(img.width*sc);cw.height=Math.round(img.height*sc);
-      var cx=cw.getContext('2d');cx.drawImage(img,0,0,cw.width,cw.height);
-      var data=cw.toDataURL('image/jpeg',.92);
-      if(kind==='home'){state.settings.homeBgImg=data;save();closeSheet();renderHome();toast('主页壁纸已更新')}
-      else if(kind==='cb'){state.companion.bgImg=data;save();closeSheet();renderCompanion();toast('陪伴背景已更新')}
-    };
+    img.onload=function(){try{onDone(img)}catch(e){toast('图片处理失败：'+e.message)}input.value=''};
+    img.onerror=function(){toast('这张图片读不出来，换一张试试');input.value=''};
     img.src=fr.result;
   };
   fr.readAsDataURL(input.files[0]);
-  input.value='';
+}
+function readUploadImg(input,kind){
+  pickImageFile(input,function(img){
+    var data=encodeImg(img,2560,{q:.95});
+    if(kind==='home'){state.settings.homeBgImg=data;save();closeSheet();renderHome();toast('主页壁纸已更新')}
+    else if(kind==='cb'){state.companion.bgImg=data;save();closeSheet();renderCompanion();toast('陪伴背景已更新')}
+  });
 }
 var _iconTarget='chat';
 function iconReset(v){delete state.appIcons[v];save();renderAll();toast('已恢复默认图标')}
@@ -2269,24 +2623,13 @@ function checkinDel(idx){
   save();renderMe();
 }
 function readImg(input,kind){
-  if(!input.files||!input.files[0])return;
-  var fr=new FileReader();
-  fr.onload=function(){
-    var img=new Image();
-    img.onload=function(){
-      var MAX=kind==='bg'?1600:1200;
-      var w=img.width,h=img.height,sc=Math.min(1,MAX/Math.max(w,h));
-      var cw=document.createElement('canvas');cw.width=Math.round(w*sc);cw.height=Math.round(h*sc);
-      var cx=cw.getContext('2d');cx.drawImage(img,0,0,cw.width,cw.height);
-      var data=cw.toDataURL('image/jpeg',.92);
-      if(kind==='bg'){state.settings.chatBgImg=data}
-      else{state.settings.coverImg=data}
-      save();closeSheet();renderAll();toast('已更新');
-    };
-    img.src=fr.result;
-  };
-  fr.readAsDataURL(input.files[0]);
-  input.value='';
+  pickImageFile(input,function(img){
+    /* 朋友圈封面按 9:16 常用比例保留，聊天壁纸保持原分辨率 */
+    var data=encodeImg(img,kind==='bg'?2400:2000,{q:.95});
+    if(kind==='bg'){state.settings.chatBgImg=data}
+    else{state.settings.coverImg=data}
+    save();closeSheet();renderAll();toast('已更新');
+  });
 }
 
 /* ================= 信箱 ================= */
@@ -2703,10 +3046,9 @@ function renderMe(){
   html+='<div class="inl"><label>表情回复概率%</label><input id="setEmojiPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.emojiPct)!=null?state.settings.emojiPct:15)+'"></div><div class="inl"><label>引用你的消息概率%</label><input id="setQuotePct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.quotePct)!=null?state.settings.quotePct:40)+'"></div>';
   html+='<div class="inl"><label>主动消息带查岗概率%</label><input id="setCheckinPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)+'"></div><div class="inl"><label>主动消息后发朋友圈概率%</label><input id="setPostPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.postPct)!=null?state.settings.postPct:50)+'"></div>';
   html+='</div><div style="margin-top:10px"><button class="btn" style="width:100%" data-act="save-gen">保存</button></div></div></div>';
-  html+='<div class="me-sec"><h3>通知与互动</h3><div class="card">';
-  html+='<div class="sw-row"><div><b>消息通知</b><span>他发消息时横幅+系统通知</span></div><div class="switch'+(state.settings.ntfOn?' on':'')+'" data-act="st-sw" data-key="ntfOn"></div></div>';
-  html+='<button class="btn ghost" style="width:100%;margin:6px 0" data-act="ntf-perm">开启系统通知</button>';
-  html+='<div class="sw-row"><div><b>他收藏我的消息</b><span>发消息后他有一定概率收藏</span></div><div class="switch'+(state.settings.savedOn?' on':'')+'" data-act="st-sw" data-key="savedOn"></div></div>';
+  html+='<div class="me-sec"><h3>通知与互动</h3>'+ntfPanelHtml();
+  html+='<div class="card" style="margin-top:10px">';
+  html+='<div class="sw-row"><div><b>他收藏我的消息</b><span>发消息后他有一定概率收藏</span></div>'+sw2('savedOn',state.settings.savedOn!==false)+'</div>';
   html+='<div class="sw-row"><div><b>拍一拍</b><span>双击头像拍一拍</span></div><div class="switch'+(state.settings.patOn?' on':'')+'" data-act="st-sw" data-key="patOn"></div></div>';
   html+='<div class="sw-row"><div><b>每日一句</b><span>每次打开网站自动更新一句</span></div><div class="switch'+(state.settings.dailyOn?' on':'')+'" data-act="st-sw" data-key="dailyOn"></div></div>';
   html+='<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>收藏概率%</label><input id="setSavePct" type="number" min="0" max="100" value="'+state.settings.savePct+'"></div><div class="inl"><label>拍一拍回拍概率%</label><input id="setPatPct" type="number" min="0" max="100" value="'+state.settings.patReplyPct+'"></div></div>';
@@ -2748,7 +3090,7 @@ function renderMe(){
   html+='<div class="sw-row"><div><b>音乐播放</b><span>正在听的歌</span></div><div class="switch'+(state.widgets.music?' on':'')+'" data-act="wd-sw" data-key="music"></div></div>';
   html+='<div class="sw-row"><div><b>便签</b><span>一句话贴纸</span></div><div class="switch'+(state.widgets.note?' on':'')+'" data-act="wd-sw" data-key="note"></div></div>';
   html+='<div class="sw-row"><div><b>陆沉动态</b><span>日记/消息/朋友圈/塔罗通知</span></div><div class="switch'+(state.widgets.feed?' on':'')+'" data-act="wd-sw" data-key="feed"></div></div>';
-  html+='<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>在一起天数</label><input id="wdDays" type="number" min="0" value="'+state.anniversaryDays+'"></div><div class="inl"><label>天数标题</label><input id="wdDaysLabel" value="'+esc(state.widgetDaysLabel||'在一起')+'"></div><div class="inl"><label>天数单位</label><input id="wdDaysUnit" value="'+esc(state.widgetDaysUnit||'天')+'"></div><div class="inl"><label>便签文字</label><input id="wdNote" value="'+esc(state.widgetNote||'')+'"></div><div class="inl"><label>歌曲名</label><input id="wdSong" value="'+esc(state.widgetMusic.song)+'"></div><div class="inl"><label>歌手</label><input id="wdArtist" value="'+esc(state.widgetMusic.artist)+'"></div></div><p class="meta" style="margin:8px 0 6px">小组件背景图（长按可拖动换位）</p><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="clock">时间背景</label><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="days">天数背景</label><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="music">音乐背景</label><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="note">便签背景</label></div><button class="btn ghost" style="width:100%;margin-top:6px" data-act="wd-img-clear">恢复默认背景</button><input type="file" id="wdImgFile" accept="image/*" style="display:none">';
+  html+='<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>在一起天数</label><input id="wdDays" type="number" min="0" value="'+state.anniversaryDays+'"></div><div class="inl"><label>天数标题</label><input id="wdDaysLabel" value="'+esc(state.widgetDaysLabel||'在一起')+'"></div><div class="inl"><label>天数单位</label><input id="wdDaysUnit" value="'+esc(state.widgetDaysUnit||'天')+'"></div><div class="inl"><label>便签文字</label><input id="wdNote" value="'+esc(state.widgetNote||'')+'"></div><div class="inl"><label>歌曲名</label><input id="wdSong" value="'+esc(state.widgetMusic.song)+'"></div><div class="inl"><label>歌手</label><input id="wdArtist" value="'+esc(state.widgetMusic.artist)+'"></div></div><p class="meta" style="margin:8px 0 6px">小组件背景图（长按可拖动换位）</p><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="clock">时间背景</label><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="days">天数背景</label><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="music">音乐背景</label><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="note">便签背景</label></div><button class="btn ghost" style="width:100%;margin-top:6px" data-act="wd-img-clear">恢复默认背景</button><button class="btn ghost" style="width:100%;margin-top:6px" data-act="wd-pos-reset">小组件回到默认位置</button><input type="file" id="wdImgFile" accept="image/*" style="display:none">';
   html+='<div style="margin-top:10px"><button class="btn" style="width:100%" data-act="wd-save">保存小组件</button></div></div></div>';
   html+='<div class="me-sec"><h3>表情包</h3><div style="display:flex;gap:10px;align-items:center"><button class="btn ghost" style="flex:1" data-act="emoji">表情包面板</button><span class="meta">已添加 '+state.stickers.length+' 张</span></div></div>';
   html+='<div class="me-group-title">交互</div>';
@@ -2948,21 +3290,14 @@ function pickColor(col){
   updAvatarPrev();
 }
 function readAvatarFile(input){
-  if(!input.files||!input.files[0])return;
-  var fr=new FileReader();
-  fr.onload=function(){
-    var img=new Image();
-    img.onload=function(){
-      var cw=document.createElement('canvas');cw.width=128;cw.height=128;
-      var cx=cw.getContext('2d');
-      var s=Math.min(img.width,img.height),sx=(img.width-s)/2,sy=(img.height-s)/2;
-      cx.drawImage(img,sx,sy,s,s,0,0,128,128);
-      _avImg=cw.toDataURL('image/jpeg',.85);_avPicked=true;updAvatarPrev();
-    };
-    img.src=fr.result;
-  };
-  fr.readAsDataURL(input.files[0]);
-  input.value='';
+  pickImageFile(input,function(img){
+    var cw=document.createElement('canvas');cw.width=360;cw.height=360;
+    var cx=cw.getContext('2d');
+    cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
+    var s=Math.min(img.width,img.height),sx=(img.width-s)/2,sy=(img.height-s)/2;
+    cx.drawImage(img,sx,sy,s,s,0,0,360,360);
+    _avImg=cw.toDataURL('image/png');_avPicked=true;updAvatarPrev();
+  });
 }
 function contactSave(){
   var btn=document.querySelector('[data-act="contact-save"]');
@@ -3358,7 +3693,7 @@ var ICON_PHONE='<svg viewBox="0 0 24 24" width="26" height="26" fill="currentCol
 function rollLoginEvents(){
   var c=activeContact();
   if(!c)return;
-  if(Math.random()*100<(c.callPct==null?30:c.callPct))setTimeout(function(){incomingCall('voice')},3500+rnd(0,4000));
+  if(Math.random()*100<(c.callPct==null?30:c.callPct))setTimeout(function(){beginCall('voice')},3500+rnd(0,4000));
   if(Math.random()*100<(c.transferPct==null?15:c.transferPct))setTimeout(function(){showTransfer()},7000+rnd(0,6000));
 }
 
@@ -3412,21 +3747,30 @@ function pat(){
 }
 function dailyPost(){
   if(state.settings&&state.settings.dailyOn===false)return;
-  var c=activeContact();
-  state.dailyPosts.push({id:uid(),text:drawCardText(),ts:now()});
+  var t=now();
+  /* 一天只更新一次，不再每打开一次就多一条 */
+  if(state._dailyAt&&dateStr(state._dailyAt)===dateStr(t))return;
+  state._dailyAt=t;
+  state.dailyPosts.push({id:uid(),text:drawCardText(),ts:t});
   feedEvent('每日一句换新了','profile');
   save();
 }
 function notifyIncoming(m){
   if(_ntfSilent)return;
   var c=contact(m.contactId);if(!c)return;
-  if(state.settings&&state.settings.ntfOn===false)return;
-  var inChat=location.hash.replace('#','')==='chat'&&state.activeContact===m.contactId;
-  var body=String(m.text||'').replace(/^查岗：/,'');
-  if(document.hidden&&'Notification' in window&&Notification.permission==='granted'){
-    try{new Notification(c.name,{body:body})}catch(e){}
-  }
+  var st=state.settings||{};
+  if(st.ntfOn===false)return;
+  var inChat=inChatView()&&state.activeContact===m.contactId;
+  /* 系统通知：前台时若勾了「仅后台」就不弹 */
+  var wantOS=document.hidden||st.ntfBgOnly!==true;
+  if(wantOS)ntfAggregate(m);
+  ntfBadge();
   if(inChat||document.hidden)return;
+  var body=String(m.text||'').replace(/^查岗：/,'');
+  if(st.ntfPreview==='hidden')body='有新消息';
+  else if(st.ntfPreview==='sender')body='发来一条消息';
+  if(st.ntfSound!==false)ntfBeep();
+  if(st.ntfVibe!==false&&!document.hidden)ntfVibrate();
   var bar=$('#ntfBar');if(!bar)return;
   bar.innerHTML='<span class="ntf-av">'+cAvatar(c)+'</span><div class="ntf-tx"><b>'+esc(c.name)+'</b><span>'+esc(trunc(body,34))+'</span></div><svg class="ntf-x" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   bar.style.display='flex';
@@ -3434,7 +3778,7 @@ function notifyIncoming(m){
   _ntfTimer=setTimeout(function(){bar.style.display='none'},5000);
 }
 function hideNtf(){var b=$('#ntfBar');if(b)b.style.display='none'}
-function ntfGo(){hideNtf();location.hash='chat'}
+function ntfGo(){hideNtf();goView('chat')}
 var _profileTab='diary';
 function renderProfile(){
   var c=activeContact();
@@ -3500,9 +3844,179 @@ function saveProfile(){
   save();renderMe();toast('已保存');
 }
 function ntfPerm(){
-  if(!('Notification' in window)){toast('当前浏览器不支持系统通知');return}
-  if(Notification.permission==='granted'){toast('系统通知已开启');return}
-  Notification.requestPermission().then(function(p){toast(p==='granted'?'系统通知已开启':'未授权系统通知');renderMe()});
+  if(!('Notification' in window)){toast('当前浏览器不支持系统通知（iPhone 上要"添加到主屏幕"后从图标打开才支持）');return}
+  if(Notification.permission==='granted'){toast('系统通知已开启');renderMe();return}
+  if(Notification.permission==='denied'){toast('系统通知被拒绝了：到 iPhone 设置→通知（或浏览器设置）里重新允许，然后重新打开本页');return}
+  try{
+    Notification.requestPermission().then(function(p){
+      toast(p==='granted'?'系统通知已开启':'未授权系统通知');
+      if(p==='granted'){ntfRegisterSW();ntfSelfTest();}
+      renderMe();
+    });
+  }catch(e){toast('授权失败，请在浏览器设置里手动允许通知')}
+}
+/* ===== 系统通知 ===== */
+var _ntfSW=null;
+function ntfRegisterSW(){
+  if(!('serviceWorker' in navigator))return;
+  if(state.settings&&state.settings.ntfSw===false)return;
+  if(_ntfSW)return;
+  try{
+    var code="self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(self.clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<l.length;i++){try{l[i].postMessage({zika:'open-chat'})}catch(x){}}}))});";
+    var url=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));
+    navigator.serviceWorker.register(url).then(function(r){_ntfSW=r}).catch(function(){_ntfSW=null});
+  }catch(e){}
+}
+function ntfSWState(){
+  if(!('serviceWorker' in navigator))return 'unsupported';
+  if(_ntfSW)return 'ready';
+  return 'idle';
+}
+/** 让用户先看到一条测试通知，确认真的弹出得来 */
+function ntfSelfTest(){
+  if(!('Notification' in window)){toast('这个浏览器不支持系统通知');return}
+  if(Notification.permission!=='granted'){toast('请先点「请求授权」');return}
+  var c=activeContact();
+  try{
+    new Notification(c?c.name:'字卡陪伴',{body:'测试通知：他发消息时就会这样提醒你',tag:'zika-test',renotify:true,silent:!(state.settings&&state.settings.ntfSound)});
+    toast('已发送测试通知');
+  }catch(e){toast('发送失败：'+e.message)}
+}
+function ntfHasAPI(){try{return ('Notification' in window)&&Notification.permission==='granted'}catch(e){return false}}
+/** 提示音：用 WebAudio 生成两声轻响，不依赖外部文件 */
+var _ntfAudio=null;
+function ntfBeep(){
+  try{
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    if(!_ntfAudio)_ntfAudio=new AC();
+    var ctx=_ntfAudio;
+    if(ctx.state==='suspended')ctx.resume();
+    var t=ctx.currentTime;
+    [[880,0,.16],[1245,.13,.2]].forEach(function(spec){
+      var o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.value=spec[0];
+      g.gain.setValueAtTime(0,t+spec[1]);
+      g.gain.linearRampToValueAtTime(.09,t+spec[1]+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,t+spec[1]+spec[2]);
+      o.connect(g);g.connect(ctx.destination);
+      o.start(t+spec[1]);o.stop(t+spec[1]+spec[2]+.02);
+    });
+  }catch(e){}
+}
+function ntfVibrate(){
+  try{
+    if(!navigator.vibrate)return;
+    if(state.settings&&state.settings.ntfStrong)navigator.vibrate([140,90,140,90,220]);
+    else navigator.vibrate(120);
+  }catch(e){}
+}
+/** 同一个人连续来消息时，合并更新同一条通知，而不是刷屏 */
+var _ntfAgg={};
+function ntfPush(){
+  var k,list=[];
+  for(k in _ntfAgg)list.push(_ntfAgg[k]);
+  if(!list.length)return;
+  _ntfAgg={};
+  for(var i=0;i<list.length;i++){
+    var it=list[i],c=it.c;
+    var prev=(state.settings&&(state.settings.ntfPreview||'full'));
+    var body;
+    var last=String(it.last||'').replace(/^查岗：/,'');
+    if(prev==='hidden')body='有新消息';
+    else if(prev==='sender')body=it.n>1?(it.n+' 条新消息'):'发来一条消息';
+    else body=it.n>1?(it.n+' 条新消息：'+trunc(last,30)):trunc(last,40);
+    if(!body)body='有新消息';
+    try{
+      if(ntfHasAPI()){
+        var opt={body:body,tag:'zika-'+c.id,renotify:true,silent:!(state.settings&&state.settings.ntfSound!==false)};
+        if(state.settings&&state.settings.ntfSticky===false)opt.requireInteraction=false;
+        else opt.requireInteraction=true;
+        var n=new Notification(c.name,opt);
+        window.__lastNotification=n;
+        n.onclick=function(){try{window.focus()}catch(e){};goView('chat');try{n.close()}catch(e){};};
+      }
+    }catch(e){}
+    if(state.settings&&state.settings.ntfSound&&!(state.settings&&state.settings.ntfBgOnly===true&&!document.hidden))ntfBeep();
+    if(state.settings&&state.settings.ntfVibe!==false)ntfVibrate();
+  }
+}
+function ntfAggregate(m){
+  var c=contact(m.contactId);if(!c)return;
+  var k=c.id;
+  if(!_ntfAgg[k])_ntfAgg[k]={c:c,n:0,last:''};
+  _ntfAgg[k].n++;
+  _ntfAgg[k].last=m.text||'';
+  if(_ntfAgg[k].n===1){
+    if(_ntfTimer2)clearTimeout(_ntfTimer2);
+    _ntfTimer2=setTimeout(function(){_ntfTimer2=null;ntfPush()},900);
+  }
+}
+var _ntfTimer2=null;
+/** 通知中心 / 角标：有未读就显示数字 */
+function ntfBadge(){
+  try{
+    if(!state.settings||state.settings.ntfBadge===false)return;
+    if(!navigator.setAppBadge)return;
+    var n=state.unread||0;
+    if(n>0)navigator.setAppBadge(n);else if(navigator.clearAppBadge)navigator.clearAppBadge();
+  }catch(e){}
+}
+/* 解锁音频：iOS 要求必须由用户手势触发过一次才能出声 */
+document.addEventListener('touchstart',function(){
+  try{
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(AC&&!_ntfAudio)_ntfAudio=new AC();
+    if(_ntfAudio&&_ntfAudio.state==='suspended')_ntfAudio.resume();
+  }catch(e){}
+},{passive:true});
+function ntfStateText(){
+  try{
+    if(!('Notification' in window))return '本浏览器不支持';
+    if(Notification.permission==='granted')return '已授权';
+    if(Notification.permission==='denied')return '已被拒绝';
+    return '未授权';
+  }catch(e){return '未知'}
+}
+function ntfSwText(){
+  if(!('serviceWorker' in navigator))return '浏览器不支持';
+  if(_ntfSW)return '已就绪';
+  return (state.settings&&state.settings.ntfSw===false)?'已关闭':'待注册';
+}
+function ntfPreviewPick(v){
+  state.settings.ntfPreview=v;save();renderMe();
+  toast(v==='full'?'完整预览：通知里显示消息内容':(v==='sender'?'只显示谁发的和条数':'完全隐藏：锁屏也不露内容'));
+}
+function ntfBgTest(){
+  toast(document.hidden?'当前在后台':'当前在前台');
+}
+/** 设置页里的通知面板 */
+function ntfPanelHtml(){
+  var st=state.settings||{};
+  var perm=ntfStateText();
+  var permColor=(perm==='已授权')?'#5F8F7B':(perm==='已被拒绝'?'#C25B5B':'#C9A227');
+  var h='<div class="card">';
+  h+='<div class="sw-row"><div><b>消息通知</b><span>他发消息时横幅 + 系统通知</span></div>'+sw2('ntfOn',st.ntfOn!==false)+'</div>';
+  h+='<div class="sw-row"><div><b>系统通知</b><span>接入 Notification.requestPermission() 与 Service Worker，支持后台提醒、点击跳转</span></div><span class="ntf-tag" style="color:'+permColor+'">'+perm+'</span></div>';
+  h+='<div class="sw-row"><div><b>请求系统权限</b><span>点击后浏览器弹出授权框，允许后才能显示系统通知；拒绝要去浏览器设置里重置</span></div><span style="display:flex;gap:6px"><button class="btn small" data-act="ntf-perm">请求授权</button><button class="btn small ghost" data-act="ntf-test">发送测试</button></span></div>';
+  h+='<div class="sw-row"><div><b>Service Worker</b><span>注册后可接管通知点击，点通知直接跳到聊天页</span></div><span style="display:flex;gap:6px;align-items:center"><span class="ntf-tag">'+ntfSwText()+'</span><button class="btn small ghost" data-act="ntf-sw">重新注册</button></span></div>';
+  h+='<div class="sw-row"><div><b>仅后台显示系统通知</b><span>开启后只在页面处于后台/最小化时推系统通知，前台只显示应用内提醒</span></div>'+sw2('ntfBgOnly',st.ntfBgOnly===true)+'</div>';
+  h+='<div class="sw-row" style="display:block"><div style="margin-bottom:6px"><b>通知预览模式</b><span>决定锁屏/通知中心里露多少内容</span></div><div class="preset-row">'
+    +'<button class="preset-btn'+(st.ntfPreview==='full'?' on':'')+'" data-act="ntf-preview" data-v="full">完整预览</button>'
+    +'<button class="preset-btn'+(st.ntfPreview==='sender'?' on':'')+'" data-act="ntf-preview" data-v="sender">只显示谁发的</button>'
+    +'<button class="preset-btn'+(st.ntfPreview==='hidden'?' on':'')+'" data-act="ntf-preview" data-v="hidden">完全隐藏</button>'
+    +'</div></div>';
+  h+='<div class="sw-row"><div><b>通知声音</b><span>关闭后消息到达不再响提示音；站内横幅、通知中心与角标照常</span></div>'+sw2('ntfSound',st.ntfSound!==false)+'</div>';
+  h+='<div class="sw-row"><div><b>通知震动</b><span>移动端到达时震动一次；关闭后只保留静默送达</span></div>'+sw2('ntfVibe',st.ntfVibe!==false)+'</div>';
+  h+='<div class="sw-row"><div><b>通知常驻（不自动消失）</b><span>开启后消息通知会一直停在通知中心 / 锁屏，直到你点开或忽略</span></div>'+sw2('ntfSticky',st.ntfSticky!==false)+'</div>';
+  h+='<div class="sw-row"><div><b>强振动</b><span>到达时震得更长一点（三下），适合手机静音放兜里时</span></div>'+sw2('ntfStrong',st.ntfStrong===true)+'</div>';
+  h+='<div class="sw-row"><div><b>应用角标</b><span>主屏图标上显示未读数字（支持的浏览器才会亮）</span></div>'+sw2('ntfBadge',st.ntfBadge!==false)+'</div>';
+  h+='<p class="meta" style="margin-top:8px">iPhone 说明：Safari 只有把网站“添加到主屏幕”并从图标打开后才支持系统通知；息屏期间网页被系统冻结，<b>完全关闭网页时无法收到消息</b>（那需要服务器推送，GitHub Pages 做不到）。想尽量不断档，可在下面把“后台保活”开到“一直”。</p>';
+  h+='</div>';
+  return h;
+}
+function sw2(key,on){
+  return '<div class="switch'+(on?' on':'')+'" data-act="st-sw" data-key="'+key+'"></div>';
 }
 
 /* ================= 后台保活：离线补发 ================= */
@@ -3583,7 +4097,7 @@ document.body.appendChild(fileInput);
 document.addEventListener('click',function(e){
   if(e.target&&e.target.id==='sheet-mask'){closeSheet();return}
   var v=e.target.closest('[data-view]');
-  if(v){location.hash=v.getAttribute('data-view');return}
+  if(v){goView(v.getAttribute('data-view'));return}
   var btn=e.target.closest('[data-act]');
   if(btn){
     var act=btn.getAttribute('data-act'),id=btn.getAttribute('data-id');
@@ -3658,6 +4172,12 @@ document.addEventListener('click',function(e){
     else if(act==='wd-save'){wdSave()}
     else if(act==='wd-img'){_wdImgKey=btn.getAttribute('data-key');var wif=$('#wdImgFile');if(wif)wif.click()}
     else if(act==='wd-img-clear'){wdImgClear()}
+    else if(act==='wd-pos-reset'){widgetLayoutReset()}
+    else if(act==='wdlib-toggle')wdlibToggle(btn.getAttribute('data-k'))
+    else if(act==='wdlib-img')wdlibPickImg(btn.getAttribute('data-k'))
+    else if(act==='wdlib-img-clear')wdlibImgClear()
+    else if(act==='wdlib-reset'){widgetLayoutReset();renderWidgetLib()}
+    else if(act==='wdlib-close')goView('home')
     else if(act==='tide-save'){tideSave()}
     else if(act==='tide-record'){tideRecord()}
     else if(act==='tide-del'){tideDel(parseInt(btn.getAttribute('data-idx'),10))}
@@ -3721,6 +4241,9 @@ document.addEventListener('click',function(e){
     else if(act==='diary-del')diaryDel(btn.getAttribute('data-d'));
     else if(act==='profile-save')saveProfile();
     else if(act==='ntf-perm')ntfPerm();
+    else if(act==='ntf-test')ntfSelfTest();
+    else if(act==='ntf-sw'){_ntfSW=null;state.settings.ntfSw=true;save();ntfRegisterSW();toast('已重新注册 Service Worker');renderMe()}
+    else if(act==='ntf-preview')ntfPreviewPick(btn.getAttribute('data-v'));
     else if(act==='save-allpct')saveAllPct();
     else if(act==='ka-mode'){state.settings.keepAlive=btn.getAttribute('data-m')||'smart';save();renderMe()}
     else if(act==='ka-vol'){state.settings.keepVol=btn.getAttribute('data-v')||'light';save();renderMe()}
@@ -3730,6 +4253,8 @@ document.addEventListener('click',function(e){
     else if(act==='tarot-spread'){_tSpread=btn.getAttribute('data-s');document.querySelectorAll('[data-act=tarot-spread]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-s')===_tSpread)})}
     else if(act==='tarot-draw')tarotDraw();
     else if(act==='tarot-lu')tarotLu();
+    else if(act==='tarot-daily-me'){tarotDailyDraw('me');toast('今日运势已抽')}
+    else if(act==='tarot-daily-his'){tarotDailyDraw('his');var _tc=activeContact();toast(_tc?_tc.name+' 抽完了今日运势':'已抽牌')}
     return;
   }
   var cb=e.target.closest('[data-call]');
@@ -3738,8 +4263,8 @@ document.addEventListener('click',function(e){
     if(ca==='accept')callAccept();
     else if(ca==='expand')callExpand();
     else if(ca==='mini')callMini();
-    else if(ca==='mute'){_call._mute=!_call._mute;var m1=document.querySelector('#callOverlay .cf-ops button[data-call=mute]');if(m1)m1.classList.toggle('on',_call._mute);toast(_call._mute?'已静音':'已取消静音')}
-    else if(ca==='speak'){_call._spk=!_call._spk;var m2=document.querySelector('#callOverlay .cf-ops button[data-call=speak]');if(m2)m2.classList.toggle('on',_call._spk);toast(_call._spk?'扬声器已开启':'已关闭扬声器')}
+    if(ca==='mute'){if(_call){_call._mute=!_call._mute;var m1=document.querySelector('#callOverlay .cf-ops button[data-call=mute]');if(m1)m1.classList.toggle('on',_call._mute);toast(_call._mute?'已静音':'已取消静音')}}
+    else if(ca==='speak'){if(_call){_call._spk=!_call._spk;var m2=document.querySelector('#callOverlay .cf-ops button[data-call=speak]');if(m2)m2.classList.toggle('on',_call._spk);toast(_call._spk?'扬声器已开启':'已关闭扬声器')}}
     else callHangup();
     return;
   }
@@ -3835,14 +4360,18 @@ window.addEventListener('load',function(){
   /* 存档检查放在最前面且各自兜底：万一某个界面渲染出错，也还能救数据 */
   try{storageHealthCheck()}catch(e){}
   try{idbSelfCheck()}catch(e){}
-  var boot=[function(){state.lastActive=now()},function(){ensureDiary(now())},function(){refreshMood()},function(){applyTheme()},function(){applyChatCss()},function(){dailyPost()},function(){syncCatchUp()},function(){router()},function(){rollLoginEvents()}];
+  try{ntfRegisterSW()}catch(e){}
+  try{
+    if(navigator.serviceWorker)navigator.serviceWorker.addEventListener('message',function(e){
+      try{if(e.data&&e.data.zika==='open-chat'){goView('chat')}}catch(x){}
+    });
+  }catch(e){}
+  var boot=[function(){state.lastActive=now()},function(){ensureDiary(now())},function(){refreshMood()},function(){applyTheme()},function(){applyChatCss()},function(){dailyPost()},function(){tarotDailyToday()},function(){syncCatchUp()},function(){router()},function(){rollLoginEvents()},function(){ntfBadge()}];
   for(var i=0;i<boot.length;i++){try{boot[i]()}catch(e){}}
 });
-/* ===== v7：全局均匀抽卡（每张字卡等概率，不含状态/心情卡） ===== */
-function pickCardText(){
-  if(state.cards.length)return state.cards[Math.floor(Math.random()*state.cards.length)].text;
-  return drawCardText();
-}
+/* ===== v7：全局均匀抽卡 =====
+   注意：抽卡统一由上面的 pickCardText(used) 负责（含分类均衡与同条消息去重），
+   这里不要再定义一份，否则会覆盖掉上面那份（函数声明提升，后定义的生效）。 */
 
 /* ===== v7：主页主题 ===== */
 var THEMES={
@@ -3902,21 +4431,10 @@ function sheetCallBg(){
 function pickCallBg(key){state.settings.callBg=key;state.settings.callBgImg='';save();closeSheet();toast('通话背景已更换')}
 function clearCallBg(){state.settings.callBgImg='';save();closeSheet();toast('已恢复默认')}
 function readCallBgFile(input){
-  if(!input.files||!input.files[0])return;
-  var fr=new FileReader();
-  fr.onload=function(){
-    var img=new Image();
-    img.onload=function(){
-      var MAX=1600,sc=Math.min(1,MAX/Math.max(img.width,img.height));
-      var cw=document.createElement('canvas');cw.width=Math.round(img.width*sc);cw.height=Math.round(img.height*sc);
-      var cx=cw.getContext('2d');cx.drawImage(img,0,0,cw.width,cw.height);
-      state.settings.callBgImg=cw.toDataURL('image/jpeg',.9);
-      save();closeSheet();toast('通话背景已更新');
-    };
-    img.src=fr.result;
-  };
-  fr.readAsDataURL(input.files[0]);
-  input.value='';
+  pickImageFile(input,function(img){
+    state.settings.callBgImg=encodeImg(img,2560,{q:.95});
+    save();closeSheet();toast('通话背景已更新');
+  });
 }
 
 /* ===== v7：通话（接通后缩小为顶部悬浮条，不挡聊天） ===== */
@@ -3936,10 +4454,28 @@ function showCall(mode){
   speakLoop();
   toast((mode==='video'?'视频':'语音')+'通话中，点顶部小条可展开');
 }
+/* 来电不再强抢界面：不在聊天页就先挂起，等用户自己进聊天再响 */
+var _callWait=null;
+function callWait(){
+  if(_callWait)return;
+  _callWait=setTimeout(function(){
+    _callWait=null;
+    if(!_call&&inChatView())incomingCall('voice');
+  },10000);
+}
+function beginCall(mode){
+  if(_call)return;
+  if(state.settings&&state.settings.callOn===false)return;
+  if(inChatView())incomingCall(mode||'voice');
+  else{
+    callWait();
+    if(typeof toast==='function'){var _cc=activeContact();toast((_cc?_cc.name:'对方')+' 想给你打电话，进聊天就能接到')}
+  }
+}
 function incomingCall(mode){
   mode=mode||'voice';
   var c=activeContact();if(!c)return;
-  _call={stage:'ringing',mode:mode};
+  _call={stage:'ringing',mode:mode,contactId:c.id};
   var ov=$('#callOverlay');
   ov.className='show ring';
   ov.setAttribute('style',callBgStyle());
@@ -3961,6 +4497,7 @@ function callAccept(){
   if(!_call)return;
   clearTimeout(_callTk);
   _call.stage='talking';_call.sec=0;_call._spk=0;
+  if(!inChatView())goView('chat');
   callMini();
   _callTimer=setInterval(function(){
     if(!_call)return;
@@ -3992,7 +4529,12 @@ function callMini(){
   ov.className='show mini';
   ov.setAttribute('style','background:none;box-shadow:none');
   var av=c.avatarType==='img'&&c.avatarImg?'<img src="'+c.avatarImg+'" alt="">':'<i style="background:'+(c.color||'#7A9CC6')+'">'+(c.name||'?').charAt(0)+'</i>';
-  ov.innerHTML='<div class="call-mini"><span class="cm-av">'+av+'</span><div class="cm-tx"><b>'+esc(c.name)+'</b><span class="cm-timer">'+( _call.mode==='video'?'视频':'语音')+'通话中 '+fmtCall(_call.sec||0)+'</span></div><button data-call="expand" title="展开">'+ICON_EXPAND+'</button><button class="duan" data-call="hangup" title="挂断">'+ICON_PHONE+'</button></div>';
+  ov.innerHTML='<div class="call-mini"><span class="cm-av">'+av+'</span><div class="cm-tx"><b>'+esc(c.name)+'</b><span class="cm-timer">'+( _call.mode==='video'?'视频':'语音')+'通话中 '+fmtCall(_call.sec||0)+'</span></div><button data-call="expand" data-nodrag="1" title="展开">'+ICON_EXPAND+'</button><button class="duan" data-call="hangup" data-nodrag="1" title="挂断">'+ICON_PHONE+'</button></div>';
+  /* 记住上次把通话条拖到的位置 */
+  if(state._callPos){
+    var cp=callMiniPosClamp(state._callPos.L,state._callPos.T);
+    callMiniApplyPos(cp.L,cp.T);
+  }
   renderChat();
 }
 function callExpand(){
@@ -4012,21 +4554,33 @@ function callExpand(){
   var dicon='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   ov.innerHTML='<div class="call-full"><div class="cf-top"><button data-call="mini">缩小</button><span class="call-state">VOICE CALL</span><button data-call="hangup">挂断</button></div><div class="cf-body">'+body+'<div class="call-timer">'+fmtCall(_call.sec||0)+'</div><div class="call-name">'+esc(c.name)+'</div></div><div class="cf-ops"><button data-call="mute" class="'+( _call._mute?'on':'')+'">'+micon+'静音</button><button data-call="speak" class="'+( _call._spk?'on':'')+'">'+sicon+'扬声器</button><button class="duan" data-call="hangup">'+dicon+'结束</button></div></div>';
 }
-function callHangup(){
-  if(!_call)return;
-  var sec=_call.stage==='talking'?_call.sec:0;
-  var c=activeContact();
-  var txt=sec?((_call.mode==='video'?'视频通话 ':'语音通话 ')+fmtCall(sec)):('未接'+( _call.mode==='video'?'视频':'语音')+'来电');
-  endCall();
+function commitCallMsg(txt){
+  var cid=(_call&&_call.contactId)||(activeContact()&&activeContact().id);
+  var c=cid?contact(cid):activeContact();
+  if(!c)return;
   state.messages.push({id:uid(),contactId:c.id,dir:'sys',text:txt,ts:now()});
-  save();renderChat();toast(txt);
+  save();
+  if(inChatView())renderChat();
+}
+function callHangup(){
+  if(!_call&&!_callTk)return;
+  var sec=(_call&&_call.stage==='talking')?(_call.sec||0):0;
+  var mode=_call?_call.mode:'voice';
+  var txt=sec?((mode==='video'?'视频通话 ':'语音通话 ')+fmtCall(sec)):('未接'+(mode==='video'?'视频':'语音')+'来电');
+  endCall();
+  commitCallMsg(txt);
+  if(typeof toast==='function')toast(txt);
 }
 function endCall(){
   if(_callTimer)clearInterval(_callTimer);
   if(_call&&_call._spt)clearTimeout(_call._spt);
-  clearTimeout(_callTk);
+  if(_callWait){clearTimeout(_callWait);_callWait=null}
+  clearTimeout(_callTk);_callTk=null;
   _call=null;_callTimer=null;
-  var ov=$('#callOverlay');if(ov){ov.className='';ov.innerHTML='';ov.removeAttribute('style')}
+  var ov=$('#callOverlay');
+  if(ov){ov.className='';ov.innerHTML='';ov.removeAttribute('style');try{ov.style.display=''}catch(e){}}
+  /* 挂断后如果地址和界面已经不一致（被来电打断过），重绘一次把它理顺 */
+  try{if(location.hash.replace('#','')==='chat'&&!document.querySelector('.chat-top'))render('chat')}catch(e){}
 }
 
 /* ===== v7：转账（我转给哥）+ 钱包 ===== */
@@ -4170,48 +4724,127 @@ function tideDel(idx){
   save();renderTide();
 }
 /* ===== 小组件背景上传 / 拖拽 ===== */
-var _wdImgKey='clock';
 function readWidgetImg(input){
-  if(!input.files||!input.files[0])return;
-  var fr=new FileReader();
-  fr.onload=function(){
-    var img=new Image();
-    img.onload=function(){
-      var MAX=800,sc=Math.min(1,MAX/Math.max(img.width,img.height));
-      var cw=document.createElement('canvas');cw.width=Math.round(img.width*sc);cw.height=Math.round(img.height*sc);
-      var cx=cw.getContext('2d');cx.drawImage(img,0,0,cw.width,cw.height);
-      state.widgetImgs=state.widgetImgs||{};
-      state.widgetImgs[_wdImgKey]=cw.toDataURL('image/jpeg',.88);
-      save();toast('背景已更新');
-    };
-    img.src=fr.result;
-  };
-  fr.readAsDataURL(input.files[0]);
-  input.value='';
+  pickImageFile(input,function(img){
+    state.widgetImgs=state.widgetImgs||{};
+    state.widgetImgs[_wdImgKey||'clock']=encodeImg(img,1400,{q:.94});
+    save();toast('组件背景已更新');
+    if(location.hash.replace('#','')==='widgets')renderWidgetLib();else renderHome();
+  });
 }
 function wdImgClear(){
   state.widgetImgs={};
   save();renderHome();toast('已恢复默认背景');
 }
+/** 把小组件摆回默认的两列排布 */
+function widgetLayoutReset(){
+  state.widgetPos={};
+  save();renderHome();toast('小组件已摆回默认位置');
+}
+/* ================= 组件库（自由添加 / 装修小组件） ================= */
+function widgetDefs(){
+  return [
+    {k:'clock',n:'时间',d:'大时钟 + 星期日期',ic:'clock'},
+    {k:'days',n:'在一起天数',d:'纪念日倒数',ic:'days'},
+    {k:'music',n:'音乐播放',d:'正在听的歌',ic:'music'},
+    {k:'note',n:'便签',d:'一句话贴纸',ic:'note'},
+    {k:'feed',n:'陆沉动态',d:'日记 / 消息 / 朋友圈 / 塔罗通知',ic:'feed'}
+  ];
+}
+function widgetIconHtml(k){
+  var c='#F28FB0';
+  if(k==='clock')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
+  if(k==='days')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/></svg>';
+  if(k==='music')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7"><path d="M9 18V6l10-2v11"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="15" r="2.4"/></svg>';
+  if(k==='note')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linejoin="round"><path d="M5 4h9l5 5v11H5z"/><path d="M14 4v5h5"/></svg>';
+  return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>';
+}
+function widgetOn(k){
+  var w=state.widgets||{};
+  return w[k]!==false;
+}
+function widgetEnsureOrder(){
+  var base=state.widgetOrder&&state.widgetOrder.length?state.widgetOrder.slice():['clock','days','music','note','feed'];
+  var defs=widgetDefs();
+  for(var i=0;i<defs.length;i++)if(base.indexOf(defs[i].k)<0)base.push(defs[i].k);
+  state.widgetOrder=base;
+  return base;
+}
+function renderWidgetLib(){
+  var order=widgetEnsureOrder();
+  var defs=widgetDefs();
+  var on=0;
+  for(var i=0;i<defs.length;i++)if(widgetOn(defs[i].k))on++;
+  var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">组件库</span><span class="pr"><button class="back" data-act="wdlib-close" title="完成">完成</button></span></div>';
+  html+='<div class="screen">';
+  html+='<div class="note" style="margin-bottom:12px">已添加 '+on+' / '+defs.length+' 个。点「添加」放到桌面，长按桌面上的组件可以拖到任意位置。</div>';
+  html+='<div class="wdlib-list">';
+  for(var j=0;j<defs.length;j++){
+    var w=defs[j],isOn=widgetOn(w.k);
+    html+='<div class="wdlib-item'+(isOn?' on':'')+'"><span class="wdlib-ic">'+widgetIconHtml(w.k)+'</span><div class="wdlib-tx"><b>'+w.n+'</b><span>'+w.d+'</span></div><button class="wdlib-btn'+(isOn?' added':'')+'" data-act="wdlib-toggle" data-k="'+w.k+'">'+(isOn?'已添加':'添加')+'</button></div>';
+  }
+  html+='</div>';
+  html+='<div class="me-sec" style="margin-top:16px"><h3>装修</h3><div class="card">';
+  html+='<div class="meta" style="margin-bottom:8px">组件背景图（点一个组件换它的底图）</div><div class="wdlib-imgrow">';
+  for(var m=0;m<defs.length;m++){
+    if(!widgetOn(defs[m].k))continue;
+    html+='<button class="preset-btn" data-act="wdlib-img" data-k="'+defs[m].k+'">'+defs[m].n+'底图</button>';
+  }
+  html+='</div>';
+  html+='<button class="btn ghost" style="width:100%;margin-top:10px" data-act="wdlib-img-clear">清除全部组件底图</button>';
+  html+='<button class="btn ghost" style="width:100%;margin-top:8px" data-act="wdlib-reset">组件回到默认位置</button>';
+  html+='</div></div>';
+  html+='<div class="me-sec"><h3>顺序</h3><div class="card"><div class="meta" style="margin-bottom:8px">桌面上组件的排列顺序（拖动桌面组件也会自动更新）</div><div class="wdlib-order">';
+  var shown=0;
+  for(var q=0;q<order.length;q++){
+    var kk=order[q];if(!widgetOn(kk))continue;shown++;
+    var nm=kk;for(var z=0;z<defs.length;z++)if(defs[z].k===kk)nm=defs[z].n;
+    html+='<span class="wdlib-chip">'+nm+'</span>';
+  }
+  if(!shown)html+='<span class="meta">还没有添加组件</span>';
+  html+='</div></div></div>';
+  html+='</div>';
+  $('#view').innerHTML=html;
+}
+var _wdImgKey=null;
+function wdlibToggle(k){
+  state.widgets=state.widgets||{clock:true,days:true,music:true,note:true,feed:true};
+  state.widgets[k]=!(state.widgets[k]!==false);
+  if(state.widgets[k]===true&&state.widgetPos&&state.widgetPos[k])delete state.widgetPos[k];
+  save();renderWidgetLib();
+  var d=null;var defs=widgetDefs();for(var i=0;i<defs.length;i++)if(defs[i].k===k)d=defs[i];
+  toast((state.widgets[k]?'已添加':'已移除')+(d?d.n:'组件'));
+}
+function wdlibPickImg(k){_wdImgKey=k;var f=document.getElementById('wdImgFile');if(f)f.click()}
+function wdlibImgClear(){state.widgetImgs={};save();renderWidgetLib();toast('已清除组件底图')}
 function initWidgetDrag(){
   var grid=document.getElementById('widgetGrid');if(!grid)return;
-  var drag=null,timer=null,ghost=null,startX=0,startY=0;
+  fitWidgetGrid();
+  var drag=null,timer=null,ghost=null,startX=0,startY=0,offX=0,offY=0;
   function findW(t){var el=t;while(el&&el!==grid&&!el.classList.contains('widget'))el=el.parentNode;return el===grid?null:el}
+  function clampN(v,a,b){return Math.max(a,Math.min(b,v))}
   function begin(x,y,target){
-    var el=findW(target);if(!el||el.classList.contains('wm-btn'))return;
+    var el=findW(target);
+    if(!el||!el.classList.contains('wfree'))return;
+    if(target&&target.closest&&target.closest('.wm-btn'))return;
     startX=x;startY=y;
     timer=setTimeout(function(){
       if(!el.parentNode)return;
       drag=el;
+      var r=el.getBoundingClientRect();
+      offX=x-r.left;offY=y-r.top;
       el.classList.add('dragging');
-      grid.classList.add('editing');
+      grid.classList.add('editfree');
       ghost=el.cloneNode(true);
       ghost.id='dragGhost';
-      ghost.style.width=el.offsetWidth+'px';
-      ghost.style.height=el.offsetHeight+'px';
-      ghost.style.transform='translate3d('+(x-el.offsetWidth/2)+'px,'+(y-el.offsetHeight/2)+'px,0)';
+      ghost.className='widget';
+      ghost.style.width=r.width+'px';
+      ghost.style.height=r.height+'px';
+      ghost.style.left='0';ghost.style.top='0';
+      ghost.style.transform='translate3d('+r.left+'px,'+r.top+'px,0)';
       document.body.appendChild(ghost);
-    },380);
+      try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}
+    },350);
   }
   var rafW=null;
   function move(x,y){
@@ -4220,58 +4853,46 @@ function initWidgetDrag(){
     if(rafW)return;
     rafW=requestAnimationFrame(function(){
       rafW=null;
-      if(ghost)ghost.style.transform='translate3d('+(x-ghost.offsetWidth/2)+'px,'+(y-ghost.offsetHeight/2)+'px,0)';
-      var items=grid.querySelectorAll('.widget');
-      for(var i=0;i<items.length;i++){
-        var it=items[i];
-        if(it===drag||it.classList.contains('dragging'))continue;
-        var r=it.getBoundingClientRect();
-        if(x>r.left-6&&x<r.right+6&&y>r.top-6&&y<r.bottom+6){
-          var a=drag,b=it;
-          var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();
-          if(br.top<(ar.top+ar.height/2))grid.insertBefore(a,b);
-          else grid.insertBefore(a,b.nextSibling);
-          break;
-        }
-      }
+      if(ghost)ghost.style.transform='translate3d('+(x-offX)+'px,'+(y-offY)+'px,0)';
     });
   }
   function end(){
     if(timer){clearTimeout(timer);timer=null}
-    lastX=0;lastY=0;
     if(!drag)return;
-    drag.classList.remove('dragging');
-    grid.classList.remove('editing');
+    var el=drag;
+    el.classList.remove('dragging');
+    grid.classList.remove('editfree');
     if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
     ghost=null;
-    var order=[],its=grid.querySelectorAll('.widget');
-    for(var i=0;i<its.length;i++){
-      var k=its[i].getAttribute('data-wkey')||wKeyOf(its[i]);
-      if(k)order.push(k);
+    var k=wKeyOf(el);
+    if(k){
+      var gr=grid.getBoundingClientRect();
+      var r=el.getBoundingClientRect();
+      var w=el.offsetWidth||1;
+      var maxX=Math.max(0,gr.width-w);
+      var px=clampN(r.left-gr.left,0,maxX);
+      var py=Math.max(0,r.top-gr.top);
+      el.style.left=(gr.width?(px/gr.width*100):0)+'%';
+      el.style.top=py+'px';
+      state.widgetPos=state.widgetPos||{};
+      state.widgetPos[k]={x:Math.round(gr.width?(px/gr.width*1000):0)/10,y:Math.round(py)};
+      save();
+      fitWidgetGrid();
     }
-    if(order.length)state.widgetOrder=order;
-    save();
     drag=null;
   }
-  function wKeyOf(el){
-    var cls=el.className||'';
-    if(cls.indexOf('w-time')>-1)return 'clock';
-    if(cls.indexOf('w-days')>-1)return 'days';
-    if(cls.indexOf('w-music')>-1)return 'music';
-    if(cls.indexOf('w-note')>-1)return 'note';
-    return null;
-  }
-  grid.addEventListener('touchstart',function(e){var t=e.touches[0];begin(t.clientX,t.clientY,e.target)},{passive:true});
+  grid.addEventListener('touchstart',function(e){var t=e.touches[0];if(t)begin(t.clientX,t.clientY,e.target)},{passive:true});
   grid.addEventListener('touchmove',function(e){
     if(!drag)return;
-    var t=e.touches[0];move(t.clientX,t.clientY);
-    if(drag)e.preventDefault();
+    var t=e.touches[0];if(t)move(t.clientX,t.clientY);
+    e.preventDefault();
   },{passive:false});
   grid.addEventListener('touchend',function(){end()});
   grid.addEventListener('touchcancel',function(){end()});
   grid.addEventListener('mousedown',function(e){begin(e.clientX,e.clientY,e.target);e.preventDefault()});
   document.addEventListener('mousemove',function(e){if(drag){move(e.clientX,e.clientY);e.preventDefault()}});
   document.addEventListener('mouseup',function(){end()});
+  window.addEventListener('resize',function(){fitWidgetGrid()});
 }
 (function(){
   document.addEventListener('change',function(e){
@@ -4413,46 +5034,83 @@ function bindBubbleLongpress(){
   });
 }
 bindBubbleLongpress();
+/* 通话悬浮条：按住任意位置即可拖动，位置会记住，通话结束后不再复位 */
+function callMiniPosClamp(L,T){
+  var ov=$('#callOverlay');
+  var w=ov?ov.offsetWidth:280,h=ov?ov.offsetHeight:56;
+  var vw=window.innerWidth||360,vh=window.innerHeight||640;
+  return {L:Math.max(6,Math.min(vw-w-6,L)),T:Math.max(6,Math.min(vh-h-6,T))};
+}
+function callMiniApplyPos(L,T){
+  var ov=$('#callOverlay');
+  if(!ov)return;
+  ov.classList.add('dragged');
+  ov.style.top=T+'px';ov.style.left=L+'px';ov.style.right='auto';
+}
 function bindCallDrag(){
   if(state._cld)return;state._cld=true;
+  var dragging=false,sx=0,sy=0,baseL=0,baseT=0,ov=null,moved=false;
+  function start(x,y,target){
+    ov=$('#callOverlay');
+    if(!ov||!ov.classList.contains('mini'))return;
+    /* 点在按钮上就别拖，免得按不到挂断 */
+    var el=target;
+    while(el&&el!==document.body){
+      if(el.getAttribute&&el.getAttribute('data-nodrag')!==null&&el.getAttribute&&el.getAttribute('data-nodrag')!==undefined){}
+      if(el.tagName==='BUTTON')return;
+      el=el.parentNode;
+    }
+    var r=ov.getBoundingClientRect();
+    baseL=r.left;baseT=r.top;sx=x;sy=y;moved=false;dragging=true;
+    ov.style.transition='none';
+  }
+  function move(x,y){
+    if(!dragging||!ov)return;
+    moved=true;
+    var p=callMiniPosClamp(baseL+(x-sx),baseT+(y-sy));
+    ov.style.top=p.T+'px';ov.style.left=p.L+'px';ov.style.right='auto';
+  }
+  function end(){
+    if(!dragging)return;
+    dragging=false;
+    if(ov){
+      ov.style.transition='';
+      if(moved){
+        var r=ov.getBoundingClientRect();
+        state._callPos={L:Math.round(r.left),T:Math.round(r.top)};
+        save();
+        ov.classList.add('dragged');
+      }
+    }
+    ov=null;
+  }
   document.addEventListener('touchstart',function(e){
-    var el=e.target;while(el&&el!==document.body&&!el.classList.contains('call-mini'))el=el.parentNode;
-    if(!el)return;
-    var ov=$('#callOverlay');
-    if(!ov||!ov.classList.contains('mini'))return;
-    if(el.querySelector('button')&&el.querySelector('button').contains(e.target))return;
-    var t=e.touches[0],sx=t.clientX,sy=t.clientY;
-    var or=el.getBoundingClientRect();
-    var baseL=or.left,baseT=or.top;
-    function mv(ev){
-      var t2=ev.touches[0];
-      var L=baseL+(t2.clientX-sx),T=baseT+(t2.clientY-sy);
-      L=Math.max(6,Math.min(window.innerWidth-el.offsetWidth-6,L));
-      T=Math.max(6,Math.min(window.innerHeight-el.offsetHeight-6,T));
-      ov.style.top=T+'px';ov.style.left=L+'px';ov.style.right='auto';
-    }
-    function up(){document.removeEventListener('touchmove',mv);document.removeEventListener('touchend',up)}
-    document.addEventListener('touchmove',mv,{passive:true});
-    document.addEventListener('touchend',up);
+    var t=e.touches&&e.touches[0];if(!t)return;
+    start(t.clientX,t.clientY,e.target);
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!dragging)return;
+    var t=e.touches&&e.touches[0];if(!t)return;
+    move(t.clientX,t.clientY);
+    if(e.cancelable)e.preventDefault();
   },{passive:false});
+  document.addEventListener('touchend',end);
+  document.addEventListener('touchcancel',end);
   document.addEventListener('mousedown',function(e){
-    var el=e.target;while(el&&el!==document.body&&!el.classList.contains('call-mini'))el=el.parentNode;
-    if(!el)return;
-    var ov=$('#callOverlay');
-    if(!ov||!ov.classList.contains('mini'))return;
-    if(el.querySelector('button')&&el.querySelector('button').contains(e.target))return;
-    var sx=e.clientX,sy=e.clientY;
-    var or=el.getBoundingClientRect();
-    var baseL=or.left,baseT=or.top;
-    function mv2(ev){
-      var L=baseL+(ev.clientX-sx),T=baseT+(ev.clientY-sy);
-      L=Math.max(6,Math.min(window.innerWidth-el.offsetWidth-6,L));
-      T=Math.max(6,Math.min(window.innerHeight-el.offsetHeight-6,T));
-      ov.style.top=T+'px';ov.style.left=L+'px';ov.style.right='auto';
-    }
-    function up2(){document.removeEventListener('mousemove',mv2);document.removeEventListener('mouseup',up2)}
-    document.addEventListener('mousemove',mv2);
-    document.addEventListener('mouseup',up2);
+    if(e.button!==0)return;
+    start(e.clientX,e.clientY,e.target);
+    if(dragging)e.preventDefault();
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!dragging)return;
+    move(e.clientX,e.clientY);
+    e.preventDefault();
+  });
+  document.addEventListener('mouseup',end);
+  window.addEventListener('resize',function(){
+    if(!state._callPos)return;
+    var p=callMiniPosClamp(state._callPos.L,state._callPos.T);
+    state._callPos={L:p.L,T:p.T};
   });
 }
 bindCallDrag();
