@@ -57,6 +57,7 @@ input:focus,textarea:focus{border-color:var(--green)}
 .chip{display:inline-flex;align-items:center;gap:4px;font-size:calc(12.5px*var(--fs));color:#5A4632;background:#F3EDDF;border-radius:20px;padding:3px 10px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .chip.b-soft{background:var(--green-soft);color:#3F6B58}
 .app-sec-title{font-size:calc(13px*var(--fs));color:var(--sub);letter-spacing:1.5px;margin-bottom:10px}
+.app-grid{position:relative;z-index:2}
 .app-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px}
 .app-item{text-align:center;cursor:pointer}
 .app-icon{width:56px;height:56px;border-radius:17px;display:flex;align-items:center;justify-content:center;color:#fff;margin:0 auto 7px;box-shadow:0 6px 18px rgba(70,58,40,.13);transition:transform .12s}
@@ -113,11 +114,58 @@ input:focus,textarea:focus{border-color:var(--green)}
 .cat-tabs .add-cat{border:1px dashed rgba(201,123,142,.6);color:#B25E8B;background:rgba(255,255,255,.5);font-weight:600}
 .cat-tabs .add-cat.danger{border-color:rgba(196,91,91,.55);color:#C25B5B;border-style:solid}
 .card .chip.gray{opacity:.6;background:rgba(255,255,255,.6);color:var(--sub)}
+/* ===== 备份：分类选择 ===== */
+.bk-card{padding:14px}
+.bk-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.bk-head b{font-size:calc(15px*var(--fs))}
+.bk-head .meta{margin-top:2px}
+.bk-head-btns{display:flex;gap:6px;flex-shrink:0}
+.bk-head-btns .btn{min-height:34px;min-width:56px}
+.bk-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bk-cat{display:flex;gap:9px;align-items:flex-start;padding:10px 11px;border-radius:13px;
+background:rgba(255,255,255,.7);border:1px solid var(--line);cursor:pointer}
+.bk-cat input{margin:2px 0 0;flex-shrink:0;width:16px;height:16px;accent-color:#D9557A}
+.bk-cat .bk-tx{display:flex;flex-direction:column;min-width:0}
+.bk-cat b{font-size:calc(13.5px*var(--fs));font-weight:700}
+.bk-cat i{font-style:normal;font-size:calc(11.5px*var(--fs));color:var(--sub);line-height:1.45}
+.bk-cat:has(input:checked){background:rgba(255,236,242,.9);border-color:rgba(217,85,122,.35)}
+.bk-imgs{display:flex;gap:9px;align-items:flex-start;margin-top:10px;padding:10px 11px;border-radius:13px;
+background:rgba(255,255,255,.7);border:1px solid var(--line);cursor:pointer}
+.bk-imgs input{margin:2px 0 0;width:16px;height:16px;accent-color:#D9557A;flex-shrink:0}
+.bk-imgs b{font-size:calc(13.5px*var(--fs))}
+.bk-imgs i{display:block;font-style:normal;font-size:calc(11.5px*var(--fs));color:var(--sub);line-height:1.45}
+.bk-mode{display:flex;align-items:center;gap:10px;margin-top:10px}
+.bk-mode>span{font-size:calc(13px*var(--fs));color:var(--sub);flex-shrink:0}
+.bk-mode select{flex:1;min-width:0;min-height:42px;border-radius:12px;border:1px solid var(--line);
+background:rgba(255,255,255,.9);padding:0 10px;font-size:calc(13.5px*var(--fs));color:var(--ink)}
+.bk-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.bk-act{display:flex;align-items:center;gap:10px;text-align:left;padding:12px 13px;border-radius:14px;
+background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
+.bk-act b{font-size:calc(14px*var(--fs));white-space:nowrap}
+.bk-act i{font-style:normal;font-size:calc(11.5px*var(--fs));color:var(--sub);flex:1;line-height:1.4}
+.bk-act em{font-style:normal;font-size:calc(12.5px*var(--fs));color:#B25E8B;font-weight:700;flex-shrink:0}
+.bk-act.danger b{color:#C25B5B} .bk-act.danger em{color:#C25B5B}
+@media (max-width:400px){ .bk-grid{grid-template-columns:1fr} }
 /* ===== 批量导入字卡 ===== */
 .batch-foot{display:flex;align-items:center;gap:10px;margin-top:8px}
 .batch-foot .btn{flex-shrink:0}
 .batch-foot .meta{margin-left:auto}
 #cardBatchText{font-family:inherit;line-height:1.6}
+/* 长按图标/组件时，别再弹 iOS 的"选择 / 拷贝 / 分享"气泡——
+   那个气泡一出来，系统就把手势抢走了，拖拽直接中断（app 换不了位置就是这个原因） */
+.app-item,.widget,.app-icon,.folder-app{
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  user-select:none;
+}
+/* 拖拽模式下的图标不要参与滚动，交给 JS 处理 */
+.app-grid.editing .app-item{touch-action:none}
+.widgets.editfree .widget.wfree{touch-action:none}
+/* App 图标层永远压在组件的上面：就算组件因为内容变高溢出一点点，
+   也不会挡住图标的点击（点不开/拖不动就是这么来的） */
+.app-grid{position:relative;z-index:3}
+.app-sec-title{position:relative;z-index:3}
 /* ===== 组件尺寸选择 ===== */
 .wdlib-sz{display:inline-flex;gap:3px;margin-right:6px;flex-shrink:0}
 .wdlib-sz button{min-height:30px;padding:0 8px;border-radius:9px;background:rgba(255,255,255,.85);border:1px solid var(--line);color:var(--sub);font-size:calc(12px*var(--fs))}
@@ -1442,8 +1490,13 @@ function imgAt(o,path){
 }
 function imgSet(o,path,val){
   var p=path.split('.');
-  for(var j=0;j<p.length-1;j++)o=o&&o[p[j]];
-  if(o)o[p[p.length-1]]=val;
+  for(var j=0;j<p.length-1;j++){
+    var k=p[j];
+    if(o[k]===undefined||o[k]===null)o[k]=(/^\d+$/.test(p[j+1])?[]:{});
+    o=o[k];
+    if(!o)return;
+  }
+  o[p[p.length-1]]=val;
 }
 function isBig(v){return typeof v==='string'&&v.length>IMG_SAFE}
 function imgValues(root){
@@ -1985,6 +2038,10 @@ function renderHome(){
   $('#view').innerHTML=html;
   initDrag();
   initWidgetDrag();
+  /* 字体/图片/动态内容可能在首帧之后才撑开，补几次校正 */
+  setTimeout(fitWidgetGridNow,60);
+  setTimeout(fitWidgetGridNow,260);
+  setTimeout(fitWidgetGridNow,700);
 }
 /* 按 key 找 App 定义（两页共用） */
 function appByKey(v){
@@ -2000,7 +2057,7 @@ function appItemHtml(a){
     +(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
 }
 /* ===== 小组件：自由摆放 ===== */
-var WIDGET_MINH={clock:62,days:62,weather:74,photo:150,count:70,progress:96,music:66,note:62,feed:112};
+var WIDGET_MINH={clock:62,days:62,weather:74,photo:150,count:70,progress:96,music:66,note:62,feed:186};
 /* 手动摆过的位置：x 是百分比、y 是像素，两个都保留 */
 function widgetPos(wv,idx){
   var p=(state.widgetPos||{})[wv];
@@ -2265,6 +2322,13 @@ function fitWidgetGridNow(){
       if(br>b)b=br;
       if(b>maxB)maxB=b;
     }
+    /* 再兜一层：无论怎么算，容器都必须盖住最低的那个组件 */
+    var deepest=0;
+    for(i=0;i<els.length;i++){
+      var bb2=els[i].getBoundingClientRect().bottom-gr.top+12;
+      if(bb2>deepest)deepest=bb2;
+    }
+    if(deepest>maxB)maxB=deepest;
     var want=Math.max(0,Math.round(maxB))+'px';
     if(sp&&sp.style.height!==want)sp.style.height=want;
   }
@@ -3856,7 +3920,7 @@ function renderMe(){
   html+='<div class="sw-row"><div><b>保活记录</b><span>已保活 '+((state.settings&&state.settings.kaCount)||0)+' 次 · 切回页面时自动补发到点的消息</span></div></div>';
   html+='<div class="me-sec"><h3>后台保活说明</h3><div class="note">手机浏览器切到后台时网页会被系统暂停，这是 iOS 的正常机制。每次回到页面时会自动补发离线期间的消息、朋友圈评论、回信和缺失的日记，不会断档。</div></div>';
   html+='<div class="me-group-title">备份</div>';
-  html+='<div class="me-sec"><h3>备份</h3><div style="display:flex;gap:10px"><button class="btn" style="flex:1" data-act="backup-export">导出备份</button><button class="btn ghost" style="flex:1" data-act="backup-import">导入备份</button></div><p class="meta" style="margin-top:6px">全量备份：联系人、字卡、消息、朋友圈、信件、日记、转账、壁纸。换手机也不丢。</p></div>';
+  html+='<div class="me-sec"><h3>备份</h3>'+backupPanelHtml()+'</div>';
   html+='<div class="me-sec"><h3>存档安全</h3>'+storageHealthHtml()+'<p class="meta" style="margin-top:8px">iPhone 会在存储紧张或长期不打开时清理网页数据，这是系统行为、任何网页都躲不过。导出一份备份文件（可存到「文件」App 或发给自己），换机、清理后都能一键恢复。</p></div>';
   html+='</div>';
   $('#view').innerHTML=html;
@@ -4101,62 +4165,245 @@ function contactDel(id){
 }
 
 /* ================= 备份 ================= */
+/* ================= 备份：按分类导出 / 导入 ================= */
+/* 每一类对应 state 里的若干字段；导出时按勾选挑，导入时按勾选合并 */
+var BACKUP_CATS=[
+ {k:'me',        n:'我的资料',          d:'昵称、头像、个人资料',        keys:['me']},
+ {k:'contacts',  n:'梦角资料',          d:'角色、头像、回复节奏、概率',   keys:['contacts','activeContact']},
+ {k:'desktop',   n:'全局设置与桌面',    d:'主题、壁纸、字体、各种开关',   keys:['settings','appIcons','appOrder','appPage']},
+ {k:'widgets',   n:'桌面小组件',        d:'组件内容、布局和媒体引用',     keys:['widgets','widgetsOn','widgetOrder','widgetSize','widgetPage','widgetPos','widgetImgs','widgetWeather','widgetCount','widgetProgress','widgetPhoto','widgetCalendar','widgetDaysLabel','widgetDaysUnit','widgetNote','widgetMusic','anniversaryDays']},
+ {k:'chat',      n:'聊天记录',          d:'各联系人的文字和媒体消息',     keys:['messages','nextInit','nextCallDue','nextInviteDue']},
+ {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet']},
+ {k:'cards',     n:'字卡库',            d:'分组、字卡、固定字卡',         keys:['cards','cardCats','statusCards','moodCards','patCards','diaryCards','writerCards','_smDeleted','currentStatus','currentMood']},
+ {k:'moments',   n:'朋友圈',            d:'动态、封面、访客',             keys:['posts','feedEvents','nextPostDue','nextVisitDue','visitorCount','profileBox','profileFollowed']},
+ {k:'mail',      n:'信箱',              d:'信件、收发状态',               keys:['letters','nextLetterDue']},
+ {k:'diary',     n:'日记',              d:'日记内容与互动',               keys:['diary','dailyPosts','diaryDue']},
+ {k:'tarot',     n:'塔罗',              d:'抽牌记录与每日运势',           keys:['tarotLog','tarotDaily','_tarotLast']},
+ {k:'stickers',  n:'表情包',            d:'表情图片与 emoji',             keys:['stickers']},
+ {k:'companion', n:'陪伴',              d:'专注模式与背景',               keys:['companion']},
+ {k:'tide',      n:'潮汐',              d:'潮汐记录',                     keys:['tide']}
+];
+function backupCatKeys(k){
+  for(var i=0;i<BACKUP_CATS.length;i++)if(BACKUP_CATS[i].k===k)return BACKUP_CATS[i].keys;
+  return null;
+}
+/** 大图路径属于哪一类 */
+function backupCatOfPath(p){
+  if(p.indexOf('settings.')===0)return 'desktop';
+  if(p.indexOf('me.')===0)return 'me';
+  if(p.indexOf('companion.')===0)return 'companion';
+  if(p.indexOf('contacts.')===0)return 'contacts';
+  if(p.indexOf('widgetImgs.')===0||p.indexOf('widgetPhoto')===0)return 'widgets';
+  return '';
+}
+function cloneJSON(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
+function backupSelCats(){
+  var out=[],boxes=document.querySelectorAll('.bk-cat input[type=checkbox]');
+  if(!boxes.length)return BACKUP_CATS.map(function(c){return c.k});
+  for(var i=0;i<boxes.length;i++)if(boxes[i].checked)out.push(boxes[i].getAttribute('data-k'));
+  return out;
+}
+function backupAllOn(on){
+  var boxes=document.querySelectorAll('.bk-cat input[type=checkbox]');
+  for(var i=0;i<boxes.length;i++)boxes[i].checked=on;
+  backupCountRefresh();
+}
+function backupCountRefresh(){
+  var n=backupSelCats().length;
+  var el=document.querySelector('#bkCount');
+  if(el)el.textContent=n+' 类';
+  var s2=document.querySelector('#bkSummary');
+  if(s2)s2.textContent='已选 '+n+' 类数据';
+  var all=document.querySelectorAll('.bk-cat input[type=checkbox]').length;
+  var box=document.querySelector('#bkAll');
+  if(box)box.checked=(n===all&&all>0);
+}
+function backupToggleAll(box){
+  backupAllOn(box.checked);
+}
+
+/** 组装备份对象 */
+function backupBuild(sel,withImages){
+  var d={app:'zika-site',version:7,exported:new Date().toISOString(),cats:sel.slice(),state:{},images:{}};
+  var i,j,k;
+  for(i=0;i<sel.length;i++){
+    var keys=backupCatKeys(sel[i]);
+    if(!keys)continue;
+    for(j=0;j<keys.length;j++){
+      k=keys[j];
+      if(state[k]!==undefined)d.state[k]=cloneJSON(state[k]);
+    }
+  }
+  /* 大图统一处理：
+     · 勾了"包含图片" → 图片单独放进 d.images，state 里删掉，避免同一张图存两份（体积翻倍）
+     · 没勾 → 直接删掉，档案才会小（代价是导入后壁纸/头像恢复成默认） */
+  var live=imgValues(state);
+  var del=[];
+  for(var p in live){
+    var c=backupCatOfPath(p);
+    if(c&&sel.indexOf(c)<0)continue;         /* 没勾这一类，整类都不动 */
+    if(withImages)d.images[p]=live[p];
+    del.push(p);
+  }
+  for(var q=0;q<del.length;q++){
+    var dots=del[q].split('.');
+    var cur=d.state,ok=true;
+    for(i=0;i<dots.length-1;i++){
+      if(cur[dots[i]]===undefined){ok=false;break}
+      cur=cur[dots[i]];
+    }
+    if(ok&&cur)try{delete cur[dots[dots.length-1]]}catch(e){}
+  }
+  d.hasImages=withImages&&Object.keys(d.images).length>0;
+  return d;
+}
 function backupExport(){
-  var d={app:'zika-site',version:6,exported:new Date().toISOString(),state:plainCopy(state)};
-  try{delete d.state._imgs}catch(e){}
-  /* 备份要能独立恢复：把 IndexedDB 里的大图也一起带上 */
-  try{
-    var live=imgValues(state);
-    var n=0;for(var k in live)n++;
-    if(n)d.images=live;
-  }catch(e){}
-  var blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  var sel=backupSelCats();
+  if(!sel.length){toast('至少选一类数据');return}
+  var withImages=false;
+  var cb=document.querySelector('#bkImgs');
+  if(cb)withImages=!!cb.checked;
+  var d=backupBuild(sel,withImages);
+  var json=JSON.stringify(d);
+  var blob=new Blob([json],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   var dt=new Date();
   a.download='字卡备份-'+dt.getFullYear()+('0'+(dt.getMonth()+1)).slice(-2)+('0'+dt.getDate()).slice(-2)+'.json';
   document.body.appendChild(a);a.click();
-  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href)},500);
-  toast('备份已导出');
+  setTimeout(function(){try{document.body.removeChild(a)}catch(e){}URL.revokeObjectURL(a.href)},800);
+  var kb=Math.round(json.length/1024);
+  toast('已导出 '+sel.length+' 类数据（约 '+(kb>1024?(kb/1024).toFixed(1)+' MB':kb+' KB')+'）');
 }
-function importBackup(file){
-  if(!file.files||!file.files[0])return;
+/** 导入：分步做，出错能说清是哪一步 */
+function importBackup(input){
+  if(!input||!input.files||!input.files[0]){toast('没有选到文件');return}
+  var f=input.files[0];
   var fr=new FileReader();
+  fr.onerror=function(){toast('读不出这个文件，换一个试试');input.value=''};
   fr.onload=function(){
+    var raw=fr.result;
+    /* ① 解析 */
+    var d=null;
+    try{ d=JSON.parse(raw) }
+    catch(e){
+      toast('这个文件不是备份（内容不是 JSON）');
+      input.value='';return;
+    }
+    if(!d||typeof d!=='object'){toast('这个文件不是备份');input.value='';return}
+    /* ② 认版本：v7 带分类；v6 及更早是整份 state */
+    var isNew=(d.app==='zika-site'&&d.state&&Array.isArray(d.cats));
+    var isOld=(d.app==='zika-site'&&d.state&&Array.isArray(d.state.contacts));
+    if(!isNew&&!isOld){toast('这不是字卡网站的备份文件');input.value='';return}
+
+    var mode='merge';
+    var sel2=document.querySelector('#bkMode');
+    if(sel2)mode=sel2.value||'merge';
+
+    var merged=null;
     try{
-      var d=JSON.parse(fr.result);
-      if(!d||d.app!=='zika-site'||!d.state||!Array.isArray(d.state.contacts)){toast('文件格式不对，请选字卡备份文件');return}
-      var s=migrate(d.state);
-      /* 备份里带的大图（壁纸/头像）：先放回内存，再存进 IndexedDB */
-      var _migratedImgs=null;
-      if(d.images&&typeof d.images==='object'){
-        _migratedImgs={};
-        for(var _ik in d.images){
-          if(isBig(d.images[_ik])){imgSet(s,_ik,d.images[_ik]);_migratedImgs[_ik]=d.images[_ik]}
+      if(isOld){
+        /* 老格式：整份替换（和以前行为一致，保证老备份还能用） */
+        merged=migrate(d.state);
+      }else{
+        /* 新格式：按分类合并或覆盖 */
+        var base=(mode==='replace')?{}:cloneJSON(plainCopy(state));
+        if(mode==='replace'){
+          /* 覆盖模式：先放一份默认骨架，再把文件里的东西盖上去 */
+          var def=defaultState();
+          for(var dk in def)if(base[dk]===undefined)base[dk]=def[dk];
         }
+        for(var ck in d.state)base[ck]=d.state[ck];
+        merged=migrate(base);
       }
-      try{delete s._imgs}catch(e){}
-      if(!s.cards||!Array.isArray(s.cards))s.cards=[];
-      if(!s.statusCards||!Array.isArray(s.statusCards))s.statusCards=defaultState().statusCards;
-      if(!s.moodCards||!Array.isArray(s.moodCards))s.moodCards=defaultState().moodCards;
-      if(!s.messages||!Array.isArray(s.messages))s.messages=[];
-      if(!s.posts||!Array.isArray(s.posts))s.posts=[];
-      if(!s.letters||!Array.isArray(s.letters))s.letters=[];
-      if(!s.transfers||!Array.isArray(s.transfers))s.transfers=[];
-      if(!s.diary||typeof s.diary!=='object')s.diary={};
-      if(!s.nextInit||typeof s.nextInit!=='object')s.nextInit={};
-      var ok=false;
-      for(var i=0;i<s.contacts.length;i++)if(s.contacts[i].id===s.activeContact)ok=true;
-      if(!ok&&s.contacts.length)s.activeContact=s.contacts[0].id;
-      if(!s.contacts.length){toast('备份里没有联系人');return}
-      s.lastActive=now();
-      state=s;
-      if(_migratedImgs)try{idbPut('images',_migratedImgs)}catch(e){}
-      save();closeSheet();renderAll();schedule();
-      toast('备份导入成功'+(_migratedImgs?'（含壁纸/头像）':''));
-    }catch(e){toast('导入失败：文件无法读取')}
+    }catch(e1){
+      toast('备份内容有问题：'+(e1&&e1.message?e1.message:e1));
+      input.value='';return;
+    }
+    if(!merged||!Array.isArray(merged.contacts)||!merged.contacts.length){
+      toast('备份里没有联系人，无法导入');
+      input.value='';return;
+    }
+    /* ③ 大图放回内存 + 存进 IndexedDB（放到最后，失败也不影响数据本身） */
+    var imgs=d.images&&typeof d.images==='object'?d.images:null;
+    if(imgs){
+      for(var ik in imgs){
+        if(typeof imgs[ik]==='string'&&imgs[ik])imgSet(merged,ik,imgs[ik]);
+      }
+    }
+    var ok2=false;
+    for(var ci=0;ci<merged.contacts.length;ci++)if(merged.contacts[ci].id===merged.activeContact)ok2=true;
+    if(!ok2)merged.activeContact=merged.contacts[0].id;
+    merged.lastActive=now();
+    try{delete merged._imgs}catch(e){}
+    delete merged._pending;                 /* 半截的回复计划不带进来 */
+    /* ④ 落盘 */
+    state=merged;
+    try{
+      if(imgs)idbPut('images',imgs);
+    }catch(e2){}
+    try{ save() }catch(e3){ toast('数据已导入，但保存失败：'+(e3&&e3.message?e3.message:e3)) }
+    /* ⑤ 重画：这一步失败不代表数据没进来，所以单独兜住 */
+    var painted=true;
+    try{ closeSheet();renderAll();schedule() }catch(e4){ painted=false }
+    if(painted)toast(mode==='replace'?'备份已导入（覆盖）':'备份已导入（合并）');
+    else toast('数据已导入，界面重画时出错，请刷新一下页面');
+    input.value='';
   };
-  fr.readAsText(file.files[0]);
-  file.value='';
+  try{ fr.readAsText(f) }catch(e){ toast('这个文件读不了：'+(e&&e.message?e.message:e)); input.value='' }
+}
+/** 只清除勾选的分类 */
+function backupResetSel(){
+  var sel=backupSelCats();
+  if(!sel.length){toast('至少选一类');return}
+  var must=['contacts'];
+  var hitMust=false;
+  for(var i=0;i<must.length;i++)if(sel.indexOf(must[i])>=0)hitMust=true;
+  if(hitMust){toast('「梦角资料」不能清除');return}
+  if(!confirm('清除选中的 '+sel.length+' 类数据？\n只影响勾选的分类，其它数据不动。此操作不可撤销。'))return;
+  for(var j=0;j<sel.length;j++){
+    var keys=backupCatKeys(sel[j]);
+    if(!keys)continue;
+    var def=defaultState();
+    for(var m=0;m<keys.length;m++){
+      var k=keys[m];
+      if(k==='activeContact')continue;
+      if(def[k]!==undefined)state[k]=cloneJSON(def[k]);
+      else delete state[k];
+    }
+  }
+  if(!Array.isArray(state.contacts)||!state.contacts.length){state.contacts=defaultState().contacts;state.activeContact=state.contacts[0].id}
+  state.appIcons=state.appIcons||{};
+  if(state.widgetImgs)state.widgetImgs={};
+  save();renderAll();toast('已清除 '+sel.length+' 类数据');
+}
+/* 设置页的备份面板 */
+function backupPanelHtml(){
+  var total=BACKUP_CATS.length;
+  var h='<div class="card bk-card">';
+  h+='<div class="bk-head"><div><b>本地数据档案</b><div class="meta" id="bkSummary">已选 '+total+' 类数据</div></div>'
+    +'<div class="bk-head-btns"><button class="btn small ghost" data-act="bk-all-on">全选</button>'
+    +'<button class="btn small ghost" data-act="bk-all-off">清空</button></div></div>';
+  h+='<div class="bk-grid">';
+  for(var i=0;i<BACKUP_CATS.length;i++){
+    var c=BACKUP_CATS[i];
+    h+='<label class="bk-cat"><input type="checkbox" data-k="'+c.k+'" checked>'
+      +'<span class="bk-tx"><b>'+c.n+'</b><i>'+c.d+'</i></span></label>';
+  }
+  h+='</div>';
+  h+='<label class="bk-imgs"><input type="checkbox" id="bkImgs"><span><b>导出包含图片</b>'
+    +'<i>不勾：档案小、导得快，但壁纸 / 头像 / 组件底图不会跟着走；勾上才一起打包（档案会大很多）。</i></span></label>';
+  h+='<div class="bk-mode"><span>导入方式</span><select id="bkMode">'
+    +'<option value="merge">合并到当前数据</option>'
+    +'<option value="replace">覆盖全部数据</option>'
+    +'</select></div>';
+  h+='<div class="bk-actions">'
+    +'<button class="bk-act" data-act="backup-export"><b>导出所选数据</b><i>生成带分类清单的本地 JSON 档案</i><em>导出</em></button>'
+    +'<button class="bk-act" data-act="backup-import"><b>导入本地档案</b><i>先读取档案，再按勾选分类恢复</i><em>导入</em></button>'
+    +'<button class="bk-act danger" data-act="bk-reset"><b>重置所选分类</b><i>只清除当前勾选的数据，不影响其他分类</i><em>清除</em></button>'
+    +'</div>';
+  h+='<p class="meta" style="margin-top:10px">iPhone 会在存储紧张或长期不打开时清理网页数据，这是系统行为。建议每月导出一次，存到「文件」App 或发给自己。</p>';
+  h+='</div>';
+  return h;
 }
 
 /* ===== v5：决策 / 查岗 / 表情 ===== */
@@ -5035,8 +5282,10 @@ function closeSheet(){var m=$('#sheet-mask');m.classList.add('hide');m.innerHTML
 
 /* ================= 全局事件 ================= */
 var fileInput=document.createElement('input');
-fileInput.type='file';fileInput.id='fileImport';fileInput.style.display='none';
-fileInput.accept='application/json,.json';
+fileInput.type='file';fileInput.id='fileImport';
+/* 用"移出屏幕"而不是 display:none —— iOS 上 display:none 的 file 输入有时点了不弹选择器 */
+fileInput.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';
+fileInput.accept='.json,application/json,text/plain';
 document.body.appendChild(fileInput);
 document.addEventListener('click',function(e){
   if(e.target&&e.target.id==='sheet-mask'){closeSheet();return}
@@ -5208,7 +5457,10 @@ document.addEventListener('click',function(e){
     else if(act==='transfer-send'){var tfv=$('#tfAmt');sendTransfer(tfv?tfv.value:0)}
     else if(act==='transfer-decide')transferDecide(id,btn.getAttribute('data-ok')==='1');
     else if(act==='post-like')toggleLike(btn.getAttribute('data-id'));
-    else if(act==='backup-export')backupExport();
+    else if(act==='backup-export')backupExport()
+    else if(act==='bk-all-on')backupAllOn(true)
+    else if(act==='bk-all-off')backupAllOn(false)
+    else if(act==='bk-reset')backupResetSel();
     else if(act==='backup-import')fileInput.click();
     else if(act==='sheet-close')closeSheet();
     else if(act==='mail-read')mailRead(id);
@@ -5259,6 +5511,8 @@ document.body.appendChild(cardFile);
 document.addEventListener('change',function(e){
   if(!e.target)return;
   if(e.target.id==='fileImport')importBackup(e.target);
+  else if(e.target.closest&&e.target.closest('.bk-cat'))backupCountRefresh()
+  else if(e.target.id==='bkAll')backupToggleAll(e.target);
   else if(e.target.id==='cardFile')importCards(e.target);
   else if(e.target.id==='avatarFile')readAvatarFile(e.target);
   else if(e.target.id==='bgFile')readImg(e.target,'bg');
@@ -5927,8 +6181,26 @@ function widgetResetOne(k){
   if(state.widgetPos)delete state.widgetPos[k];
   save();closeSheet();renderHome();toast('已回到默认位置');
 }
+/* 组件高度会变（动态条数、图片/字体加载完），用 ResizeObserver 盯着，
+   一变就重新算容器高度 —— 这样容器永远盖得住组件，不会压到下面的 App 图标 */
+var _wdRO=null;
+function widgetObserve(){
+  if(typeof ResizeObserver==='undefined')return;
+  if(_wdRO){try{_wdRO.disconnect()}catch(e){}}
+  try{
+    _wdRO=new ResizeObserver(function(){fitWidgetGrid()});
+  }catch(e){return}
+  var ids=['widgetGrid0','widgetGrid1'];
+  for(var g=0;g<ids.length;g++){
+    var grid=document.getElementById(ids[g]);
+    if(!grid)continue;
+    var ws=grid.querySelectorAll('.widget');
+    for(var i=0;i<ws.length;i++)try{_wdRO.observe(ws[i])}catch(e){}
+  }
+}
 function initWidgetDrag(){
   fitWidgetGrid();
+  widgetObserve();
   var _wgs=[document.getElementById('widgetGrid0'),document.getElementById('widgetGrid1')];
   for(var _wi=0;_wi<_wgs.length;_wi++)initOneWidgetDrag(_wgs[_wi]);
 }
@@ -6470,6 +6742,12 @@ function bindAppDrag(grid,allGrids){
 }
 
 (function(){
+  document.addEventListener('contextmenu',function(e){
+    var t=e.target;
+    if(t&&t.closest&&(t.closest('.app-item')||t.closest('.widget'))){
+      e.preventDefault();return false;
+    }
+  });
   document.addEventListener('click',function(e){
     var b=e.target.closest('[data-act=music-play]');
     if(!b)return;
