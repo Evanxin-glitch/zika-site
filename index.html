@@ -102,6 +102,41 @@ input:focus,textarea:focus{border-color:var(--green)}
 .msg-menu-item.danger{color:#C25B5B}
 .msg-menu-item:active{transform:scale(.96)}
 .msg-menu-quote{font-size:calc(12.5px*var(--fs));color:var(--sub);background:rgba(138,116,88,.08);border-radius:12px;padding:8px 11px;margin-bottom:10px;max-height:64px;overflow:hidden}
+/* ===== 字卡库：搜索 / 计数 / 分类管理 ===== */
+.lib-search{display:flex;gap:8px;align-items:center;margin:4px 0 8px}
+.lib-search input{flex:1;min-width:0}
+.lib-search .btn{flex-shrink:0;min-width:64px;min-height:42px}
+.lib-count{font-size:calc(12px*var(--fs));color:var(--sub);background:rgba(255,255,255,.55);border:1px solid var(--glass-line);border-radius:12px;padding:7px 11px;margin-bottom:8px;line-height:1.5}
+.lib-count b{color:var(--ink);font-size:calc(13px*var(--fs))}
+.cat-cats{margin-top:-2px}
+.cat-cats .cnt{margin-left:4px;opacity:.55;font-size:calc(11px*var(--fs))}
+.cat-tabs .add-cat{border:1px dashed rgba(201,123,142,.6);color:#B25E8B;background:rgba(255,255,255,.5);font-weight:600}
+.cat-tabs .add-cat.danger{border-color:rgba(196,91,91,.55);color:#C25B5B;border-style:solid}
+.card .chip.gray{opacity:.6;background:rgba(255,255,255,.6);color:var(--sub)}
+/* ===== 表情包 / 图片消息 ===== */
+.bubble.bubble-media{padding:6px!important;background:rgba(255,255,255,.72)!important;border:1px solid var(--glass-line)!important;box-shadow:0 6px 18px rgba(150,120,140,.14)!important}
+.bubble.bubble-media:after{display:none!important}
+.msg-sticker{display:block;width:110px;height:auto;max-height:132px;object-fit:contain;border-radius:12px}
+.msg-img{display:block;width:170px;max-width:58vw;height:auto;max-height:220px;object-fit:cover;border-radius:12px}
+.bubble.out.bubble-media{background:rgba(255,255,255,.62)!important}
+.stk-sec-title{font-size:calc(12px*var(--fs));color:var(--sub);letter-spacing:1px;margin:12px 0 6px}
+.stk-emoji{font-size:calc(23px*var(--fs))}
+.stk-add-emoji{display:flex;gap:8px;align-items:center}
+.stk-add-emoji input{flex:1;min-width:0}
+/* ===== 邀请一起专注卡片 ===== */
+.iv-card{display:flex;flex-direction:column;gap:8px;border-radius:18px;padding:12px 13px;max-width:86%;min-width:190px;background:linear-gradient(160deg,#F3F7FF,#E8F0FF);border:1px solid #CCDCF5;box-shadow:0 6px 20px rgba(120,160,210,.16)}
+.iv-card.out{background:linear-gradient(160deg,#F6F2FF,#EDE7FF);border-color:#DCD2F5}
+.iv-top{display:flex;align-items:center;gap:7px}
+.iv-ic{width:26px;height:26px;border-radius:50%;background:#8FB7E8;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.iv-card.out .iv-ic{background:#A99BE0}
+.iv-top b{font-size:calc(12.5px*var(--fs));color:#4A6E9E}
+.iv-card.out .iv-top b{color:#6B5CA8}
+.iv-tm{margin-left:auto;font-size:calc(11px*var(--fs));color:var(--sub);white-space:nowrap}
+.iv-mode{font-size:calc(15px*var(--fs));font-weight:700;color:var(--ink)}
+.iv-btns{display:flex;gap:8px}
+.iv-btns button{flex:1;border-radius:12px;padding:9px 0;background:linear-gradient(150deg,#7FA8D9,#5C87B8);color:#fff;font-size:calc(13px*var(--fs));font-weight:700;min-height:40px}
+.iv-btns button.gray{background:rgba(255,255,255,.9);border:1px solid var(--line);color:var(--sub);font-weight:400}
+.iv-state{font-size:calc(11.5px*var(--fs));color:var(--sub);text-align:right}
 /* ===== 多选模式 ===== */
 .msg-row.multi-on .bubble{cursor:pointer}
 .msg-row.multi-on .msg-col{max-width:calc(76% - 30px)}
@@ -341,8 +376,10 @@ input:focus,textarea:focus{border-color:var(--green)}
  .bubble{border-radius:20px}
 .bubble.in{border-radius:20px 20px 20px 5px}
 .bubble.out{border-radius:20px 20px 5px 20px}
-.bubble.in:after{content:'';position:absolute;left:-7px;bottom:8px;width:0;height:0;border:8px solid transparent;border-left:0;border-right-color:rgba(255,233,240,.95);border-bottom-color:rgba(255,233,240,.95)}
-.bubble.out:after{content:'';position:absolute;right:-7px;bottom:8px;width:0;height:0;border:8px solid transparent;border-right:0;border-left-color:#F9AEC2;border-bottom-color:#F9AEC2}
+/* 气泡尾巴已经由圆角（右下/左下 5px）表现。
+   原来另外用 border 画了个 8px 三角，长气泡时和圆角错位会露出一个尖角，
+   短消息和卡片上尤其明显（就是截图里圈出来的小三角），这里直接去掉。 */
+.bubble.in:after,.bubble.out:after{content:none!important;display:none!important;border:0!important}
 .bubble.typing:after{display:none}
 /* 聊天顶部按钮（返回键 + 三个功能键）统一尺寸 */
 .chat-top .back{width:40px;height:40px;min-width:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:rgba(255,255,255,.6);border:1px solid var(--glass-brd);flex-shrink:0;padding:0}
@@ -690,15 +727,27 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
 .tf-btns{display:flex;gap:8px;margin:8px 0 2px}
 .tf-btns button{flex:1;padding:7px 0;border-radius:10px;background:#fff;color:#A5475B;font-size:calc(13px*var(--fs));min-height:38px}
 .tf-btns button.gray{color:var(--sub);background:rgba(255,255,255,.7)}
-.ck-card{display:flex;align-items:flex-start;gap:9px;border-radius:16px;padding:10px 13px;max-width:78%;background:#FFF7EA;border:1px solid #F3E0BC;min-width:150px}
-.ck-card.out{background:#EAF3FF;border-color:#CBDDF3}
-.ck-card .ck-ic{width:30px;height:30px;border-radius:50%;background:#F0C987;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ck-card{display:flex;flex-direction:column;gap:8px;border-radius:18px;padding:12px 13px;max-width:86%;min-width:180px;background:linear-gradient(160deg,#FFFBF0,#FFF3DC);border:1px solid #F3E0BC;box-shadow:0 6px 20px rgba(214,158,102,.14)}
+.ck-card.out{background:linear-gradient(160deg,#F4F9FF,#E9F2FF);border-color:#CBDDF3}
+.ck-line{display:flex;align-items:center;gap:7px}
+.ck-ic{width:26px;height:26px;border-radius:50%;background:#F0C987;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .ck-card.out .ck-ic{background:#8FB7E8}
-.ck-card .ck-tx{flex:1;min-width:0}
-.ck-card .ck-tx b{display:block;font-size:calc(12px*var(--fs));color:#C08A3E}
-.ck-card.out .ck-tx b{color:#5F8FB8}
-.ck-card .ck-tx span{font-size:calc(14px*var(--fs));color:var(--ink);word-break:break-word}
-.ck-card .t{margin-left:auto;font-size:calc(11px*var(--fs));color:var(--sub);white-space:nowrap}
+.ck-line b{font-size:calc(12.5px*var(--fs));color:#C08A3E;letter-spacing:.5px}
+.ck-card.out .ck-line b{color:#5F8FB8}
+.ck-tm{margin-left:auto;font-size:calc(11px*var(--fs));color:var(--sub);white-space:nowrap}
+.ck-quote{background:#fff;border:1px solid rgba(243,224,188,.9);border-radius:12px;padding:9px 11px;font-size:calc(14px*var(--fs));line-height:1.55;color:#4A3F33;word-break:break-word}
+.ck-card.out .ck-quote{border-color:#CBDDF3}
+.ck-reply{display:flex;flex-direction:column;gap:8px}
+.ck-in{width:100%;min-height:44px;max-height:120px;border-radius:12px;background:rgba(255,255,255,.92);border:1px solid var(--glass-line);padding:10px 12px;font-size:calc(13.5px*var(--fs))}
+.ck-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ck-chips button{font-size:calc(12px*var(--fs));padding:6px 11px;border-radius:20px;background:rgba(255,255,255,.9);border:1px solid var(--line);color:#6B5A44;min-height:34px}
+.ck-actions{display:flex;gap:8px}
+.ck-actions .ck-later{flex:1;border-radius:12px;padding:9px 0;background:rgba(255,255,255,.9);border:1px solid var(--line);color:var(--sub);font-size:calc(13px*var(--fs));min-height:40px}
+.ck-actions .ck-send{flex:1.4;border-radius:12px;padding:9px 0;background:linear-gradient(150deg,#F0859F,#D9557A);color:#fff;font-size:calc(13.5px*var(--fs));font-weight:700;min-height:40px}
+.ck-replied{display:flex;align-items:center;gap:8px;font-size:calc(12.5px*var(--fs));color:var(--sub);flex-wrap:wrap}
+.ck-replied b{font-size:calc(13.5px*var(--fs));color:var(--ink);font-weight:600}
+.ck-replied .ck-done{margin-left:auto;font-style:normal;font-size:calc(11.5px*var(--fs));background:rgba(226,83,123,.12);color:#C4577E;border-radius:20px;padding:3px 10px}
+.ck-wait{font-size:calc(12px*var(--fs));color:var(--sub);text-align:right}
 /* 朋友圈微信 */
 .p-row{display:flex;gap:10px}
 .p-av{flex-shrink:0}
@@ -835,7 +884,10 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .app-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}
 .app-item{display:flex;flex-direction:column;align-items:center;gap:9px;padding:10px 4px 10px;border-radius:22px;cursor:pointer;background:none;border:none;box-shadow:none}
 .app-item span{font-size:calc(12.5px*var(--fs));color:var(--ink)}
-.app-icon{width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;overflow:hidden;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 20px rgba(90,70,50,.16),inset 0 0 0 1px rgba(255,255,255,.28)}
+.app-icon{width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center;overflow:hidden;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.72);box-shadow:0 8px 20px rgba(90,70,50,.16),inset 0 0 0 1px rgba(255,255,255,.28);position:relative}
+/* 自定义图标：图片铺满整个圆角块，底衬纯白，原来的图形符号不再透出来 */
+.app-icon.has-img{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:#fff!important}
+.app-icon.has-img .app-icon-img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}
 .status-card{background:var(--glass-strong)}
 .home-foot{color:#9A8C7C;font-size:calc(12px*var(--fs))}
 /* ===== v7.2 小组件 + 通话浮窗 ===== */
@@ -1141,7 +1193,7 @@ function migrate(s){
       if(cw.letterMin===undefined)cw.letterMin=600;
       if(cw.letterMax===undefined)cw.letterMax=7200;
     }
-    if(!s.writerCards||!Array.isArray(s.writerCards))s.writerCards=defaultState().writerCards;
+    if(!s.writerCards||!Array.isArray(s.writerCards))s.writerCards=(s._smDeleted&&s._smDeleted.writer)?[]:defaultState().writerCards;
     if(!s.checkinPresets||!Array.isArray(s.checkinPresets))s.checkinPresets=['在干嘛','吃饭了吗','想我了吗','在哪'];
     if(!s.stickers||!Array.isArray(s.stickers))s.stickers=[];
     if(!s.appIcons||typeof s.appIcons!=='object')s.appIcons={};
@@ -1176,9 +1228,10 @@ function migrate(s){
     if(c.callPct===undefined)c.callPct=30;
     if(c.transferPct===undefined)c.transferPct=15;
     if(c.replyPct===undefined)c.replyPct=100;
+    if(c.invitePct===undefined)c.invitePct=30;
   }
-  if(!s.statusCards||!s.statusCards.length)s.statusCards=defaultState().statusCards;
-  if(!s.moodCards||!s.moodCards.length)s.moodCards=defaultState().moodCards;
+  if((!s.statusCards||!s.statusCards.length)&&!(s._smDeleted&&s._smDeleted.status))s.statusCards=defaultState().statusCards;
+  if((!s.moodCards||!s.moodCards.length)&&!(s._smDeleted&&s._smDeleted.mood))s.moodCards=defaultState().moodCards;
   if(!s.diary)s.diary={};
   if(!s.currentStatus)s.currentStatus={text:'在喝咖啡',ts:now()};
   if(!s.currentMood)s.currentMood={text:'心情不错',ts:now()};
@@ -1193,7 +1246,7 @@ function migrate(s){
   if(s.settings.profileFans===undefined)s.settings.profileFans=888;
   if(s.settings.profileFollowing===undefined)s.settings.profileFollowing=66;
   if(!s.settings.profileBio)s.settings.profileBio='让一切自由';
-  if(!s.patCards||!Array.isArray(s.patCards))s.patCards=defaultState().patCards;
+  if(!s.patCards||!Array.isArray(s.patCards))s.patCards=(s._smDeleted&&s._smDeleted.pat)?[]:defaultState().patCards;
   if(!s.dailyPosts||!Array.isArray(s.dailyPosts))s.dailyPosts=[];
   if(!s.savedMsgs||!Array.isArray(s.savedMsgs))s.savedMsgs=[];
   if(!s.settings.profileBio)s.settings.profileBio='让一切自由';
@@ -1210,6 +1263,22 @@ function migrate(s){
   if(s.settings.patOn===undefined)s.settings.patOn=true;
   if(s.settings.patReplyPct===undefined)s.settings.patReplyPct=40;
   if(s.settings.ntfOn===undefined)s.settings.ntfOn=true;
+  if(!Array.isArray(s.cardCats))s.cardCats=[];
+  if(!s._smDeleted||typeof s._smDeleted!=='object')s._smDeleted={};
+  if(s.settings.inviteOn===undefined)s.settings.inviteOn=true;
+  if(s.settings.invitePct===undefined)s.settings.invitePct=30;
+  if(s.settings.inviteMin===undefined)s.settings.inviteMin=60;
+  if(s.settings.inviteMax===undefined)s.settings.inviteMax=240;
+  /* 老存档里把表情包存成了 img 类型，这里还原成 sticker，
+     避免被当成"已失效的图片"清掉 */
+  if(Array.isArray(s.messages)&&Array.isArray(s.stickers)&&s.stickers.length){
+    var _stIds={};
+    for(var _si=0;_si<s.stickers.length;_si++)_stIds[s.stickers[_si].img]=1;
+    for(var _mi=0;_mi<s.messages.length;_mi++){
+      var _mm=s.messages[_mi];
+      if(_mm&&_mm.type==='img'&&_mm.img&&_stIds[_mm.img])_mm.type='sticker';
+    }
+  }
   if(s.settings.ntfPreview===undefined)s.settings.ntfPreview='full';
   if(s.settings.ntfBgOnly===undefined)s.settings.ntfBgOnly=false;
   if(s.settings.ntfSound===undefined)s.settings.ntfSound=true;
@@ -1801,6 +1870,23 @@ var P2_ICON='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAcFBQYFBAcG
 var ICON_BACK='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
 var ICON_WALL='<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 14l4-4 5 5 3-3 4 4"/></svg>';
 var ICON_MORE='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5.5h.01M12 12h.01M12 18.5h.01"/></svg>';
+/* 桌面 App 列表（renderHome 与设置页的图标编辑共用，避免两处不一致） */
+function appListDefs(){
+  return [
+    {v:'profile',n:'主页',c:'#B25E8B',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M8 5l1.5-2h5L16 5"/><circle cx="12" cy="12.5" r="4"/></svg>'},
+    {v:'chat',n:'聊天',c:'#F28FB0',ic:'<img src="'+P2_ICON+'" style="width:100%;height:100%;object-fit:cover">'},
+    {v:'moments',n:'朋友圈',c:'#D98E5F',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>'},
+    {v:'mail',n:'信箱',c:'#7A9CC6',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg>'},
+    {v:'cards',n:'字卡库',c:'#B08968',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 5v14"/></svg>'},
+    {v:'diary',n:'日记',c:'#8A7458',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M6 3h12v18H6z"/><path d="M9 7h6m-6 4h6"/></svg>'},
+    {v:'companion',n:'陪伴',c:'#C0875A',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 3"/></svg>'},
+    {v:'me',n:'设置',c:'#6E7F5E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>'},
+    {v:'tide',n:'潮汐',c:'#D98CA8',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/><path d="M3 13c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/><path d="M3 18c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/></svg>'},
+    {v:'wallet',n:'钱包',c:'#C9A227',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="15" r="1.4" fill="#fff"/></svg>'},
+    {v:'tarot',n:'塔罗',c:'#7B6BB0',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><circle cx="12" cy="12" r="3"/></svg>'},
+    {v:'widgets',n:'组件库',c:'#8E9BB3',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2"/></svg>'},  ];
+}
+var APPS=appListDefs();
 function renderHome(){
   var c=activeContact();
   var d=new Date(),hour=d.getHours();
@@ -1819,20 +1905,7 @@ function renderHome(){
   html+='</div>';
   html+='<div class="status-card" data-view="chat">'+avatarHtml(c)+'<div class="sc-body"><div class="sc-name">'+esc(c.name)+'</div><div class="sc-chips"><span class="chip b-soft">'+esc(state.currentStatus.text)+'</span><span class="chip">'+esc(state.currentMood.text)+'</span></div></div></div>';
   html+='<div class="app-sec-title">应用</div>';
-  var apps=[
-    {v:'profile',n:'主页',c:'#B25E8B',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M8 5l1.5-2h5L16 5"/><circle cx="12" cy="12.5" r="4"/></svg>'},
-    {v:'chat',n:'聊天',c:'#F28FB0',ic:'<img src="'+P2_ICON+'" style="width:100%;height:100%;object-fit:cover">'},
-    {v:'moments',n:'朋友圈',c:'#D98E5F',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>'},
-    {v:'mail',n:'信箱',c:'#7A9CC6',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg>'},
-    {v:'cards',n:'字卡库',c:'#B08968',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 5v14"/></svg>'},
-    {v:'diary',n:'日记',c:'#8A7458',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M6 3h12v18H6z"/><path d="M9 7h6m-6 4h6"/></svg>'},
-    {v:'companion',n:'陪伴',c:'#C0875A',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 3"/></svg>'},
-    {v:'me',n:'设置',c:'#6E7F5E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>'},
-    {v:'tide',n:'潮汐',c:'#D98CA8',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/><path d="M3 13c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/><path d="M3 18c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/></svg>'},
-    {v:'wallet',n:'钱包',c:'#C9A227',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="15" r="1.4" fill="#fff"/></svg>'},
-    {v:'tarot',n:'塔罗',c:'#7B6BB0',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><circle cx="12" cy="12" r="3"/></svg>'},
-    {v:'widgets',n:'组件库',c:'#8E9BB3',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2"/></svg>'},  ];
-  var order=state.appOrder&&state.appOrder.length?state.appOrder:apps.map(function(x){return x.v});
+  var apps=APPS;  var order=state.appOrder&&state.appOrder.length?state.appOrder:apps.map(function(x){return x.v});
   var PER=8,apg=state.appPage||0,appPages=Math.ceil(order.length/PER);
   html+='<div class="app-grid" id="appGrid_0">';
   for(var i=0;i<order.length&&i<6;i++){
@@ -1840,21 +1913,26 @@ function renderHome(){
     for(var k=0;k<apps.length;k++)if(apps[k].v===v){a=apps[k];break}
     if(!a)continue;
     var ic=a.ic.replace(/stroke="#fff"/g,'stroke="'+a.c+'"').replace(/fill="#fff"/g,'fill="'+a.c+'"');
-    if(state.appIcons[a.v]){ic='<img src="'+state.appIcons[a.v]+'" style="width:100%;height:100%;object-fit:cover">'}
-    html+='<div class="app-item" data-view="'+a.v+'"><div class="app-icon" style="background:'+(state.appIcons[a.v]?'rgba(255,255,255,.55)':'rgba(255,255,255,.34)')+';overflow:hidden">'+ic+'</div>'+(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
+    var hasIcon=!!state.appIcons[a.v];
+    /* 有自定义图标时：只渲染图片、底衬改成不透明白，彻底盖住原来的图形符号 */
+    if(hasIcon)ic='<img class="app-icon-img" src="'+state.appIcons[a.v]+'" alt="">';
+    html+='<div class="app-item" data-view="'+a.v+'"><div class="app-icon'+(hasIcon?' has-img':'')+'" style="background:'+(hasIcon?'#FFFFFF':'rgba(255,255,255,.34)')+'">'+ic+'</div>'+(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
   }
   html+='</div>';
   html+='</div>';
   html+='<div class="home-page" data-page="1">';
   html+='<div class="home-title home-title-2">更多应用</div>';
+  html+='<div class="wd-head"><span>小组件</span><button class="wd-add" data-view="widgets" title="组件库">＋</button></div>';
   html+='<div class="app-sec-title">应用</div><div class="app-grid" id="appGrid_1">';
   for(var i=6;i<order.length;i++){
     var v=order[i],a=null;
     for(var k=0;k<apps.length;k++)if(apps[k].v===v){a=apps[k];break}
     if(!a)continue;
     var ic=a.ic.replace(/stroke="#fff"/g,'stroke="'+a.c+'"').replace(/fill="#fff"/g,'fill="'+a.c+'"');
-    if(state.appIcons[a.v]){ic='<img src="'+state.appIcons[a.v]+'" style="width:100%;height:100%;object-fit:cover">'}
-    html+='<div class="app-item" data-view="'+a.v+'"><div class="app-icon" style="background:'+(state.appIcons[a.v]?'rgba(255,255,255,.55)':'rgba(255,255,255,.34)')+';overflow:hidden">'+ic+'</div>'+(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
+    var hasIcon=!!state.appIcons[a.v];
+    /* 有自定义图标时：只渲染图片、底衬改成不透明白，彻底盖住原来的图形符号 */
+    if(hasIcon)ic='<img class="app-icon-img" src="'+state.appIcons[a.v]+'" alt="">';
+    html+='<div class="app-item" data-view="'+a.v+'"><div class="app-icon'+(hasIcon?' has-img':'')+'" style="background:'+(hasIcon?'#FFFFFF':'rgba(255,255,255,.34)')+'">'+ic+'</div>'+(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
   }
   html+='</div>';
   html+='</div>';
@@ -2050,13 +2128,16 @@ var TAROT_RANKS=[
  ['6','顺遂，被看见'],['7','坚持，守住优势'],['8','速度，突破'],['9','临近圆满，独自承担'],['10','完成，卸下重负'],
  ['侍从','新讯息，好奇试探'],['骑士','行动，直进'],['王后','成熟，包容'],['国王','稳定，掌控']
 ];
+var TAROT_DECK=78;   /* 一副塔罗 78 张：22 张大阿卡纳 + 4 花色 × 14 张 */
 function tarotCardAt(n){
-  n=((Math.round(n)%78)+78)%78;
+  n=((Math.round(n)%TAROT_DECK)+TAROT_DECK)%TAROT_DECK;
   if(n<22)return {n:n,name:TAROT_MAJOR[n][0],key:TAROT_MAJOR[n][1],suit:''};
   var i=n-22,si=Math.floor(i/14),ri=i%14;
   var sk=TAROT_SUITS[si],rk=TAROT_RANKS[ri];
   return {n:n,name:sk[0]+'·'+rk[0],key:sk[1]+'，'+rk[1],suit:sk[0]};
 }
+/** 数字 1–78 对应牌面；超出 78 的两位数按"各位数字"拆开，
+ *  例如 92 → 9 和 2（而不是被整段丢掉，导致重复抽到同一张）。 */
 function tarotNums(str){
   var digs=String(str||'').replace(/[^0-9]/g,'');
   if(!digs.length)digs='7';
@@ -2064,13 +2145,18 @@ function tarotNums(str){
   while(i<digs.length){
     if(i+1<digs.length){
       var two=parseInt(digs.substr(i,2),10);
-      if(two>=1&&two<=78){out.push(two);i+=2;continue}
+      if(two>=1&&two<=TAROT_DECK){out.push(two);i+=2;continue}
     }
     var one=parseInt(digs.charAt(i),10);
-    if(one>=1&&one<=78)out.push(one);
+    if(one>=1&&one<=TAROT_DECK)out.push(one);
     i++;
   }
   if(!out.length)out=[7];
+  return out;
+}
+function tarotRandNums(count){
+  var out=[];
+  for(var i=0;i<count;i++)out.push(1+Math.floor(Math.random()*TAROT_DECK));
   return out;
 }
 function tarotShuffle(n){
@@ -2163,9 +2249,7 @@ function tarotLu(){
   setTimeout(function(){
     var cnt=1;
     for(var i=0;i<TAROT_SPREADS.length;i++)if(TAROT_SPREADS[i][0]===_tSpread)cnt=TAROT_SPREADS[i][2];
-    var nums=[];
-    for(var k2=0;k2<cnt;k2++)nums.push(1+Math.floor(Math.random()*99));
-    var n2=nums.join(' ');
+    var n2=tarotRandNums(cnt).join(' ');      /* 1–78，不再生成 79–99 的无效数字 */
     tarotDoDraw(n2,c.name,q,'');
     tarotDailyDraw('his');
     feedEvent(c.name+' 抽了一张塔罗牌：'+state._tarotLast.cards[0].name,'tarot');
@@ -2187,12 +2271,12 @@ function tarotDailyDraw(who){
   var rp4=((state.settings&&state.settings.tarotRevPct)!=null?state.settings.tarotRevPct:50);
   var dp4=((state.settings&&state.settings.tarotDailyPct)!=null?state.settings.tarotDailyPct:40);
   if(who==='me'&&td.myIdx<0){
-    td.myIdx=Math.floor(Math.random()*78);
+    td.myIdx=Math.floor(Math.random()*TAROT_DECK);
     td.myRev=Math.random()*100<rp4?1:0;
   }
   if(who==='his'&&td.hisIdx<0){
     if(td.hisPct===null||td.hisPct===undefined)td.hisPct=Math.random()*100<dp4?1:0;
-    if(td.hisPct){td.hisIdx=Math.floor(Math.random()*78);td.hisRev=Math.random()*100<rp4?1:0}
+    if(td.hisPct){td.hisIdx=Math.floor(Math.random()*TAROT_DECK);td.hisRev=Math.random()*100<rp4?1:0}
   }
   save();
   renderTarotTop();
@@ -2418,6 +2502,15 @@ function schedule(){
       if(Math.random()*100<(cc.callPct==null?30:cc.callPct))beginCall('voice');
       state.nextCallDue=now()+rnd(cmn,cmx)*60000;save();schedule();
     }})(acX)});
+    if(state.settings&&state.settings.inviteOn!==false){
+      var imn=(state.settings.inviteMin!=null?state.settings.inviteMin:60),imx=(state.settings.inviteMax!=null?state.settings.inviteMax:240);
+      if(imn>imx){var iq=imn;imn=imx;imx=iq}
+      if(!state.nextInviteDue)state.nextInviteDue=t+rnd(imn,imx)*60000;
+      items.push({ts:state.nextInviteDue,fn:function(){
+        beginInvite();
+        state.nextInviteDue=now()+rnd(imn,imx)*60000;save();schedule();
+      }});
+    }
   }
   if(acX&&state.settings&&state.settings.letterInitOn!==false){
     var lmn=(state.settings.letterInitMin!=null?state.settings.letterInitMin:180),lmx=(state.settings.letterInitMax!=null?state.settings.letterInitMax:1920);
@@ -2565,7 +2658,46 @@ function bubbleHtml(m,c){
     return '<div class="msg-row out"><span class="bubble-av">'+meAvatar()+'</span><div class="poll-card"><div class="pq">'+esc(m.question)+'</div>'+po+'<div class="pt">'+fmtTime(m.ts)+' · '+(m.answered?'已选':'等'+esc(c.name)+'选')+(m.multi>1?' · 多选'+m.multi:'')+'</div></div></div>';
   }
   if(m.kind==='checkin'){
-    return '<div class="msg-row '+m.dir+'"><span class="bubble-av">'+(m.dir==='out'?meAvatar():cAvatar(c))+'</span><div class="ck-card'+(m.dir==='out'?' out':'')+'"><span class="ck-ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 20c.9-3.2 3.7-4.6 7.5-4.6s6.6 1.4 7.5 4.6"/></svg></span><div class="ck-tx"><b>查岗</b><span>'+esc(m.text)+'</span></div><span class="t">'+fmtTime(m.ts)+'</span></div></div>';
+    var isIn=(m.dir==='in');
+    var q=String(m.text||'').replace(/^查岗[:：]\s*/,'');
+    var head='<div class="ck-line"><span class="ck-ic">'+ICON_CHECKIN+'</span><b>查岗</b><span class="ck-tm">'+fmtTime(m.ts)+'</span></div>';
+    var quote='<div class="ck-quote">【查岗：'+esc(q)+'】</div>';
+    if(isIn){
+      var answered=!!m.myReply;
+      var reply='';
+      if(answered){
+        reply='<div class="ck-replied"><span>你已回复</span><b>'+esc(m.myReply)+'</b><i class="ck-done">已完成</i></div>';
+      }else{
+        reply='<div class="ck-reply"><textarea class="ck-in" rows="1" placeholder="告诉对方你现在的状态……" data-ck="'+m.id+'"></textarea>'
+          +'<div class="ck-chips">'
+          +'<button data-act="ck-send" data-id="'+m.id+'" data-txt="在工作">在工作</button>'
+          +'<button data-act="ck-send" data-id="'+m.id+'" data-txt="正在吃饭">正在吃饭</button>'
+          +'<button data-act="ck-send" data-id="'+m.id+'" data-txt="回家路上">回家路上</button>'
+          +'<button data-act="ck-send" data-id="'+m.id+'" data-txt="也在想你">也在想你</button>'
+          +'</div>'
+          +'<div class="ck-actions"><button class="ck-later" data-act="ck-later" data-id="'+m.id+'">稍后回复</button>'
+          +'<button class="ck-send" data-act="ck-send" data-id="'+m.id+'">回复并发送</button></div></div>';
+      }
+      return '<div class="msg-row in"><span class="bubble-av">'+cAvatar(c)+'</span>'
+        +'<div class="ck-card">'+head+quote+reply+'</div></div>';
+    }
+    return '<div class="msg-row out"><span class="bubble-av">'+meAvatar()+'</span>'
+      +'<div class="ck-card out">'+head+quote+(m.myReply?'<div class="ck-replied mine"><span>已回复</span><b>'+esc(m.myReply)+'</b></div>':'<div class="ck-wait">等'+esc(c.name)+'回复</div>')+'</div></div>';
+  }
+  if(m.kind==='invite'){
+    var whoName=(m.dir==='in')?c.name:'我';
+    var state2=m.accepted?'已接受':(m.refused?'已婉拒':'待回应');
+    var acts='';
+    if(m.dir==='in'&&!m.accepted&&!m.refused){
+      acts='<div class="iv-btns"><button data-act="invite-accept" data-id="'+m.id+'">好，一起</button><button class="gray" data-act="invite-decline" data-id="'+m.id+'">这次先不了</button></div>';
+    }
+    return '<div class="msg-row '+m.dir+'"><span class="bubble-av">'+(m.dir==='in'?cAvatar(c):meAvatar())+'</span>'
+      +'<div class="iv-card'+(m.dir==='in'?'':' out')+'">'
+      +'<div class="iv-top"><span class="iv-ic">'+ICON_INVITE+'</span><b>'+esc(whoName)+'邀请一起专注</b><span class="iv-tm">'+fmtTime(m.ts)+'</span></div>'
+      +'<div class="iv-mode">'+esc(m.modeName||'专注')+' · '+(m.mins||25)+' 分钟</div>'
+      +acts
+      +'<div class="iv-state">'+state2+'</div>'
+      +'</div></div>';
   }
   if(m.kind==='transfer'){
     var amt=(m.amount||0).toFixed(2);
@@ -2579,11 +2711,19 @@ function bubbleHtml(m,c){
     var om=byId(state.messages,m.replyTo);
     q='<div class="quote-box">'+(om?((om.type==='img'||om.type==='imgcleared')?'[图片]':'回复 @'+esc(c.name)+'：'+esc(trunc(om.text,30))):'（原消息已删除）')+'</div>';
   }
-  /* 图片消息已停用：老存档里的图一律清掉，只留一行提示，避免卡顿 */
-  if(m.type==='img'||m.type==='imgcleared'){
+  /* 表情包 / 图片 / 纯文字 */
+  var body,extraCls='';
+  if(m.type==='sticker'&&m.img){
+    body='<img class="msg-sticker" src="'+m.img+'" alt="表情">';
+    extraCls=' bubble-media';
+  }else if(m.type==='img'&&m.img){
+    body='<img class="msg-img" src="'+m.img+'" alt="图片">';
+    extraCls=' bubble-media';
+  }else if(m.type==='img'||m.type==='imgcleared'||(m.type==='sticker'&&!m.img)){
     stripImgMsg(m);
-    var body='<span style="color:var(--sub)">[图片消息已移除]</span>';
-  }else var body=esc(m.text);
+    if(m.type!=='sticker')m.type='imgcleared';
+    body='<span style="color:var(--sub)">[表情或图片已失效]</span>';
+  }else body=esc(m.text);
   var meta='<div class="msg-meta">'
     +'<span class="t">'+fmtTime(m.ts)+'</span>'
     +((m.dir==='out'&&!(state.settings&&state.settings.readReceipt===false))?'<span class="st'+((m.read)?'':' gray')+'">'+(m.read?'✓✓':'✓')+'</span>':'')
@@ -2596,7 +2736,7 @@ function bubbleHtml(m,c){
   return '<div class="msg-row '+m.dir+(inMulti?' multi-on':'')+(picked?' picked':'')+'"><span class="bubble-av">'+av+'</span>'
     +'<span class="multi-tick">'+(picked?'✓':'')+'</span>'
     +'<div class="msg-col">'
-    +'<div class="bubble '+m.dir+'" data-act="'+tapAct+'" data-id="'+m.id+'">'+q+body+'</div>'
+    +'<div class="bubble '+m.dir+extraCls+'" data-act="'+tapAct+'" data-id="'+m.id+'">'+q+body+'</div>'
     +(inMulti?'':meta)
     +'</div></div>';
 }
@@ -2727,6 +2867,11 @@ function encodeImg(img,maxSide,opts){
   cx.imageSmoothingEnabled=true;
   cx.imageSmoothingQuality='high';
   cx.drawImage(img,0,0,cw.width,cw.height);
+  /* 小图优先无损 PNG（图标/表情这类最需要锐利）；
+     PNG 体积超标或指定了大图压缩，才回退 JPEG。 */
+  if(opts.forcePng){
+    try{var fp=cw.toDataURL('image/png');if(fp&&fp.length<4200000)return fp}catch(e){}
+  }
   /* 没有缩小就优先无损 PNG，彻底避免二次压缩发糊 */
   if(sc>=1&&opts.allowPng!==false){
     try{var png=cw.toDataURL('image/png');if(png&&png.length<4200000)return png}catch(e){}
@@ -2754,22 +2899,18 @@ function readUploadImg(input,kind){
 var _iconTarget='chat';
 function iconReset(v){delete state.appIcons[v];save();renderAll();toast('已恢复默认图标')}
 function readIconFile(input){
-  if(!input.files||!input.files[0])return;
-  var fr=new FileReader();
-  fr.onload=function(){
-    var img=new Image();
-    img.onload=function(){
-      var cw=document.createElement('canvas');cw.width=256;cw.height=256;
-      var cx=cw.getContext('2d');
-      var s=Math.min(img.width,img.height),sx=(img.width-s)/2,sy=(img.height-s)/2;
-      cx.drawImage(img,sx,sy,s,s,0,0,256,256);
-      state.appIcons[_iconTarget||'chat']=cw.toDataURL('image/jpeg',.9);
-      save();closeSheet();renderAll();toast('图标已更新');
-    };
-    img.src=fr.result;
-  };
-  fr.readAsDataURL(input.files[0]);
-  input.value='';
+  var key=_iconTarget||'chat';
+  pickImageFile(input,function(img){
+    /* 图标 256px，强制走无损 PNG（缩放后更锐利） */
+    var data=encodeImg(img,256,{forcePng:true,q:.95});
+    state.appIcons=state.appIcons||{};
+    state.appIcons[key]=data;
+    save();
+    toast('图标已更新');
+    try{closeSheet()}catch(e){}
+    /* 设置页要刷新（列表里有预览），桌面要立刻看到新图标 */
+    renderAll();
+  });
 }
 function sheetCheckinAdd(){
   openSheet('<h2>添加查岗预设</h2><label>查岗内容</label><input id="ckAdd" placeholder="如：在干嘛"><div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="checkin-add-save">添加</button></div>');
@@ -2861,60 +3002,128 @@ function letterSend(){
 var _cat='全部';
 var CARD_TAGS=['日常','想念','吵架','哄我','晚安'];
 var _lib='cards';
+var _cat='全部';
+var CARD_TAGS=['日常','想念','吵架','哄我','晚安'];
+var _lib='cards';
+var _cardQ='';
+/* 固定字卡库：状态 / 心情 / 拍一拍 / 写信。它们不参与聊天字卡分类，
+   也不受"删除分类"影响；删掉后不会被默认值又填回来。 */
+function libIsFixed(k){return k==='status'||k==='mood'||k==='pat'||k==='writer'}
+function cardAllCats(){
+  var out=[],i;
+  var base=(state.cardCats||[]).slice();
+  for(i=0;i<base.length;i++)if(base[i]&&out.indexOf(base[i])<0)out.push(base[i]);
+  for(i=0;i<(state.cards||[]).length;i++){var tg=state.cards[i].tag;if(tg&&out.indexOf(tg)<0)out.push(tg)}
+  for(i=0;i<CARD_TAGS.length;i++)if(out.indexOf(CARD_TAGS[i])<0)out.push(CARD_TAGS[i]);
+  return out;
+}
+function cardCountOf(cat){
+  if(cat==='全部')return state.cards.length;
+  var n=0;
+  for(var i=0;i<state.cards.length;i++)if(state.cards[i].tag===cat)n++;
+  return n;
+}
+function cardSearchMatch(c){
+  if(!_cardQ)return true;
+  return String(c.text||'').toLowerCase().indexOf(_cardQ.toLowerCase())>=0;
+}
 function renderCards(){
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">字卡库</span></div>';
   html+='<div class="screen">';
-  html+='<div class="cat-tabs">';
   var libs=[['cards','聊天字卡'],['status','状态'],['mood','心情'],['pat','拍一拍'],['writer','写信']];
+  var total=state.cards.length+state.statusCards.length+state.moodCards.length+state.patCards.length+state.writerCards.length;
+  html+='<div class="cat-tabs">';
   for(var L=0;L<libs.length;L++)html+='<button data-act="lib" data-lib="'+libs[L][0]+'"'+(libs[L][0]===_lib?' class="on"':'')+'>'+libs[L][1]+'</button>';
   html+='</div>';
+
   if(_lib==='cards'){
-  var cards=state.cards.slice().sort(function(a,b){return b.created-a.created});
-  var cats=['全部'];for(var i=0;i<cards.length;i++){var tg=cards[i].tag;if(tg&&cats.indexOf(tg)<0)cats.push(tg)}
-  for(var j=0;j<CARD_TAGS.length;j++)if(cats.indexOf(CARD_TAGS[j])<0)cats.push(CARD_TAGS[j]);
-  var shown=_cat==='全部'?cards:cards.filter(function(c){return c.tag===_cat});
-  html+='<div class="cat-tabs">';
-  for(var k=0;k<cats.length;k++)html+='<button data-act="cat" data-cat="'+esc(cats[k])+'"'+(cats[k]===_cat?' class="on"':'')+'>'+esc(cats[k])+'<span style="opacity:.6;margin-left:3px">'+(cats[k]==='全部'?cards.length:cards.filter(function(c){return c.tag===cats[k]}).length)+'</span></button>';
-  html+='</div>';
-  html+='<div class="lib-actions"><button class="btn" data-act="card-add">添加字卡</button><button class="btn ghost" data-act="card-export">导出 JSON</button><button class="btn ghost" data-act="card-import">导入 JSON</button></div>';
-  if(!shown.length)html+='<div class="empty"><span class="big">卡</span>这个分类还没有字卡</div>';
-  html+='<div class="card-grid">';
-  for(var m=0;m<shown.length;m++){
-    var k2=shown[m];
-    html+='<div class="card zika"><button class="del" data-act="card-del" data-id="'+k2.id+'">×</button><div class="txt">'+esc(k2.text)+'</div>'+(k2.tag?'<span class="chip">'+esc(k2.tag)+'</span>':'')+'</div>';
-  }
-  html+='</div>';
-  }else if(_lib==='status'||_lib==='mood'||_lib==='pat'){
-    var lib=libOf(_lib);
-    var nm=libName(_lib);
-    html+='<div class="lib-actions"><button class="btn" data-act="sm-add" data-kind="'+_lib+'">添加'+nm+'字卡</button></div>';
-    html+='<div class="note" style="margin-bottom:10px">'+( _lib==='pat'?'拍一拍字卡用于陆沉回拍你时的话，不进入聊天回复。':nm+'字卡用于陆沉聊天顶部的'+nm+'框，会随机抽取。')+'</div>';
-    if(!lib.length)html+='<div class="empty"><span class="big">卡</span>还没有'+nm+'字卡</div>';
-    html+='<div class="sm-list">';
-    for(var s=0;s<lib.length;s++)html+='<div class="sm-item"><span class="txt">'+esc(lib[s].text)+'</span><button class="del" data-act="sm-del" data-kind="'+_lib+'" data-id="'+lib[s].id+'">×</button></div>';
+    var cards=state.cards.slice().sort(function(a,b){return (b.created||0)-(a.created||0)});
+    var cats=cardAllCats();
+    if(cats.indexOf(_cat)<0)_cat='全部';
+    var byCat=(_cat==='全部')?cards:cards.filter(function(c){return c.tag===_cat});
+    var shown=byCat.filter(cardSearchMatch);
+    html+='<div class="lib-search"><input id="cardSearch" placeholder="搜索字卡内容…" value="'+esc(_cardQ)+'"><button class="btn small'+( _cardQ?'':' ghost')+'" data-act="card-search">'+( _cardQ?'清除':'搜索')+'</button></div>';
+    html+='<div class="lib-count">共 <b>'+total+'</b> 张字卡 · 聊天字卡 <b>'+cards.length+'</b> 张 · 当前分类「'+esc(_cat)+'」<b>'+cardCountOf(_cat)+'</b> 张'+( _cardQ?(' · 搜索到 <b>'+shown.length+'</b> 张'):'')+'</div>';
+    html+='<div class="cat-tabs cat-cats">';
+    html+='<button data-act="cat" data-cat="全部"'+(_cat==='全部'?' class="on"':'')+'>全部<span class="cnt">'+cards.length+'</span></button>';
+    for(var k=0;k<cats.length;k++)html+='<button data-act="cat" data-cat="'+esc(cats[k])+'"'+(cats[k]===_cat?' class="on"':'')+'>'+esc(cats[k])+'<span class="cnt">'+cardCountOf(cats[k])+'</span></button>';
+    html+='</div>';
+    html+='<div class="cat-tabs cat-cats"><button class="add-cat" data-act="cat-add">＋ 新建分类</button>';
+    if(_cat!=='全部')html+='<button class="add-cat danger" data-act="cat-del" data-cat="'+esc(_cat)+'">删除「'+esc(_cat)+'」分类</button>';
+    html+='</div>';
+    html+='<div class="lib-actions"><button class="btn" data-act="card-add">添加字卡</button><button class="btn ghost" data-act="card-export">导出 JSON</button><button class="btn ghost" data-act="card-import">导入 JSON</button></div>';
+    if(!shown.length)html+='<div class="empty"><span class="big">卡</span>'+(_cardQ?'没有匹配的字卡':'这个分类还没有字卡')+'</div>';
+    html+='<div class="card-grid">';
+    for(var m=0;m<shown.length;m++){
+      var k2=shown[m];
+      html+='<div class="card zika"><button class="del" data-act="card-del" data-id="'+k2.id+'">×</button><div class="txt">'+esc(k2.text)+'</div>'+(k2.tag?'<span class="chip">'+esc(k2.tag)+'</span>':'<span class="chip gray">未分类</span>')+'</div>';
+    }
     html+='</div>';
   }else{
-    html+='<div class="lib-actions"><button class="btn" data-act="sm-add" data-kind="writer">添加写信字卡</button></div>';
-    html+='<div class="note" style="margin-bottom:10px">陆沉写信、回信时从"写信字卡"里抽，和聊天字卡分开。抽取条数在 设置 → 内容生成 里调。</div>';
-    if(!state.writerCards.length)html+='<div class="empty"><span class="big">信</span>还没有写信字卡，先添加几张吧</div>';
+    var kind=_lib,nm=libName(kind),lib=libOf(kind);
+    var kindTotal=lib.length;
+    var kindShown=lib.filter(function(x){return !_cardQ||String(x.text||'').toLowerCase().indexOf(_cardQ.toLowerCase())>=0});
+    html+='<div class="lib-search"><input id="cardSearch" placeholder="搜索'+nm+'字卡…" value="'+esc(_cardQ)+'"><button class="btn small'+( _cardQ?'':' ghost')+'" data-act="card-search">'+( _cardQ?'清除':'搜索')+'</button></div>';
+    html+='<div class="lib-count">共 <b>'+total+'</b> 张字卡 · '+nm+'字卡 <b>'+kindTotal+'</b> 张'+( _cardQ?(' · 搜索到 <b>'+kindShown.length+'</b> 张'):'')+'</div>';
+    html+='<div class="note" style="margin-bottom:10px">固定字卡：'+(kind==='pat'?'拍一拍字卡用于陆沉回拍你时的话，不进入聊天回复，也不参与聊天字卡分类。':(kind==='writer'?'陆沉写信、回信时从"写信字卡"里抽，和聊天字卡分开；抽取条数在 设置 → 内容生成 里调。':nm+'字卡用于陆沉聊天顶部的'+nm+'框，会随机抽取；它不参与聊天字卡分类。'))+'</div>';
+    html+='<div class="lib-actions"><button class="btn" data-act="sm-add" data-kind="'+kind+'">添加'+nm+'字卡</button></div>';
+    if(!kindShown.length)html+='<div class="empty"><span class="big">卡</span>'+(_cardQ?'没有匹配的字卡':'还没有'+nm+'字卡')+'</div>';
     html+='<div class="sm-list">';
-    for(var w=0;w<state.writerCards.length;w++)html+='<div class="sm-item"><span class="txt">'+esc(state.writerCards[w].text)+'</span><button class="del" data-act="sm-del" data-kind="writer" data-id="'+state.writerCards[w].id+'">×</button></div>';
+    for(var s=0;s<kindShown.length;s++)html+='<div class="sm-item"><span class="txt">'+esc(kindShown[s].text)+'</span><button class="del" data-act="sm-del" data-kind="'+kind+'" data-id="'+kindShown[s].id+'">×</button></div>';
     html+='</div>';
   }
   html+='</div>';
   $('#view').innerHTML=html;
 }
+/* ===== 分类管理 ===== */
+function catAdd(){
+  openSheet('<h2>新建分类</h2><label>分类名称</label><input id="catName" placeholder="如：撒娇 / 冷战 / 早安"><div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="cat-add-save">创建</button></div>');
+}
+function catAddSave(){
+  var el=document.querySelector('#catName');
+  var n=el?String(el.value||'').trim():'';
+  if(!n){toast('写个分类名');return}
+  state.cardCats=state.cardCats||[];
+  if(state.cardCats.indexOf(n)<0)state.cardCats.push(n);
+  _cat=n;_cardQ='';
+  save();closeSheet();renderCards();toast('已创建分类「'+n+'」');
+}
+function catDel(name){
+  var n=(name===undefined||name===null||name==='')?_cat:name;
+  if(!n||n==='全部'){toast('「全部」不能删');return}
+  var cnt=cardCountOf(n);
+  if(!confirm('删除分类「'+n+'」？'+(cnt?('\n这个分类里的 '+cnt+' 张字卡会变成"未分类"，字卡本身不会被删。'):'')))return;
+  state.cardCats=(state.cardCats||[]).filter(function(x){return x!==n});
+  for(var i=0;i<state.cards.length;i++)if(state.cards[i].tag===n)state.cards[i].tag='';
+  if(_cat===n)_cat='全部';
+  save();closeSheet();renderCards();toast('已删除分类「'+n+'」');
+}
+function cardSearchGo(){
+  var el=document.querySelector('#cardSearch');
+  if(el)_cardQ=String(el.value||'').trim();
+  renderCards();
+}
+function cardSearchClear(){_cardQ='';renderCards()}
 function sheetCard(){
+  var cats=cardAllCats();
   var chips='';
-  for(var i=0;i<CARD_TAGS.length;i++)chips+='<button class="btn small ghost" data-act="quick-tag" data-tag="'+CARD_TAGS[i]+'" style="margin:4px 4px 0 0">'+CARD_TAGS[i]+'</button>';
-  openSheet('<h2>添加字卡</h2><label>字卡内容</label><textarea id="cardText" rows="4" placeholder="陆沉会说的一句话…"></textarea><label>分类（点击快速选择，或自己输入）</label><div>'+chips+'</div><input id="cardTag" placeholder="如：日常 / 吵架 / 想念" style="margin-top:6px"><div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="card-save">保存</button></div>');
+  for(var i=0;i<cats.length;i++)chips+='<button class="btn small ghost" data-act="quick-tag" data-tag="'+esc(cats[i])+'" style="margin:4px 4px 0 0">'+esc(cats[i])+'</button>';
+  openSheet('<h2>添加字卡</h2><label>字卡内容</label><textarea id="cardText" rows="4" placeholder="陆沉会说的一句话…"></textarea>'
+    +'<label>分类（点一下快速选择，也可以自己输入，或去字卡库新建）</label><div>'+chips+'</div>'
+    +'<input id="cardTag" placeholder="如：日常 / 吵架 / 想念" style="margin-top:6px">'
+    +'<div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="card-save">保存</button></div>');
 }
 function cardSave(){
   var text=$('#cardText').value.trim();
   if(!text){toast('写点内容再保存');return}
   var tag=$('#cardTag').value.trim();
   state.cards.push({id:uid(),text:text,tag:tag,created:now()});
-  if(tag)_cat=tag;
+  if(tag){
+    state.cardCats=state.cardCats||[];
+    if(state.cardCats.indexOf(tag)<0)state.cardCats.push(tag);
+    _cat=tag;
+  }
+  _cardQ='';
   save();closeSheet();renderCards();toast('已加入字卡库');
 }
 function quickTag(tag){var el=$('#cardTag');if(el)el.value=tag}
@@ -2971,6 +3180,8 @@ function smSave(kind){
 function smDel(kind,id){
   var lib=libOf(kind);
   for(var i=0;i<lib.length;i++)if(lib[i].id===id){lib.splice(i,1);break}
+  state._smDeleted=state._smDeleted||{};
+  state._smDeleted[kind]=1;
   save();renderCards();
 }
 
@@ -3082,6 +3293,67 @@ var CB_PRESETS={
 var _curMode=null,_left=0,_running=false,_tmrTick=null,_actx=null;
 function compModes(){return (state.companion.modes||[]).concat(state.companion.custom||[])}
 function findMode(id){var ms=compModes();for(var i=0;i<ms.length;i++)if(ms[i].id===id)return ms[i];return null}
+/* ===== 陆沉邀请你一起专注（陪伴番茄钟）===== */
+function invitePickMode(){
+  var ms=compModes();
+  if(!ms.length)return null;
+  return pick(ms);
+}
+/** 概率判定 + 发邀请。beginInvite 与来电一样不抢屏。 */
+function beginInvite(){
+  var c=activeContact();if(!c)return;
+  var st=state.settings||{};
+  if(st.inviteOn===false)return;
+  var pct=(c.invitePct!=null?c.invitePct:(st.invitePct!=null?st.invitePct:30));
+  if(Math.random()*100>=pct)return;
+  var mo=invitePickMode();if(!mo)return;
+  var mins=mo.mins||25;
+  state.messages.push({id:uid(),contactId:c.id,dir:'in',kind:'invite',modeId:mo.id,modeName:mo.name,mins:mins,text:'',ts:now()});
+  save();
+  if(inChatView())renderChat();
+  notifyIncoming({id:uid(),contactId:c.id,dir:'in',text:c.name+' 想和你一起「'+mo.name+'」'+mins+' 分钟',ts:now()});
+}
+function inviteSave(){
+  var st=state.settings;
+  st.invitePct=clamp(parseFloat(val('#setInvitePctAll'))||30,0,100);
+  st.inviteMin=clamp(parseInt(val('#setInviteMin'),10)||60,1,10080);
+  st.inviteMax=clamp(parseInt(val('#setInviteMax'),10)||240,1,10080);
+  if(st.inviteMin>st.inviteMax){var t=st.inviteMin;st.inviteMin=st.inviteMax;st.inviteMax=t}
+  state.nextInviteDue=now()+rnd(st.inviteMin,st.inviteMax)*60000;
+  save();schedule();toast('邀请设置已保存');
+}
+/** "立刻发一条邀请"：忽略概率，直接发，方便看效果 */
+function beginInviteForce(){
+  var c=activeContact();if(!c)return;
+  var mo=invitePickMode();
+  if(!mo){toast('先去「陪伴」里加一个模式');goView('companion');return}
+  state.messages.push({id:uid(),contactId:c.id,dir:'in',kind:'invite',modeId:mo.id,modeName:mo.name,mins:mo.mins||25,text:'',ts:now()});
+  save();
+  if(inChatView())renderChat();
+  toast(c.name+' 邀请你一起「'+mo.name+'」'+(mo.mins||25)+'分钟');
+}
+function inviteAccept(id){
+  var m=byId(state.messages,id);if(!m)return;
+  m.accepted=true;m.acceptedAt=now();
+  var mode=findMode(m.modeId)||{id:'',name:m.modeName||'专注',mins:m.mins||25};
+  _curMode=mode.id;_left=(m.mins||25)*60;
+  state.messages.push({id:uid(),contactId:m.contactId,dir:'out',text:'好，一起「'+(m.modeName||'专注')+'」'+(m.mins||25)+'分钟',ts:now()});
+  save();toast('已接受，去「陪伴」开始计时');
+  goView('companion');
+}
+function inviteDecline(id){
+  var m=byId(state.messages,id);if(!m)return;
+  m.accepted=false;m.refused=true;
+  var c=contact(m.contactId)||activeContact();
+  state.messages.push({id:uid(),contactId:m.contactId,dir:'out',text:'这次先不了，下次陪你',ts:now()});
+  save();
+  setTimeout(function(){
+    state.messages.push({id:uid(),contactId:c.id,dir:'in',text:pick(['好，那我自己先开始，等你。','那我等你忙完。','没关系，我先把书翻开。']),ts:now()});
+    save();if(inChatView())renderChat();
+  },rnd(2500,6000));
+  if(inChatView())renderChat();
+  toast('已婉拒');
+}
 function renderCompanion(){
   clearTimeout(_tmrTick);_tmrTick=null;
   var cp=state.companion,modes=compModes();
@@ -3214,7 +3486,7 @@ function renderMe(){
   html+='<div class="sw-row"><div><b>拍一拍</b><span>双击头像拍一拍</span></div><div class="switch'+(state.settings.patOn?' on':'')+'" data-act="st-sw" data-key="patOn"></div></div>';
   html+='<div class="sw-row"><div><b>每日一句</b><span>每次打开网站自动更新一句</span></div><div class="switch'+(state.settings.dailyOn?' on':'')+'" data-act="st-sw" data-key="dailyOn"></div></div>';
   html+='<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>收藏概率%</label><input id="setSavePct" type="number" min="0" max="100" value="'+state.settings.savePct+'"></div><div class="inl"><label>拍一拍回拍概率%</label><input id="setPatPct" type="number" min="0" max="100" value="'+state.settings.patReplyPct+'"></div></div>';
-  html+='<div class="rhy-grid"><div class="inl"><label>已读不回概率%</label><input id="setReadNR" type="number" min="0" max="100" value="'+(c.readNRPct!=null?c.readNRPct:20)+'"></div><div class="inl"><label>朋友圈回复概率%</label><input id="setReplyPct" type="number" min="0" max="100" value="'+(c.replyPct!=null?c.replyPct:100)+'"></div><div class="inl"><label>来电概率%</label><input id="setCallPct" type="number" min="0" max="100" value="'+(c.callPct!=null?c.callPct:30)+'"></div><div class="inl"><label>转账概率%</label><input id="setTransferPct" type="number" min="0" max="100" value="'+(c.transferPct!=null?c.transferPct:15)+'"></div></div>';
+  html+='<div class="rhy-grid"><div class="inl"><label>已读不回概率%</label><input id="setReadNR" type="number" min="0" max="100" value="'+(c.readNRPct!=null?c.readNRPct:20)+'"></div><div class="inl"><label>朋友圈回复概率%</label><input id="setReplyPct" type="number" min="0" max="100" value="'+(c.replyPct!=null?c.replyPct:100)+'"></div><div class="inl"><label>来电概率%</label><input id="setCallPct" type="number" min="0" max="100" value="'+(c.callPct!=null?c.callPct:30)+'"></div><div class="inl"><label>转账概率%</label><input id="setTransferPct" type="number" min="0" max="100" value="'+(c.transferPct!=null?c.transferPct:15)+'"></div><div class="inl"><label>邀请一起专注概率%</label><input id="setInvitePct" type="number" min="0" max="100" value="'+(c.invitePct!=null?c.invitePct:30)+'"></div></div>';
   html+='<button class="btn" style="width:100%;margin-top:8px" data-act="save-allpct">保存全部概率</button>';
   html+='</div></div>';
   html+='<div class="me-sec"><h3>状态 / 心情库</h3><div style="display:flex;gap:10px"><button class="btn ghost" style="flex:1" data-act="sm-lib" data-kind="status">状态库（'+state.statusCards.length+'）</button><button class="btn ghost" style="flex:1" data-act="sm-lib" data-kind="mood">心情库（'+state.moodCards.length+'）</button></div></div>';
@@ -3238,14 +3510,18 @@ function renderMe(){
   html+='<div class="me-sec"><h3>外观</h3><div class="stats">';
   html+='<div class="stat" style="cursor:pointer" data-act="bg-sheet"><b>壁纸</b><span>聊天壁纸</span></div><div class="stat" style="cursor:pointer" data-act="cover-sheet"><b>封面</b><span>朋友圈封面</span></div><div class="stat" style="cursor:pointer" data-act="home-sheet"><b>主页</b><span>主页壁纸</span></div><div class="stat" style="cursor:pointer" data-act="callbg-sheet"><b>通话背景</b><span>预设+上传</span></div></div></div>';
   html+='<div class="me-sec"><h3>字体大小</h3><div class="fs-row"><button class="fs-btn" data-act="font-down">A−</button><span class="fs-val">'+Math.round(((state.settings&&state.settings.fontScale)||1)*100)+'%</span><button class="fs-btn" data-act="font-up">A+</button></div></div>';
-  html+='<div class="me-sec"><h3>主界面装修</h3><div class="card" style="padding:0 12px"><div class="icon-edit-item"><span class="ie-ic" style="background:#5F8F7B"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4z"/></svg></span><span class="ie-nm">聊天图标</span><button data-act="icon-upload" data-v="chat">换图</button><button class="gray" data-act="icon-reset" data-v="chat">默认</button></div>';
-  html+='<div class="icon-edit-item"><span class="ie-ic" style="background:#D98E5F"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg></span><span class="ie-nm">朋友圈图标</span><button data-act="icon-upload" data-v="moments">换图</button><button class="gray" data-act="icon-reset" data-v="moments">默认</button></div>';
-  html+='<div class="icon-edit-item"><span class="ie-ic" style="background:#7A9CC6"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg></span><span class="ie-nm">信箱图标</span><button data-act="icon-upload" data-v="mail">换图</button><button class="gray" data-act="icon-reset" data-v="mail">默认</button></div>';
-  html+='<div class="icon-edit-item"><span class="ie-ic" style="background:#B08968"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="M7 5v14"/></svg></span><span class="ie-nm">字卡库图标</span><button data-act="icon-upload" data-v="cards">换图</button><button class="gray" data-act="icon-reset" data-v="cards">默认</button></div>';
-  html+='<div class="icon-edit-item"><span class="ie-ic" style="background:#8A7458"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M6 3h12v18H6z"/><path d="M9 7h6m-6 4h6"/></svg></span><span class="ie-nm">日记图标</span><button data-act="icon-upload" data-v="diary">换图</button><button class="gray" data-act="icon-reset" data-v="diary">默认</button></div>';
-  html+='<div class="icon-edit-item"><span class="ie-ic" style="background:#C0875A"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 3"/></svg></span><span class="ie-nm">陪伴图标</span><button data-act="icon-upload" data-v="companion">换图</button><button class="gray" data-act="icon-reset" data-v="companion">默认</button></div>';
-  html+='<div class="icon-edit-item"><span class="ie-ic" style="background:#6E7F5E"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg></span><span class="ie-nm">设置图标</span><button data-act="icon-upload" data-v="me">换图</button><button class="gray" data-act="icon-reset" data-v="me">默认</button></div><div class="icon-edit-item"><span class="ie-ic" style="background:#D98CA8"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/><path d="M3 13c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/><path d="M3 18c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/></svg></span><span class="ie-nm">潮汐图标</span><button data-act="icon-upload" data-v="tide">换图</button><button class="gray" data-act="icon-reset" data-v="tide">默认</button></div><div class="icon-edit-item"><span class="ie-ic" style="background:#B25E8B"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M8 5l1.5-2h5L16 5"/><circle cx="12" cy="12.5" r="4"/></svg></span><span class="ie-nm">主页图标</span><button data-act="icon-upload" data-v="profile">换图</button><button class="gray" data-act="icon-reset" data-v="profile">默认</button></div>';
-  html+='</div><p class="meta" style="margin-top:6px">给每个 App 上传喜欢的图片当图标，点"换图"选图即可。</p><input type="file" id="iconFile" accept="image/*" style="display:none"></div>';
+  html+='<div class="me-sec"><h3>主界面装修</h3><div class="card" style="padding:0 12px">';
+  for(var ia=0;ia<APPS.length;ia++){
+    var ap=APPS[ia];
+    var shown=state.appIcons[ap.v];
+    var prev=shown?'<img src="'+shown+'" alt="">':'<i style="background:'+ap.c+'">'+esc(ap.n.charAt(0))+'</i>';
+    html+='<div class="icon-edit-item"><span class="ie-ic'+(shown?' has-img':'')+'">'+prev+'</span>'
+      +'<span class="ie-nm">'+esc(ap.n)+'图标</span>'
+      +'<button data-act="icon-upload" data-v="'+ap.v+'">'+(shown?'换一张':'换图')+'</button>'
+      +(shown?'<button class="gray" data-act="icon-reset" data-v="'+ap.v+'">默认</button>':'')
+      +'</div>';
+  }
+  html+='</div><p class="meta" style="margin-top:6px">给桌面上的每个 App 换图标：点“换图”选一张图，图片会铺满整个圆角块。共 '+APPS.length+' 个 App 都能换。</p><input type="file" id="iconFile" accept="image/*" style="display:none"></div>';
   html+='<div class="me-sec"><h3>主页小组件</h3><div class="card">';
   html+='<div class="sw-row"><div><b>时间日期</b><span>大时钟 + 星期</span></div><div class="switch'+(state.widgets.clock?' on':'')+'" data-act="wd-sw" data-key="clock"></div></div>';
   html+='<div class="sw-row"><div><b>在一起天数</b><span>纪念日倒数</span></div><div class="switch'+(state.widgets.days?' on':'')+'" data-act="wd-sw" data-key="days"></div></div>';
@@ -3613,7 +3889,11 @@ function replyChat(m){
 function maybeEmojiReply(c){
   if(state.stickers.length&&Math.random()<0.6){
     var st=pick(state.stickers);
-    state.messages.push({id:uid(),contactId:c.id,dir:'in',type:'img',img:st.img,ts:now()});
+    /* 表情包和文字可以混着连发 */
+    pushIn(c.id,'',now());
+    var mm=state.messages[state.messages.length-1];
+    mm.text='';mm.type='sticker';mm.img=st.img;mm.stickerId=st.id;
+    if(Math.random()<0.45)pushIn(c.id,pickCardText(),now()+rnd(20,45)*1000);
   }else pushIn(c.id,pick(EMOJIS),now());
 }
 function sendPoll(question,options,multi,fast){
@@ -3774,8 +4054,51 @@ function sendCheckin(text){
   state.messages.push({id:uid(),contactId:c.id,dir:'out',kind:'checkin',text:text,ts:now(),replyDue:now()+rndDelay(c)});
   save();closeSheet();renderChat();schedule();
 }
+/* ===== 查岗：回答对方 ===== */
+var ICON_INVITE='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.7-2.8 2.9-4.2 5.5-4.2s4.8 1.4 5.5 4.2"/><path d="M17 8v6M14 11h6"/></svg>';
+var ICON_CHECKIN='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>';
+function checkinCardInput(id){
+  var ta=document.querySelector('textarea[data-ck="'+id+'"]');
+  return ta?String(ta.value||'').trim():'';
+}
+function checkinReply(id,preset){
+  var m=byId(state.messages,id);
+  if(!m||m.myReply)return;
+  var txt=preset||checkinCardInput(id);
+  if(!txt){toast('写一句你现在在做什么');return}
+  m.myReply=txt;
+  m.replyAt=now();
+  var c=contact(m.contactId)||activeContact();
+  /* 把我的回复作为一条普通消息发出去，聊天记录里能看到 */
+  state.messages.push({id:uid(),contactId:c.id,dir:'out',text:txt,ts:now(),readDue:now()+4000});
+  save();renderChat();
+  toast('已回复');
+  /* 对方过一会儿回一句 */
+  var mid=m.id;
+  setTimeout(function(){
+    var mm=byId(state.messages,mid);
+    if(!mm)return;
+    var back=pickChkReply(txt);
+    state.messages.push({id:uid(),contactId:c.id,dir:'in',text:back,ts:now()});
+    feedEvent(c.name+' 回复了你的报备','chat');
+    save();renderChat();schedule();
+  },rnd(4000,9000));
+}
+function pickChkReply(myTxt){
+  var pool=['收到，那我放心了。','嗯，知道了，注意安全。','好，忙你的，我不打扰。','我也在想你。','记得吃饭。','早点回来。'];
+  if(myTxt.indexOf('想你')>=0)return '我也想你，很快就能见到。';
+  if(myTxt.indexOf('吃饭')>=0)return '那就好好吃，别对付。';
+  if(myTxt.indexOf('路上')>=0)return '路上慢点，到家跟我说一声。';
+  if(myTxt.indexOf('工作')>=0||myTxt.indexOf('上班')>=0)return '辛苦啦，别太累。';
+  return pick(pool);
+}
+function checkinLater(id){
+  toast('好，这条查岗先留着，想好了再回');
+}
 function sheetTools(){
   var items=[
+    {act:'image-send',n:'图片',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-4 4 3 4-4 5 4"/></svg>'},
+    {act:'emoji',n:'表情包',ic:ICON_EMOJI},
     {act:'checkin',n:'查岗',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 12h16M4 12a8 8 0 0 1 8-8m-8 8a8 8 0 0 0 8 8m8-8a8 8 0 0 0-8-8m8 8a8 8 0 0 1-8 8"/></svg>'},
     {act:'poll',n:'决策',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 20V10m5 10V4m5 16v-8m5 8V7"/></svg>'},
     {act:'emoji',n:'表情',ic:ICON_EMOJI},
@@ -3791,13 +4114,51 @@ function sheetTools(){
 }
 function sheetStickers(){
   var html='<h2>表情包</h2>';
+  html+='<p class="meta" style="margin:-6px 0 10px">点一下直接发 · 长按图片可删除</p>';
+  if(state.stickers.length){
+    html+='<div class="stk-panel">';
+    for(var j=0;j<state.stickers.length;j++){
+      var s0=state.stickers[j];
+      html+='<button class="stk-item" data-act="sticker-send" data-id="'+s0.id+'"><img class="stk-img" src="'+s0.img+'" alt="表情"></button>';
+    }
+    html+='</div>';
+  }else{
+    html+='<p class="meta" style="padding:6px 0">还没有表情图片，点下面「添加表情图片」从相册选一张</p>';
+  }
+  html+='<div class="stk-sec-title">Emoji 表情</div>';
   html+='<div class="stk-panel">';
-  for(var i=0;i<EMOJIS.length;i++)html+='<button class="stk-item" data-act="emoji-send" data-e="'+EMOJIS[i]+'">'+EMOJIS[i]+'</button>';
-  for(var j=0;j<state.stickers.length;j++)html+='<button data-act="sticker-send" data-id="'+state.stickers[j].id+'" style="padding:0;border:none;background:none"><img class="stk-img" src="'+state.stickers[j].img+'"></button>';
+  for(var i=0;i<EMOJIS.length;i++)html+='<button class="stk-item stk-emoji" data-act="emoji-send" data-e="'+EMOJIS[i]+'">'+EMOJIS[i]+'</button>';
   html+='</div>';
-  html+='<div class="actions"><button class="cancel" data-act="sheet-close">完成</button><button class="ok" data-act="sticker-add">添加表情</button></div>';
+  html+='<div class="stk-sec-title">添加 Emoji</div>';
+  html+='<div class="stk-add-emoji"><input id="stkEmojiIn" maxlength="6" placeholder="粘贴或输入一个 emoji"><button class="btn small" data-act="emoji-add">添加</button></div>';
+  html+='<div class="actions"><button class="cancel" data-act="sheet-close">完成</button><button class="ok" data-act="sticker-add">添加表情图片</button></div>';
   html+='<input type="file" id="stickerFile" accept="image/*" style="display:none">';
   openSheet(html);
+  bindStickerPress();
+}
+/** 面板里长按表情图片 = 删除 */
+function bindStickerPress(){
+  var panel=document.querySelector('#sheet-mask .stk-panel');
+  if(!panel)return;
+  function startAt(t){
+    var b=t&&t.closest?t.closest('[data-act="sticker-send"]'):null;
+    if(!b)return;
+    _stkPress=setTimeout(function(){_stkPress=0;stickerDel(b.getAttribute('data-id'))},650);
+  }
+  function cancel(){if(_stkPress){clearTimeout(_stkPress);_stkPress=0}}
+  panel.addEventListener('touchstart',function(e){startAt(e.target)},{passive:true});
+  panel.addEventListener('touchend',cancel);
+  panel.addEventListener('touchmove',cancel);
+  panel.addEventListener('mousedown',function(e){startAt(e.target)});
+  panel.addEventListener('mouseup',cancel);
+  panel.addEventListener('mouseleave',cancel);
+}
+function emojiAdd(){
+  var el=document.querySelector('#stkEmojiIn');
+  var v=el?String(el.value||'').trim():'';
+  if(!v){toast('先输入一个 emoji');return}
+  if(EMOJIS.indexOf(v)<0)EMOJIS.push(v);
+  sheetStickers();toast('已添加 '+v);
 }
 function sendEmoji(e){
   var c=activeContact();
@@ -3807,31 +4168,56 @@ function sendEmoji(e){
 function sendSticker(id){
   var st=byId(state.stickers,id);if(!st)return;
   var c=activeContact();
-  state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'img',img:st.img,ts:now(),replyDue:now()+rndDelay(c)});
+  state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'sticker',img:st.img,stickerId:st.id,ts:now(),replyDue:now()+rndDelay(c)});
   save();closeSheet();renderChat();schedule();
 }
-/* 内置图片消息已移除：体积大、解码慢，一点就卡。
-   老存档里如果有图片消息，渲染时降级成一行文字并把数据丢掉，避免继续拖慢页面。 */
+/** 删除表情包（长按表情面板里的图） */
+function stickerDel(id){
+  var arr=state.stickers||[];
+  for(var i=0;i<arr.length;i++)if(arr[i].id===id){arr.splice(i,1);break}
+  save();sheetStickers();toast('已删除这个表情');
+}
+var _stkPress=0;
+/* 说明：之前的"图片消息"卡顿是因为把大图 base64 直接写进聊天记录并整页重绘。
+   现在统一走小尺寸压缩（表情 ≤360px / 图片 ≤1080px），并在渲染时降级丢数据，
+   所以图片与表情包都能正常收发了。 */
 function stripImgMsg(m){
   if(m&&m.type==='img'&&m.img){try{delete m.img}catch(e){m.img=''}m.type='imgcleared'}
   return m;
 }
+/* 发图片：控制到 1080px / JPEG 0.85。之前卡顿是因为原图 base64 直接进聊天记录，
+   一次几 MB 又要整页重绘；现在单张约 100–250KB，渲染很轻。 */
+function sendImageMsg(input){
+  pickImageFile(input,function(img){
+    var data=encodeImg(img,1080,{q:.85,allowPng:false});
+    var c=activeContact();
+    state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'img',img:data,ts:now(),replyDue:now()+rndDelay(c)});
+    save();closeSheet();renderChat();schedule();
+  });
+}
+function ensureImgInput(){
+  if(!_imgInput){
+    _imgInput=document.createElement('input');
+    _imgInput.type='file';_imgInput.id='imgFile';_imgInput.accept='image/*';
+    _imgInput.style.display='none';
+    document.body.appendChild(_imgInput);
+  }
+  return _imgInput;
+}
+var _imgInput=null;
 function addStickerFile(input){
-  if(!input.files||!input.files[0])return;
-  var fr=new FileReader();
-  fr.onload=function(){
-    var img=new Image();
-    img.onload=function(){
-      var MAX=340,sc=Math.min(1,MAX/Math.max(img.width,img.height));
-      var cw=document.createElement('canvas');cw.width=Math.round(img.width*sc);cw.height=Math.round(img.height*sc);
-      var cx=cw.getContext('2d');cx.drawImage(img,0,0,cw.width,cw.height);
-      state.stickers.push({id:uid(),img:cw.toDataURL('image/png')});
-      save();closeSheet();sheetStickers();toast('已添加表情');
-    };
-    img.src=fr.result;
-  };
-  fr.readAsDataURL(input.files[0]);
-  input.value='';
+  pickImageFile(input,function(img){
+    /* 表情控制在 360px 内、JPEG 0.8：既清楚又不会拖慢聊天渲染 */
+    var MAX=360,sc=Math.min(1,MAX/Math.max(img.width,img.height));
+    var cw=document.createElement('canvas');
+    cw.width=Math.max(1,Math.round(img.width*sc));cw.height=Math.max(1,Math.round(img.height*sc));
+    var cx=cw.getContext('2d');
+    cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
+    cx.fillStyle='#fff';cx.fillRect(0,0,cw.width,cw.height);
+    cx.drawImage(img,0,0,cw.width,cw.height);
+    state.stickers.push({id:uid(),img:cw.toDataURL('image/jpeg',.8)});
+    save();sheetStickers();toast('已添加表情');
+  });
 }
 
 /* ================= 打电话 ================= */
@@ -4204,6 +4590,18 @@ function ntfPanelHtml(){
   h+='<div class="sw-row"><div><b>通知常驻（不自动消失）</b><span>开启后消息通知会一直停在通知中心 / 锁屏，直到你点开或忽略</span></div>'+sw2('ntfSticky',st.ntfSticky!==false)+'</div>';
   h+='<div class="sw-row"><div><b>强振动</b><span>到达时震得更长一点（三下），适合手机静音放兜里时</span></div>'+sw2('ntfStrong',st.ntfStrong===true)+'</div>';
   h+='<div class="sw-row"><div><b>应用角标</b><span>主屏图标上显示未读数字（支持的浏览器才会亮）</span></div>'+sw2('ntfBadge',st.ntfBadge!==false)+'</div>';
+  h+='</div>';
+  h+='<div class="card ntf-card" style="margin-top:10px"><div class="sw-row"><div><b>邀请一起专注</b><span>陆沉会来邀请你去「陪伴」里一起学习 / 工作 / 运动</span></div>'+sw2('inviteOn',st.inviteOn!==false)+'</div>';
+  h+='<div class="ntf-block"><div class="nb-head"><b>邀请概率</b><span class="ntf-tag">'+((st.invitePct!=null?st.invitePct:30))+'%</span></div>';
+  h+='<span class="nb-desc">他每次"想起来"邀请你时，有多大概率真的发出邀请。下面还能设两次邀请之间大概隔多久。</span>';
+  h+='<div class="rhy-grid" style="margin-top:8px">'
+    +'<div class="inl"><label>邀请概率%</label><input id="setInvitePctAll" type="number" min="0" max="100" value="'+((st.invitePct!=null?st.invitePct:30))+'"></div>'
+    +'<div class="inl"><label>最快间隔（分钟）</label><input id="setInviteMin" type="number" min="1" max="10080" value="'+((st.inviteMin!=null?st.inviteMin:60))+'"></div>'
+    +'<div class="inl"><label>最慢间隔（分钟）</label><input id="setInviteMax" type="number" min="1" max="10080" value="'+((st.inviteMax!=null?st.inviteMax:240))+'"></div>'
+    +'</div>'
+    +'<div class="nb-btns"><button class="btn small" data-act="invite-save">保存邀请设置</button><button class="btn small ghost" data-act="invite-test">立刻发一条邀请</button></div>'
+    +'<p class="meta" style="margin-top:8px">每个联系人还能单独设：设置 → 聊天账户 → 他的「设置」→ 邀请一起专注概率%。</p>'
+    +'</div>';
   h+='<p class="meta" style="margin-top:10px">iPhone 说明：Safari 只有把网站"添加到主屏幕"并从图标打开后才支持系统通知；息屏期间网页被系统冻结，<b>完全关闭网页时无法收到消息</b>（那需要服务器推送）。想尽量不断档，可在下面把"后台保活"开到"一直"。</p>';
   h+='</div>';
   return h;
@@ -4307,6 +4705,11 @@ document.addEventListener('click',function(e){
     else if(act==='card-save')cardSave();
     else if(act==='card-del')cardDel(id);
     else if(act==='cat'){_cat=btn.getAttribute('data-cat');renderCards()}
+    else if(act==='cat-add')catAdd()
+    else if(act==='cat-add-save')catAddSave()
+    else if(act==='cat-del')catDel(btn.getAttribute('data-cat'))
+    else if(act==='card-search')cardSearchGo()
+    else if(act==='card-search-clear')cardSearchClear()
     else if(act==='quick-tag')quickTag(btn.getAttribute('data-tag'));
     else if(act==='card-export')cardExport();
     else if(act==='card-import'){var cf=document.getElementById('cardFile');if(cf)cf.click()}
@@ -4340,6 +4743,14 @@ document.addEventListener('click',function(e){
     else if(act==='checkin')sheetCheckin();
     else if(act==='checkin-send')sendCheckin(state.checkinPresets[parseInt(btn.getAttribute('data-idx'),10)]);
     else if(act==='checkin-custom'){var ckIn=$('#checkinCustom');if(ckIn&&ckIn.value.trim())sendCheckin(ckIn.value.trim());else toast('写一句查岗的话')}
+    else if(act==='image-send'){ensureImgInput().click()}
+    else if(act==='emoji-add')emojiAdd()
+    else if(act==='invite-save')inviteSave()
+    else if(act==='invite-test'){beginInviteForce();}
+    else if(act==='invite-accept')inviteAccept(id)
+    else if(act==='invite-decline')inviteDecline(id)
+    else if(act==='ck-send')checkinReply(id,btn.getAttribute('data-txt'))
+    else if(act==='ck-later')checkinLater(id)
     else if(act==='checkin-add')sheetCheckinAdd();
     else if(act==='checkin-add-save')checkinAddSave();
     else if(act==='checkin-del')checkinDel(parseInt(btn.getAttribute('data-idx'),10));
@@ -4488,6 +4899,8 @@ document.addEventListener('change',function(e){
   else if(e.target.id==='bgFile')readImg(e.target,'bg');
   else if(e.target.id==='coverFile')readImg(e.target,'cover');
   else if(e.target.id==='stickerFile')addStickerFile(e.target);
+  else if(e.target.id==='cardSearch'){_cardQ=String(e.target.value||'').trim();renderCards();var _sb=document.querySelector('#cardSearch');if(_sb&&_sb.focus){_sb.focus();try{_sb.setSelectionRange(_sb.value.length,_sb.value.length)}catch(x){}}}
+  else if(e.target.id==='imgFile')sendImageMsg(e.target);
   else if(e.target.id==='iconFile')readIconFile(e.target);
   else if(e.target.id==='homeBgFile')readUploadImg(e.target,'home');
   else if(e.target.id==='cbFile')readUploadImg(e.target,'cb');
@@ -5265,6 +5678,7 @@ function saveAllPct(){
     c0.replyPct=clamp(parseFloat($('#setReplyPct').value)||100,0,100);
     c0.callPct=clamp(parseFloat($('#setCallPct').value)||30,0,100);
     c0.transferPct=clamp(parseFloat($('#setTransferPct').value)||15,0,100);
+    c0.invitePct=clamp(parseFloat($('#setInvitePct').value)||30,0,100);
   }
   save();toast('概率已保存');
 }
