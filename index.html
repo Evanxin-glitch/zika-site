@@ -1931,11 +1931,28 @@ function router(){
  *  如果目标 hash 和当前一样（例如来电时先把界面画成了聊天页，但地址还停在 #home），
  *  浏览器不会触发 hashchange，界面就卡住不动——返回按钮点了没反应就是这个原因。
  *  这里 hash 相同也强制重绘一次。 */
+/* 跳转前把临时状态清干净：残留的弹层、拖拽幽灵、拖拽中的类名。
+   这样即使上一次拖拽留下了什么东西，点图标也一定能打开。 */
+function clearTransients(){
+  try{ closeSheet() }catch(e){}
+  try{
+    var gs=document.querySelectorAll('#dragGhost');
+    for(var q=0;q<gs.length;q++)if(gs[q].parentNode)gs[q].parentNode.removeChild(gs[q]);
+  }catch(e){}
+  try{
+    var ds=document.querySelectorAll('.dragging');
+    for(var i=0;i<ds.length;i++)ds[i].classList.remove('dragging');
+    var es=document.querySelectorAll('.editfree,.editing');
+    for(var j=0;j<es.length;j++){es[j].classList.remove('editfree');es[j].classList.remove('editing')}
+  }catch(e){}
+}
 function goView(v,force){
   v=v||'home';
   if(VIEWS.indexOf(v)<0)v='home';
   var cur=location.hash.replace('#','');
   if(cur!==v){location.hash=v;return}
+  /* 真正要跳转了：先把上次拖拽 / 弹层留下的东西清掉，保证每次都能打开 */
+  clearTransients();
   if(force!==false)render(v);
 }
 function render(v){
@@ -6246,10 +6263,12 @@ function initOneWidgetDrag(grid){
     if(g)g.classList.remove('editfree');
     drag=null;
   }
+  var lastX=null,lastY=null;
   function move(x,y){
     if(timer&&Math.abs(x-startX)+Math.abs(y-startY)>12){clearTimeout(timer);timer=null}
     if(!drag)return;
     if(Math.abs(x-startX)+Math.abs(y-startY)>10)movedFlag=1;
+    lastX=x;lastY=y;                 /* 记住最后落点 —— 真实元素全程不动，只有 ghost 跟手 */
     if(rafW)return;
     rafW=requestAnimationFrame(function(){
       rafW=null;
@@ -6259,6 +6278,7 @@ function initOneWidgetDrag(grid){
   function end(){
     if(timer){clearTimeout(timer);timer=null}
     if(manageTimer){clearTimeout(manageTimer);manageTimer=null}
+    var didMove=movedFlag;      /* 先留住，清零要放到后面用完之后 */
     movedFlag=0;
     if(!drag)return;
     var el=drag;
@@ -6271,9 +6291,24 @@ function initOneWidgetDrag(grid){
       var gr=grid.getBoundingClientRect();
       var r=el.getBoundingClientRect();
       var w=el.offsetWidth||1;
+      var h=el.offsetHeight||1;
       var maxX=Math.max(0,gr.width-w);
-      var px=clampN(r.left-gr.left,0,maxX);
-      var py=Math.max(0,r.top-gr.top);
+      /* 关键：纵向也限制在"当前组件区"里面。
+         不限制的话，把组件往下拖会把容器撑高，下面的 App 图标整片被挤到屏幕外，
+         看起来就像"图标点不开了"。 */
+      var maxY=Math.max(0,gr.height-h);
+      /* 真正落下的是 ghost 的位置：ghost 左上角 = (手指 - 抓取偏移)。
+         以前这里读的是元素自身的 rect —— 而元素全程没动过，
+         所以无论拖到哪都会算回原位（"拖完又弹回去"就是这个原因）。 */
+      var dropL,dropT;
+      if(didMove&&lastX!=null&&lastY!=null){
+        dropL=lastX-offX;
+        dropT=lastY-offY;
+      }else{
+        dropL=r.left;dropT=r.top;
+      }
+      var px=clampN(dropL-gr.left,0,maxX);
+      var py=clampN(dropT-gr.top,0,maxY);
       el.style.left=(gr.width?(px/gr.width*100):0)+'%';
       el.style.top=py+'px';
       state.widgetPos=state.widgetPos||{};
@@ -6282,6 +6317,7 @@ function initOneWidgetDrag(grid){
       fitWidgetGrid();
     }
     drag=null;
+    lastX=null;lastY=null;
   }
   grid.addEventListener('touchstart',function(e){var t=e.touches[0];if(t)begin(t.clientX,t.clientY,e.target)},{passive:true});
   grid.addEventListener('touchmove',function(e){
@@ -6663,13 +6699,34 @@ function bindAppDrag(grid,allGrids){
     },380);
   }
   var rafT=null;
+  /** 换位：必须"立刻"做。以前放在 requestAnimationFrame 里，
+      手指松得比下一帧快时这一帧还没跑，换位就丢了 ——
+      表现就是"能拖动，但放不到新位置"。 */
+  function reorder(x,y){
+    if(!drag)return;
+    var items=grid.querySelectorAll('.app-item');
+    for(var i=0;i<items.length;i++){
+      var it=items[i];
+      if(it===drag||it.classList.contains('dragging'))continue;
+      var r=it.getBoundingClientRect();
+      if(x>r.left-6&&x<r.right+6&&y>r.top-6&&y<r.bottom+6){
+        var a=drag,b=it;
+        var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();
+        if(br.top<(ar.top+ar.height/2))grid.insertBefore(a,b);
+        else grid.insertBefore(a,b.nextSibling);
+        break;
+      }
+    }
+  }
   function move(x,y){
     if(timer&&Math.abs(x-startX)+Math.abs(y-startY)>12){clearTimeout(timer);timer=null}
     if(!drag)return;
+    reorder(x,y);                     /* 同步换位，不等下一帧 */
     if(rafT)return;
     rafT=requestAnimationFrame(function(){
       rafT=null;
       if(ghost)ghost.style.transform='translate3d('+(x-ghost.offsetWidth/2)+'px,'+(y-ghost.offsetHeight/2)+'px,0)';
+      /* 拖到屏幕左右边缘停留一会儿 => 翻页搬运 */
       var cur=pageOf(grid);
       var dir=0;
       if(x<=EDGE_PX&&cur>0)dir=-1;
@@ -6681,19 +6738,6 @@ function bindAppDrag(grid,allGrids){
         else if(nowT-edgeSince>=HOLD_MS){
           var tgt=allGrids[cur+dir];
           if(tgt){detachTo(tgt);edgeSince=nowT}
-        }
-      }
-      var items=grid.querySelectorAll('.app-item');
-      for(var i=0;i<items.length;i++){
-        var it=items[i];
-        if(it===drag||it.classList.contains('dragging'))continue;
-        var r=it.getBoundingClientRect();
-        if(x>r.left-6&&x<r.right+6&&y>r.top-6&&y<r.bottom+6){
-          var a=drag,b=it;
-          var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();
-          if(br.top<(ar.top+ar.height/2))grid.insertBefore(a,b);
-          else grid.insertBefore(a,b.nextSibling);
-          break;
         }
       }
     });
