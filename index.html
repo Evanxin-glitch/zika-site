@@ -344,8 +344,17 @@ input:focus,textarea:focus{border-color:var(--green)}
 .bubble.in:after{content:'';position:absolute;left:-7px;bottom:8px;width:0;height:0;border:8px solid transparent;border-left:0;border-right-color:rgba(255,233,240,.95);border-bottom-color:rgba(255,233,240,.95)}
 .bubble.out:after{content:'';position:absolute;right:-7px;bottom:8px;width:0;height:0;border:8px solid transparent;border-right:0;border-left-color:#F9AEC2;border-bottom-color:#F9AEC2}
 .bubble.typing:after{display:none}
-/* 聊天顶部返回按钮样式 */
-.chat-top .back{width:44px;height:44px;min-width:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:rgba(255,255,255,.5);border:1px solid var(--glass-brd);flex-shrink:0}
+/* 聊天顶部按钮（返回键 + 三个功能键）统一尺寸 */
+.chat-top .back{width:40px;height:40px;min-width:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:rgba(255,255,255,.6);border:1px solid var(--glass-brd);flex-shrink:0;padding:0}
+/* 顶栏三个功能键横排（原来竖排占了 132px，把顶栏撑到 146px 高） */
+.chat-top .pr{margin-left:auto;display:flex;flex-direction:row;align-items:center;gap:6px;flex-shrink:0}
+.chat-top .pr .back{width:38px;height:38px;min-width:38px;border-radius:12px}
+.chat-top{padding-top:calc(6px + env(safe-area-inset-top))}
+.chat-top .ct-who{padding:2px 0}
+.chat-top .ct-chips{margin-top:3px}
+.chat-top .ct-chips .chip{font-size:calc(10px*var(--fs));padding:2px 7px}
+/* 聊天页底部不要留那 30px 的空白带 */
+#view:has(.chat-top){padding-bottom:0!important}
 /* 主页横滑分页 */
 .app-scroll{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -14px;padding:0 14px;position:relative}
 .app-scroll::-webkit-scrollbar{display:none}
@@ -371,8 +380,17 @@ input:focus,textarea:focus{border-color:var(--green)}
 .tcard-empty .tck{font-size:calc(11.5px*var(--fs));line-height:1.5}
 .tcard-empty:active{transform:scale(.97)}
 /* 通知设置面板 */
-.ntf-tag{font-size:calc(11.5px*var(--fs));font-weight:700;background:rgba(95,143,123,.12);border-radius:20px;padding:3px 10px;white-space:nowrap}
+.ntf-tag{font-size:calc(11.5px*var(--fs));font-weight:700;background:rgba(95,143,123,.12);border-radius:20px;padding:3px 10px;white-space:nowrap;flex-shrink:0}
 .sw-row>span{flex-shrink:0}
+/* 通知面板：文字长的地方改成纵向块，按钮单独一行，避免和说明文字挤在一起 */
+.ntf-card{padding:4px 14px 14px}
+.ntf-block{padding:12px 0;border-bottom:1px solid var(--line)}
+.ntf-block:last-of-type{border-bottom:none}
+.nb-head{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}
+.nb-head b{font-size:calc(14px*var(--fs))}
+.nb-desc{display:block;font-size:calc(11.5px*var(--fs));color:var(--sub);margin-top:4px;line-height:1.5}
+.nb-btns{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.nb-btns .btn{flex:1 1 0;min-width:110px;min-height:40px}
 /* ===== 组件库 ===== */
 .wdlib-list{display:flex;flex-direction:column;gap:10px}
 .wdlib-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:20px;background:linear-gradient(150deg,rgba(255,255,255,.72),rgba(255,255,255,.5));backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.85);box-shadow:0 6px 20px rgba(150,120,140,.08)}
@@ -493,6 +511,19 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
 @media (prefers-reduced-transparency:reduce){
   .widget,.card,.chat-top,.chat-input,.page-top{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(255,255,255,.92)!important}
 }
+/* ===== 性能：手机上一堆大范围毛玻璃会明显掉帧、滚动发涩。
+   窄屏把模糊半径与饱和度调小（观感几乎不变，GPU 压力小很多）。 ===== */
+@media (max-width:600px){
+  :root{--blur:blur(12px) saturate(135%)}
+  .widget{backdrop-filter:blur(12px) saturate(140%)!important;-webkit-backdrop-filter:blur(12px) saturate(140%)!important;box-shadow:0 4px 12px rgba(150,120,140,.10),inset 0 1px 0 rgba(255,255,255,.7)!important}
+  .chat-top,.chat-input,.page-top{backdrop-filter:blur(14px) saturate(140%)!important;-webkit-backdrop-filter:blur(14px) saturate(140%)!important}
+  .card,.post,.mail-item,.diary-item,.daily-card,.saved-item,.tr-item,.status-card{backdrop-filter:blur(12px) saturate(140%)!important;-webkit-backdrop-filter:blur(12px) saturate(140%)!important}
+}
+/* 滚动容器：纵向滚动与横向分页各自独立，手势不打架 */
+.home-page,.screen{overscroll-behavior:contain}
+/* 浮层残留兜底：通话/转账/面板隐藏后不应再拦手或留下白块 */
+#callOverlay:not(.show),#transferOverlay:not(.show),#sheet-mask.hide,#ntfBar[style*="none"]{pointer-events:none!important}
+#toast{pointer-events:none}
 
 /* ============ 通用 ============ */
 .card{background:var(--glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--glass-brd);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--glass-sh)}
@@ -956,6 +987,8 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 'use strict';
 /* ================= 基础 ================= */
 var KEY='zika_site_v3';
+/* 小组件默认顺序（migrate 会用到，所以放在最前面定义） */
+var WD_ORDER_DEFAULT=['clock','days','weather','photo','count','progress','music','note','feed'];
 /* 冗余存储键：主键坏了/被系统清掉时，还有镜像与上一份好数据可以救回来 */
 var KEY_MIRROR=KEY+'_mirror';
 var KEY_RAW=KEY+'_rawfail';
@@ -1195,8 +1228,19 @@ function migrate(s){
   if(!s.appOrder||!s.appOrder.length)s.appOrder=['chat','moments','mail','cards','diary','companion','tide','wallet','me'];
   if(s.appOrder.indexOf('tide')<0)s.appOrder.push('tide');
   if(s.appOrder.indexOf('tarot')<0)s.appOrder.push('tarot');
-  if(!s.widgetOrder||!s.widgetOrder.length)s.widgetOrder=['clock','days','music','note','feed'];
-  if(s.widgetOrder.indexOf('feed')<0)s.widgetOrder.push('feed');
+  /* 组件库放到第 4 个位置，第一页就能看见（原来排在最后，被挤到"更多应用"页） */
+  var _wprev=s.appOrder.indexOf('widgets');
+  var _worder=s.appOrder.slice();
+  if(_wprev>=0)_worder.splice(_wprev,1);
+  _worder.splice(Math.min(3,_worder.length),0,'widgets');
+  s.appOrder=_worder;
+  if(!s.widgetOrder||!s.widgetOrder.length)s.widgetOrder=WD_ORDER_DEFAULT.slice();
+  /* 新装默认只在桌面摆 3 个（时间 / 在一起 / 陆沉动态），
+     天气、相册、倒数日、进度环、音乐、便签都收在组件库里，想用再去加 */
+  if(s.widgetsOn===undefined){
+    s.widgets={clock:true,days:true,music:false,note:false,weather:false,photo:false,count:false,progress:false,feed:true};
+    s.widgetsOn=true;
+  }
   if(!s.widgetImgs)s.widgetImgs={};
   if(!s.widgetDaysLabel)s.widgetDaysLabel='在一起';
   if(!s.widgetDaysUnit)s.widgetDaysUnit='天';
@@ -1833,9 +1877,8 @@ function renderHome(){
 var WIDGET_MINH={clock:62,days:62,weather:74,photo:150,count:70,progress:96,music:66,note:62,feed:112};
 function widgetPos(wv,idx){
   var p=(state.widgetPos||{})[wv];
-  if(p&&typeof p.x==='number'&&typeof p.y==='number'){
-    return {x:clamp(p.x,0,0),y:Math.max(0,p.y)};
-  }
+  /* 组件现在都是整行宽，横向固定 0，只保留纵向位置 */
+  if(p&&typeof p.y==='number')return {x:0,y:Math.max(0,p.y)};
   return null;   /* 没有存位置时由下面的自动排布决定 */
 }
 /** 默认排布：纵向依次往下排，绝不会有谁压到谁 */
@@ -1920,25 +1963,35 @@ function widgetGridInner(wdo,wds,wk,d){
   return out;
 }
 /** 组件是绝对定位的，渲染后按实际高度重新码放，确保谁也不压谁 */
+var _fitRaf=null;
 function fitWidgetGrid(){
+  if(_fitRaf)return;
+  _fitRaf=requestAnimationFrame(function(){
+    _fitRaf=null;
+    fitWidgetGridNow();
+  });
+}
+function fitWidgetGridNow(){
   var grid=document.getElementById('widgetGrid');
   if(!grid)return;
   var ws=grid.querySelectorAll('.widget');
   var sp=grid.querySelector('.wfree-spacer');
   if(!ws.length){
-    if(sp)sp.style.height='0px';
+    if(sp&&sp.style.height!=='0px')sp.style.height='0px';
     return;
   }
   /* 如果刚换过 DOM，offsetHeight 会是 0，这时候用之前的估高兜底 */
-  var y=0;
+  var y=0,changed=false;
   for(var i=0;i<ws.length;i++){
     var el=ws[i];
     if(!el.classList.contains('wfree'))continue;
     var h=el.offsetHeight||WIDGET_MINH[wKeyOf(el)]||74;
-    el.style.top=y+'px';
+    var top=y+'px';
+    if(el.style.top!==top)el.style.top=top;
     y+=h+12;
   }
-  if(sp)sp.style.height=Math.max(0,y-12)+'px';
+  var want=Math.max(0,y-12)+'px';
+  if(sp&&sp.style.height!==want)sp.style.height=want;
 }
 function wKeyOf(el){
   if(!el)return null;
@@ -3209,7 +3262,6 @@ function renderMe(){
   html+='<div class="sw-row"><div><b>正在输入的拟态</b><span>回复前显示三点输入</span></div><div class="switch'+(state.settings.typingOn?' on':'')+'" data-act="st-sw" data-key="typingOn"></div></div>';
   html+='<div class="sw-row"><div><b>欲言又止</b><span>小概率打了又删</span></div><div class="switch'+(state.settings.stopTyping?' on':'')+'" data-act="st-sw" data-key="stopTyping"></div></div>';
   html+='<div class="sw-row"><div><b>消息操作菜单</b><span>气泡旁显示 ⋮ 可复制删除</span></div><div class="switch'+(state.settings.msgMenu?' on':'')+'" data-act="st-sw" data-key="msgMenu"></div></div>';
-  html+='<div class="sw-row"><div><b>消息音效</b><span>收到消息时提示音</span></div><div class="switch'+(state.settings.soundOn?' on':'')+'" data-act="st-sw" data-key="soundOn"></div></div>';
   html+='</div></div>';
   html+='<div class="me-group-title">后台与保活</div>';
   html+='<div class="me-sec"><h3>后台保活</h3><div class="card">';
@@ -3858,6 +3910,8 @@ function notifyIncoming(m){
   var inChat=inChatView()&&state.activeContact===m.contactId;
   /* 系统通知：前台时若勾了「仅后台」就不弹 */
   var wantOS=document.hidden||st.ntfBgOnly!==true;
+  /* 系统通知的声音也交给同一个开关，避免"关了还响" */
+  if(state.settings&&state.settings.soundOn===false)st.ntfSound=false;
   if(wantOS)ntfAggregate(m);
   ntfBadge();
   if(inChat||document.hidden)return;
@@ -3951,21 +4005,35 @@ function ntfPerm(){
   }catch(e){toast('授权失败，请在浏览器设置里手动允许通知')}
 }
 /* ===== 系统通知 ===== */
-var _ntfSW=null;
+var _ntfSW=null,_ntfSWState='idle';   /* idle | registering | ready | failed | unsupported */
 function ntfRegisterSW(){
-  if(!('serviceWorker' in navigator))return;
-  if(state.settings&&state.settings.ntfSw===false)return;
-  if(_ntfSW)return;
+  if(!('serviceWorker' in navigator)){_ntfSWState='unsupported';return}
+  if(!window.isSecureContext){_ntfSWState='insecure';return}
+  if(state.settings&&state.settings.ntfSw===false){_ntfSWState='idle';return}
+  if(_ntfSW||_ntfSWState==='registering')return;
+  _ntfSWState='registering';
+  ntfRefreshPanel();
   try{
     var code="self.addEventListener('notificationclick',function(e){e.notification.close();e.waitUntil(self.clients.matchAll({type:'window'}).then(function(l){for(var i=0;i<l.length;i++){try{l[i].postMessage({zika:'open-chat'})}catch(x){}}}))});";
     var url=URL.createObjectURL(new Blob([code],{type:'text/javascript'}));
-    navigator.serviceWorker.register(url).then(function(r){_ntfSW=r}).catch(function(){_ntfSW=null});
-  }catch(e){}
+    navigator.serviceWorker.register(url).then(function(r){
+      _ntfSW=r;_ntfSWState='ready';ntfRefreshPanel();
+    }).catch(function(){
+      _ntfSW=null;_ntfSWState='failed';ntfRefreshPanel();
+    });
+  }catch(e){_ntfSWState='failed';ntfRefreshPanel()}
+}
+/** 注册状态变了就顺手刷新设置页（用户在别的页就不管） */
+function ntfRefreshPanel(){
+  try{if(location.hash.replace('#','')==='me')renderMe()}catch(e){}
 }
 function ntfSWState(){
-  if(!('serviceWorker' in navigator))return 'unsupported';
+  if(_ntfSWState==='unsupported')return 'unsupported';
+  if(_ntfSWState==='insecure')return 'insecure';
   if(_ntfSW)return 'ready';
-  return 'idle';
+  if(_ntfSWState==='registering')return 'registering';
+  if(_ntfSWState==='failed')return 'failed';
+  return (state.settings&&state.settings.ntfSw===false)?'off':'idle';
 }
 /** 让用户先看到一条测试通知，确认真的弹出得来 */
 function ntfSelfTest(){
@@ -4074,9 +4142,23 @@ function ntfStateText(){
   }catch(e){return '未知'}
 }
 function ntfSwText(){
-  if(!('serviceWorker' in navigator))return '浏览器不支持';
-  if(_ntfSW)return '已就绪';
-  return (state.settings&&state.settings.ntfSw===false)?'已关闭':'待注册';
+  var s=ntfSWState();
+  if(s==='ready')return '已就绪';
+  if(s==='registering')return '注册中…';
+  if(s==='failed')return '注册失败';
+  if(s==='unsupported')return '本浏览器不支持';
+  if(s==='insecure')return '需要 https';
+  if(s==='off')return '已关闭';
+  return '待注册';
+}
+function ntfSwDesc(){
+  var s=ntfSWState();
+  if(s==='ready')return '已注册。点系统通知会直接跳到聊天页。';
+  if(s==='registering')return '正在注册，稍等一下…';
+  if(s==='failed')return '注册失败（可能是浏览器限制了 blob 脚本）。不影响通知本身，只是点通知不会自动跳页。';
+  if(s==='unsupported')return '这个浏览器不支持 Service Worker，点通知不会自动跳页，其它功能正常。';
+  if(s==='insecure')return 'Service Worker 只在 https 或 localhost 下可用（file:// 打开时不可用），其它功能正常。';
+  return '点系统通知会直接跳到聊天页。授权通过时会自动注册。';
 }
 function ntfPreviewPick(v){
   state.settings.ntfPreview=v;save();renderMe();
@@ -4089,24 +4171,40 @@ function ntfBgTest(){
 function ntfPanelHtml(){
   var st=state.settings||{};
   var perm=ntfStateText();
-  var permColor=(perm==='已授权')?'#5F8F7B':(perm==='已被拒绝'?'#C25B5B':'#C9A227');
-  var h='<div class="card">';
-  h+='<div class="sw-row"><div><b>消息通知</b><span>他发消息时横幅 + 系统通知</span></div>'+sw2('ntfOn',st.ntfOn!==false)+'</div>';
-  h+='<div class="sw-row"><div><b>系统通知</b><span>接入 Notification.requestPermission() 与 Service Worker，支持后台提醒、点击跳转</span></div><span class="ntf-tag" style="color:'+permColor+'">'+perm+'</span></div>';
-  h+='<div class="sw-row"><div><b>请求系统权限</b><span>点击后浏览器弹出授权框，允许后才能显示系统通知；拒绝要去浏览器设置里重置</span></div><span style="display:flex;gap:6px"><button class="btn small" data-act="ntf-perm">请求授权</button><button class="btn small ghost" data-act="ntf-test">发送测试</button></span></div>';
-  h+='<div class="sw-row"><div><b>Service Worker</b><span>注册后可接管通知点击，点通知直接跳到聊天页</span></div><span style="display:flex;gap:6px;align-items:center"><span class="ntf-tag">'+ntfSwText()+'</span><button class="btn small ghost" data-act="ntf-sw">重新注册</button></span></div>';
+  var permColor=(perm==='已授权')?'#3F6B58':(perm==='已被拒绝'?'#B24A4A':'#9A7B2E');
+  var permBg=(perm==='已授权')?'rgba(95,143,123,.16)':(perm==='已被拒绝')?'rgba(196,91,91,.16)':'rgba(201,162,39,.18)';
+  var h='<div class="card ntf-card">';
+  h+='<div class="sw-row"><div><b>消息通知</b><span>他发消息时站内横幅 + 系统通知</span></div>'+sw2('ntfOn',st.ntfOn!==false)+'</div>';
+
+  /* 状态类：文字占满一行，状态标签单独一行，不再挤在一格里 */
+  h+='<div class="ntf-block"><div class="nb-head"><b>系统通知</b><span class="ntf-tag" style="color:'+permColor+';background:'+permBg+'">'+perm+'</span></div>';
+  h+='<span class="nb-desc">接入 Notification.requestPermission() 与 Service Worker，支持后台提醒、点通知跳到聊天页。</span></div>';
+
+  h+='<div class="ntf-block"><div class="nb-head"><b>请求系统权限</b></div>';
+  h+='<span class="nb-desc">点下面按钮弹出授权框；允许后才会显示系统通知。若被拒绝，要去浏览器/系统设置里重置。</span>';
+  h+='<div class="nb-btns"><button class="btn small" data-act="ntf-perm">请求授权</button><button class="btn small ghost" data-act="ntf-test">发送测试</button></div></div>';
+
+  h+='<div class="ntf-block"><div class="nb-head"><b>Service Worker</b><span class="ntf-tag">'+ntfSwText()+'</span></div>';
+  h+='<span class="nb-desc">'+ntfSwDesc()+'</span>';
+  if(ntfSWState()!=='unsupported'&&ntfSWState()!=='insecure')
+    h+='<div class="nb-btns"><button class="btn small ghost" data-act="ntf-sw">重新注册</button></div>';
+  h+='</div>';
+
   h+='<div class="sw-row"><div><b>仅后台显示系统通知</b><span>开启后只在页面处于后台/最小化时推系统通知，前台只显示应用内提醒</span></div>'+sw2('ntfBgOnly',st.ntfBgOnly===true)+'</div>';
-  h+='<div class="sw-row" style="display:block"><div style="margin-bottom:6px"><b>通知预览模式</b><span>决定锁屏/通知中心里露多少内容</span></div><div class="preset-row">'
+  h+='<div class="sw-row"><div><b>消息提示音</b><span>收到他的消息时响一下"滴"声（系统通知的声音也跟随这个开关）</span></div>'+sw2('soundOn',st.soundOn!==false)+'</div>';
+
+  h+='<div class="ntf-block"><div class="nb-head"><b>通知预览模式</b></div><span class="nb-desc">决定锁屏/通知中心里露多少内容。</span>';
+  h+='<div class="preset-row" style="margin-top:8px">'
     +'<button class="preset-btn'+(st.ntfPreview==='full'?' on':'')+'" data-act="ntf-preview" data-v="full">完整预览</button>'
     +'<button class="preset-btn'+(st.ntfPreview==='sender'?' on':'')+'" data-act="ntf-preview" data-v="sender">只显示谁发的</button>'
     +'<button class="preset-btn'+(st.ntfPreview==='hidden'?' on':'')+'" data-act="ntf-preview" data-v="hidden">完全隐藏</button>'
     +'</div></div>';
-  h+='<div class="sw-row"><div><b>通知声音</b><span>关闭后消息到达不再响提示音；站内横幅、通知中心与角标照常</span></div>'+sw2('ntfSound',st.ntfSound!==false)+'</div>';
+
   h+='<div class="sw-row"><div><b>通知震动</b><span>移动端到达时震动一次；关闭后只保留静默送达</span></div>'+sw2('ntfVibe',st.ntfVibe!==false)+'</div>';
   h+='<div class="sw-row"><div><b>通知常驻（不自动消失）</b><span>开启后消息通知会一直停在通知中心 / 锁屏，直到你点开或忽略</span></div>'+sw2('ntfSticky',st.ntfSticky!==false)+'</div>';
   h+='<div class="sw-row"><div><b>强振动</b><span>到达时震得更长一点（三下），适合手机静音放兜里时</span></div>'+sw2('ntfStrong',st.ntfStrong===true)+'</div>';
   h+='<div class="sw-row"><div><b>应用角标</b><span>主屏图标上显示未读数字（支持的浏览器才会亮）</span></div>'+sw2('ntfBadge',st.ntfBadge!==false)+'</div>';
-  h+='<p class="meta" style="margin-top:8px">iPhone 说明：Safari 只有把网站“添加到主屏幕”并从图标打开后才支持系统通知；息屏期间网页被系统冻结，<b>完全关闭网页时无法收到消息</b>（那需要服务器推送，GitHub Pages 做不到）。想尽量不断档，可在下面把“后台保活”开到“一直”。</p>';
+  h+='<p class="meta" style="margin-top:10px">iPhone 说明：Safari 只有把网站"添加到主屏幕"并从图标打开后才支持系统通知；息屏期间网页被系统冻结，<b>完全关闭网页时无法收到消息</b>（那需要服务器推送）。想尽量不断档，可在下面把"后台保活"开到"一直"。</p>';
   h+='</div>';
   return h;
 }
@@ -4273,6 +4371,11 @@ document.addEventListener('click',function(e){
     else if(act==='wdlib-toggle')wdlibToggle(btn.getAttribute('data-k'))
     else if(act==='wdlib-content-save')wdlibContentSave()
     else if(act==='wd-photo')wdPickPhoto()
+    else if(act==='wd-sheet-img'){closeSheet();wdlibPickImg(btn.getAttribute('data-k'))}
+    else if(act==='wd-sheet-photo'){closeSheet();wdPickPhoto()}
+    else if(act==='wd-sheet-content'){closeSheet();goView('widgets')}
+    else if(act==='wd-sheet-resetone')widgetResetOne(btn.getAttribute('data-k'))
+    else if(act==='wd-sheet-del')widgetRemove(btn.getAttribute('data-k'))
     else if(act==='wdlib-img')wdlibPickImg(btn.getAttribute('data-k'))
     else if(act==='wdlib-img-clear')wdlibImgClear()
     else if(act==='wdlib-reset'){widgetLayoutReset();renderWidgetLib()}
@@ -4870,7 +4973,7 @@ function widgetDefs(){
     {k:'feed',    n:'陆沉动态',  d:'日记 / 消息 / 朋友圈 / 塔罗通知'}
   ];
 }
-var WD_ORDER=['clock','days','weather','photo','count','progress','music','note','feed'];
+var WD_ORDER=WD_ORDER_DEFAULT.slice();
 function widgetIconHtml(k){
   var c='#F28FB0';
   if(k==='clock')return '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="'+c+'" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
@@ -4964,11 +5067,39 @@ function wdlibToggle(k){
   toast((state.widgets[k]?'已添加':'已移除')+(d?d.n:'组件'));
 }
 function wdlibPickImg(k){_wdImgKey=k;var f=document.getElementById('wdImgFile');if(f)f.click()}
+/** 长按桌面小组件弹出的操作面板：换底图 / 移除 / 回默认位置 */
+function sheetWidget(k){
+  var def=null,defs=widgetDefs();
+  for(var i=0;i<defs.length;i++)if(defs[i].k===k)def=defs[i];
+  if(!def)return;
+  openSheet('<h2>'+def.n+'</h2>'
+    +'<button class="menu-item" data-act="wd-sheet-img" data-k="'+k+'">换这张组件的底图</button>'
+    +'<button class="menu-item" data-act="wd-sheet-photo" data-k="'+k+'">放一张照片（相册组件）</button>'
+    +'<button class="menu-item" data-act="wd-sheet-content">编辑组件内容…</button>'
+    +'<button class="menu-item" data-act="wd-sheet-resetone" data-k="'+k+'">这张回到默认位置</button>'
+    +'<button class="menu-item danger" data-act="wd-sheet-del" data-k="'+k+'">从桌面移除</button>'
+    +'<div class="actions"><button class="cancel" data-act="sheet-close">取消</button></div>');
+}
+function widgetRemove(k){
+  state.widgets=state.widgets||{};
+  state.widgets[k]=false;
+  if(state.widgetPos)delete state.widgetPos[k];
+  if(state.widgetImgs)delete state.widgetImgs[k];
+  if(k==='photo'&&state.widgetPhoto)state.widgetPhoto.img='';
+  save();closeSheet();renderHome();
+  var def=null,defs=widgetDefs();
+  for(var i=0;i<defs.length;i++)if(defs[i].k===k)def=defs[i];
+  toast('已移除'+(def?def.n:'组件')+'，可在组件库里加回来');
+}
+function widgetResetOne(k){
+  if(state.widgetPos)delete state.widgetPos[k];
+  save();closeSheet();renderHome();toast('已回到默认位置');
+}
 function wdlibImgClear(){state.widgetImgs={};save();renderWidgetLib();toast('已清除组件底图')}
 function initWidgetDrag(){
   var grid=document.getElementById('widgetGrid');if(!grid)return;
   fitWidgetGrid();
-  var drag=null,timer=null,ghost=null,startX=0,startY=0,offX=0,offY=0;
+  var drag=null,timer=null,ghost=null,startX=0,startY=0,offX=0,offY=0,manageTimer=null,movedFlag=0;
   function findW(t){var el=t;while(el&&el!==grid&&!el.classList.contains('widget'))el=el.parentNode;return el===grid?null:el}
   function clampN(v,a,b){return Math.max(a,Math.min(b,v))}
   function begin(x,y,target){
@@ -4992,12 +5123,26 @@ function initWidgetDrag(){
       ghost.style.transform='translate3d('+r.left+'px,'+r.top+'px,0)';
       document.body.appendChild(ghost);
       try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}
+      /* 继续按住不放（不移动）= 打开这张组件的管理面板 */
+      manageTimer=setTimeout(function(){
+        if(drag&&!movedFlag){cancelDrag();var kk=wKeyOf(el);if(kk)sheetWidget(kk)}
+      },900);
     },350);
   }
   var rafW=null;
+  function cancelDrag(){
+    if(manageTimer){clearTimeout(manageTimer);manageTimer=null}
+    if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
+    ghost=null;
+    if(drag)drag.classList.remove('dragging');
+    var g=document.getElementById('widgetGrid');
+    if(g)g.classList.remove('editfree');
+    drag=null;
+  }
   function move(x,y){
     if(timer&&Math.abs(x-startX)+Math.abs(y-startY)>12){clearTimeout(timer);timer=null}
     if(!drag)return;
+    if(Math.abs(x-startX)+Math.abs(y-startY)>10)movedFlag=1;
     if(rafW)return;
     rafW=requestAnimationFrame(function(){
       rafW=null;
@@ -5006,6 +5151,8 @@ function initWidgetDrag(){
   }
   function end(){
     if(timer){clearTimeout(timer);timer=null}
+    if(manageTimer){clearTimeout(manageTimer);manageTimer=null}
+    movedFlag=0;
     if(!drag)return;
     var el=drag;
     el.classList.remove('dragging');
@@ -5040,7 +5187,8 @@ function initWidgetDrag(){
   grid.addEventListener('mousedown',function(e){begin(e.clientX,e.clientY,e.target);e.preventDefault()});
   document.addEventListener('mousemove',function(e){if(drag){move(e.clientX,e.clientY);e.preventDefault()}});
   document.addEventListener('mouseup',function(){end()});
-  window.addEventListener('resize',function(){fitWidgetGrid()});
+  var _rzT=null;
+  window.addEventListener('resize',function(){if(_rzT)clearTimeout(_rzT);_rzT=setTimeout(fitWidgetGrid,180)});
 }
 (function(){
   document.addEventListener('change',function(e){
