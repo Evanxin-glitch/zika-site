@@ -77,7 +77,9 @@ input:focus,textarea:focus{border-color:var(--green)}
    看起来像上边框被拉长。 */
 #view>.chat-top{flex-shrink:0}
 #view:has(.chat-top){display:flex;flex-direction:column;height:100dvh;max-height:100dvh;overflow:hidden}
-#chatList{flex:1;overflow-y:auto;padding:12px 12px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch;background-size:cover;background-position:center;background-attachment:local}
+#chatList{flex:1;overflow-y:auto;padding:12px 12px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch}
+/* 聊天壁纸固定在外层（不滚动）上，滑聊天记录时壁纸不动 */
+.chat-wrap{background-size:cover;background-position:center;background-repeat:no-repeat}
 /* ===== 气泡：内容自适应宽度，时间/已读挪到气泡外面 ===== */
 .msg-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:12px;padding:0 10px}
 .msg-row.in{justify-content:flex-start}
@@ -642,6 +644,8 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
 .post .tag{display:inline-flex;align-items:center;gap:4px;font-size:calc(11px*var(--fs));color:var(--sub);background:#F1E9D7;border-radius:20px;padding:2px 9px;align-self:flex-start}
 .cmt-box{margin-top:4px;background:#F3ECDC;border-radius:10px;padding:6px 9px;display:flex;flex-direction:column;gap:4px}
 .cmt{font-size:calc(13.5px*var(--fs));line-height:1.5}
+.cmt.reply{margin-left:16px;padding-left:9px;border-left:2px solid rgba(217,85,122,.35)}
+.cmt-re{display:inline-block;font-size:calc(10px*var(--fs));color:#C4577E;background:rgba(242,143,176,.16);border-radius:6px;padding:1px 5px;margin-right:5px;vertical-align:1px}
 .cmt b{font-weight:600;margin-right:4px}
 .cover{width:100%;height:212px;border-radius:18px;background-size:cover;background-position:center 22%;position:relative;overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow)}
 .cover .cov-btn{position:absolute;right:8px;bottom:8px;background:rgba(255,255,255,.88);color:var(--ink);border-radius:10px;padding:4px 10px;font-size:calc(12px*var(--fs));min-height:30px}
@@ -3570,12 +3574,22 @@ function pushIn(cid,text,t,replyTo){
   return m;
 }
 function pushBurst(c,baseTs,count,quoteId){
-  var prev=null;
-  pushIn(c.id,composeText(c,prev),baseTs,quoteId);
-  prev=state.messages[state.messages.length-1].text;
+  /* ★ 时间戳原来写成 baseTs + i*rnd(20,50)*1000：
+     每次乘的是**新的**随机数，两个独立随机数相减会跑出范围，
+     实测出现过 66 秒、60 秒的间隔（设定是 20~50 秒），甚至可能是负数导致消息乱序。
+     现在改成"每条在上一条基础上再加 20~50 秒"，间隔恒定落在范围内、顺序也一定递增。 */
+  var prev=null,ts=baseTs,used=[];
+  var first=composeText(c,prev);
+  pushIn(c.id,first,ts,quoteId);
+  used.push(first);
+  prev=first;
   for(var i=1;i<count;i++){
-    var txt=composeText(c,prev);
-    pushIn(c.id,txt,baseTs+i*rnd(20,50)*1000);
+    var txt=composeText(c,prev),tries=0;
+    /* 一次连发里不要重复同一句（换一句，最多试 6 次） */
+    while(used.indexOf(txt)>=0&&tries++<6)txt=composeText(c,prev);
+    ts+=rnd(20,50)*1000;
+    pushIn(c.id,txt,ts);
+    used.push(txt);
     prev=txt;
   }
 }
@@ -3601,9 +3615,10 @@ function maybePost(c,t){
 /* 写日记抽卡的池子：日记字卡 + 用户自己分了类的聊天字卡。
    状态/心情/拍一拍/写信都不在这里，也不参与聊天。 */
 function diaryPool(){
+  /* 日记字卡放前面（优先进日记），用户自己加的字卡全部算上 ——
+     以前只收"分过类"的字卡，没分类的就永远抽不到。 */
   var pool=(state.diaryCards||[]).slice(),i;
-  for(i=0;i<(state.cards||[]).length;i++)if(state.cards[i].tag)pool.push(state.cards[i]);
-  if(!pool.length)pool=(state.cards||[]).slice();
+  for(i=0;i<(state.cards||[]).length;i++)pool.push(state.cards[i]);
   return pool;
 }
 function ensureDiary(ts){
@@ -3651,7 +3666,10 @@ function schedule(){
   }
   for(var k=0;k<state.posts.length;k++){
     var p=state.posts[k];
-    if(p.commentDue&&p.commentDue>t&&!p.commented)items.push({ts:p.commentDue,fn:(function(pp){return function(){postComment(pp)}})(p)});
+    /* 原来是 p.commentDue>t 才算：一旦到点时间已经过去（比如关过页面），
+       这条评论就永远不会发生了 —— 现在只要还没评论过就排队执行。 */
+    if(p.commentDue&&!p.commented)items.push({ts:p.commentDue,fn:(function(pp){return function(){postComment(pp)}})(p)});
+    if(p.replyMineDue)items.push({ts:p.replyMineDue,fn:(function(pp){return function(){postReplyMine(pp)}})(p)});
   var ac2=activeContact();
   if(ac2&&state.nextPostDue&&state.nextPostDue[ac2.id])items.push({ts:state.nextPostDue[ac2.id],fn:(function(cc){return function(){maybePost(cc,now());state.nextPostDue[cc.id]=now()+rnd((state.settings.momMin||180)*60000,(state.settings.momMax||720)*60000);save();schedule()}})(ac2)});
   if(state.settings&&state.settings.visitorOn){
@@ -3786,7 +3804,10 @@ function renderChat(){
     if(m.contactId===c.id&&m.ts<=t)msgs.push(m);
   }
   var top='<div class="chat-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pat-av" data-act="pat">'+avatarHtml(c,32)+'</span><div class="ct-who"><div class="ct-name">'+esc(c.name)+'</div><div class="ct-chips">'+statusChip()+'</div></div><div class="pr"><button class="back" data-act="call-voice" title="语音电话">'+ICON_CALL+'</button><button class="back" data-act="call-video" title="视频电话">'+ICON_VIDEO+'</button><button class="back" data-act="chat-room" title="聊天室设置">'+ICON_MORE+'</button></div></div>';
-  var body='<div class="chat-wrap"><div id="chatList" style="'+chatBgStyle()+'">';
+  /* 壁纸原来挂在 #chatList 上（那正是滚动容器，而且 CSS 里写了
+     background-attachment:local），所以聊天记录一滑，壁纸跟着跑。
+     现在挂到不滚动的 .chat-wrap 上，壁纸就固定住了。 */
+  var body='<div class="chat-wrap" style="'+chatBgStyle()+'"><div id="chatList">';
   if(!msgs.length)body+='<div class="empty"><span class="big">字</span>还没有消息，先打个招呼吧</div>';
   for(var j=0;j<msgs.length;j++)body+=bubbleHtml(msgs[j],c);
   if((state.settings&&state.settings.typingOn!==false)&&_typing&&_typing.contactId===c.id&&(_typing.hold||now()-_typing.ts<8000)){
@@ -3954,7 +3975,7 @@ function renderMoments(){
     if(state.lastVisit){var vd=Math.round((now()-state.lastVisit)/60000);vtxt=vd<1?'刚刚':vd<60?vd+' 分钟前':Math.round(vd/60)+' 小时前'}
     html+='<div class="card visitor-card"><span class="v-ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v2M14 3v2M5 5h14M6 5l1.5 14a2 2 0 0 0 2 1.8h5a2 2 0 0 0 2-1.8L18 5"/><path d="M9.5 11l1.8 1.8 3.2-3.2"/></svg></span><div><b>'+esc(vc2?vc2.name:'他')+' 来过了</b><span class="meta">来访 '+(state.visitorCount||0)+' 次 · 最近 '+vtxt+'</span></div></div>';
   }
-  html+='<div class="cover" style="'+coverStyle()+'"><button class="cov-btn" data-act="cover-sheet">换封面</button><div class="me-overlay">'+avatarHtml({name:meNm,color:meCl},40)+'<b>'+esc(meNm)+'</b></div></div>';
+  html+='<div class="cover" style="'+coverStyle()+'"><button class="cov-btn" data-act="cover-sheet">换封面</button><div class="me-overlay">'+avatarHtml({name:meNm,color:meCl,avatarType:(state.me&&state.me.avatarType)||'char',avatarImg:(state.me&&state.me.avatarImg)||''},40)+'<b>'+esc(meNm)+'</b></div></div>';
   html+='<div class="post-form card"><textarea id="postText" placeholder="说点什么，发一条朋友圈…"></textarea><button class="btn" data-act="post-create">发布</button></div>';
   if(!posts.length)html+='<div class="empty"><span class="big">圈</span>还没有动态，第一条等你来发</div>';
   for(var i=0;i<posts.length;i++){
@@ -3975,7 +3996,7 @@ function renderMoments(){
       html+='<div class="cmt-box">';
       for(var k=0;k<p.comments.length;k++){
         var cm=p.comments[k],cc=cm.contactId?contact(cm.contactId):null;
-        html+='<div class="cmt"><b>'+esc(cc?cc.name:meNm)+'：</b>'+esc(cm.text)+'</div>';
+        html+='<div class="cmt'+(cm.replyTo?' reply':'')+'"><b>'+esc(cc?cc.name:meNm)+'：</b>'+(cm.replyTo?'<span class="cmt-re">回复</span>':'')+esc(cm.text)+'</div>';
       }
       html+='</div>';
     }
@@ -3994,8 +4015,34 @@ function postCommentSend(id){
   if(!v){toast('写点什么');return}
   var p=byId(state.posts,id);if(!p)return;
   p.comments=p.comments||[];
-  p.comments.push({id:uid(),contactId:null,text:v,ts:now()});
-  save();renderMoments();toast('已评论');
+  var _myId=uid();
+  p.comments.push({id:_myId,contactId:null,text:v,ts:now()});
+  /* ★ 他也要回复我的评论：按"评论回复间隔（最快/最慢）"排一条回复。
+     以前这里只是把我的评论存下来，没有任何回评论的机制。 */
+  try{
+    var _c=activeContact();
+    if(_c&&p.contactId===_c.id){
+      var _st=state.settings||{};
+      var _a=(_st.commentMin||180)*60000,_b=(_st.commentMax||600)*60000;
+      if(_a>_b){var _q=_a;_a=_b;_b=_q}
+      p.replyMineDue=now()+rnd(_a,_b);
+      p.replyMineTo=_myId;
+    }
+  }catch(e){}
+  save();renderMoments();schedule();toast('已评论');
+}
+/** 他回复我的评论（到点时由调度器触发） */
+function postReplyMine(p){
+  if(!p)return;
+  p.replyMineDue=0;
+  var c=contact(p.contactId)||activeContact();
+  if(!c)return;
+  p.comments=p.comments||[];
+  p.comments.push({id:uid(),contactId:c.id,text:drawCardText(),ts:now(),replyTo:p.replyMineTo||null});
+  p.replyMineTo=null;
+  save();
+  try{if(location.hash.replace('#','')==='moments')renderMoments()}catch(e){}
+  try{schedule()}catch(e){}
 }
 function postCreate(){
   var ta=$('#postText');if(!ta)return;
@@ -4257,7 +4304,7 @@ function renderCards(){
     html+='<div class="lib-count">共 <b>'+total+'</b> 张字卡 · '+nm+'字卡 <b>'+kindTotal+'</b> 张'+( _cardQ?(' · 搜索到 <b>'+kindShown.length+'</b> 张'):'')+'</div>';
     var noteTxt;
     if(kind==='pat')noteTxt='拍一拍字卡用于陆沉回拍你时的话，不进入聊天回复，也不参与聊天字卡分类。';
-    else if(kind==='diary')noteTxt='陆沉写日记时从这里抽，也会从你分过类的聊天字卡里抽。日记字卡不参与聊天回复。';
+    else if(kind==='diary')noteTxt='陆沉写日记时从这里抽，也会从你添加的字卡里抽。日记字卡不参与聊天回复。';
     else if(kind==='writer')noteTxt='陆沉写信、回信时从"写信字卡"里抽，和聊天字卡分开；抽取条数在 设置 → 内容生成 里调。';
     else noteTxt=nm+'字卡用于陆沉聊天顶部的'+nm+'框，会随机抽取；它不参与聊天字卡分类。';
     html+='<div class="note" style="margin-bottom:10px">固定字卡：'+noteTxt+'</div>';
@@ -4747,7 +4794,7 @@ function renderMe(){
     +'<button class="btn ghost" style="width:100%;margin-top:8px" data-view="cards">打开字卡库</button></div>';
   html+='<div class="me-sec"><h3>状态 / 心情库</h3><div style="display:flex;gap:10px"><button class="btn ghost" style="flex:1" data-act="sm-lib" data-kind="status">状态库（'+state.statusCards.length+'）</button><button class="btn ghost" style="flex:1" data-act="sm-lib" data-kind="mood">心情库（'+state.moodCards.length+'）</button></div></div>';
   html+='<div class="me-sec"><h3>日记字卡库</h3><div class="card row" style="cursor:pointer" data-act="sm-lib" data-kind="diary">'
-    +'<div><b>日记字卡（'+state.diaryCards.length+'）</b><div class="meta">陆沉写日记时从这里抽，也会从你分过类的聊天字卡里抽；日记字卡不参与聊天</div></div></div></div>';
+    +'<div><b>日记字卡（'+state.diaryCards.length+'）</b><div class="meta">陆沉写日记时从这里抽，也会从你添加的字卡里抽；日记字卡不参与聊天</div></div></div></div>';
   html+='<div class="me-sec"><h3>查岗预设</h3><div class="card" style="padding:0 12px"><div class="checkin-list" style="padding:8px 0">';
   for(var ck=0;ck<state.checkinPresets.length;ck++)html+='<div class="checkin-item"><span class="ci-txt">'+esc(state.checkinPresets[ck])+'</span><button class="del" data-act="checkin-del" data-idx="'+ck+'">×</button></div>';
   html+='</div><button class="btn" style="width:100%" data-act="checkin-add">添加预设</button></div></div>';
@@ -5503,7 +5550,10 @@ function sheetPoll(){
   var html='<h2>让 '+esc(c.name)+' 决定</h2><label>回复时间</label>';
   html+='<div class="poll-time"><button class="pt-btn'+( _pollFast?' on':'')+'" data-act="poll-time" data-v="1"><b>立即回复</b><span>10秒后自动选择</span></button><button class="pt-btn'+( _pollFast?'':' on')+'" data-act="poll-time" data-v="0"><b>等一会儿</b><span>约1~6分钟后</span></button></div>';
   html+='<label>是非题</label><div class="poll-yesno"><input id="pollQ" placeholder="例如：你在吗？"><button class="btn" data-act="poll-yesno">发送是非题</button></div>';
-  html+='<label>或者，自己写选项</label><div class="poll-opts" id="pollOpts">';
+  /* ★ 选择题也要能写问题：以前只有"是非题"那一行有问题框，
+     自己写选项这条路上根本没有输入问题的地方，用户只能干瞪眼。 */
+  html+='<label>选择题：问题</label><div class="poll-yesno"><input id="pollQC" placeholder="例如：今晚吃什么？"></div>';
+  html+='<label>选项</label><div class="poll-opts" id="pollOpts">';
   html+='<div class="opt-row"><span class="opt-idx">01</span><input class="opt-in" placeholder="选项1"><button class="del" data-act="poll-opt-del">×</button></div>';
   html+='<div class="opt-row"><span class="opt-idx">02</span><input class="opt-in" placeholder="选项2"><button class="del" data-act="poll-opt-del">×</button></div>';
   html+='</div>';
@@ -5545,7 +5595,9 @@ function pollMulti(d){
   var b=$('#pollMultiN');if(b)b.textContent=_pollN;
 }
 function pollSend(){
-  var q=$('#pollQ').value.trim();
+  /* 优先读"选择题"自己的问题框；老界面（或从是非题那边过来的）退回读 #pollQ */
+  var _qc=$('#pollQC'),_q0=$('#pollQ');
+  var q=_qc&&_qc.value?_qc.value.trim():((_q0&&_q0.value)?_q0.value.trim():'');
   if(!q){toast('写个问题吧');return}
   var box=$('#pollOpts');if(!box)return;
   var ins=box.querySelectorAll('.opt-in'),opts=[];
@@ -5714,7 +5766,7 @@ function sheetStickers(){
   html+='<div class="stk-sec-title">添加 Emoji</div>';
   html+='<div class="stk-add-emoji"><input id="stkEmojiIn" maxlength="6" placeholder="粘贴或输入一个 emoji"><button class="btn small" data-act="emoji-add">添加</button></div>';
   html+='<div class="actions"><button class="cancel" data-act="sheet-close">完成</button><button class="ok" data-act="sticker-add">添加表情图片</button></div>';
-  html+='<input type="file" id="stickerFile" accept="image/*" style="display:none">';
+  html+='<input type="file" id="stickerFile" accept="image/*" multiple style="display:none">';
   openSheet(html);
   bindStickerPress();
 }
@@ -5790,20 +5842,41 @@ function ensureImgInput(){
 }
 var _imgInput=null;
 function addStickerFile(input){
-  pickImageFile(input,function(img){
-    /* 表情控制在 360px 内、JPEG 0.8：既清楚又不会拖慢聊天渲染 */
-    var MAX=360,sc=Math.min(1,MAX/Math.max(img.width,img.height));
-    var cw=document.createElement('canvas');
-    cw.width=Math.max(1,Math.round(img.width*sc));cw.height=Math.max(1,Math.round(img.height*sc));
-    var cx=cw.getContext('2d');
-    cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
-    cx.fillStyle='#fff';cx.fillRect(0,0,cw.width,cw.height);
-    cx.drawImage(img,0,0,cw.width,cw.height);
-    mediaAdopt(cw.toDataURL('image/jpeg',.8),'sticker').then(function(ref){
-    state.stickers.push({id:uid(),img:ref});
-    save();sheetStickers();toast('已添加表情');
+  if(!input||!input.files||!input.files.length)return;
+  /* 支持一次选多张：以前只读 files[0]，选十张也只进来一张 */
+  var files=[];
+  for(var fi=0;fi<input.files.length;fi++)files.push(input.files[fi]);
+  var idx=0,added=0;
+  function next(){
+    if(idx>=files.length){
+      input.value='';
+      save();
+      sheetStickers();
+      if(added>1)toast('已添加 '+added+' 张表情');
+      else if(added===1)toast('已添加表情');
+      else toast('这些图片没能读出来，换几张试试');
+      return;
+    }
+    var one=files[idx++];
+    /* 单张处理流程不变，只是逐个喂进去 */
+    var fake={files:[one],value:''};
+    pickImageFile(fake,function(img){
+      /* 表情控制在 360px 内、JPEG 0.8：既清楚又不会拖慢聊天渲染 */
+      var MAX=360,sc=Math.min(1,MAX/Math.max(img.width,img.height));
+      var cw=document.createElement('canvas');
+      cw.width=Math.max(1,Math.round(img.width*sc));cw.height=Math.max(1,Math.round(img.height*sc));
+      var cx=cw.getContext('2d');
+      cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
+      cx.fillStyle='#fff';cx.fillRect(0,0,cw.width,cw.height);
+      cx.drawImage(img,0,0,cw.width,cw.height);
+      mediaAdopt(cw.toDataURL('image/jpeg',.8),'sticker').then(function(ref){
+        state.stickers.push({id:uid(),img:ref});
+        added++;
+        next();
+      }).catch(function(){ next() });
     });
-  });
+  }
+  next();
 }
 
 /* ================= 打电话 ================= */
@@ -6244,6 +6317,13 @@ function syncCatchUp(){
       }
     }
   }
+  /* 离线期间欠下的"回复我的评论"也补上 */
+  for(var q2=0;q2<state.posts.length;q2++){
+    var _pq=state.posts[q2];
+    if(_pq&&_pq.replyMineDue&&_pq.replyMineDue<=end){
+      try{postReplyMine(_pq)}catch(e){}
+    }
+  }
   for(var q=0;q<state.posts.length;q++){
     var p=state.posts[q];
     if(p.contactId===null&&p.commentDue&&!p.commented&&p.commentDue<=end){
@@ -6496,12 +6576,18 @@ document.addEventListener('click',function(e){
   var cb=e.target.closest('[data-call]');
   if(cb){
     var ca=cb.getAttribute('data-call');
-    if(ca==='accept')callAccept();
-    else if(ca==='expand')callExpand();
-    else if(ca==='mini')callMini();
-    if(ca==='mute'){if(_call){_call._mute=!_call._mute;var m1=document.querySelector('#callOverlay .cf-ops button[data-call=mute]');if(m1)m1.classList.toggle('on',_call._mute);toast(_call._mute?'已静音':'已取消静音')}}
-    else if(ca==='speak'){if(_call){_call._spk=!_call._spk;var m2=document.querySelector('#callOverlay .cf-ops button[data-call=speak]');if(m2)m2.classList.toggle('on',_call._spk);toast(_call._spk?'扬声器已开启':'已关闭扬声器')}}
-    else callHangup();
+    /* ★ 这里原来把两条 if/else 链连着写：
+         if(ca==='accept'|'expand'|'mini') …
+         if(ca==='mute') … else if(ca==='speak') … else callHangup();
+       于是"接听""放大""缩小"执行完之后会继续往下走，落进最后那个 else 被当成挂断 ——
+       表现就是：按接听显示挂断、缩小框点了没反应/直接挂断、也放不大。
+       现在合成一条链，每个分支做完立刻 return。 */
+    if(ca==='accept'){callAccept();return}
+    if(ca==='expand'){callExpand();return}
+    if(ca==='mini'){callMini();return}
+    if(ca==='mute'){if(_call){_call._mute=!_call._mute;var m1=document.querySelector('#callOverlay .cf-ops button[data-call=mute]');if(m1)m1.classList.toggle('on',_call._mute);toast(_call._mute?'已静音':'已取消静音')}return}
+    if(ca==='speak'){if(_call){_call._spk=!_call._spk;var m2=document.querySelector('#callOverlay .cf-ops button[data-call=speak]');if(m2)m2.classList.toggle('on',_call._spk);toast(_call._spk?'扬声器已开启':'已关闭扬声器')}return}
+    callHangup();                        /* decline / hangup */
     return;
   }
 });
@@ -6664,7 +6750,9 @@ var CALL_BG_PRESETS={
 };
 function callBgStyle(){
   var st=state.settings;
-  if(st&&st.callBgImg)return 'background-image:url("'+st.callBgImg+'")';
+  /* 这里以前直接把值塞进 url()；图片改成媒体引用之后，
+     引用不是地址 → 上传了也永远看不到背景（就是"通话背景图上传不了"）。 */
+  if(st&&st.callBgImg)return 'background-image:url("'+mediaUrlSync(st.callBgImg)+'")';
   return 'background-image:'+((CALL_BG_PRESETS[st&&st.callBg])||CALL_BG_PRESETS.c1);
 }
 function sheetCallBg(){
@@ -7328,7 +7416,15 @@ function initOneWidgetDrag(grid){
   grid.addEventListener('touchstart',function(e){var t=e.touches[0];if(t)begin(t.clientX,t.clientY,e.target)},{passive:true});
   grid.addEventListener('touchmove',function(e){
     var t=e.touches[0];
-    if(t)move(t.clientX,t.clientY);      /* 即使长按还没生效，也要先记住位置 */
+    if(t){
+      /* ★ 长按还没生效就滑动了 → 判定为"误触/滑动"，取消长按，组件不许移位。
+         用户要的是"长按才拖拽"：手指按住不动够久才进入拖拽，
+         碰到就走、轻轻一划都不能把组件挪走。 */
+      if(timer&&(Math.abs(t.clientX-startX)+Math.abs(t.clientY-startY)>10)){
+        clearTimeout(timer);timer=null;
+      }
+      move(t.clientX,t.clientY);
+    }
     if(drag)e.preventDefault();
   },{passive:false});
   grid.addEventListener('touchend',function(){end()});
