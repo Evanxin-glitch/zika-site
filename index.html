@@ -1091,6 +1091,103 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 }
 #callOverlay.show{display:block}
 #callOverlay.show.full,#callOverlay.show.ring{left:0;right:0;top:0}
+/* 存储面板 */
+.stg-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:calc(13px*var(--fs));padding:5px 0;color:var(--sub)}
+.stg-row b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.stg-bar{height:6px;border-radius:999px;background:rgba(200,175,190,.25);overflow:hidden;margin:7px 0 3px}
+.stg-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#FFC3D6,#E9759F)}
+.stg-acts{display:flex;gap:10px;margin-top:10px}
+/* ===== v8 组件外观：大圆角磨砂玻璃 =====
+   版式参考用户给的截图：封面压圆头像 / 照片右下带标签条 / # 标题清单 / 黑胶唱片。
+   只改外观，不动任何位置逻辑（widgetPos / 拖拽那套完全不碰）。 */
+/* 第 523 行那条 .widget 把 background/border/box-shadow/border-radius 都写成了 !important，
+   所以这里必须同样用 !important 才盖得住（同优先级靠"更靠后"取胜）。
+   但**backdrop-filter 刻意不写** —— 让这三条继续按原样生效：
+     · 523 行        → var(--blur)（桌面观感）
+     · 614 行(@media max-width:600px)      → 模糊降到 12px（手机省 GPU）
+     · 608 行(prefers-reduced-transparency)→ 关掉毛玻璃给不透明底（无障碍）
+   并且在本块**之后**再把这两条无障碍/性能规则重新声明一次，防止被这里的 !important 压掉。 */
+.widget{border-radius:26px!important;padding:16px 18px!important;
+  background:linear-gradient(160deg,rgba(255,255,255,.66),rgba(255,236,244,.42) 55%,rgba(255,241,247,.56))!important;
+  border:1px solid rgba(255,255,255,.72)!important;
+  box-shadow:0 10px 26px rgba(180,140,160,.13),inset 0 1px 0 rgba(255,255,255,.9)!important}
+/* ===== 最小尺寸下的紧凑适配 =====
+   小尺寸只有约 213px 宽，照搬大尺寸的排版会把内容压成 "For…"、"10…"。
+   这里针对小尺寸单独调整：不是把字压扁，而是换排法 / 缩小装饰件，让信息读得出来。
+   （flex-direction 必须 !important —— 第 532/538 行那两条也带 !important） */
+.widget.wsz-s.w-clock,.widget.wsz-s.w-time{flex-direction:column!important;align-items:flex-start!important;gap:2px!important;justify-content:center!important}
+.widget.wsz-s.w-clock b,.widget.wsz-s.w-time b{font-size:calc(26px*var(--fs))}
+.widget.wsz-s.w-clock span,.widget.wsz-s.w-time span{font-size:calc(11px*var(--fs));white-space:normal}
+.widget.wsz-s .wm-vinyl{width:44px;height:44px}
+.widget.wsz-s .wm-vinyl::after{width:14px;height:14px;margin:-7px 0 0 -7px}
+.widget.wsz-s .wm-btn{width:30px;height:30px;min-height:30px;font-size:calc(12px*var(--fs))}
+.widget.wsz-s .wm-song{font-size:calc(14px*var(--fs))}
+.widget.wsz-s .wm-sub{font-size:calc(11px*var(--fs))}
+.widget.wsz-s .nf-tt{font-size:calc(12.5px*var(--fs))}
+.widget.wsz-s .nf-it{font-size:calc(12px*var(--fs))}
+.widget.wsz-s .ph-cap{right:8px;bottom:8px;max-width:80%;font-size:calc(11.5px*var(--fs));padding:5px 10px}
+.widget.wsz-s.w-weather .wx-ic{font-size:calc(22px*var(--fs))}
+.widget.wsz-s.w-weather .wx-tx b{font-size:calc(19px*var(--fs))}
+.widget.wsz-s.w-feed .wf-item{font-size:calc(12.5px*var(--fs))}
+.widget.wsz-s.w-feed .wf-tt{font-size:calc(11.5px*var(--fs))}
+/* 把被上面 !important 盖掉的两条重新放回最后，保证优先级不变 */
+@media (max-width:600px){
+  .widget{box-shadow:0 4px 12px rgba(150,120,140,.10),inset 0 1px 0 rgba(255,255,255,.7)!important;
+    backdrop-filter:blur(12px) saturate(140%)!important;-webkit-backdrop-filter:blur(12px) saturate(140%)!important}
+}
+@media (prefers-reduced-transparency:reduce){
+  .widget{background:rgba(255,255,255,.92)!important;
+    backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+}
+
+/* 相册：照片铺满整张卡，配文做右下角标签条 */
+.widget.w-photo{padding:0!important;overflow:hidden!important;min-height:170px!important;display:block!important}
+.widget.w-photo .ph-img{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:26px;box-shadow:none;background-size:cover;background-position:center}
+.widget.w-photo .ph-cap{position:absolute;right:12px;bottom:12px;max-width:72%;padding:6px 12px;border-radius:999px;
+  background:rgba(255,255,255,.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  font-size:calc(12px*var(--fs));color:#7A6A60;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  box-shadow:0 4px 12px rgba(150,120,140,.16)}
+.widget.w-photo .ph-empty{position:absolute;left:14px;right:14px;top:14px;bottom:14px;height:auto;display:flex;align-items:center;justify-content:center;
+  border-radius:20px;border:1px dashed rgba(201,123,142,.5);color:var(--sub);font-size:calc(12.5px*var(--fs))}
+
+/* 音乐：黑胶唱片 + 衬线斜体歌名 + 进度条 */
+.widget.w-music{gap:14px!important;min-height:96px}
+.wm-vinyl{position:relative;width:64px;height:64px;border-radius:50%;flex:none;
+  background:repeating-radial-gradient(circle at 50% 50%,#2b2b2e 0 2px,#3b3b40 2px 4px);
+  box-shadow:0 6px 18px rgba(60,50,60,.28)}
+.wm-vinyl::after{content:'';position:absolute;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;
+  background:linear-gradient(150deg,#F9AEC2,#EE7BA4)}
+.wm-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.wm-song{font-family:var(--serif);font-style:italic;font-size:calc(17px*var(--fs));font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wm-sub{font-size:calc(11.5px*var(--fs));color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wm-bar{position:relative;height:4px;border-radius:999px;background:rgba(200,175,190,.28);overflow:hidden;display:block}
+.wm-bar i{position:absolute;left:0;top:0;bottom:0;width:42%;border-radius:999px;background:linear-gradient(90deg,#FFC3D6,#E9759F)}
+
+/* 便签：多行时呈现清单样式 */
+.widget.w-note{flex-direction:column!important;align-items:stretch!important;justify-content:center!important;gap:8px!important;min-height:96px}
+.nf-tt{font-size:calc(13.5px*var(--fs));font-weight:700;color:#C97B8E}
+.nf-list{display:flex;flex-direction:column;gap:7px}
+.nf-it{display:flex;align-items:center;gap:9px;font-size:calc(12.5px*var(--fs));color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nf-dot{width:11px;height:11px;border-radius:50%;flex:none;background:#B9AFA6}
+.nf-ring{width:11px;height:11px;border-radius:50%;flex:none;border:2px solid #CFC4BA;box-sizing:border-box}
+
+/* 在一起：居中，数字放大 */
+.widget.w-days{flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;min-height:82px}
+.widget.w-days .d-num{font-family:var(--serif);font-size:calc(30px*var(--fs));font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}
+.widget.w-days .d-lb,.widget.w-days .d-un{font-size:calc(12px*var(--fs));color:var(--sub)}
+
+/* 陆沉状态卡：封面 + 圆头像压在下沿 + 名字（版式参考截图第一张） */
+.status-card{position:relative!important;display:block!important;padding:0!important;overflow:hidden!important;border-radius:26px!important;min-height:206px}
+.status-card .sc-cover{position:absolute;left:0;right:0;top:0;height:78px;background-size:cover;background-position:center 30%;
+  background-image:linear-gradient(120deg,rgba(255,196,216,.72),rgba(255,232,240,.5))}
+.status-card .sc-avwrap{position:absolute;left:50%;top:54px;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;overflow:hidden;
+  border:3px solid rgba(255,255,255,.94);box-shadow:0 6px 16px rgba(150,120,140,.22);background:#fff;
+  display:flex;align-items:center;justify-content:center;z-index:2}
+.status-card .sc-avwrap img,.status-card .sc-avwrap .avatar{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.status-card .sc-avwrap .avatar>span,.status-card .sc-avwrap>span{font-size:22px}
+.status-card .sc-body{position:relative;padding:126px 16px 18px!important;text-align:center;z-index:1}
+.status-card .sc-name{font-family:var(--serif);font-size:calc(19px*var(--fs));font-weight:800}
+.status-card .sc-chips{justify-content:center;margin-top:8px}
 </style>
 </head>
 <body>
@@ -1151,7 +1248,7 @@ function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');
 function avatarHtml(c,size){
   size=size||40;
   var st='width:'+size+'px;height:'+size+'px';
-  if(c&&c.avatarType==='img'&&c.avatarImg)return '<img class="avatar" src="'+c.avatarImg+'" style="'+st+'" alt="">';
+  if(c&&c.avatarType==='img'&&c.avatarImg)return '<img class="avatar" src="'+mediaUrlSync(c.avatarImg)+'" style="'+st+'" alt="">';
   var name=c?c.name:'?',co=c?c.color:'#6E7F5E',ch=(name||'?').trim().charAt(0);
   return '<svg class="avatar" width="'+size+'" height="'+size+'" viewBox="0 0 40 40" style="background:'+co+';border-radius:50%"><text x="20" y="26" text-anchor="middle" font-size="18" fill="#fff" font-family="\'Songti SC\',serif" font-weight="700">'+esc(ch)+'</text></svg>';
 }
@@ -1481,6 +1578,8 @@ function normalizeBig(d,keys){
    · localStorage/IndexedDB 的整份副本里只留一个路径清单 _imgs；
    · 图片本体单独存在 IndexedDB 的 images 里，启动时读回；
    · 导出的备份文件仍然包含完整图片（导出用的是内存里的 state）。 */
+/* 配额紧张时：本机副本里要丢掉的"最旧消息条数"。记住它，后续保存就不用每次重跑整轮瘦身 */
+var _localDrop=0;
 var IMG_PATHS=['settings.coverImg','settings.homeBgImg','settings.chatBgImg','settings.callBgImg','me.avatarImg','companion.bgImg'];
 var IMG_SAFE=4000;   /* 超过这个长度就当大图，挪去 IndexedDB */
 function imgAt(o,path){
@@ -1505,6 +1604,15 @@ function imgValues(root){
   for(var i=0;i<IMG_PATHS.length;i++){var v=imgAt(root,IMG_PATHS[i]);if(isBig(v))out[IMG_PATHS[i]]=v}
   if(root.widgetImgs){for(var wk in root.widgetImgs){var wv=root.widgetImgs[wk];if(isBig(wv))out['widgetImgs.'+wk]=wv}}
   if(root.contacts)for(var ci=0;ci<root.contacts.length;ci++){var av=root.contacts[ci]&&root.contacts[ci].avatarImg;if(isBig(av))out['contacts.'+ci+'.avatarImg']=av}
+  /* 以前漏了这两类，它们会整张留在存档里，
+     每次保存都要重新序列化一遍 —— 手机上内存和 5MB 配额都吃不消 */
+  if(root.widgetPhoto&&isBig(root.widgetPhoto.img))out['widgetPhoto.img']=root.widgetPhoto.img;
+  if(root.stickers&&root.stickers.length){
+    for(var si=0;si<root.stickers.length;si++){
+      var sv=root.stickers[si]&&root.stickers[si].img;
+      if(isBig(sv))out['stickers.'+si+'.img']=sv;
+    }
+  }
   return out;
 }
 function dumpImages(){
@@ -1543,6 +1651,8 @@ function hydrateImages(d){
       if(isBig(v)){imgSet(d,k,v);got=true}
     }
     if(got){
+      try{mediaPreload()}catch(e){}
+      try{migrateLegacyMedia()}catch(e){}
       window.__loadNote='壁纸/头像已从大容量存储读回';
       try{save()}catch(e){}
       if(typeof renderAll==='function')renderAll();
@@ -1676,6 +1786,312 @@ var state=load()||defaultState();
 /* 全新安装也要跑一次迁移：否则本版本新增的设置项会缺失（保存时又不会补） */
 try{state=migrate(state)}catch(e){}
 if(window.__restoreCandidate){var _rc=window.__restoreCandidate;window.__restoreCandidate=null;restoreFull(_rc,state)}
+/* ================= 图片媒体库（v8） =================
+   图片不再以 base64 文本塞进状态里，而是：
+     · 上传时转成二进制 Blob，存进独立的 IndexedDB（zika-media / media）
+     · 状态里只留一个短引用  zika-media://<id>
+     · 要显示时才 createObjectURL 出地址，带缓存
+   好处：磁盘不再多背 base64 的 33%，图片彻底不占 JS 字符串内存，
+        存档变得很小、保存几乎无感，容量上限变成"磁盘剩余空间"。
+   兼容：老存档里的 dataURL 照样能显示（mediaApply 两条路都走）。 */
+var MEDIA_DB='zika-media',MEDIA_STORE='media',MEDIA_REF='zika-media://';
+var _mediaDbP=null,_mediaUrlCache={},_mediaBlobCache={},_mediaOrder=[];
+function isMediaRef(v){return typeof v==='string'&&v.indexOf(MEDIA_REF)===0}
+function mediaRefId(ref){return String(ref||'').slice(MEDIA_REF.length)}
+function mediaOpen(){
+  if(_mediaDbP)return _mediaDbP;
+  _mediaDbP=new Promise(function(res,rej){
+    try{
+      var r=indexedDB.open(MEDIA_DB,1);
+      r.onupgradeneeded=function(){try{r.result.createObjectStore(MEDIA_STORE,{keyPath:'id'})}catch(e){}};
+      r.onsuccess=function(){res(r.result)};
+      r.onerror=function(){rej(r.error)};
+      r.onblocked=function(){rej(new Error('blocked'))};
+    }catch(e){rej(e)}
+  }).catch(function(){_mediaDbP=null;return null});
+  return _mediaDbP;
+}
+/** 存入一张图，返回引用串；失败返回空串（调用方保留原值，绝不丢图） */
+function mediaPut(blob,name){
+  if(!blob||!blob.size)return Promise.resolve('');
+  var id='m'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  return mediaOpen().then(function(db){
+    if(!db)return '';
+    return new Promise(function(res){
+      try{
+        var tx=db.transaction(MEDIA_STORE,'readwrite');
+        tx.objectStore(MEDIA_STORE).put({id:id,blob:blob,name:name||'',type:blob.type||'',ts:Date.now(),size:blob.size});
+        tx.oncomplete=function(){_mediaBlobCache[id]=blob;res(MEDIA_REF+id)};
+        tx.onerror=function(){res('')};
+        tx.onabort=function(){res('')};
+      }catch(e){res('')}
+    });
+  }).catch(function(){return ''});
+}
+function mediaGetBlob(ref){
+  var id=mediaRefId(ref);
+  if(_mediaBlobCache[id])return Promise.resolve(_mediaBlobCache[id]);
+  return mediaOpen().then(function(db){
+    if(!db)return null;
+    return new Promise(function(res){
+      try{
+        var g=db.transaction(MEDIA_STORE,'readonly').objectStore(MEDIA_STORE).get(id);
+        g.onsuccess=function(){var r=g.result;if(r&&r.blob){_mediaBlobCache[id]=r.blob;res(r.blob)}else res(null)};
+        g.onerror=function(){res(null)};
+      }catch(e){res(null)}
+    });
+  }).catch(function(){return null});
+}
+/* 地址缓存上限：正常用不到（图片通常十几张），
+   只是防止一整个会话里反复上传导致 blob 地址无限堆积。 */
+var MEDIA_URL_MAX=120;
+function mediaUrlPrune(){
+  var touched=false;
+  while(_mediaOrder.length>MEDIA_URL_MAX){
+    var ref=_mediaOrder.shift();
+    var u=_mediaUrlCache[ref];
+    if(u){try{URL.revokeObjectURL(u)}catch(e){}}
+    delete _mediaUrlCache[ref];
+    touched=true;
+  }
+  /* 被回收的那些下次渲染会重新解析（mediaUrlSync 未命中时会自动补渲染） */
+  if(touched)try{scheduleMediaHydrate()}catch(e){}
+}
+function mediaUrl(ref){
+  if(!isMediaRef(ref))return Promise.resolve(ref||'');
+  if(_mediaUrlCache[ref])return Promise.resolve(_mediaUrlCache[ref]);
+  return mediaGetBlob(ref).then(function(b){
+    if(!b)return '';
+    try{var u=URL.createObjectURL(b);_mediaUrlCache[ref]=u;_mediaOrder.push(ref);mediaUrlPrune();return u}catch(e){return ''}
+  });
+}
+/** 媒体库占用统计：张数 + 二进制总字节 */
+function mediaStats(){
+  return mediaOpen().then(function(db){
+    if(!db)return {n:0,bytes:0};
+    return new Promise(function(res){
+      var st={n:0,bytes:0};
+      try{
+        var req=db.transaction(MEDIA_STORE,'readonly').objectStore(MEDIA_STORE).openCursor();
+        req.onsuccess=function(){
+          var c=req.result;
+          if(c){ if(c.value&&c.value.size)st.bytes+=c.value.size; st.n++; c.continue() }
+          else res(st);
+        };
+        req.onerror=function(){res(st)};
+      }catch(e){res({n:0,bytes:0})}
+    });
+  }).catch(function(){return {n:0,bytes:0}});
+}
+function fmtBytes(n){
+  n=Number(n)||0;
+  if(n<1024)return n+' B';
+  if(n<1048576)return (n/1024).toFixed(0)+' KB';
+  if(n<1073741824)return (n/1048576).toFixed(1)+' MB';
+  return (n/1073741824).toFixed(2)+' GB';
+}
+/** 设置页的存储面板：已用 / 可用 / 图片占用（真实数字，来自浏览器） */
+function fillStoragePanel(){
+  var el=document.getElementById('stgBox');
+  if(!el)return;
+  var est=(navigator.storage&&navigator.storage.estimate)?navigator.storage.estimate().catch(function(){return null}):Promise.resolve(null);
+  var per=(navigator.storage&&navigator.storage.persisted)?navigator.storage.persisted().catch(function(){return false}):Promise.resolve(false);
+  Promise.all([est,mediaStats(),per]).then(function(a){
+    var e=a[0],m=a[1],persisted=a[2];
+    var h='';
+    if(e&&e.quota){
+      var pct=Math.min(100,Math.round((e.usage||0)/e.quota*100));
+      h+='<div class="stg-row"><span>已用</span><b>'+fmtBytes(e.usage)+'</b></div>';
+      h+='<div class="stg-row"><span>可用</span><b>'+fmtBytes(e.quota)+'</b></div>';
+      h+='<div class="stg-bar"><i style="width:'+pct+'%"></i></div>';
+    }else{
+      h+='<div class="stg-row"><span>这个浏览器没有提供容量数字</span><b></b></div>';
+    }
+    h+='<div class="stg-row"><span>图片</span><b>'+m.n+' 张 · '+fmtBytes(m.bytes)+'</b></div>';
+    h+='<div class="stg-row"><span>持久化保护</span><b>'+(persisted?'已开启':'未开启')+'</b></div>';
+    h+='<div class="stg-acts"><button class="btn ghost" style="flex:1" data-act="stg-persist">'+(persisted?'重新申请':'申请持久化')+'</button><button class="btn ghost" style="flex:1" data-act="stg-refresh">刷新</button></div>';
+    el.innerHTML=h;
+  }).catch(function(){ el.innerHTML='<div class="stg-row"><span>读取失败</span><b></b></div>' });
+}
+function stgPersist(){
+  try{
+    if(navigator.storage&&navigator.storage.persist){
+      navigator.storage.persist().then(function(ok){
+        toast(ok?'浏览器已授予持久化存储保护':'浏览器暂未授予，请避免清理网站数据');
+        fillStoragePanel();
+      }).catch(function(){toast('申请失败')});
+    }else toast('这个浏览器不支持持久化申请');
+  }catch(e){toast('申请失败')}
+}
+/** dataURL -> Blob（老代码产出的都是 dataURL） */
+function dataUrlToBlob(u){
+  try{
+    var i=u.indexOf(',');if(i<0)return null;
+    var head=u.slice(0,i),body=u.slice(i+1);
+    if(head.indexOf('base64')<0)return null;
+    var mime=(head.match(/data:([^;]+)/)||[])[1]||'image/jpeg';
+    var bin=atob(body),len=bin.length,arr=new Uint8Array(len);
+    for(var k=0;k<len;k++)arr[k]=bin.charCodeAt(k);
+    return new Blob([arr],{type:mime});
+  }catch(e){return null}
+}
+/** 把一段图片数据（dataURL 或 Blob）收进媒体库 -> 引用串。失败就原样返回旧值。 */
+function mediaAdopt(data,name){
+  if(!data)return Promise.resolve('');
+  if(isMediaRef(data))return Promise.resolve(data);
+  var blob=(typeof data==='string')?dataUrlToBlob(data):data;
+  if(!blob)return Promise.resolve(data);
+  return mediaPut(blob,name).then(function(ref){return ref||data});
+}
+var _mediaPending={};
+/** 同步取地址：已解析过就直接给；没解析过先返回空，并异步解析后自动补渲染。
+    这样所有老的渲染代码只要把"图片值"换成这个函数即可，不用重写 HTML 结构。 */
+function mediaUrlSync(v){
+  if(!v)return '';
+  if(!isMediaRef(v))return v;                 /* 老 dataURL 原样返回 */
+  var u=_mediaUrlCache[v];
+  if(u)return u;
+  if(!_mediaPending[v]){
+    _mediaPending[v]=1;
+    mediaUrl(v).then(function(url){
+      delete _mediaPending[v];
+      if(url){ try{renderAll()}catch(e){} }
+    });
+  }
+  return '';
+}
+/** 收集状态里所有媒体引用（用于启动时一次性解析成地址） */
+function collectMediaRefs(root){
+  root=root||state;
+  var out={},i;
+  for(i=0;i<IMG_PATHS.length;i++){var v=imgAt(root,IMG_PATHS[i]);if(isMediaRef(v))out[v]=1}
+  if(root.widgetImgs)for(var wk in root.widgetImgs)if(isMediaRef(root.widgetImgs[wk]))out[root.widgetImgs[wk]]=1;
+  if(root.widgetPhoto&&isMediaRef(root.widgetPhoto.img))out[root.widgetPhoto.img]=1;
+  if(root.appIcons)for(var ak in root.appIcons)if(isMediaRef(root.appIcons[ak]))out[root.appIcons[ak]]=1;
+  if(root.stickers)for(i=0;i<root.stickers.length;i++){var sv=root.stickers[i]&&root.stickers[i].img;if(isMediaRef(sv))out[sv]=1}
+  if(root.contacts)for(i=0;i<root.contacts.length;i++){var cv=root.contacts[i]&&root.contacts[i].avatarImg;if(isMediaRef(cv))out[cv]=1}
+  if(root.me&&isMediaRef(root.me.avatarImg))out[root.me.avatarImg]=1;
+  if(root.messages)for(i=0;i<root.messages.length;i++){var mv=root.messages[i]&&root.messages[i].img;if(isMediaRef(mv))out[mv]=1}
+  if(root.posts)for(i=0;i<root.posts.length;i++){
+    var po=root.posts[i];
+    if(po&&isMediaRef(po.avatarImg))out[po.avatarImg]=1;
+    if(po&&Array.isArray(po.imgs))for(var j=0;j<po.imgs.length;j++)if(isMediaRef(po.imgs[j]))out[po.imgs[j]]=1;
+  }
+  var keys=[];for(var k in out)keys.push(k);
+  return keys;
+}
+/** 启动时把所有引用一次性解析成 blob 地址，之后渲染就能同步拿到 */
+function mediaPreload(){
+  var refs=collectMediaRefs();
+  if(!refs.length)return;
+  var n=0;
+  for(var i=0;i<refs.length;i++){
+    mediaUrl(refs[i]).then(function(u){ if(u)n++; });
+  }
+}
+/** 老存档里的 base64 图片，在后台一张一张搬进媒体库。
+    搬成功才把状态里的值换成引用 —— 失败就原样保留，绝不会把图弄丢。
+    这一步是"内存真正变小"落到你已有数据上的关键：搬完之后，
+    图片本体在 IndexedDB 里是二进制，不再以文本形式占着内存。 */
+var _mediaMigrating=false;
+function legacyMediaJobs(){
+  var jobs=[],seen={};
+  function consider(path){
+    if(seen[path])return;
+    var v=imgAt(state,path);
+    if(typeof v==='string'&&v.length>IMG_SAFE&&v.indexOf('data:')===0){seen[path]=1;jobs.push(path)}
+  }
+  var i;
+  for(i=0;i<IMG_PATHS.length;i++)consider(IMG_PATHS[i]);
+  if(state.widgetImgs)for(var wk in state.widgetImgs)consider('widgetImgs.'+wk);
+  if(state.widgetPhoto)consider('widgetPhoto.img');
+  if(state.appIcons)for(var ak in state.appIcons)consider('appIcons.'+ak);
+  if(state.stickers)for(i=0;i<state.stickers.length;i++)consider('stickers.'+i+'.img');
+  if(state.contacts)for(i=0;i<state.contacts.length;i++)consider('contacts.'+i+'.avatarImg');
+  if(state.messages)for(i=0;i<state.messages.length;i++)consider('messages.'+i+'.img');
+  if(state.posts)for(i=0;i<state.posts.length;i++){
+    consider('posts.'+i+'.avatarImg');
+    if(state.posts[i]&&Array.isArray(state.posts[i].imgs))
+      for(var j=0;j<state.posts[i].imgs.length;j++)consider('posts.'+i+'.imgs.'+j);
+  }
+  return jobs;
+}
+function migrateLegacyMedia(){
+  if(_mediaMigrating)return;
+  if(state._mediaMigrated)return;
+  var jobs=legacyMediaJobs();
+  if(!jobs.length){ state._mediaMigrated=1; return }
+  _mediaMigrating=true;
+  var idx=0,moved=0;
+  window.__mediaMigrateTotal=jobs.length;
+  function step(){
+    if(idx>=jobs.length){
+      _mediaMigrating=false;
+      state._mediaMigrated=1;
+      window.__mediaMigrateDone=moved;
+      try{save()}catch(e){}
+      try{mediaPreload()}catch(e){}
+      try{renderAll()}catch(e){}
+      return;
+    }
+    var path=jobs[idx++];
+    var val=imgAt(state,path);
+    if(typeof val!=='string'||val.indexOf('data:')!==0){ setTimeout(step,8); return }
+    mediaAdopt(val,'migrated').then(function(ref){
+      if(ref&&isMediaRef(ref)){ try{imgSet(state,path,ref);moved++}catch(e){} }
+      setTimeout(step,8);
+    }).catch(function(){ setTimeout(step,8) });
+  }
+  /* 等界面先画完再开始搬，别抢首屏 */
+  setTimeout(step,1500);
+}
+function mediaSet(el,url,mode){
+  if(!el||!url)return;
+  if(mode==='bg')el.style.backgroundImage='url("'+url+'")';
+  else el.setAttribute('src',url);
+}
+function mediaApply(el,value,mode){
+  if(!el||!value)return;
+  if(!isMediaRef(value)){mediaSet(el,value,mode);return}
+  var u=_mediaUrlCache[value];
+  if(u){mediaSet(el,u,mode);return}
+  mediaUrl(value).then(function(url){if(url)mediaSet(el,url,mode)});
+}
+/** 渲染后统一补水：把 [data-media] 元素接上真正的地址。
+    所有图片位置都只写这个属性，不再往 HTML 里内联 base64。 */
+var _mhTimer=null;
+function mediaHydrate(root){
+  root=root||document;
+  var els;
+  try{els=root.querySelectorAll('[data-media]')}catch(e){return}
+  for(var i=0;i<els.length;i++){
+    var el=els[i],v=el.getAttribute('data-media');
+    if(!v)continue;
+    if(el.getAttribute('data-media-done')===v)continue;
+    el.setAttribute('data-media-done',v);
+    mediaApply(el,v,el.getAttribute('data-media-mode')||'img');
+  }
+}
+function scheduleMediaHydrate(){
+  if(_mhTimer)return;
+  _mhTimer=setTimeout(function(){
+    _mhTimer=null;
+    mediaHydrate();
+    /* 异步读回图片后可能有新元素进来，再补一次 */
+    setTimeout(mediaHydrate,120);
+  },0);
+}
+/** 生成图片属性片段：引用与老 dataURL 都走同一条路（都靠补水贴上去） */
+function mediaAttr(v,mode){
+  if(!v)return '';
+  return ' data-media="'+esc(v)+'" data-media-mode="'+(mode==='bg'?'bg':'img')+'"';
+}
+/** 媒体库自检：拿不到大容量存储时明确告知，避免用户以为图丢了 */
+function mediaSelfCheck(){
+  mediaPut(new Blob(['1'],{type:'text/plain'}),'__probe').then(function(ref){
+    if(!ref)toast('提示：图片存储不可用，新上传的图片可能无法保存，请检查浏览器存储权限');
+  });
+}
 function idbOpen(){
   return new Promise(function(res,rej){
     try{
@@ -1727,6 +2143,10 @@ try{
 function writeLocal(json){
   var obj=null;
   try{obj=JSON.parse(json)}catch(e2){return {ok:false,json:null}}
+  /* 上次已经确定要丢掉最旧的 N 条，这次直接从一开始就丢，省掉反复重试 */
+  if(_localDrop>0&&Array.isArray(obj.messages)&&obj.messages.length>_localDrop){
+    obj.messages=obj.messages.slice(_localDrop);
+  }
   /* 第一步：把大图摘出去，让本地副本保持轻量（配额越紧，系统越容易清理） */
   var slim=null;
   try{slim=JSON.parse(json);slimForLocal(slim);slim=JSON.stringify(slim)}catch(e0){slim=null}
@@ -1735,6 +2155,9 @@ function writeLocal(json){
     if(!cands[q])continue;
     try{localStorage.setItem(KEY,cands[q]);return {ok:true,json:cands[q]}}catch(e){}
   }
+  /* 镜像键和主键内容完全一样，是最容易腾出的一大块空间。
+     注意：_bak（上一份好的存档）绝不能动，那是保命用的。 */
+  try{localStorage.removeItem(KEY_MIRROR)}catch(e){}
   var cand=[];
   function consider(owner,key){
     try{if(owner&&typeof owner[key]==='string'&&owner[key].length>4000)cand.push({o:owner,k:key,n:owner[key].length})}catch(e){}
@@ -1744,6 +2167,9 @@ function writeLocal(json){
   for(var i=0;i<ks.length;i++)consider(st,ks[i]);
   if(obj.widgetImgs){for(var wk in obj.widgetImgs)consider(obj.widgetImgs,wk)}
   if(obj.me)consider(obj.me,'avatarImg');
+  /* 这两类以前不在名单里 —— 所以无论怎么删都还是写不下 */
+  if(obj.widgetPhoto)consider(obj.widgetPhoto,'img');
+  if(Array.isArray(obj.stickers))for(var ski=0;ski<obj.stickers.length;ski++)consider(obj.stickers[ski],'img');
   if(Array.isArray(obj.contacts))for(var ci=0;ci<obj.contacts.length;ci++)consider(obj.contacts[ci],'avatarImg');
   if(Array.isArray(obj.posts))for(var pi=0;pi<obj.posts.length;pi++){
     var po=obj.posts[pi];
@@ -1773,13 +2199,30 @@ function writeLocal(json){
       try{
         var _t2=JSON.stringify(obj);
         localStorage.setItem(KEY,_t2);
-        window.__saveNote='本机存档空间已满，最早的 '+trimmed+' 条聊天记录不再重复保存在本机副本里（设置和其他内容都在）。完整记录请用 设置→备份 导出保存';
+        _localDrop+=trimmed;
+        window.__saveNote='本机存档空间已满，最早的 '+_localDrop+' 条聊天记录不再重复保存在本机副本里（设置和其他内容都在，IndexedDB 里仍是完整的）。建议去 设置→备份 导出一份';
         window.__saveStatus='slim';
         return {ok:true,json:_t2};
       }catch(e){}
     }
   }
   window.__saveStatus='failed';
+  /* 最后一步：连消息都删光了还写不下，就只保设置，别把设置也丢了 */
+  try{
+    var tiny=JSON.parse(json);
+    for(var tk in tiny){
+      if(Array.isArray(tiny[tk])&&tiny[tk].length&&tk!=='contacts'&&tk!=='cards'&&tk!=='statusCards'&&tk!=='moodCards'&&tk!=='patCards'&&tk!=='diaryCards'&&tk!=='writerCards'){
+        tiny[tk]=[];
+      }
+    }
+    var _t3=JSON.stringify(tiny);
+    if(_t3.length<300000){
+      localStorage.setItem(KEY,_t3);
+      window.__saveStatus='slim';
+      window.__saveNote='本机存储空间已满，只保留了设置和字卡（聊天记录/朋友圈/信件等已不在本机副本里）。完整内容请用 设置→备份 导出，或删掉一些大图再试';
+      return {ok:true,json:_t3};
+    }
+  }catch(e){}
   return {ok:false,json:null};
 }
 /** 写主键 + 镜像键（镜像与主键内容一致，互为备份） */
@@ -1826,7 +2269,26 @@ function flushBig(){
 }
 function save(){
   try{
-    var json=JSON.stringify(plainCopy(state));
+    /* 关键：**边序列化边**把大图换成空串（用 JSON.stringify 的 replacer）。
+       · 不先拼一份含所有 base64 的完整字符串 —— 以前每存一次就白拼十几 MB，
+         iOS 上就是这一步把页面撑崩的（实测 293KB 聊天记录却要拼 9.7MB 的串）。
+       · 也不能用 plainCopy 浅拷贝去"瘦身"：plainCopy 只复制顶层，
+         嵌套对象是和 state 共享的，那样会把内存里的图片一起清掉。
+       图片本体由 dumpImages() 送进 IndexedDB，加载时靠 _imgs 清单读回。 */
+    try{dumpImages()}catch(e){}
+    var _imgs=imgValues(state),_ikeys=[],_big={};
+    for(var _k in _imgs){_ikeys.push(_k);_big[_imgs[_k]]=1}
+    var obj=plainCopy(state);
+    if(_ikeys.length)obj._imgs=_ikeys;
+    var json=JSON.stringify(obj,function(k,v){
+      if(typeof v==='string'&&v.length>IMG_SAFE&&_big[v]===1)return '';
+      return v;
+    });
+    window.__saveBytes=json.length;
+    if(json.length>3200000&&!window.__sizeWarned){
+      window.__sizeWarned=1;
+      try{toast('存档已比较大（约 '+(json.length/1048576).toFixed(1)+' MB），建议去 设置 → 备份 导出一份')}catch(e){}
+    }
     var pre=null;
     try{pre=localStorage.getItem(KEY)}catch(e){}
     var ok=writeBoth(json);
@@ -1906,17 +2368,17 @@ var HB_PRESETS={
 };
 function chatBgStyle(){
   var st=state.settings;
-  if(st.chatBgImg)return 'background-image:url('+st.chatBgImg+')';
+  if(st.chatBgImg)return 'background-image:url('+mediaUrlSync(st.chatBgImg)+')';
   return 'background-image:'+(BG_PRESETS[st.chatBg]||BG_PRESETS.bg1);
 }
 function homeBgStyle(){
   var st=state.settings;
-  if(st.homeBgImg)return 'background-image:url('+st.homeBgImg+')';
+  if(st.homeBgImg)return 'background-image:url('+mediaUrlSync(st.homeBgImg)+')';
   return 'background-image:'+(HB_PRESETS[st.homeBg]||HB_PRESETS.hb1);
 }
 function coverStyle(){
   var st=state.settings;
-  if(st.coverImg)return 'background-image:url('+st.coverImg+');background-size:cover;background-position:center 22%';
+  if(st.coverImg)return 'background-image:url('+mediaUrlSync(st.coverImg)+');background-size:cover;background-position:center 22%';
   return 'background-image:'+(COV_PRESETS[st.cover]||COV_PRESETS.cov1)+';background-size:cover;background-position:center 22%';
 }
 
@@ -1970,6 +2432,7 @@ function render(v){
   else if(v==='tarot')renderTarot();
   else if(v==='widgets')renderWidgetLib();
   else renderMe();
+  scheduleMediaHydrate();
   schedule();
 }
 function renderAll(){render()}
@@ -2014,7 +2477,12 @@ function renderHome(){
   var wdo=widgetEnsureOrder();
   html+='<button class="wd-add" data-view="widgets" data-page="0" title="添加组件">＋</button>';
   html+='<div class="widgets" id="widgetGrid0">'+widgetGridInner(wdo,wds,wk,d,0)+'</div>';
-  html+='<div class="status-card" data-view="chat">'+avatarHtml(c)+'<div class="sc-body"><div class="sc-name">'+esc(c.name)+'</div><div class="sc-chips"><span class="chip b-soft">'+esc(state.currentStatus.text)+'</span><span class="chip">'+esc(state.currentMood.text)+'</span></div></div></div>';
+  var _cov=state.settings&&state.settings.coverImg?mediaUrlSync(state.settings.coverImg):'';
+  html+='<div class="status-card" data-view="chat">'
+    +'<span class="sc-cover"'+(_cov?' style="background-image:url(\''+_cov+'\')"':'')+'></span>'
+    +'<span class="sc-avwrap">'+avatarHtml(c)+'</span>'
+    +'<div class="sc-body"><div class="sc-name">'+esc(c.name)+'</div><div class="sc-chips"><span class="chip b-soft">'+esc(state.currentStatus.text)+'</span><span class="chip">'+esc(state.currentMood.text)+'</span></div></div>'
+    +'</div>';
 
   var apps=APPS;
   var PER=8,apg=state.appPage||0;
@@ -2069,7 +2537,7 @@ function appByKey(v){
 function appItemHtml(a){
   var ic=a.ic.replace(/stroke="#fff"/g,'stroke="'+a.c+'"').replace(/fill="#fff"/g,'fill="'+a.c+'"');
   var hasIcon=!!state.appIcons[a.v];
-  if(hasIcon)ic='<img class="app-icon-img" src="'+state.appIcons[a.v]+'" alt="">';
+  if(hasIcon)ic='<img class="app-icon-img" src="'+mediaUrlSync(state.appIcons[a.v])+'" alt="">';
   return '<div class="app-item" data-view="'+a.v+'"><div class="app-icon'+(hasIcon?' has-img':'')+'" style="background:'+(hasIcon?'#FFFFFF':'rgba(255,255,255,.34)')+'">'+ic+'</div>'
     +(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
 }
@@ -2190,7 +2658,7 @@ function widgetInnerHtml(wv,wk,d){
     var n=state.anniversaryDays;
     if(wd){var dd=new Date(wd+'T00:00:00');n=Math.floor((Date.now()-dd.getTime())/86400000)}
     var lbl=state.widgetDaysLabel||'在一起';
-    return '<span>'+esc(lbl)+'</span><b>'+n+'</b><span>'+(state.widgetDaysUnit||'天')+'</span>';
+    return '<span class="d-lb">'+esc(lbl)+'</span><span class="d-num">'+n+'</span><span class="d-un">'+(state.widgetDaysUnit||'天')+'</span>';
   }
   if(wv==='weather'){
     var wx=state.widgetWeather||{city:'城市',temp:26,text:'晴'};
@@ -2199,7 +2667,7 @@ function widgetInnerHtml(wv,wk,d){
   }
   if(wv==='photo'){
     var ph=state.widgetPhoto||{};
-    if(ph.img)return '<span class="ph-img" style="background-image:url(\''+ph.img+'\')"></span>'+(ph.cap?'<span class="ph-cap">'+esc(ph.cap)+'</span>':'');
+    if(ph.img)return '<span class="ph-img" style="background-image:url(\''+mediaUrlSync(ph.img)+'\')"></span>'+(ph.cap?'<span class="ph-cap">'+esc(ph.cap)+'</span>':'');
     return '<span class="ph-empty" data-act="wd-photo">点这里放一张照片</span>';
   }
   if(wv==='count'){
@@ -2222,8 +2690,17 @@ function widgetInnerHtml(wv,wk,d){
       +'<defs><linearGradient id="pgg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F9AEC2"/><stop offset="1" stop-color="#EE7BA4"/></linearGradient></defs>'
       +'</svg><i>'+Math.round(v)+'%</i></span><span class="pg-lb">'+esc(pr.label)+'</span>';
   }
-  if(wv==='music')return '<span class="wm-ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="#fff" stroke="#fff" stroke-width="1.5"><path d="M9 18V6l10-2v11"/><circle cx="7" cy="18" r="2.4"/><circle cx="17" cy="15" r="2.4"/></svg></span><div class="wm-tx"><b>'+esc(state.widgetMusic.song)+'</b><span>'+esc(state.widgetMusic.artist)+'</span></div><button class="wm-btn" data-act="music-play" title="播放/暂停">'+(state._mPlay?'▐▐':'▶')+'</button>';
-  if(wv==='note')return '<span>便签</span><b>'+esc(state.widgetNote||'')+'</b>';
+  if(wv==='music')return '<span class="wm-vinyl"></span><div class="wm-body"><b class="wm-song">'+esc(state.widgetMusic.song)+'</b><span class="wm-sub">'+esc(state.widgetMusic.artist)+'</span><span class="wm-bar"><i></i></span></div><button class="wm-btn" data-act="music-play" title="播放/暂停">'+(state._mPlay?'▐▐':'▶')+'</button>';
+  if(wv==='note'){
+    var _raw=String(state.widgetNote||'').trim();
+    var _ls=_raw?_raw.split(/\n|；|;/).map(function(x){return x.trim()}).filter(Boolean):[];
+    if(_ls.length>=2){
+      var _nh='<span class="nf-tt"># '+esc(_ls[0])+'</span><div class="nf-list">';
+      for(var _ni=1;_ni<_ls.length&&_ni<5;_ni++)_nh+='<div class="nf-it"><span class="'+(_ni===1?'nf-dot':'nf-ring')+'"></span>'+esc(_ls[_ni])+'</div>';
+      return _nh+'</div>';
+    }
+    return '<span>便签</span><b>'+esc(_raw)+'</b>';
+  }
   if(wv==='feed'){
     var feList=feedRecent(4),inn='<span class="wf-tt">陆沉动态</span><div class="wf-list">';
     if(!feList.length)inn+='<div class="wf-empty">等陆沉来更新</div>';
@@ -2279,11 +2756,12 @@ function widgetGridInner(wdo,wds,wk,d,page){
     var attr=(wv==='feed'?'':'data-wkey="'+wv+'" ');
     var sz=widgetSizeOf(wv);
     var st='left:'+p.x+'%;top:'+p.y+'px;';
-    if(state.widgetImgs&&state.widgetImgs[wv])st+="background-image:url('"+state.widgetImgs[wv]+"');background-size:cover;background-position:center;background-color:rgba(255,255,255,.7);background-blend-mode:overlay;";
+    if(state.widgetImgs&&state.widgetImgs[wv])st+="background-image:url('"+mediaUrlSync(state.widgetImgs[wv])+"');background-size:cover;background-position:center;background-color:rgba(255,255,255,.7);background-blend-mode:overlay;";
     out+='<div class="widget wfree w-'+wv+' wsz-'+sz+'" '+attr+'style="'+st+'"><span class="widget-grip"></span>'+widgetInnerHtml(wv,wk,d)+'</div>';
   }
   /* 高度直接写进去，不等 rAF —— 否则刚打开的一瞬间容器是 0 高，组件会压到 App 图标上 */
-  var _hTotal=Math.max(walk.height,widgetManualBottom(keys));
+  /* 首屏高度同样只按自动排布算，别把手动位置算进来（否则一进首页就偏长） */
+  var _hTotal=Math.max(0,Math.round(walk.height));
   out+='<div class="wfree-spacer" style="height:'+_hTotal+'px"></div>';
   return out;
 }
@@ -2326,28 +2804,37 @@ function fitWidgetGridNow(){
       var left=p.x+'%';
       if(el2.style.left!==left)el2.style.left=left;
     }
-    /* 容器高度 = 所有组件（含手动摆的）的最下沿。
-       刚渲染时量到的高度可能偏小，所以取"实测"和"估计"的较大值。 */
+    /* ===== 页面长度固定 =====
+       容器高度**只由自动排布决定**（walk.height），完全不看手动摆到哪儿。
+       以前这里是"所有组件含手动摆的的最下沿"，所以你每往下挪一次组件，
+       容器就被撑高一次，整个首页跟着变长。
+       现在手动摆放的组件一律被夹在这个固定区域内，挪多少次长度都不变；
+       只有"增删组件/换尺寸"这种真正改变内容的事才会让它变。 */
+    var areaH=Math.max(0,Math.round(walk.height));
     var gr=grid.getBoundingClientRect();
-    var maxB=0;
+    /* 把手动摆放的组件夹回区域内（超出下边缘就顶回去），并把夹过的位置记下来 */
+    var clamped=false;
     for(i=0;i<els.length;i++){
       var el3=els[i];
       var k3=wKeyOf(el3);
+      if(!widgetHasPos(k3))continue;
       var h3=el3.offsetHeight||0;
-      if(!h3||h3<20)h3=widgetEstH(k3);      /* 量不到才用估计值 */
-      var b=((el3.offsetTop||0)+h3+12);
-      var br=el3.getBoundingClientRect().bottom-gr.top+12;
-      if(br>b)b=br;
-      if(b>maxB)maxB=b;
+      if(!h3||h3<20)h3=widgetEstH(k3);
+      var y3=parseFloat(el3.style.top)||0;
+      var maxY3=Math.max(0,areaH-h3);
+      if(y3>maxY3){
+        el3.style.top=maxY3+'px';
+        if(state.widgetPos&&state.widgetPos[k3]){
+          state.widgetPos[k3].y=Math.round(maxY3);
+          clamped=true;
+        }
+      }
+      /* 横向也保证不出界 */
+      var w3=el3.offsetWidth||0;
+      if(gr.width&&el3.offsetWidth>gr.width)el3.style.left='0%';
     }
-    /* 再兜一层：无论怎么算，容器都必须盖住最低的那个组件 */
-    var deepest=0;
-    for(i=0;i<els.length;i++){
-      var bb2=els[i].getBoundingClientRect().bottom-gr.top+12;
-      if(bb2>deepest)deepest=bb2;
-    }
-    if(deepest>maxB)maxB=deepest;
-    var want=Math.max(0,Math.round(maxB))+'px';
+    if(clamped)try{save()}catch(e){}
+    var want=areaH+'px';
     if(sp&&sp.style.height!==want)sp.style.height=want;
   }
 }
@@ -2939,12 +3426,12 @@ function renderChat(){
   }
 }
 function cAvatar(c){
-  if(c.avatarType==='img'&&c.avatarImg)return '<img src="'+c.avatarImg+'" alt="">';
+  if(c.avatarType==='img'&&c.avatarImg)return '<img src="'+mediaUrlSync(c.avatarImg)+'" alt="">';
   return '<i style="background:'+(c.color||'#7A9CC6')+'">'+(c.name||'?').charAt(0)+'</i>';
 }
 function meAvatar(){
   var m=state.me||{avatarType:'char',color:'#D98E5F',name:'我'};
-  if(m.avatarType==='img'&&m.avatarImg)return '<img src="'+m.avatarImg+'" alt="">';
+  if(m.avatarType==='img'&&m.avatarImg)return '<img src="'+mediaUrlSync(m.avatarImg)+'" alt="">';
   return '<i style="background:'+(m.color||'#D98E5F')+'">'+(m.name||'我').charAt(0)+'</i>';
 }
 function typingRow(c){
@@ -3015,10 +3502,10 @@ function bubbleHtml(m,c){
   /* 表情包 / 图片 / 纯文字 */
   var body,extraCls='';
   if(m.type==='sticker'&&m.img){
-    body='<img class="msg-sticker" src="'+m.img+'" alt="表情">';
+    body='<img class="msg-sticker" src="'+mediaUrlSync(m.img)+'" alt="表情">';
     extraCls=' bubble-media';
   }else if(m.type==='img'&&m.img){
-    body='<img class="msg-img" src="'+m.img+'" alt="图片">';
+    body='<img class="msg-img" src="'+mediaUrlSync(m.img)+'" alt="图片">';
     extraCls=' bubble-media';
   }else if(m.type==='img'||m.type==='imgcleared'||(m.type==='sticker'&&!m.img)){
     stripImgMsg(m);
@@ -3193,8 +3680,10 @@ function pickImageFile(input,onDone){
 function readUploadImg(input,kind){
   pickImageFile(input,function(img){
     var data=encodeImg(img,2560,{q:.95});
-    if(kind==='home'){state.settings.homeBgImg=data;save();closeSheet();renderHome();toast('主页壁纸已更新')}
-    else if(kind==='cb'){state.companion.bgImg=data;save();closeSheet();renderCompanion();toast('陪伴背景已更新')}
+    mediaAdopt(data,'bg').then(function(ref){
+    if(kind==='home'){state.settings.homeBgImg=ref;save();closeSheet();renderHome();toast('主页壁纸已更新')}
+    else if(kind==='cb'){state.companion.bgImg=ref;save();closeSheet();renderCompanion();toast('陪伴背景已更新')}
+    });
   });
 }
 var _iconTarget='chat';
@@ -3205,12 +3694,14 @@ function readIconFile(input){
     /* 图标 256px，强制走无损 PNG（缩放后更锐利） */
     var data=encodeImg(img,256,{forcePng:true,q:.95});
     state.appIcons=state.appIcons||{};
-    state.appIcons[key]=data;
+    mediaAdopt(data,'icon').then(function(ref){
+    state.appIcons[key]=ref;
     save();
     toast('图标已更新');
     try{closeSheet()}catch(e){}
     /* 设置页要刷新（列表里有预览），桌面要立刻看到新图标 */
     renderAll();
+    });
   });
 }
 function sheetCheckinAdd(){
@@ -3230,9 +3721,11 @@ function readImg(input,kind){
   pickImageFile(input,function(img){
     /* 朋友圈封面按 9:16 常用比例保留，聊天壁纸保持原分辨率 */
     var data=encodeImg(img,kind==='bg'?2400:2000,{q:.95});
-    if(kind==='bg'){state.settings.chatBgImg=data}
-    else{state.settings.coverImg=data}
+    mediaAdopt(data,kind).then(function(ref){
+    if(kind==='bg'){state.settings.chatBgImg=ref}
+    else{state.settings.coverImg=ref}
     save();closeSheet();renderAll();toast('已更新');
+    });
   });
 }
 
@@ -3726,7 +4219,7 @@ function inviteDecline(id){
 function renderCompanion(){
   clearTimeout(_tmrTick);_tmrTick=null;
   var cp=state.companion,modes=compModes();
-  var bg=cp.bgImg?'background-image:url('+cp.bgImg+');background-size:cover;background-position:center':'background-image:'+(CB_PRESETS[cp.bgKey]||CB_PRESETS.cb1);
+  var bg=cp.bgImg?'background-image:url('+mediaUrlSync(cp.bgImg)+');background-size:cover;background-position:center':'background-image:'+(CB_PRESETS[cp.bgKey]||CB_PRESETS.cb1);
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">陪伴</span></div>';
   html+='<div class="screen"><div class="companion-bg" style="'+bg+'">';
   html+='<div class="cc"><div class="app-sec-title" style="color:#4A3F33">陪伴模式</div><div class="mode-chips">';
@@ -3940,9 +4433,11 @@ function renderMe(){
   html+='<div class="me-sec"><h3>后台保活说明</h3><div class="note">手机浏览器切到后台时网页会被系统暂停，这是 iOS 的正常机制。每次回到页面时会自动补发离线期间的消息、朋友圈评论、回信和缺失的日记，不会断档。</div></div>';
   html+='<div class="me-group-title">备份</div>';
   html+='<div class="me-sec"><h3>备份</h3>'+backupPanelHtml()+'</div>';
+  html+='<div class="me-sec"><h3>存储</h3><div class="card" id="stgBox"><div class="stg-row"><span>统计中…</span><b></b></div></div></div>';
   html+='<div class="me-sec"><h3>存档安全</h3>'+storageHealthHtml()+'<p class="meta" style="margin-top:8px">iPhone 会在存储紧张或长期不打开时清理网页数据，这是系统行为、任何网页都躲不过。导出一份备份文件（可存到「文件」App 或发给自己），换机、清理后都能一键恢复。</p></div>';
   html+='</div>';
   $('#view').innerHTML=html;
+  setTimeout(fillStoragePanel,0);
 }
 /** 设置页里的存档状态卡片 */
 function storageHealthHtml(){
@@ -4004,13 +4499,13 @@ function sheetSmLib(kind){
 function meAvatarHtml(sz){
   sz=sz||46;
   var m=state.me||{};
-  if(m.avatarType==='img'&&m.avatarImg)return '<span class="me-av" style="width:'+sz+'px;height:'+sz+'px"><img src="'+m.avatarImg+'"></span>';
+  if(m.avatarType==='img'&&m.avatarImg)return '<span class="me-av" style="width:'+sz+'px;height:'+sz+'px"><img src="'+mediaUrlSync(m.avatarImg)+'"></span>';
   return '<span class="me-av" style="width:'+sz+'px;height:'+sz+'px;background:'+(m.color||'#D98E5F')+'">'+(m.name||'我').charAt(0)+'</span>';
 }
 var _meAvColor='#D98E5F',_meAvImg=null,_meAvPicked=false;
 function sheetMe(){
   var m=state.me||{name:'我',avatarType:'char',avatarImg:'',color:'#D98E5F'};
-  _meAvColor=m.color||'#D98E5F';_meAvImg=(m.avatarType==='img'&&m.avatarImg)?m.avatarImg:null;_meAvPicked=false;
+  _meAvColor=m.color||'#D98E5F';_meAvImg=(m.avatarType==='img'&&m.avatarImg)?mediaUrlSync(m.avatarImg):null;_meAvPicked=false;
   var row='';
   for(var i=0;i<PALETTE.length;i++)row+='<button class="swatch'+(PALETTE[i]===m.color?' on':'')+'" style="background:'+PALETTE[i]+'" data-act="me-pick-color" data-color="'+PALETTE[i]+'"></button>';
   openSheet('<h2>我的资料</h2><label>昵称</label><input id="meName" value="'+esc(m.name)+'"><label>头像颜色</label><div class="swatches">'+row+'</div><label>或上传头像</label><div style="display:flex;gap:8px"><label class="btn small ghost" style="flex:1" for="meAvatarFile">上传图片</label><button class="btn small ghost" style="flex:1" data-act="me-reset">用首字</button></div><input type="file" id="meAvatarFile" accept="image/*" style="display:none"><div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="me-save">保存</button></div>');
@@ -4026,7 +4521,7 @@ function readMeFile(input){
       var cx=cw.getContext('2d');
       var s=Math.min(img.width,img.height),sx=(img.width-s)/2,sy=(img.height-s)/2;
       cx.drawImage(img,sx,sy,s,s,0,0,128,128);
-      _meAvImg=cw.toDataURL('image/jpeg',.85);_meAvPicked=true;toast('已选好头像，点保存生效');
+      mediaAdopt(cw.toDataURL('image/jpeg',.85),'meavatar').then(function(ref){_meAvImg=ref;_meAvPicked=true;updAvatarPrev();toast('已选好头像，点保存生效')});
     };
     img.src=fr.result;
   };
@@ -4110,7 +4605,7 @@ function sheetContact(id){
   html+='<div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="contact-save" data-id="'+(id||'')+'">保存</button></div>';
   if(id)html+='<div style="margin-top:10px"><button class="cancel" style="width:100%;color:var(--danger)" data-act="contact-del" data-id="'+id+'">删除此联系人</button></div>';
   openSheet(html);
-  if(c&&c.avatarType==='img'&&c.avatarImg)_avImg=c.avatarImg;
+  if(c&&c.avatarType==='img'&&c.avatarImg)_avImg=mediaUrlSync(c.avatarImg);
   updAvatarPrev();
   var ni=$('#cName');
   if(ni)ni.addEventListener('input',updAvatarPrev);
@@ -4133,7 +4628,7 @@ function readAvatarFile(input){
     cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
     var s=Math.min(img.width,img.height),sx=(img.width-s)/2,sy=(img.height-s)/2;
     cx.drawImage(img,sx,sy,s,s,0,0,360,360);
-    _avImg=cw.toDataURL('image/png');_avPicked=true;updAvatarPrev();
+    mediaAdopt(cw.toDataURL('image/png'),'avatar').then(function(ref){_avImg=ref;_avPicked=true;updAvatarPrev()});
   });
 }
 function contactSave(){
@@ -4810,8 +5305,10 @@ function sendImageMsg(input){
   pickImageFile(input,function(img){
     var data=encodeImg(img,1080,{q:.85,allowPng:false});
     var c=activeContact();
-    state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'img',img:data,ts:now(),replyDue:now()+rndDelay(c)});
+    mediaAdopt(data,'chatimg').then(function(ref){
+    state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'img',img:ref,ts:now(),replyDue:now()+rndDelay(c)});
     save();closeSheet();renderChat();schedule();
+    });
   });
 }
 function ensureImgInput(){
@@ -4834,8 +5331,10 @@ function addStickerFile(input){
     cx.imageSmoothingEnabled=true;cx.imageSmoothingQuality='high';
     cx.fillStyle='#fff';cx.fillRect(0,0,cw.width,cw.height);
     cx.drawImage(img,0,0,cw.width,cw.height);
-    state.stickers.push({id:uid(),img:cw.toDataURL('image/jpeg',.8)});
+    mediaAdopt(cw.toDataURL('image/jpeg',.8),'sticker').then(function(ref){
+    state.stickers.push({id:uid(),img:ref});
     save();sheetStickers();toast('已添加表情');
+    });
   });
 }
 
@@ -5296,6 +5795,7 @@ function openSheet(html){
   var m=$('#sheet-mask');
   m.innerHTML='<div class="sheet">'+html+'</div>';
   m.classList.remove('hide');
+  scheduleMediaHydrate();
 }
 function closeSheet(){var m=$('#sheet-mask');m.classList.add('hide');m.innerHTML=''}
 
@@ -5354,6 +5854,8 @@ document.addEventListener('click',function(e){
     else if(act==='pick-color')pickColor(btn.getAttribute('data-color'));
     else if(act==='avatar-upload'){var af=$('#avatarFile');if(af)af.click()}
     else if(act==='avatar-reset'){_avImg=null;_avPicked=false;updAvatarPrev()}
+  else if(act==='stg-persist'){stgPersist()}
+  else if(act==='stg-refresh'){fillStoragePanel();toast('已刷新')}
     else if(act==='bg-sheet')sheetChatBg();
     else if(act==='cover-sheet')sheetCover();
     else if(act==='pick-bg')pickBg(btn.getAttribute('data-key'));
@@ -5695,8 +6197,10 @@ function pickCallBg(key){state.settings.callBg=key;state.settings.callBgImg='';s
 function clearCallBg(){state.settings.callBgImg='';save();closeSheet();toast('已恢复默认')}
 function readCallBgFile(input){
   pickImageFile(input,function(img){
-    state.settings.callBgImg=encodeImg(img,2560,{q:.95});
+    mediaAdopt(encodeImg(img,2560,{q:.95}),'callbg').then(function(ref){
+    state.settings.callBgImg=ref;
     save();closeSheet();toast('通话背景已更新');
+    });
   });
 }
 
@@ -5708,6 +6212,7 @@ function showCall(mode){
   _call={stage:'talking',mode:mode,sec:0,_spk:0};
   callMini();
   renderChat();
+  if(_callTimer)clearInterval(_callTimer);
   _callTimer=setInterval(function(){
     if(!_call)return;
     _call.sec++;
@@ -5762,6 +6267,7 @@ function callAccept(){
   _call.stage='talking';_call.sec=0;_call._spk=0;
   if(!inChatView())goView('chat');
   callMini();
+  if(_callTimer)clearInterval(_callTimer);
   _callTimer=setInterval(function(){
     if(!_call)return;
     _call.sec++;
@@ -5835,6 +6341,8 @@ function callHangup(){
   if(typeof toast==='function')toast(txt);
 }
 function endCall(){
+  if(_callTimer){clearInterval(_callTimer);_callTimer=null}
+  if(_callTk){clearTimeout(_callTk);_callTk=null}
   if(_callTimer)clearInterval(_callTimer);
   if(_call&&_call._spt)clearTimeout(_call._spt);
   if(_callWait){clearTimeout(_callWait);_callWait=null}
@@ -5992,9 +6500,10 @@ function readWidgetImg(input){
   pickImageFile(input,function(img){
     var data=encodeImg(img,1400,{q:.94});
     var label='';
+    mediaAdopt(data,'widget').then(function(ref){
     if(key==='__photo'||key==='photo'){
       state.widgetPhoto=state.widgetPhoto||{};
-      state.widgetPhoto.img=data;
+      state.widgetPhoto.img=ref;
       state.widgets=state.widgets||{};
       if(state.widgets.photo===false)state.widgets.photo=true;
       label='相册';
@@ -6002,7 +6511,7 @@ function readWidgetImg(input){
     }else{
       state.widgetImgs=state.widgetImgs||{};
       var kk=key||'clock';
-      state.widgetImgs[kk]=data;
+      state.widgetImgs[kk]=ref;
       var ds=widgetDefs();
       for(var i=0;i<ds.length;i++)if(ds[i].k===kk)label=ds[i].n;
       toast((label||'组件')+'底图已更新');
@@ -6012,6 +6521,7 @@ function readWidgetImg(input){
     if(h==='widgets')renderWidgetLib();
     else if(h==='me')renderMe();
     else renderHome();
+    });
   });
 }
 /* 只清某一个组件的底图 */
@@ -6226,6 +6736,7 @@ function initWidgetDrag(){
 function initOneWidgetDrag(grid){
   if(!grid)return;
   var drag=null,timer=null,ghost=null,startX=0,startY=0,offX=0,offY=0,manageTimer=null,movedFlag=0;
+  var lastX=null,lastY=null,pendingX=null,pendingY=null;
   function findW(t){var el=t;while(el&&el!==grid&&!el.classList.contains('widget'))el=el.parentNode;return el===grid?null:el}
   function clampN(v,a,b){return Math.max(a,Math.min(b,v))}
   function begin(x,y,target){
@@ -6233,11 +6744,19 @@ function initOneWidgetDrag(grid){
     if(!el||!el.classList.contains('wfree'))return;
     if(target&&target.closest&&target.closest('.wm-btn'))return;
     startX=x;startY=y;
+    pendingX=null;pendingY=null;lastX=null;lastY=null;movedFlag=0;
     timer=setTimeout(function(){
       if(!el.parentNode)return;
       drag=el;
       var r=el.getBoundingClientRect();
+      /* 真人往往是"按下就走"，长按这 350ms 里手指已经移动过了。
+         所以要拿"手指现在的位置"当抓取点，否则幽灵会先跳一下，
+         而且 movedFlag / 落点都还是空的，松手就只能读回组件原位。 */
+      /* 抓取点必须用"手指最初按下的位置"，这样落点才等于 原始位置 + 手指位移。
+         （如果改成用手指当前位置当抓取点，落点会正好抵消回原位 —— 别那么写） */
       offX=x-r.left;offY=y-r.top;
+      var ax=(pendingX!=null?pendingX:x), ay=(pendingY!=null?pendingY:y);
+      if(Math.abs(ax-startX)+Math.abs(ay-startY)>10){movedFlag=1;lastX=ax;lastY=ay}
       el.classList.add('dragging');
       grid.classList.add('editfree');
       ghost=el.cloneNode(true);
@@ -6248,6 +6767,7 @@ function initOneWidgetDrag(grid){
       ghost.style.left='0';ghost.style.top='0';
       ghost.style.transform='translate3d('+r.left+'px,'+r.top+'px,0)';
       document.body.appendChild(ghost);
+      if(pendingX!=null)ghost.style.transform='translate3d('+(pendingX-offX)+'px,'+(pendingY-offY)+'px,0)';
       try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}
       /* 继续按住不放（不移动）= 打开这张组件的管理面板 */
       manageTimer=setTimeout(function(){
@@ -6265,9 +6785,10 @@ function initOneWidgetDrag(grid){
     if(g)g.classList.remove('editfree');
     drag=null;
   }
-  var lastX=null,lastY=null;
   function move(x,y){
-    if(timer&&Math.abs(x-startX)+Math.abs(y-startY)>12){clearTimeout(timer);timer=null}
+    /* 先无条件记住手指位置：长按可能还没生效，
+       但这段位移必须留着，不然长按一生效就丢了 */
+    pendingX=x;pendingY=y;
     if(!drag)return;
     if(Math.abs(x-startX)+Math.abs(y-startY)>10)movedFlag=1;
     lastX=x;lastY=y;                 /* 记住最后落点 —— 真实元素全程不动，只有 ghost 跟手 */
@@ -6303,14 +6824,17 @@ function initOneWidgetDrag(grid){
          以前这里读的是元素自身的 rect —— 而元素全程没动过，
          所以无论拖到哪都会算回原位（"拖完又弹回去"就是这个原因）。 */
       var dropL,dropT;
-      if(didMove&&lastX!=null&&lastY!=null){
+      if(lastX!=null&&lastY!=null){
         dropL=lastX-offX;
         dropT=lastY-offY;
       }else{
         dropL=r.left;dropT=r.top;
       }
-      var px=clampN(dropL-gr.left,0,maxX);
-      var py=clampN(dropT-gr.top,0,maxY);
+      /* 吸附到 8px 网格，落点整齐（参考站 DESKTOP_GRID_SIZE=8） */
+      var GRID=8;
+      var snapN=function(v){return Math.round(v/GRID)*GRID};
+      var px=clampN(snapN(dropL-gr.left),0,maxX);
+      var py=clampN(snapN(dropT-gr.top),0,maxY);
       el.style.left=(gr.width?(px/gr.width*100):0)+'%';
       el.style.top=py+'px';
       state.widgetPos=state.widgetPos||{};
@@ -6319,13 +6843,13 @@ function initOneWidgetDrag(grid){
       fitWidgetGrid();
     }
     drag=null;
-    lastX=null;lastY=null;
+    lastX=null;lastY=null;pendingX=null;pendingY=null;
   }
   grid.addEventListener('touchstart',function(e){var t=e.touches[0];if(t)begin(t.clientX,t.clientY,e.target)},{passive:true});
   grid.addEventListener('touchmove',function(e){
-    if(!drag)return;
-    var t=e.touches[0];if(t)move(t.clientX,t.clientY);
-    e.preventDefault();
+    var t=e.touches[0];
+    if(t)move(t.clientX,t.clientY);      /* 即使长按还没生效，也要先记住位置 */
+    if(drag)e.preventDefault();
   },{passive:false});
   grid.addEventListener('touchend',function(){end()});
   grid.addEventListener('touchcancel',function(){end()});
