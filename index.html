@@ -179,7 +179,12 @@ background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
 /* ===== 表情包 / 图片消息 ===== */
 .bubble.bubble-media{padding:6px!important;background:rgba(255,255,255,.72)!important;border:1px solid var(--glass-line)!important;box-shadow:0 6px 18px rgba(150,120,140,.14)!important}
 .bubble.bubble-media:after{display:none!important}
-.msg-sticker{display:block;width:110px;height:auto;max-height:132px;object-fit:contain;border-radius:12px}
+.msg-sticker{display:block;width:120px;height:auto;max-height:144px;object-fit:contain;border-radius:14px;
+  box-shadow:0 6px 18px rgba(150,120,140,.18)}
+/* 表情包：整条就是一张贴图，不带气泡底 */
+.bubble.bubble-sticker{padding:0!important;background:transparent!important;border:none!important;
+  box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-radius:14px!important}
+.bubble.bubble-sticker:after{display:none!important}
 .msg-img{display:block;width:170px;max-width:58vw;height:auto;max-height:220px;object-fit:cover;border-radius:12px}
 .bubble.out.bubble-media{background:rgba(255,255,255,.62)!important}
 .stk-sec-title{font-size:calc(12px*var(--fs));color:var(--sub);letter-spacing:1px;margin:12px 0 6px}
@@ -1758,6 +1763,8 @@ function migrate(s){
   if(s.settings.letterInitMin===undefined)s.settings.letterInitMin=180;
   if(s.settings.letterInitMax===undefined)s.settings.letterInitMax=1920;
   if(s.settings.visitorMax===undefined)s.settings.visitorMax=720;
+  if(s.settings.giftPct===undefined)s.settings.giftPct=13;
+  if(s.settings.askPct===undefined)s.settings.askPct=8;
   if(s.settings.commentMin===undefined)s.settings.commentMin=180;
   if(s.settings.commentMax===undefined)s.settings.commentMax=600;
   if(s.settings.soundOn===undefined)s.settings.soundOn=true;
@@ -3994,8 +4001,12 @@ function initiate(c){
   if(state.checkinPresets&&state.checkinPresets.length&&Math.random()*100<((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)){state.messages.push({id:uid(),contactId:c.id,dir:'in',kind:'checkin',text:'查岗：'+pick(state.checkinPresets),ts:now()});save();renderChat()}
   pushBurst(c,now(),pickBurstCount(c));
   /* 偶尔顺手买个小礼物送过来，或者让你帮他代买一件 */
-  if(Math.random()*100<13)shopHisGift(c);
-  else if(Math.random()*100<8)shopHisAsk(c);
+  /* 主动消息偶尔顺手带一份礼物 / 让你帮他代买一件（概率可在 设置 里调） */
+  var _stG=state.settings||{};
+  var _giftPct=(_stG.giftPct!=null?_stG.giftPct:13);
+  var _askPct=(_stG.askPct!=null?_stG.askPct:8);
+  if(_giftPct>0&&Math.random()*100<_giftPct)shopHisGift(c);
+  else if(_askPct>0&&Math.random()*100<_askPct)shopHisAsk(c);
   feedEvent(c.name+' 给你发来了消息','chat');
   if(Math.random()*100<((state.settings&&state.settings.postPct)!=null?state.settings.postPct:50))maybePost(c,now());
   state.nextInit[c.id]=now()+rndDelay(c,'init');
@@ -4221,7 +4232,9 @@ function bubbleHtml(m,c){
   var body,extraCls='';
   if(m.type==='sticker'&&m.img){
     body='<img class="msg-sticker" src="'+mediaUrlSync(m.img)+'" alt="表情">';
-    extraCls=' bubble-media';
+    /* 表情包用自己的一类气泡：不要白底、不要边框、不要内边距，
+       看起来就是一张贴图，而不是"一条带图的消息"。 */
+    extraCls=' bubble-sticker';
   }else if(m.type==='img'&&m.img){
     body='<img class="msg-img" src="'+mediaUrlSync(m.img)+'" alt="图片">';
     extraCls=' bubble-media';
@@ -5078,6 +5091,7 @@ function renderMe(){
   html+='<div class="inl"><label>最短（分）</label><input id="rLtrReplyMin" type="number" min="1" value="'+Math.round((c.letterMin||10800)/60)+'"></div><div class="inl"><label>最长（分）</label><input id="rLtrReplyMax" type="number" min="1" value="'+Math.round((c.letterMax||86400)/60)+'"></div></div><p class="meta" style="margin-top:6px">收到你的来信后多久回信</p></div></div>';
   html+='<div class="me-sec"><h3>朋友圈节奏</h3><div class="card"><div class="rhy-grid">';
   html+='<div class="inl"><label>哥发圈间隔（分）</label><input id="momMin" type="number" min="1" value="'+state.settings.momMin+'"></div><div class="inl"><label>最慢（分）</label><input id="momMax" type="number" min="1" value="'+state.settings.momMax+'"></div>';
+  html+='<div class="inl"><label>主动送礼物概率 %</label><input id="giftPct" type="number" min="0" max="100" value="'+(state.settings.giftPct!=null?state.settings.giftPct:13)+'"></div><div class="inl"><label>找你代买概率 %</label><input id="askPct" type="number" min="0" max="100" value="'+(state.settings.askPct!=null?state.settings.askPct:8)+'"></div>';
   html+='<div class="inl"><label>评论回复间隔（分）</label><input id="comMin" type="number" min="1" value="'+state.settings.commentMin+'"></div><div class="inl"><label>最慢（分）</label><input id="comMax" type="number" min="1" value="'+state.settings.commentMax+'"></div></div>';
   html+='<div class="sw-row" style="margin-top:6px"><div><b>朋友圈访客</b><span>哥会来逛并留字卡留言</span></div><div class="switch'+(state.settings.visitorOn?' on':'')+'" data-act="st-sw" data-key="visitorOn"></div></div>';
   html+='<div style="margin-top:10px"><button class="btn" style="width:100%" data-act="mom-save">保存节奏</button></div></div></div>';
@@ -5321,7 +5335,16 @@ function sheetContact(id){
   var lp=c?pickUnitSec(c.letterMin):{val:10,unit:'m'},lx=c?pickUnitSec(c.letterMax):{val:2,unit:'h'};
   var name=c?c.name:'';
   var b=c&&c.burst?c.burst:[45,32,15,6,2];
-  var sw=function(on){var def=(on==='cBurstOn'||on==='cPuzzle');var checked=c?c[on]:def;return '<label class="sw"><input type="checkbox" id="'+on+'"'+(checked?' checked':'')+'><span class="track"></span><span class="thumb"></span></label>'};
+  /* ★ 开关的 id 和真正存进 state 的字段名不一样：
+       id="cBurstOn" 对应 c.burstOn，id="cReadNR" 对应 c.readNR。
+       以前这里直接读 c[on]，也就是读 c.cBurstOn —— 永远是 undefined，
+       于是"打开连发 → 保存 → 再打开"看起来总是关的（其实值已经存下来了）。 */
+  var sw=function(on){
+    var field=on==='cBurstOn'?'burstOn':(on==='cReadNR'?'readNR':(on==='cPuzzle'?'puzzleOn':on));
+    var def=(on==='cBurstOn'||on==='cPuzzle');
+    var checked=c?c[field]:def;
+    return '<label class="sw"><input type="checkbox" id="'+on+'"'+(checked?' checked':'')+'><span class="track"></span><span class="thumb"></span></label>';
+  };
   var html='<h2>'+(c?'设置 · '+esc(c.name):'新建联系人')+'</h2>';
   html+='<label>名字与头像</label><input id="cName" value="'+esc(name)+'" placeholder="如：陆沉">';
   html+='<div style="display:flex;align-items:center;gap:12px;margin-top:8px"><span class="avatar-prev" id="avatarPrev"></span>';
@@ -5487,6 +5510,12 @@ function backupToggleAll(box){
 /** 组装备份对象 */
 function backupBuild(sel,withImages){
   var d={app:'zika-site',version:7,exported:new Date().toISOString(),cats:sel.slice(),state:{},images:{}};
+  /* ★ 必须把存档自己的版本号也带上。
+     导出只复制"所选分类里的 key"，而 version 不属于任何分类 —— 结果导出的 state 里没有 version，
+     导入时 migrate() 里那句 if(!s.version||s.version<4) 就会成立，
+     把回复节奏 / 主动节奏当成"老版本按分钟存的值"再乘一次 60
+     （45 秒 → 45 分钟），这就是"每次导入都要重新调节奏"的原因。 */
+  try{ d.state.version=Number(state.version)||7 }catch(eV){}
   var i,j,k;
   for(i=0;i<sel.length;i++){
     var keys=backupCatKeys(sel[i]);
@@ -5605,6 +5634,32 @@ function importBackup(input){
       toast('备份里没有联系人，无法导入');
       input.value='';return;
     }
+    /* ★ 把"回复节奏 / 主动节奏 / 概率 / 开关"按备份文件里的原始数值还原。
+       老备份里没有 version 字段，migrate() 会把 replyMin/initMin 当成分钟再乘 60，
+       所以你以前每次导入完都得重新调一遍。这里直接覆盖回原值。
+       （新导出的备份已经带上 version，不会再被换算；这一段是给老备份兜底的。） */
+    try{
+      var _rc=(d.state&&Array.isArray(d.state.contacts))?d.state.contacts:null;
+      if(_rc&&Array.isArray(merged.contacts)){
+        for(var _ri=0;_ri<merged.contacts.length&&_ri<_rc.length;_ri++){
+          var _sc=_rc[_ri],_mc=merged.contacts[_ri];
+          if(!_sc||!_mc||typeof _sc!=='object')continue;
+          if(typeof _sc.replyMin==='number')_mc.replyMin=_sc.replyMin;
+          if(typeof _sc.replyMax==='number')_mc.replyMax=_sc.replyMax;
+          if(typeof _sc.initMin==='number')_mc.initMin=_sc.initMin;
+          if(typeof _sc.initMax==='number')_mc.initMax=_sc.initMax;
+          if(typeof _sc.letterMin==='number')_mc.letterMin=_sc.letterMin;
+          if(typeof _sc.letterMax==='number')_mc.letterMax=_sc.letterMax;
+          if(Array.isArray(_sc.burst))_mc.burst=_sc.burst.slice();
+          if(typeof _sc.burstOn==='boolean')_mc.burstOn=_sc.burstOn;
+          if(typeof _sc.readNR==='boolean')_mc.readNR=_sc.readNR;
+          if(typeof _sc.readNRPct==='number')_mc.readNRPct=_sc.readNRPct;
+          if(typeof _sc.replyPct==='number')_mc.replyPct=_sc.replyPct;
+          if(typeof _sc.callPct==='number')_mc.callPct=_sc.callPct;
+          if(typeof _sc.transferPct==='number')_mc.transferPct=_sc.transferPct;
+        }
+      }
+    }catch(eR){}
     /* 导入是"整份替换"，属于有意为之的大改动，允许直接覆盖大容量存储里的旧副本 */
     try{window.__forceFullWrite=1}catch(e){}
     /* ★ 关键：导入进来的存档里，"下次该发消息的时间"往往是几天前甚至几个月前，
@@ -6131,13 +6186,13 @@ function emojiAdd(){
 }
 function sendEmoji(e){
   var c=activeContact();
-  state.messages.push({id:uid(),contactId:c.id,dir:'out',text:e,ts:now(),replyDue:now()+rndDelay(c)});
+  state.messages.push({id:uid(),contactId:c.id,dir:'out',text:e,ts:now(),readDue:now()+4000,replyDue:now()+rndDelay(c)});
   save();closeSheet();renderChat();schedule();
 }
 function sendSticker(id){
   var st=byId(state.stickers,id);if(!st)return;
   var c=activeContact();
-  state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'sticker',img:st.img,stickerId:st.id,ts:now(),replyDue:now()+rndDelay(c)});
+  state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'sticker',img:st.img,stickerId:st.id,ts:now(),readDue:now()+4000,replyDue:now()+rndDelay(c)});
   save();closeSheet();renderChat();schedule();
 }
 /** 删除表情包（长按表情面板里的图） */
@@ -6161,7 +6216,7 @@ function sendImageMsg(input){
     var data=encodeImg(img,1080,{q:.85,allowPng:false});
     var c=activeContact();
     mediaAdopt(data,'chatimg').then(function(ref){
-    state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'img',img:ref,ts:now(),replyDue:now()+rndDelay(c)});
+    state.messages.push({id:uid(),contactId:c.id,dir:'out',type:'img',img:ref,ts:now(),readDue:now()+4000,replyDue:now()+rndDelay(c)});
     save();closeSheet();renderChat();schedule();
     });
   });
@@ -8417,6 +8472,8 @@ function momSave(){
   var s8=state.settings;
   s8.momMin=clamp(parseInt($('#momMin').value,10)||180,1,10080);
   s8.momMax=clamp(parseInt($('#momMax').value,10)||720,1,10080);
+  if($('#giftPct'))s8.giftPct=clamp(parseFloat($('#giftPct').value)||0,0,100);
+  if($('#askPct'))s8.askPct=clamp(parseFloat($('#askPct').value)||0,0,100);
   s8.commentMin=clamp(parseInt($('#comMin').value,10)||180,1,10080);
   s8.commentMax=clamp(parseInt($('#comMax').value,10)||600,1,10080);
   if(s8.momMin>s8.momMax){var t0=s8.momMin;s8.momMin=s8.momMax;s8.momMax=t0}
