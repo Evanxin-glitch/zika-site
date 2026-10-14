@@ -1213,6 +1213,8 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
   background:rgba(255,255,255,.34);color:#fff;font-size:calc(13px*var(--fs));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .mv-sess .mv-dot{width:8px;height:8px;border-radius:50%;background:#7CE0A6;box-shadow:0 0 0 4px rgba(124,224,166,.25);flex:none;animation:mvdot 1.6s ease-in-out infinite}
 @keyframes mvdot{0%,100%{opacity:1}50%{opacity:.35}}
+.mus-mini{margin-left:auto;font-size:calc(12.5px*var(--fs));color:var(--sub);background:rgba(255,255,255,.72);
+  border-radius:999px;padding:6px 14px;min-height:34px}
 .mv-sess .mv-sessbg,.mv-sess .mv-sessend{margin-left:auto;font-size:calc(12px*var(--fs));color:#fff;background:rgba(255,255,255,.22);
   border-radius:10px;padding:5px 10px;min-height:30px}
 .mv-sess .mv-sessend{margin-left:6px;background:rgba(255,120,140,.34)}
@@ -2973,6 +2975,8 @@ function render(v){
   else if(v==='music')renderMusic();
   else if(v==='shop')renderShop();
   else renderMe();
+  /* 一起听开着的时候：离开听歌界面自动缩成悬浮条，回到听歌界面自动收起 */
+  try{if(typeof musBarToggle==='function')musBarToggle()}catch(e){}
   scheduleMediaHydrate();
   schedule();
 }
@@ -3494,17 +3498,28 @@ function tarotCardAt(n){
 /** 数字 1–78 对应牌面；超出 78 的两位数按"各位数字"拆开，
  *  例如 92 → 9 和 2（而不是被整段丢掉，导致重复抽到同一张）。 */
 function tarotNums(str){
-  var digs=String(str||'').replace(/[^0-9]/g,'');
-  if(!digs.length)digs='7';
-  var out=[],i=0;
-  while(i<digs.length){
-    if(i+1<digs.length){
-      var two=parseInt(digs.substr(i,2),10);
-      if(two>=1&&two<=TAROT_DECK){out.push(two);i+=2;continue}
+  var raw=String(str==null?'':str).trim();
+  if(!raw)return [7];
+  /* ★ 以前是"把所有非数字字符删掉、再从前往后每次尽量取两位"，
+     于是 "3和8" 会变成 38（一个数），单个数字根本没法输入。
+     现在先按分隔符切开（空格 / 逗号 / 顿号 / 和 / + / 斜杠 / 竖线），
+     每一段再当数字读；只有整段超范围时才退回"两位一组"的老逻辑。 */
+  var parts=raw.split(/[\s,，、+＋和/|｜·;；]+/),out=[],i,j;
+  for(i=0;i<parts.length;i++){
+    var d=parts[i].replace(/[^0-9]/g,'');
+    if(!d)continue;
+    var v=parseInt(d,10);
+    if(v>=1&&v<=TAROT_DECK){out.push(v);continue}
+    j=0;
+    while(j<d.length){
+      if(j+1<d.length){
+        var two=parseInt(d.substr(j,2),10);
+        if(two>=1&&two<=TAROT_DECK){out.push(two);j+=2;continue}
+      }
+      var one=parseInt(d.charAt(j),10);
+      if(one>=1&&one<=TAROT_DECK)out.push(one);
+      j++;
     }
-    var one=parseInt(digs.charAt(i),10);
-    if(one>=1&&one<=TAROT_DECK)out.push(one);
-    i++;
   }
   if(!out.length)out=[7];
   return out;
@@ -3583,7 +3598,24 @@ function tarotDoDraw(nums,who,question,spreadName){
   var cnt=sp[2],cards=[];
   var deck=tarotShuffle(78);
   var rp3=((state.settings&&state.settings.tarotRevPct)!=null?state.settings.tarotRevPct:50);
-  for(var k=0;k<cnt;k++){var cd0=tarotCardAt(deck[((nv[k%nv.length]||1)-1)%78]);cd0.rev=Math.random()*100<rp3?1:0;cards.push(cd0)}
+  /* ★ 原来是 deck[((nv[k%nv.length]||1)-1)%78]：数字不够时从头循环复用，
+     所以"过去"和"未来"会抽到同一张牌。现在记录已用过的牌，
+     用户没给数字的位置顺着牌堆往后取一张没用过的，保证一个牌阵里不重复。 */
+  var used=[];
+  function _tPick(want){
+    var start=(want>=1&&want<=TAROT_DECK)?((want-1)%78):-1,di=-1,q;
+    if(start>=0){for(q=0;q<78;q++){var cand=deck[(start+q)%78];if(used.indexOf(cand)<0){di=cand;break}}}
+    if(di<0){for(q=0;q<78;q++)if(used.indexOf(deck[q])<0){di=deck[q];break}}
+    if(di<0)di=deck[0];
+    used.push(di);
+    return di;
+  }
+  for(var k=0;k<cnt;k++){
+    var want=(k<nv.length)?nv[k]:0;
+    var cd0=tarotCardAt(_tPick(want));
+    cd0.rev=Math.random()*100<rp3?1:0;
+    cards.push(cd0);
+  }
   state._tarotLast={nums:nv,cards:cards,positions:sp[3],who:who,question:question||'',ts:now(),spreadName:sp[1]};
   state.tarotLog=state.tarotLog||[];
   state.tarotLog.push({ts:now(),who:who,question:question||'',cards:cards,spreadName:sp[1],spread:sp[0]});
@@ -3630,8 +3662,13 @@ function tarotDailyDraw(who){
     td.myRev=Math.random()*100<rp4?1:0;
   }
   if(who==='his'&&td.hisIdx<0){
-    if(td.hisPct===null||td.hisPct===undefined)td.hisPct=Math.random()*100<dp4?1:0;
-    if(td.hisPct){td.hisIdx=Math.floor(Math.random()*TAROT_DECK);td.hisRev=Math.random()*100<rp4?1:0}
+    /* ★ 用户的反馈是"点了邀请他抽，结果不显示"。
+       原因是这里有个 dp4（默认 40%）的门槛：他没"愿意"抽时 hisIdx 一直是 -1，
+       卡片就永远停在"点这里邀请TA抽今日运牌"，看起来像没反应。
+       点了邀请就一定要出结果 —— 他现在一定会抽。 */
+    td.hisIdx=Math.floor(Math.random()*TAROT_DECK);
+    td.hisRev=Math.random()*100<rp4?1:0;
+    td.hisPct=1;
   }
   save();
   renderTarotTop();
@@ -4111,7 +4148,8 @@ function bubbleHtml(m,c){
     }
     return '<div class="msg-row out"><span class="bubble-av">'+meAvatar()+'</span>'
       +'<div class="gcard c-pink out">'+head+quote
-      +(m.myReply?'<div class="ck-replied"><span>已回复</span><b>'+esc(m.myReply)+'</b><i class="ck-done">已完成</i></div>':'<div class="gc-note">等'+esc(c.name)+'回复</div>')
+      +(m.hisReply?'<div class="ck-replied"><span>'+esc(c.name)+' 回复</span><b>'+esc(m.hisReply)+'</b><i class="ck-done">已答复</i></div>'
+        :(m.myReply?'<div class="ck-replied"><span>已回复</span><b>'+esc(m.myReply)+'</b><i class="ck-done">已完成</i></div>':'<div class="gc-note">等'+esc(c.name)+'回复（TA 会直接在这张卡上回你）</div>'))
       +'</div></div>';
   }
   if(m.kind==='gift'){
@@ -5760,10 +5798,37 @@ function resumePending(){
   if(!c){state._pending=null;save();return}
   replyPump();
 }
+/** 他回复查岗时说的话：按查岗内容挑一句贴题的，贴不到就用通用句 */
+var CK_ANSWERS={
+  eat:['刚吃完','还没吃呢，等下就去','正在吃，你呢','吃了，味道不错'],
+  sleep:['刚醒没多久','准备睡了','还早呢，睡不着','昨晚睡得挺好'],
+  busy:['还在忙，快好了','今天不太忙','有点忙，晚点找你','忙完了，正想找你'],
+  where:['在家呢','在外面，马上回去','在公司','路上呢'],
+  def:['我在呢','嗯，刚看到','在的，怎么啦','挺好，你呢']
+};
+function ckAnswer(q){
+  q=String(q||'').replace(/^查岗[:：]\s*/,'');
+  if(/吃|饭|餐|饿/.test(q))return pick(CK_ANSWERS.eat);
+  if(/睡|醒|困|觉/.test(q))return pick(CK_ANSWERS.sleep);
+  if(/忙|干嘛|做什么|在做什么/.test(q))return pick(CK_ANSWERS.busy);
+  if(/在哪|哪里|回家|到哪/.test(q))return pick(CK_ANSWERS.where);
+  return pick(CK_ANSWERS.def);
+}
 function replyChat(m){
   var c=contact(m.contactId)||activeContact();
   if(!c)return;
   if(m.answered)return;                 /* 已经回过了就别再回一次 */
+  /* ★ 查岗：回复要贴在查岗卡上，不能混成普通聊天消息 ——
+     否则聊天流里根本分不清哪句是在回答查岗。 */
+  if(m.kind==='checkin'){
+    m.answered=true;
+    m.hisReply=ckAnswer(m.text);
+    m.hisReplyTs=now();
+    save();
+    try{if(location.hash.replace('#','')==='chat')renderChat()}catch(e){}
+    schedule();
+    return;
+  }
   /* ★ 关键：这里原来**没有**把 m.answered 置 true。
      调度器的条件是"dir==='out' && replyDue && !answered"，
      所以同一条消息会被反复判定为"还没回"，于是无限回复。 */
@@ -6209,12 +6274,20 @@ function pat(){
 }
 function dailyPost(){
   if(state.settings&&state.settings.dailyOn===false)return;
-  var t=now();
-  /* 一天只更新一次，不再每打开一次就多一条 */
-  if(state._dailyAt&&dateStr(state._dailyAt)===dateStr(t))return;
+  var t=now(),ds=dateStr(t),i;
+  /* ★ 原来这里是"一天只更新一次"，可设置里的说明写的是"每次打开网站自动更新一句" ——
+     两者矛盾，结果就是同一天再进网站永远看不到新句子（"每日一句不更新"）。
+     现在每次打开都换一句：当天已经有就替换掉（不会一天堆一堆），并避开刚看过的那句。 */
+  state.dailyPosts=state.dailyPosts||[];
+  var todayIdx=-1;
+  for(i=0;i<state.dailyPosts.length;i++)if(dateStr(state.dailyPosts[i].ts)===ds){todayIdx=i;break}
+  var prev=todayIdx>=0?String(state.dailyPosts[todayIdx].text||''):'';
+  var txt=drawCardText(),tries=0;
+  while(prev&&txt===prev&&tries++<10)txt=drawCardText();
+  if(todayIdx>=0)state.dailyPosts[todayIdx]={id:state.dailyPosts[todayIdx].id||uid(),text:txt,ts:t};
+  else state.dailyPosts.push({id:uid(),text:txt,ts:t});
+  if(state._dailyAt&&dateStr(state._dailyAt)!==ds)feedEvent('每日一句换新了','profile');
   state._dailyAt=t;
-  state.dailyPosts.push({id:uid(),text:drawCardText(),ts:t});
-  feedEvent('每日一句换新了','profile');
   save();
 }
 function notifyIncoming(m){
@@ -6569,7 +6642,8 @@ function syncCatchUp(){
         if(m.readDue&&!m.read&&m.readDue<=end)m.read=true;
         if(m.replyDue&&!m.answered&&m.replyDue<=end){
           m.answered=true;
-          if(m.kind==='gift'||m.kind==='buyreq'){shopAnswer(m)}
+          if(m.kind==='checkin'){m.hisReply=ckAnswer(m.text);m.hisReplyTs=Math.min(m.replyDue,end)}
+          else if(m.kind==='gift'||m.kind==='buyreq'){shopAnswer(m)}
           else if(m.kind==='poll'){replyPoll(m,Math.min(m.replyDue,end))}
           else if(c.readNR&&Math.random()*100<c.readNRPct){m.replyDue=null}
           else if(_gen<_GENMAX&&state.messages.length<_MSGMAX){pushBurst(c,Math.min(m.replyDue,end),pickBurstCount(c));_gen++}
@@ -7759,6 +7833,7 @@ document.addEventListener('click',function(e){
   if(a==='bg-sheet'){e.preventDefault();sheetMusBg();return}
   if(a==='bg-pick'){e.preventDefault();musPickBg(b.getAttribute('data-k'));return}
   if(a==='bg-up'){e.preventDefault();var f=document.getElementById('musBgFile');if(f)f.click();return}
+  if(a==='mini'){e.preventDefault();musBar(true);goView('chat');return}
   if(a==='expand'){e.preventDefault();musBar(false);goView('music');return}
   if(a==='close'){e.preventDefault();musListenEnd();return}
 });
@@ -8086,12 +8161,14 @@ function renderMusic(){
   var m=musState(),sg=musCur(),pr=musProgress();
   var c=activeContact();
   var sess=m.sess;
-  var top='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><b>音乐</b></div>';
+  var top='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><b>音乐</b>'
+    +'<button class="mus-mini" data-mus="mini">缩小</button></div>';
   var html='<div class="screen music-screen"'+(sess?' style="background:'+musSessBgStyle()+'"':'')+'>';
   html+=top;
   if(sess){
     html+='<div class="mv-sess"><span class="mv-dot"></span>'+(c?esc(c.name):'对方')+' 正在一起听'
       +'<button class="mv-sessbg" data-mus="bg-sheet">换壁纸</button>'
+      +'<button class="mv-sessbg" data-mus="mini">缩小</button>'
       +'<button class="mv-sessend" data-mus="sess-end">结束</button></div>';
   }
   html+='<div class="mv-card'+(sess?' onbg':'')+'">';
