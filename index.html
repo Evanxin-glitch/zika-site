@@ -4973,7 +4973,9 @@ function smBatchSave(kind){
     if(h==='cards')renderCards(); else render();
   }catch(e){}
 }
-function libOf(kind){return kind==='status'?state.statusCards:kind==='mood'?state.moodCards:kind==='pat'?state.patCards:kind==='diary'?state.diaryCards:state.writerCards}
+/* 写信固定字卡已按用户要求移除：kind==='writer' 不再返回任何库（它的标签页也删了）。
+   他写信/回信改成从"你分过类的字卡"里随机抽，见 lettersPool()。 */
+function libOf(kind){return kind==='status'?state.statusCards:kind==='mood'?state.moodCards:kind==='pat'?state.patCards:kind==='diary'?state.diaryCards:null}
 function libName(kind){return kind==='status'?'状态':kind==='mood'?'心情':kind==='pat'?'拍一拍':kind==='diary'?'日记':'写信'}
 function sheetStatusCard(kind){
   var nm=libName(kind);
@@ -5366,7 +5368,7 @@ function renderMe(){
   html+='<div class="me-group-title">字卡与内容</div>';
   html+='<div class="me-sec" id="sec-cards"><h3>字卡库</h3><div class="stats">'
     +'<div class="stat" style="cursor:pointer" data-view="cards"><b>'+state.cards.length+'</b><span>聊天字卡</span></div>'
-    +'<div class="stat" style="cursor:pointer" data-view="cards"><b>'+(state.statusCards.length+state.moodCards.length+state.patCards.length+state.diaryCards.length+state.writerCards.length)+'</b><span>固定字卡</span></div>'
+    +'<div class="stat" style="cursor:pointer" data-view="cards"><b>'+(state.statusCards.length+state.moodCards.length+state.patCards.length+state.diaryCards.length)+'</b><span>固定字卡</span></div>'
     +'</div><p class="meta" style="margin-top:6px">点上面的数字进字卡库。固定字卡＝状态 / 心情 / 拍一拍 / 日记 / 写信，不参与聊天抽取。</p>'
     +'<button class="btn ghost" style="width:100%;margin-top:8px" data-view="cards">打开字卡库</button></div>';
   html+='<div class="me-sec" id="sec-status"><h3>状态 / 心情库</h3><div style="display:flex;gap:10px"><button class="btn ghost" style="flex:1" data-act="sm-lib" data-kind="status">状态库（'+state.statusCards.length+'）</button><button class="btn ghost" style="flex:1" data-act="sm-lib" data-kind="mood">心情库（'+state.moodCards.length+'）</button></div></div>';
