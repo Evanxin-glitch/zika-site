@@ -1354,6 +1354,8 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .gcard .ck-replied{display:flex;align-items:center;gap:8px;font-size:calc(12.5px*var(--fs));color:var(--sub);
   background:rgba(255,255,255,.8);border-radius:14px;padding:9px 12px}
 .gcard .ck-replied b{color:var(--ink);font-size:calc(13.5px*var(--fs));flex:1;min-width:0}
+.gcard .ck-more{display:block;font-style:normal;font-weight:400;color:var(--sub);
+  font-size:calc(12px*var(--fs));margin-top:3px;line-height:1.4}
 .gcard .ck-done{font-style:normal;font-size:calc(11px*var(--fs));font-weight:700;color:#2F6B3C;
   background:rgba(47,107,60,.14);border-radius:999px;padding:3px 9px}
 
@@ -1392,6 +1394,42 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .so-tx b{font-size:calc(13px*var(--fs));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .so-tx span{font-size:calc(11px*var(--fs));color:var(--sub)}
 .so-p{font-family:var(--serif);font-weight:700;color:#C4577E;font-size:calc(13.5px*var(--fs));flex:none}
+
+/* ===== 朋友圈：发图 / 表情包动态 ===== */
+.pf-imgs{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+.pf-imgs:empty{display:none}
+.pf-thumb{position:relative;width:74px;height:74px;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.7)}
+.pf-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pf-del{position:absolute;right:2px;top:2px;width:22px;height:22px;min-height:22px;border-radius:50%;
+  background:rgba(0,0,0,.5);color:#fff;font-size:calc(13px*var(--fs));line-height:1}
+.pf-tools{display:flex;align-items:center;gap:10px;margin-top:10px}
+.pf-img{font-size:calc(13px*var(--fs));padding:9px 14px;border-radius:14px;min-height:40px;
+  background:rgba(255,255,255,.85);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.pf-tip{font-size:calc(11.5px*var(--fs));color:var(--sub)}
+.pf-tools .btn{margin-left:auto;width:auto;padding:9px 22px}
+.p-imgs{display:grid;gap:5px;margin-top:9px}
+.p-imgs.n1{grid-template-columns:1fr}
+.p-imgs.n1 img{max-height:260px}
+.p-imgs.n2{grid-template-columns:1fr 1fr}
+.p-imgs.n3{grid-template-columns:1fr 1fr 1fr}
+.p-imgs.n4{grid-template-columns:1fr 1fr}
+.p-imgs img{width:100%;height:100%;max-height:170px;object-fit:cover;border-radius:12px;display:block;
+  box-shadow:0 4px 12px rgba(150,120,140,.14)}
+.p-sticker{display:block;width:132px;max-width:60%;height:auto;border-radius:14px;margin:4px 0 6px;
+  box-shadow:0 6px 18px rgba(150,120,140,.18)}
+
+/* ===== 设置页：顶部分类跳转 ===== */
+.me-jump{position:sticky;top:0;z-index:6;margin:6px -12px 10px;padding:8px 12px;
+  background:linear-gradient(180deg,rgba(255,252,250,.96),rgba(255,252,250,.86));
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(0,0,0,.05)}
+.mj-row{display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.mj-chip{flex:none;font-size:calc(12.5px*var(--fs));padding:8px 14px;border-radius:999px;min-height:36px;
+  background:rgba(255,255,255,.86);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(0,0,0,.05);white-space:nowrap}
+.mj-chip:active{background:rgba(242,143,176,.2)}
+.me-sec{scroll-margin-top:64px}
+.me-flash{animation:meFlash 1.2s ease-out}
+@keyframes meFlash{0%{background:rgba(242,143,176,.22)}100%{background:transparent}}
 </style>
 </head>
 <body>
@@ -1763,6 +1801,7 @@ function migrate(s){
   if(s.settings.letterInitMin===undefined)s.settings.letterInitMin=180;
   if(s.settings.letterInitMax===undefined)s.settings.letterInitMax=1920;
   if(s.settings.visitorMax===undefined)s.settings.visitorMax=720;
+  if(s.settings.momStickerPct===undefined)s.settings.momStickerPct=35;
   if(s.settings.giftPct===undefined)s.settings.giftPct=13;
   if(s.settings.askPct===undefined)s.settings.askPct=8;
   if(s.settings.commentMin===undefined)s.settings.commentMin=180;
@@ -2354,6 +2393,7 @@ function collectMediaRefs(root){
   if(root.posts)for(i=0;i<root.posts.length;i++){
     var po=root.posts[i];
     if(po&&isMediaRef(po.avatarImg))out[po.avatarImg]=1;
+    if(po&&isMediaRef(po.sticker))out[po.sticker]=1;
     if(po&&Array.isArray(po.imgs))for(var j=0;j<po.imgs.length;j++)if(isMediaRef(po.imgs[j]))out[po.imgs[j]]=1;
   }
   var keys=[];for(var k in out)keys.push(k);
@@ -2640,6 +2680,7 @@ function writeLocal(json){
     var po=obj.posts[pi];
     if(po&&po.avatarImg)cand.push({o:po,k:'avatarImg',n:String(po.avatarImg).length});
     if(po&&Array.isArray(po.imgs))for(var ii=0;ii<po.imgs.length;ii++)if(typeof po.imgs[ii]==='string'&&po.imgs[ii].length>4000)cand.push({o:po.imgs,k:String(ii),n:po.imgs[ii].length});
+    if(po&&typeof po.sticker==='string'&&po.sticker.length>4000)cand.push({o:po,k:'sticker',n:po.sticker.length});
   }
   cand.sort(function(a,b){return b.n-a.n});
   for(var c=0;c<cand.length;c++){
@@ -2984,6 +3025,7 @@ function render(v){
   else renderMe();
   /* 一起听开着的时候：离开听歌界面自动缩成悬浮条，回到听歌界面自动收起 */
   try{if(typeof musBarToggle==='function')musBarToggle()}catch(e){}
+  try{repairAllAvatars()}catch(e){}
   scheduleMediaHydrate();
   schedule();
 }
@@ -3821,7 +3863,10 @@ function pushIn(cid,text,t,replyTo){
   if(replyTo)m.replyTo=replyTo;
   state.messages.push(m);
   if(m.dir==='in'&&(location.hash.replace('#','')!=='chat'||state.activeContact!==m.contactId)){state.unread=(state.unread||0)+1;save()}
-  notifyIncoming(m);
+  /* ★ 连发的第 2、3 条时间戳是"未来 20~50 秒"，以前这里立刻就通知了，
+     于是出现"通知里有一句话，聊天室却没有，过一会儿他才发过来"。
+     现在只有"此刻就该出现"的消息才立刻通知，未来的那条等它到点在调度器里通知。 */
+  if(t<=now()+1500)notifyIncoming(m);
   return m;
 }
 function pushBurst(c,baseTs,count,quoteId){
@@ -3857,7 +3902,19 @@ function maybePost(c,t){
   var st8=state.settings||{};
   var gap=rnd((st8.momMin||180)*60000,(st8.momMax||720)*60000);
   if(lastP&&t-lastP<gap*0.4)return;
-  state.posts.push({id:uid(),contactId:c.id,text:pickCardText(),ts:t,comments:[]});
+  /* 他的动态：有时是表情包，有时是表情包 + 一句字卡，有时纯文字 */
+  var _mp={id:uid(),contactId:c.id,text:'',ts:t,comments:[]};
+  var _sp=(state.settings&&state.settings.momStickerPct!=null)?state.settings.momStickerPct:35;
+  if(_sp>0&&state.stickers&&state.stickers.length&&Math.random()*100<_sp){
+    var _sk=state.stickers[Math.floor(Math.random()*state.stickers.length)];
+    if(_sk&&_sk.img){
+      _mp.sticker=_sk.img;
+      _mp.stickerId=_sk.id;
+      if(Math.random()*100<60)_mp.text=pickCardText();   /* 表情包 + 字卡文字 */
+    }
+  }
+  if(!_mp.sticker)_mp.text=pickCardText();
+  state.posts.push(_mp);
   feedEvent(c.name+' 发了一条朋友圈','moments');
   if(!state.nextPostDue||!state.nextPostDue[c.id])state.nextPostDue[c.id]=t+gap;
 }
@@ -3911,7 +3968,11 @@ function schedule(){
     if(m.dir==='out'&&m.replyDue&&!m.answered)items.push({ts:m.replyDue,fn:(function(mm){return function(){replyChat(mm)}})(m)});
     /* 送出的礼物 / 发出的代买请求：到点让他回应 */
     if(m.dir==='out'&&m.replyDue&&!m.answered&&(m.kind==='gift'||m.kind==='buyreq'))items.push({ts:m.replyDue,fn:(function(mm){return function(){shopAnswer(mm)}})(m)});
-    if(m.dir==='in'&&m.ts>t)items.push({ts:m.ts,fn:function(){renderChat()}});
+    /* 未来的收件：到点让它出现，并且这时才发通知（和聊天室同步） */
+    if(m.dir==='in'&&m.ts>t)items.push({ts:m.ts,fn:(function(mm){return function(){
+      try{renderChat()}catch(e){}
+      try{notifyIncoming(mm)}catch(e){}
+    }})(m)});
   }
   for(var j=0;j<state.letters.length;j++){
     var l=state.letters[j];
@@ -4159,7 +4220,9 @@ function bubbleHtml(m,c){
     }
     return '<div class="msg-row out"><span class="bubble-av">'+meAvatar()+'</span>'
       +'<div class="gcard c-pink out">'+head+quote
-      +(m.hisReply?'<div class="ck-replied"><span>'+esc(c.name)+' 回复</span><b>'+esc(m.hisReply)+'</b><i class="ck-done">已答复</i></div>'
+      +(m.hisReply?'<div class="ck-replied"><span>'+esc(c.name)+' 回复</span><b>'+esc(m.hisReply)
+          +(m.hisCard?'<i class="ck-more">'+esc(m.hisCard)+'</i>':'')
+          +'</b><i class="ck-done">已答复</i></div>'
         :(m.myReply?'<div class="ck-replied"><span>已回复</span><b>'+esc(m.myReply)+'</b><i class="ck-done">已完成</i></div>':'<div class="gc-note">等'+esc(c.name)+'回复（TA 会直接在这张卡上回你）</div>'))
       +'</div></div>';
   }
@@ -4292,13 +4355,27 @@ function renderMoments(){
     html+='<div class="card visitor-card"><span class="v-ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v2M14 3v2M5 5h14M6 5l1.5 14a2 2 0 0 0 2 1.8h5a2 2 0 0 0 2-1.8L18 5"/><path d="M9.5 11l1.8 1.8 3.2-3.2"/></svg></span><div><b>'+esc(vc2?vc2.name:'他')+' 来过了</b><span class="meta">来访 '+(state.visitorCount||0)+' 次 · 最近 '+vtxt+'</span></div></div>';
   }
   html+='<div class="cover" style="'+coverStyle()+'"><button class="cov-btn" data-act="cover-sheet">换封面</button><div class="me-overlay">'+avatarHtml({name:meNm,color:meCl,avatarType:(state.me&&state.me.avatarType)||'char',avatarImg:(state.me&&state.me.avatarImg)||''},40)+'<b>'+esc(meNm)+'</b></div></div>';
-  html+='<div class="post-form card"><textarea id="postText" placeholder="说点什么，发一条朋友圈…"></textarea><button class="btn" data-act="post-create">发布</button></div>';
+  html+='<div class="post-form card"><textarea id="postText" placeholder="说点什么，发一条朋友圈…"></textarea>'
+    +'<div class="pf-imgs" id="postImgs">'+postImgsHtml()+'</div>'
+    +'<div class="pf-tools"><button class="pf-img" data-act="post-img">🖼 图片</button>'
+    +'<span class="pf-tip">最多 4 张</span>'
+    +'<button class="btn" data-act="post-create">发布</button></div>'
+    +'<input type="file" id="postImgFile" accept="image/*" multiple style="display:none"></div>';
   if(!posts.length)html+='<div class="empty"><span class="big">圈</span>还没有动态，第一条等你来发</div>';
   for(var i=0;i<posts.length;i++){
     var p=posts[i],c=p.contactId?contact(p.contactId):null;
     var nm=c?c.name:meNm;
     var av=c?avatarHtml(c,40):avatarHtml({name:meNm,color:meCl},40);
-    html+='<div class="card post"><div class="p-row"><div class="p-av">'+av+'</div><div class="p-main"><div class="nm">'+esc(nm)+'</div><div class="txt">'+esc(p.text)+'</div>';
+    html+='<div class="card post"><div class="p-row"><div class="p-av">'+av+'</div><div class="p-main"><div class="nm">'+esc(nm)+'</div>';
+    /* 他发的表情包动态：先贴图，再（可选）跟一句字卡文字 */
+    if(p.sticker)html+='<img class="p-sticker" src="'+mediaUrlSync(p.sticker)+'" alt="表情包">';
+    if(p.text)html+='<div class="txt">'+esc(p.text)+'</div>';
+    /* 我发的图片动态：1 张大图 / 多张网格 */
+    if(p.imgs&&p.imgs.length){
+      html+='<div class="p-imgs n'+Math.min(4,p.imgs.length)+'">';
+      for(var pi=0;pi<p.imgs.length;pi++)html+='<img src="'+mediaUrlSync(p.imgs[pi])+'" alt="">';
+      html+='</div>';
+    }
     if(p.contactId)html+='<span class="tag">来自字卡</span>';
     html+='<div class="p-foot"><span class="ptime">'+fmtTime(p.ts)+'</span><div class="p-ops">';
     if(p.contactId)html+='<button class="op'+(p.liked?' on':'')+'" data-act="post-like" data-id="'+p.id+'"><span class="like-ic">♥</span>'+(p.liked?'已赞':'赞')+'</button>';
@@ -4360,15 +4437,58 @@ function postReplyMine(p){
   try{if(location.hash.replace('#','')==='moments')renderMoments()}catch(e){}
   try{schedule()}catch(e){}
 }
+/** 发朋友圈时暂存的图片（引用），最多 4 张 */
+var _postImgs=[];
+function postImgsHtml(){
+  if(!_postImgs.length)return '';
+  var h='';
+  for(var i=0;i<_postImgs.length;i++){
+    h+='<span class="pf-thumb"><img src="'+mediaUrlSync(_postImgs[i])+'" alt="">'
+      +'<button class="pf-del" data-act="post-img-del" data-i="'+i+'">×</button></span>';
+  }
+  return h;
+}
+function renderPostImgs(){
+  var box=document.getElementById('postImgs');
+  if(box)box.innerHTML=postImgsHtml();
+}
+function postImgDel(i){
+  _postImgs.splice(parseInt(i,10)||0,1);
+  renderPostImgs();
+}
+function postAddFiles(input){
+  if(!input||!input.files||!input.files.length)return;
+  var files=[],i;
+  for(i=0;i<input.files.length;i++)files.push(input.files[i]);
+  var idx=0;
+  function next(){
+    if(idx>=files.length||_postImgs.length>=4){
+      try{input.value=''}catch(e){}
+      if(_postImgs.length>=4&&idx<files.length)toast('最多 4 张哦');
+      renderPostImgs();
+      return;
+    }
+    var one={files:[files[idx++]],value:''};
+    pickImageFile(one,function(img){
+      mediaAdopt(encodeImg(img,1400,{q:.9}),'post').then(function(ref){
+        _postImgs.push(ref);
+        next();
+      }).catch(function(){next()});
+    });
+  }
+  next();
+}
 function postCreate(){
   var ta=$('#postText');if(!ta)return;
   var text=ta.value.trim();
-  if(!text){toast('写点什么再发');return}
+  if(!text&&!_postImgs.length){toast('写点什么或选张图再发');return}
   var p={id:uid(),contactId:null,text:text,ts:now(),comments:[]};
+  if(_postImgs.length)p.imgs=_postImgs.slice(0,4);
   var c=activeContact();
   if(c){var st9=state.settings||{};var cmn=(st9.commentMin||180)*60000,cmx=(st9.commentMax||600)*60000;if(cmn>cmx){var cq=cmn;cmn=cmx;cmx=cq}p.commentDue=p.ts+rnd(cmn,cmx)}
   state.posts.push(p);
-  ta.value='';save();renderMoments();schedule();toast('已发布');
+  ta.value='';_postImgs=[];
+  save();renderMoments();schedule();toast('已发布');
 }
 function sheetCover(){
   var st=state.settings;
@@ -5057,6 +5177,57 @@ function clearCbg(){state.companion.bgImg='';save();closeSheet();renderCompanion
 /* ================= 设置页 ================= */
 var PALETTE=['#5F8F7B','#D98E5F','#7A9CC6','#8A7458','#B0473E','#6E7F5E'];
 var _avColor='#5F8F7B',_avImg=null,_avPicked=false;
+/** 跳到设置页里的某个分区。
+    不用 scrollIntoView：设置页的滚动发生在嵌套容器里，
+    部分 iOS 版本对嵌套容器调 scrollIntoView 不生效（点了没反应）。
+    这里自己找可滚动的祖先，直接算目标位置设 scrollTop。 */
+function meJumpTo(id){
+  var el=id?document.getElementById(id):null;
+  if(!el)return;
+  var sc=el.parentNode,guard=0;
+  while(sc&&sc!==document.body&&guard++<20){
+    var st=null;
+    try{st=getComputedStyle(sc)}catch(e){}
+    if(st&&/(auto|scroll)/.test(st.overflowY)&&sc.scrollHeight>sc.clientHeight+4)break;
+    sc=sc.parentNode;
+  }
+  if(!sc||sc===document.body)sc=document.scrollingElement||document.documentElement;
+  var top=0;
+  try{
+    top=el.getBoundingClientRect().top-(sc===document.scrollingElement?0:sc.getBoundingClientRect().top)+sc.scrollTop-58;
+  }catch(e){}
+  top=Math.max(0,Math.round(top));
+  try{ if(sc.scrollTo)sc.scrollTo({top:top,behavior:'smooth'}); else sc.scrollTop=top; }
+  catch(e){ try{sc.scrollTop=top}catch(e2){} }
+  /* 兜底：万一平滑滚动没生效（老浏览器/无动画帧），100ms 后再直接设一次 */
+  try{
+    setTimeout(function(){
+      try{
+        if(Math.abs(el.getBoundingClientRect().top-58)>140)sc.scrollTop=top;
+      }catch(e){}
+    },320);
+  }catch(e){}
+  try{
+    el.classList.add('me-flash');
+    setTimeout(function(){try{el.classList.remove('me-flash')}catch(e){}},1200);
+  }catch(e){}
+}
+function pctSave(){
+  var s8=state.settings||(state.settings={});
+  function num(id,def){var e=$('#'+id);return e?clamp(parseFloat(e.value)||0,0,100):def}
+  s8.momStickerPct=num('momStickerPct',35);
+  s8.giftPct=num('giftPct',13);
+  s8.askPct=num('askPct',8);
+  s8.diaryReplyPct=num('setDiaryReply',65);
+  s8.emojiPct=num('setEmojiPct',15);
+  s8.quotePct=num('setQuotePct',40);
+  s8.checkinPct=num('setCheckinPct',25);
+  s8.postPct=num('setPostPct',50);
+  s8.tarotRevPct=num('setRevPct',50);
+  s8.tarotDailyPct=num('setDailyPct',40);
+  s8.puzzlePct=num('setPuzzlePct',50);
+  save();toast('概率已保存');
+}
 function renderMe(){
   var c=activeContact();
   var mc=0,pc=0,lc=0;
@@ -5065,65 +5236,83 @@ function renderMe(){
   for(var k=0;k<state.letters.length;k++)if(state.letters[k].contactId===c.id)lc++;
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">设置</span></div>';
   html+='<div class="screen">';
+  /* 顶部跳转合集：点一下直接滚到对应分区 */
+  var _jump=[['资料','sec-me'],['主页资料','sec-home'],['节奏','sec-init'],['概率','sec-pct'],
+             ['字卡','sec-cards'],['表情包','sec-stickers'],['通知','sec-ntf'],
+             ['美化','sec-theme'],['保活','sec-keep'],['备份','sec-backup'],['存储','sec-store']];
+  html+='<div class="me-jump"><div class="mj-row">';
+  for(var ji=0;ji<_jump.length;ji++)html+='<button class="mj-chip" data-act="me-jump" data-to="'+_jump[ji][1]+'">'+_jump[ji][0]+'</button>';
+  html+='</div></div>';
   html+='<div class="me-group-title">用户数据</div>';
-  html+='<div class="me-sec"><h3>我的资料</h3><div class="card row" style="cursor:pointer" data-act="me-edit">'+meAvatarHtml(46)+'<div><b>'+esc((state.me||{}).name||'我')+'</b><div class="meta">你的昵称和头像，点这里修改</div></div></div></div>';
-  html+='<div class="me-sec"><h3>哥的主页</h3><div class="card"><div class="rhy-grid">';
+  html+='<div class="me-sec" id="sec-me"><h3>我的资料</h3><div class="card row" style="cursor:pointer" data-act="me-edit">'+meAvatarHtml(46)+'<div><b>'+esc((state.me||{}).name||'我')+'</b><div class="meta">你的昵称和头像，点这里修改</div></div></div></div>';
+  html+='<div class="me-sec" id="sec-home"><h3>哥的主页</h3><div class="card"><div class="rhy-grid">';
   html+='<div class="inl"><label>粉丝数</label><input id="setFans" type="number" min="0" value="'+state.settings.profileFans+'"></div><div class="inl"><label>关注数</label><input id="setFoll" type="number" min="0" value="'+state.settings.profileFollowing+'"></div><div class="inl" style="width:100%"><label>个性签名</label><input id="setBio" value="'+esc(state.settings.profileBio||'')+'"></div><div class="inl" style="width:100%"><label>账号（@后面）</label><input id="setHandle" value="'+esc(state.settings.profileHandle||'@lu.chen')+'"></div></div>';
   html+='<button class="btn" style="width:100%;margin-top:8px" data-act="profile-save">保存主页资料</button></div></div>';
-  html+='<div class="me-sec"><h3>聊天账户</h3><div class="card" style="padding:0">';
+  html+='<div class="me-sec" id="sec-acct"><h3>聊天账户</h3><div class="card" style="padding:0">';
   for(var i2=0;i2<state.contacts.length;i2++){
     var cc=state.contacts[i2];
     html+='<div class="contact-item">'+avatarHtml(cc,34)+'<div class="info"><b>'+esc(cc.name)+'</b><span>回复 '+fmtDur(cc.replyMin)+'–'+fmtDur(cc.replyMax)+' · 主动 '+fmtDur(cc.initMin)+'–'+fmtDur(cc.initMax)+'</span></div>'+(cc.id===c.id?'<span class="on-tag">当前</span>':'')+'<button class="btn small ghost" data-act="contact-edit" data-id="'+cc.id+'">设置</button></div>';
   }
   html+='</div><button class="btn" style="width:100%;margin-top:10px" data-act="contact-add">新建联系人</button></div>';
-  html+='<div class="me-sec"><h3>数据</h3><div class="stats">';
+  html+='<div class="me-sec" id="sec-stats"><h3>数据</h3><div class="stats">';
   html+='<div class="stat"><b>'+state.cards.length+'</b><span>字卡</span></div><div class="stat"><b>'+mc+'</b><span>消息</span></div><div class="stat"><b>'+pc+'</b><span>朋友圈</span></div><div class="stat"><b>'+lc+'</b><span>信件</span></div>';
   html+='<div class="stat"><b>¥'+state.receivedTotal.toFixed(2)+'</b><span>已收转账</span></div></div></div>';
-  html+='<div class="me-group-title">节奏与概率</div>';
-  html+='<div class="me-sec"><h3>当前对象</h3><div class="card row" style="cursor:pointer" data-act="switch-contact">'+avatarHtml(c)+'<div><b>'+esc(c.name)+'</b><div class="meta">回复 '+fmtDur(c.replyMin)+'–'+fmtDur(c.replyMax)+' · 主动 '+fmtDur(c.initMin)+'–'+fmtDur(c.initMax)+'</div></div></div></div>';
-  html+='<div class="me-sec"><h3>主动发消息</h3><div class="card"><div class="rhy-grid">';
+  html+='<div class="me-group-title">节奏</div>';
+  html+='<div class="me-sec" id="sec-cur"><h3>当前对象</h3><div class="card row" style="cursor:pointer" data-act="switch-contact">'+avatarHtml(c)+'<div><b>'+esc(c.name)+'</b><div class="meta">回复 '+fmtDur(c.replyMin)+'–'+fmtDur(c.replyMax)+' · 主动 '+fmtDur(c.initMin)+'–'+fmtDur(c.initMax)+'</div></div></div></div>';
+  html+='<div class="me-sec" id="sec-init"><h3>主动发消息</h3><div class="card"><div class="rhy-grid">';
   html+='<div class="inl"><label>最快（分）</label><input id="rInitMin" type="number" min="1" value="'+Math.round((c.initMin||900)/60)+'"></div><div class="inl"><label>最慢（分）</label><input id="rInitMax" type="number" min="1" value="'+Math.round((c.initMax||1800)/60)+'"></div></div><p class="meta" style="margin-top:6px">从你最后一次发消息后计算，他主动来找你</p></div></div>';
-  html+='<div class="me-sec"><h3>主动来电</h3><div class="card"><div class="rhy-grid">';
+  html+='<div class="me-sec" id="sec-call"><h3>主动来电</h3><div class="card"><div class="rhy-grid">';
   html+='<div class="inl"><label>最快（分）</label><input id="rCallMin" type="number" min="1" value="'+((state.settings&&state.settings.callMin)!=null?state.settings.callMin:15)+'"></div><div class="inl"><label>最慢（分）</label><input id="rCallMax" type="number" min="1" value="'+((state.settings&&state.settings.callMax)!=null?state.settings.callMax:60)+'"></div></div><p class="meta" style="margin-top:6px">到点按来电概率决定是否真的打来</p></div></div>';
-  html+='<div class="me-sec"><h3>主动写信</h3><div class="card"><div class="rhy-grid">';
+  html+='<div class="me-sec" id="sec-letter"><h3>主动写信</h3><div class="card"><div class="rhy-grid">';
   html+='<div class="inl"><label>最短（分）</label><input id="rLtrMin" type="number" min="1" value="'+((state.settings&&state.settings.letterInitMin)!=null?state.settings.letterInitMin:180)+'"></div><div class="inl"><label>最长（分）</label><input id="rLtrMax" type="number" min="1" value="'+((state.settings&&state.settings.letterInitMax)!=null?state.settings.letterInitMax:1920)+'"></div></div><p class="meta" style="margin-top:6px">他会主动往信箱寄信</p></div></div>';
-  html+='<div class="me-sec"><h3>对方回信</h3><div class="card"><div class="rhy-grid">';
+  html+='<div class="me-sec" id="sec-letterback"><h3>对方回信</h3><div class="card"><div class="rhy-grid">';
   html+='<div class="inl"><label>最短（分）</label><input id="rLtrReplyMin" type="number" min="1" value="'+Math.round((c.letterMin||10800)/60)+'"></div><div class="inl"><label>最长（分）</label><input id="rLtrReplyMax" type="number" min="1" value="'+Math.round((c.letterMax||86400)/60)+'"></div></div><p class="meta" style="margin-top:6px">收到你的来信后多久回信</p></div></div>';
-  html+='<div class="me-sec"><h3>朋友圈节奏</h3><div class="card"><div class="rhy-grid">';
+  html+='<div class="me-sec" id="sec-mom"><h3>朋友圈节奏</h3><div class="card"><div class="rhy-grid">';
   html+='<div class="inl"><label>哥发圈间隔（分）</label><input id="momMin" type="number" min="1" value="'+state.settings.momMin+'"></div><div class="inl"><label>最慢（分）</label><input id="momMax" type="number" min="1" value="'+state.settings.momMax+'"></div>';
-  html+='<div class="inl"><label>主动送礼物概率 %</label><input id="giftPct" type="number" min="0" max="100" value="'+(state.settings.giftPct!=null?state.settings.giftPct:13)+'"></div><div class="inl"><label>找你代买概率 %</label><input id="askPct" type="number" min="0" max="100" value="'+(state.settings.askPct!=null?state.settings.askPct:8)+'"></div>';
   html+='<div class="inl"><label>评论回复间隔（分）</label><input id="comMin" type="number" min="1" value="'+state.settings.commentMin+'"></div><div class="inl"><label>最慢（分）</label><input id="comMax" type="number" min="1" value="'+state.settings.commentMax+'"></div></div>';
   html+='<div class="sw-row" style="margin-top:6px"><div><b>朋友圈访客</b><span>哥会来逛并留字卡留言</span></div><div class="switch'+(state.settings.visitorOn?' on':'')+'" data-act="st-sw" data-key="visitorOn"></div></div>';
   html+='<div style="margin-top:10px"><button class="btn" style="width:100%" data-act="mom-save">保存节奏</button></div></div></div>';
-  html+='<div class="me-sec"><h3>内容生成</h3><div class="card"><div class="rhy-grid">';
-  html+='<div class="inl"><label>日记抽取字卡数（默认3）</label><input id="setDiary" type="number" min="1" max="8" value="'+state.settings.diaryCount+'"></div><div class="inl"><label>日记互动概率%</label><input id="setDiaryReply" type="number" min="0" max="100" value="'+((state.settings&&state.settings.diaryReplyPct)!=null?state.settings.diaryReplyPct:65)+'"></div>';
+  html+='<div class="me-sec" id="sec-gen"><h3>内容生成</h3><div class="card"><div class="rhy-grid">';
+  html+='<div class="inl"><label>日记抽取字卡数（默认3）</label><input id="setDiary" type="number" min="1" max="8" value="'+state.settings.diaryCount+'"></div>';
   html+='<div class="inl"><label>回信抽取字卡数（默认2）</label><input id="setLetter" type="number" min="1" max="8" value="'+state.settings.letterCount+'"></div>';
-  html+='<div class="inl"><label>塔罗逆位概率%</label><input id="setRevPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.tarotRevPct)!=null?state.settings.tarotRevPct:50)+'"></div><div class="inl"><label>塔罗每日陆沉抽牌概率%</label><input id="setDailyPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.tarotDailyPct)!=null?state.settings.tarotDailyPct:40)+'"></div>';
-  html+='<div class="inl"><label>表情回复概率%</label><input id="setEmojiPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.emojiPct)!=null?state.settings.emojiPct:15)+'"></div><div class="inl"><label>引用你的消息概率%</label><input id="setQuotePct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.quotePct)!=null?state.settings.quotePct:40)+'"></div>';
-  html+='<div class="inl"><label>主动消息带查岗概率%</label><input id="setCheckinPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)+'"></div><div class="inl"><label>主动消息后发朋友圈概率%</label><input id="setPostPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.postPct)!=null?state.settings.postPct:50)+'"></div>';
-  html+='<div class="inl"><label>拼字卡概率%</label><input id="setPuzzlePct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.puzzlePct)!=null?state.settings.puzzlePct:50)+'"></div><div class="inl"><label>最多拼几张（1–5）</label><input id="setPuzzleMax" type="number" min="1" max="5" value="'+((state.settings&&state.settings.puzzleMax)!=null?state.settings.puzzleMax:3)+'"></div>';
+  html+='<div class="inl"><label>最多拼几张（1–5）</label><input id="setPuzzleMax" type="number" min="1" max="5" value="'+((state.settings&&state.settings.puzzleMax)!=null?state.settings.puzzleMax:3)+'"></div>';
   html+='</div><div style="margin-top:10px"><button class="btn" style="width:100%" data-act="save-gen">保存</button></div></div></div>';
+  html+='<div class="me-group-title">概率</div>';
+  html+='<div class="me-sec" id="sec-pct"><h3>概率</h3><div class="card"><div class="rhy-grid">';
+  html+='<div class="inl"><label>他动态带表情包概率 %</label><input id="momStickerPct" type="number" min="0" max="100" value="'+(state.settings.momStickerPct!=null?state.settings.momStickerPct:35)+'"></div>';
+  html+='<div class="inl"><label>主动送礼物概率 %</label><input id="giftPct" type="number" min="0" max="100" value="'+(state.settings.giftPct!=null?state.settings.giftPct:13)+'"></div>';
+  html+='<div class="inl"><label>找你代买概率 %</label><input id="askPct" type="number" min="0" max="100" value="'+(state.settings.askPct!=null?state.settings.askPct:8)+'"></div>';
+  html+='<div class="inl"><label>日记互动概率%</label><input id="setDiaryReply" type="number" min="0" max="100" value="'+((state.settings&&state.settings.diaryReplyPct)!=null?state.settings.diaryReplyPct:65)+'"></div>';
+  html+='<div class="inl"><label>表情回复概率%</label><input id="setEmojiPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.emojiPct)!=null?state.settings.emojiPct:15)+'"></div>';
+  html+='<div class="inl"><label>引用你的消息概率%</label><input id="setQuotePct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.quotePct)!=null?state.settings.quotePct:40)+'"></div>';
+  html+='<div class="inl"><label>主动消息带查岗概率%</label><input id="setCheckinPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)+'"></div>';
+  html+='<div class="inl"><label>主动消息后发朋友圈概率%</label><input id="setPostPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.postPct)!=null?state.settings.postPct:50)+'"></div>';
+  html+='<div class="inl"><label>塔罗逆位概率%</label><input id="setRevPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.tarotRevPct)!=null?state.settings.tarotRevPct:50)+'"></div>';
+  html+='<div class="inl"><label>塔罗每日陆沉抽牌概率%</label><input id="setDailyPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.tarotDailyPct)!=null?state.settings.tarotDailyPct:40)+'"></div>';
+  html+='<div class="inl"><label>拼字卡概率%</label><input id="setPuzzlePct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.puzzlePct)!=null?state.settings.puzzlePct:50)+'"></div>';
+  html+='<div style="margin-top:10px"><button class="btn" style="width:100%" data-act="pct-save">保存概率</button></div></div></div>';
+
   html+='<div class="me-group-title">字卡与内容</div>';
-  html+='<div class="me-sec"><h3>字卡库</h3><div class="stats">'
+  html+='<div class="me-sec" id="sec-cards"><h3>字卡库</h3><div class="stats">'
     +'<div class="stat" style="cursor:pointer" data-view="cards"><b>'+state.cards.length+'</b><span>聊天字卡</span></div>'
     +'<div class="stat" style="cursor:pointer" data-view="cards"><b>'+(state.statusCards.length+state.moodCards.length+state.patCards.length+state.diaryCards.length+state.writerCards.length)+'</b><span>固定字卡</span></div>'
     +'</div><p class="meta" style="margin-top:6px">点上面的数字进字卡库。固定字卡＝状态 / 心情 / 拍一拍 / 日记 / 写信，不参与聊天抽取。</p>'
     +'<button class="btn ghost" style="width:100%;margin-top:8px" data-view="cards">打开字卡库</button></div>';
-  html+='<div class="me-sec"><h3>状态 / 心情库</h3><div style="display:flex;gap:10px"><button class="btn ghost" style="flex:1" data-act="sm-lib" data-kind="status">状态库（'+state.statusCards.length+'）</button><button class="btn ghost" style="flex:1" data-act="sm-lib" data-kind="mood">心情库（'+state.moodCards.length+'）</button></div></div>';
-  html+='<div class="me-sec"><h3>日记字卡库</h3><div class="card row" style="cursor:pointer" data-act="sm-lib" data-kind="diary">'
+  html+='<div class="me-sec" id="sec-status"><h3>状态 / 心情库</h3><div style="display:flex;gap:10px"><button class="btn ghost" style="flex:1" data-act="sm-lib" data-kind="status">状态库（'+state.statusCards.length+'）</button><button class="btn ghost" style="flex:1" data-act="sm-lib" data-kind="mood">心情库（'+state.moodCards.length+'）</button></div></div>';
+  html+='<div class="me-sec" id="sec-diarycards"><h3>日记字卡库</h3><div class="card row" style="cursor:pointer" data-act="sm-lib" data-kind="diary">'
     +'<div><b>日记字卡（'+state.diaryCards.length+'）</b><div class="meta">陆沉写日记时从这里抽，也会从你添加的字卡里抽；日记字卡不参与聊天</div></div></div></div>';
-  html+='<div class="me-sec"><h3>查岗预设</h3><div class="card" style="padding:0 12px"><div class="checkin-list" style="padding:8px 0">';
+  html+='<div class="me-sec" id="sec-checkin"><h3>查岗预设</h3><div class="card" style="padding:0 12px"><div class="checkin-list" style="padding:8px 0">';
   for(var ck=0;ck<state.checkinPresets.length;ck++)html+='<div class="checkin-item"><span class="ci-txt">'+esc(state.checkinPresets[ck])+'</span><button class="del" data-act="checkin-del" data-idx="'+ck+'">×</button></div>';
   html+='</div><button class="btn" style="width:100%" data-act="checkin-add">添加预设</button></div></div>';
-  html+='<div class="me-sec"><h3>表情包</h3><div style="display:flex;gap:10px;align-items:center"><button class="btn ghost" style="flex:1" data-act="emoji">表情包面板</button><span class="meta">已添加 '+state.stickers.length+' 张</span></div></div>';
-  html+='<div class="me-sec"><h3>拼字卡</h3><div class="card">'
+  html+='<div class="me-sec" id="sec-stickers"><h3>表情包</h3><div style="display:flex;gap:10px;align-items:center"><button class="btn ghost" style="flex:1" data-act="emoji">表情包面板</button><span class="meta">已添加 '+state.stickers.length+' 张</span></div></div>';
+  html+='<div class="me-sec" id="sec-puzzle"><h3>拼字卡</h3><div class="card">'
     +'<div class="sw-row"><div><b>拼字卡</b><span>开启后，他的每条消息都有概率把 1–3 张字卡拼成一条发给你</span></div>'+sw2('puzzle',state.settings.puzzle===true)+'</div>'
     +'<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>拼字卡概率%</label><input id="setPuzzlePct2" type="number" min="0" max="100" value="'+((state.settings&&state.settings.puzzlePct)!=null?state.settings.puzzlePct:50)+'"></div>'
     +'<div class="inl"><label>最多拼几张（1–5）</label><input id="setPuzzleMax2" type="number" min="1" max="5" value="'+((state.settings&&state.settings.puzzleMax)!=null?state.settings.puzzleMax:3)+'"></div></div>'
     +'<button class="btn" style="width:100%;margin-top:10px" data-act="puzzle-save">保存拼字卡设置</button>'
     +'</div></div>';
   html+='<div class="me-group-title">通知与互动</div>';
-  html+='<div class="me-sec"><h3>通知与互动</h3>'+ntfPanelHtml();
+  html+='<div class="me-sec" id="sec-ntf"><h3>通知与互动</h3>'+ntfPanelHtml();
   html+='<div class="card" style="margin-top:10px">';
   html+='<div class="sw-row"><div><b>他收藏我的消息</b><span>发消息后他有一定概率收藏</span></div>'+sw2('savedOn',state.settings.savedOn!==false)+'</div>';
   html+='<div class="sw-row"><div><b>拍一拍</b><span>双击头像拍一拍</span></div><div class="switch'+(state.settings.patOn?' on':'')+'" data-act="st-sw" data-key="patOn"></div></div>';
@@ -5131,14 +5320,14 @@ function renderMe(){
   html+='<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>收藏概率%</label><input id="setSavePct" type="number" min="0" max="100" value="'+state.settings.savePct+'"></div><div class="inl"><label>拍一拍回拍概率%</label><input id="setPatPct" type="number" min="0" max="100" value="'+state.settings.patReplyPct+'"></div></div>';
   html+='<div class="rhy-grid"><div class="inl"><label>已读不回概率%</label><input id="setReadNR" type="number" min="0" max="100" value="'+(c.readNRPct!=null?c.readNRPct:20)+'"></div><div class="inl"><label>朋友圈回复概率%</label><input id="setReplyPct" type="number" min="0" max="100" value="'+(c.replyPct!=null?c.replyPct:100)+'"></div><div class="inl"><label>来电概率%</label><input id="setCallPct" type="number" min="0" max="100" value="'+(c.callPct!=null?c.callPct:30)+'"></div><div class="inl"><label>转账概率%</label><input id="setTransferPct" type="number" min="0" max="100" value="'+(c.transferPct!=null?c.transferPct:15)+'"></div><div class="inl"><label>邀请一起专注概率%</label><input id="setInvitePct" type="number" min="0" max="100" value="'+(c.invitePct!=null?c.invitePct:30)+'"></div></div>';
   html+='<button class="btn" style="width:100%;margin-top:8px" data-act="save-allpct">保存全部概率</button>';
-  html+='<div class="me-sec"><h3>交互</h3><div class="card">';
+  html+='<div class="me-sec" id="sec-inter"><h3>交互</h3><div class="card">';
   html+='<div class="sw-row"><div><b>引用回复</b><span>点消息可引用原消息</span></div><div class="switch'+(state.settings.quoteOn?' on':'')+'" data-act="st-sw" data-key="quoteOn"></div></div>';
   html+='<div class="sw-row"><div><b>已读回执</b><span>显示我方消息已读状态</span></div><div class="switch'+(state.settings.readReceipt?' on':'')+'" data-act="st-sw" data-key="readReceipt"></div></div>';
   html+='<div class="sw-row"><div><b>正在输入的拟态</b><span>回复前显示三点输入</span></div><div class="switch'+(state.settings.typingOn?' on':'')+'" data-act="st-sw" data-key="typingOn"></div></div>';
   html+='<div class="sw-row"><div><b>欲言又止</b><span>小概率打了又删</span></div><div class="switch'+(state.settings.stopTyping?' on':'')+'" data-act="st-sw" data-key="stopTyping"></div></div>';
   html+='<div class="sw-row"><div><b>消息操作菜单</b><span>气泡旁显示 ⋮ 可复制删除</span></div><div class="switch'+(state.settings.msgMenu?' on':'')+'" data-act="st-sw" data-key="msgMenu"></div></div>';
-  html+='<div class="me-group-title">外观</div>';
-  html+='<div class="me-sec"><h3>主页主题</h3><div class="card">';
+  html+='<div class="me-group-title">美化</div>';
+  html+='<div class="me-sec" id="sec-theme"><h3>主题与颜色</h3><div class="card">';
   html+='<div class="theme-row">';
   html+='<button class="th-card'+(state.settings.homeTheme==='bw'?' on':'')+'" data-act="pick-theme" data-t="bw"><span class="th-swatch bw"></span><b>B&W</b><span class="meta">黑白极简</span></button>';
   html+='<button class="th-card'+(state.settings.homeTheme==='fog'?' on':'')+'" data-act="pick-theme" data-t="fog"><span class="th-swatch fog"></span><b>Fog Blue</b><span class="meta">雾蓝</span></button>';
@@ -5151,10 +5340,10 @@ function renderMe(){
     html+='</div>';
   }
   html+='</div></div>';
-  html+='<div class="me-sec"><h3>壁纸与封面</h3><div class="stats">';
+  html+='<div class="me-sec" id="sec-wall"><h3>壁纸</h3><div class="stats">';
   html+='<div class="stat" style="cursor:pointer" data-act="bg-sheet"><b>聊天壁纸</b><span>聊天背景</span></div><div class="stat" style="cursor:pointer" data-act="home-sheet"><b>主页壁纸</b><span>桌面背景</span></div><div class="stat" style="cursor:pointer" data-act="cover-sheet"><b>朋友圈封面</b><span>封面图</span></div><div class="stat" style="cursor:pointer" data-act="callbg-sheet"><b>通话背景</b><span>预设+上传</span></div></div></div>';
-  html+='<div class="me-sec"><h3>字体大小</h3><div class="fs-row"><button class="fs-btn" data-act="font-down">A−</button><span class="fs-val">'+Math.round(((state.settings&&state.settings.fontScale)||1)*100)+'%</span><button class="fs-btn" data-act="font-up">A+</button></div></div>';
-  html+='<div class="me-sec"><h3>主界面装修</h3><div class="card" style="padding:0 12px">';
+  html+='<div class="me-sec" id="sec-font"><h3>字体大小</h3><div class="fs-row"><button class="fs-btn" data-act="font-down">A−</button><span class="fs-val">'+Math.round(((state.settings&&state.settings.fontScale)||1)*100)+'%</span><button class="fs-btn" data-act="font-up">A+</button></div></div>';
+  html+='<div class="me-sec" id="sec-icons"><h3>小图标</h3><div class="card" style="padding:0 12px">';
   for(var ia=0;ia<APPS.length;ia++){
     var ap=APPS[ia];
     var shown=state.appIcons[ap.v];
@@ -5166,7 +5355,7 @@ function renderMe(){
       +'</div>';
   }
   html+='</div><p class="meta" style="margin-top:6px">给桌面上的每个 App 换图标：点“换图”选一张图，图片会铺满整个圆角块。共 '+APPS.length+' 个 App 都能换。</p><input type="file" id="iconFile" accept="image/*" style="display:none"></div>';
-  html+='<div class="me-sec"><h3>主页小组件</h3><div class="card">';
+  html+='<div class="me-sec" id="sec-widgets"><h3>小组件</h3><div class="card">';
   html+='<div class="sw-row"><div><b>时间日期</b><span>大时钟 + 星期</span></div><div class="switch'+(state.widgets.clock?' on':'')+'" data-act="wd-sw" data-key="clock"></div></div>';
   html+='<div class="sw-row"><div><b>在一起天数</b><span>纪念日倒数</span></div><div class="switch'+(state.widgets.days?' on':'')+'" data-act="wd-sw" data-key="days"></div></div>';
   html+='<div class="sw-row"><div><b>音乐播放</b><span>正在听的歌</span></div><div class="switch'+(state.widgets.music?' on':'')+'" data-act="wd-sw" data-key="music"></div></div>';
@@ -5180,7 +5369,7 @@ function renderMe(){
   html+='<p class="meta" style="margin:8px 0 0">更多设置（天气城市、相册配文、倒数日日期等）在 <b>组件库</b> 里改。</p>';
   html+='<div style="margin-top:10px"><button class="btn" style="width:100%" data-act="wd-save">保存小组件</button></div></div></div>';
   html+='<div class="me-group-title">后台与保活</div>';
-  html+='<div class="me-sec"><h3>后台保活</h3><div class="card">';
+  html+='<div class="me-sec" id="sec-keep"><h3>后台保活</h3><div class="card">';
   html+='<div class="ka-row">';
   html+='<button class="ka-mode'+(state.settings.keepAlive==='off'?' on':'')+'" data-act="ka-mode" data-m="off">关</button><button class="ka-mode'+(state.settings.keepAlive==='smart'?' on':'')+'" data-act="ka-mode" data-m="smart">智能</button><button class="ka-mode'+(state.settings.keepAlive==='always'?' on':'')+'" data-act="ka-mode" data-m="always">一直</button>';
   html+='</div><p class="meta" style="margin:8px 0">切到后台或别的页面时播放极轻的静音音频，浏览器就不会冻结网站，他的回复和主动消息照常按时到达。</p>';
@@ -5188,11 +5377,11 @@ function renderMe(){
   html+='<button class="ka-mode'+(state.settings.keepVol==='loud'?' on':'')+'" data-act="ka-vol" data-v="loud">明显</button><button class="ka-mode'+(state.settings.keepVol==='light'?' on':'')+'" data-act="ka-vol" data-v="light">轻</button><button class="ka-mode'+(state.settings.keepVol==='faint'?' on':'')+'" data-act="ka-vol" data-v="faint">很轻</button>';
   html+='</div><p class="meta" style="margin:8px 0">保活音档：需要"真的出声"浏览器才豁免，音量再低也有效。</p>';
   html+='<div class="sw-row"><div><b>保活记录</b><span>已保活 '+((state.settings&&state.settings.kaCount)||0)+' 次 · 切回页面时自动补发到点的消息</span></div></div>';
-  html+='<div class="me-sec"><h3>后台保活说明</h3><div class="note">手机浏览器切到后台时网页会被系统暂停，这是 iOS 的正常机制。每次回到页面时会自动补发离线期间的消息、朋友圈评论、回信和缺失的日记，不会断档。</div></div>';
+  html+='<div class="me-sec" id="sec-keep2"><h3>后台保活说明</h3><div class="note">手机浏览器切到后台时网页会被系统暂停，这是 iOS 的正常机制。每次回到页面时会自动补发离线期间的消息、朋友圈评论、回信和缺失的日记，不会断档。</div></div>';
   html+='<div class="me-group-title">备份</div>';
-  html+='<div class="me-sec"><h3>备份</h3>'+backupPanelHtml()+'</div>';
-  html+='<div class="me-sec"><h3>存储</h3><div class="card" id="stgBox"><div class="stg-row"><span>统计中…</span><b></b></div></div></div>';
-  html+='<div class="me-sec"><h3>存档安全</h3>'+storageHealthHtml()+'<p class="meta" style="margin-top:8px">iPhone 会在存储紧张或长期不打开时清理网页数据，这是系统行为、任何网页都躲不过。导出一份备份文件（可存到「文件」App 或发给自己），换机、清理后都能一键恢复。</p></div>';
+  html+='<div class="me-sec" id="sec-backup"><h3>备份</h3>'+backupPanelHtml()+'</div>';
+  html+='<div class="me-sec" id="sec-store"><h3>存储</h3><div class="card" id="stgBox"><div class="stg-row"><span>统计中…</span><b></b></div></div></div>';
+  html+='<div class="me-sec" id="sec-safe"><h3>存档安全</h3>'+storageHealthHtml()+'<p class="meta" style="margin-top:8px">iPhone 会在存储紧张或长期不打开时清理网页数据，这是系统行为、任何网页都躲不过。导出一份备份文件（可存到「文件」App 或发给自己），换机、清理后都能一键恢复。</p></div>';
   html+='</div>';
   $('#view').innerHTML=html;
   setTimeout(fillStoragePanel,0);
@@ -5372,7 +5561,10 @@ function sheetContact(id){
   html+='<div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="contact-save" data-id="'+(id||'')+'">保存</button></div>';
   if(id)html+='<div style="margin-top:10px"><button class="cancel" style="width:100%;color:var(--danger)" data-act="contact-del" data-id="'+id+'">删除此联系人</button></div>';
   openSheet(html);
-  if(c&&c.avatarType==='img'&&c.avatarImg)_avImg=mediaUrlSync(c.avatarImg);
+  /* ★ 这里原来是 _avImg=mediaUrlSync(c.avatarImg) —— 存进去的是**解析后的 blob: 地址**。
+     保存时 c.avatarImg=_avImg 就把 blob: 地址写进了存档，而 blob: 地址重启必然失效，
+     所以“打开过设置并保存”之后，重进网站他的头像就没了。必须存引用本身。 */
+  if(c&&c.avatarType==='img'&&c.avatarImg)_avImg=c.avatarImg;
   updAvatarPrev();
   var ni=$('#cName');
   if(ni)ni.addEventListener('input',updAvatarPrev);
@@ -5387,6 +5579,25 @@ function pickColor(col){
   _avColor=col;_avPicked=true;_avImg=null;
   document.querySelectorAll('.swatch').forEach(function(s){s.classList.toggle('on',s.getAttribute('data-color')===col)});
   updAvatarPrev();
+}
+/** 修复历史数据：avatarImg 里存成 blob: 地址的（重启后必然失效）。
+    趁这次页面还活着、blob 还在，把它重新存回媒体库换成 zika-media:// 引用；
+    实在取不到就退回"名字首字"头像，免得一直显示裂图。 */
+function repairBlobAvatar(c){
+  if(!c||typeof c.avatarImg!=='string'||c.avatarImg.indexOf('blob:')!==0)return;
+  try{
+    fetch(c.avatarImg).then(function(r){return r.blob()}).then(function(b){
+      return mediaPut(b,'avatar');
+    }).then(function(ref){
+      if(ref&&isMediaRef(ref)){c.avatarImg=ref;c.avatarType='img';}
+      else{c.avatarImg='';c.avatarType='char';}
+      save();
+    }).catch(function(){c.avatarImg='';c.avatarType='char';save()});
+  }catch(e){c.avatarImg='';c.avatarType='char';}
+}
+function repairAllAvatars(){
+  if(!Array.isArray(state.contacts))return;
+  for(var i=0;i<state.contacts.length;i++)repairBlobAvatar(state.contacts[i]);
 }
 function readAvatarFile(input){
   pickImageFile(input,function(img){
@@ -5423,7 +5634,14 @@ function contactSave(){
     c.replyPct=clamp(parseFloat($('#cReplyPct').value)||0,0,100);
     c.callPct=clamp(parseFloat($('#cCallPct').value)||0,0,100);
     c.transferPct=clamp(parseFloat($('#cTransferPct').value)||0,0,100);
-    if(_avImg){c.avatarType='img';c.avatarImg=_avImg}
+    if(_avImg){
+      /* 万一 _avImg 已经是 blob: 地址（老数据/异常路径），先修成引用再存 */
+      if(typeof _avImg==='string'&&_avImg.indexOf('blob:')===0){
+        c.avatarType='img';c.avatarImg=_avImg;repairBlobAvatar(c);
+      }else{
+        c.avatarType='img';c.avatarImg=_avImg;
+      }
+    }
     else if(_avPicked){c.avatarType='char';c.avatarImg='';c.color=_avColor}
   }
   if(id){var c0=contact(id);if(!c0)return;applyC(c0)}
@@ -5855,18 +6073,68 @@ function resumePending(){
 }
 /** 他回复查岗时说的话：按查岗内容挑一句贴题的，贴不到就用通用句 */
 var CK_ANSWERS={
-  eat:['刚吃完','还没吃呢，等下就去','正在吃，你呢','吃了，味道不错'],
-  sleep:['刚醒没多久','准备睡了','还早呢，睡不着','昨晚睡得挺好'],
-  busy:['还在忙，快好了','今天不太忙','有点忙，晚点找你','忙完了，正想找你'],
-  where:['在家呢','在外面，马上回去','在公司','路上呢'],
-  def:['我在呢','嗯，刚看到','在的，怎么啦','挺好，你呢']
+  /* 吃 */
+  eat:['刚吃完','还没吃呢，等下就去','正在吃，你呢','吃了，味道不错','吃了，就是有点咸',
+       '还没呢，不太饿','刚点好外卖，等会儿就到','等下就去吃，你先吃','吃了，你吃了没','还没吃，要一起吗'],
+  /* 睡 */
+  sleep:['刚醒没多久','准备睡了','还早呢，睡不着','昨晚睡得挺好','刚午睡起来',
+         '有点困，但还不想睡','昨晚没睡好，今天有点飘','马上就睡，你也早点休息','刚醒，还有点懵'],
+  /* 忙 / 在做什么 */
+  busy:['还在忙，快好了','今天不太忙','有点忙，晚点找你','忙完了，正想找你','在开会，一会儿回你',
+        '摸鱼中，你呢','刚忙完，累死了','事情有点多，但还撑得住','不忙，你说'],
+  /* 上下班 */
+  work:['刚下班','还在公司','今天加班，晚点回去','已经在回家的路上了','今天不用加班','刚到公司不久'],
+  /* 在哪 / 到哪 */
+  where:['在家呢','在外面，马上回去','在公司','路上呢','快到家了',
+         '刚出门','在超市买点东西','在朋友那边，一会儿就回'],
+  /* 想我 / 惦记 */
+  miss:['想你啊，怎么会不想','刚还在想你','很想，想到走神了','当然想，每天都想',
+        '想，但怕打扰你','特别想，你猜我想了几次','想你想得不行'],
+  /* 爱 / 在乎 */
+  love:['爱，不用问','当然爱，这还用问','很爱，比昨天多一点','爱你，一直',
+        '爱啊，你是我最在意的人','爱，而且会一直爱'],
+  /* 心情 / 好不好 */
+  mood:['挺好的，就是有点想你','还行，平平淡淡','心情不错，因为你来问了',
+        '有点累，但看到你就好了','挺开心的，你呢','一般般，没什么大事',
+        '有点小烦，不过没事','很好，今天挺顺'],
+  /* 累不累 */
+  tired:['有点累，但还能撑','还好，不太累','是有点累，想早点休息',
+         '累，但是想到你就还好','今天挺累的','不累，刚休息过'],
+  /* 洗澡 / 洗漱 */
+  wash:['刚洗完','还没，等下就去','洗过了，准备睡了','正要去'],
+  /* 冷热 / 天气 / 带伞 */
+  weather:['外面有点冷，穿得挺厚的','还好，不冷','今天挺热的','带伞了，放心','没带伞，一会儿打车'],
+  /* 在吗 / 人呢 */
+  here:['在的','我在，怎么了','嗯，一直在','在呢，刚看到','在，等你说话'],
+  /* 兜底 */
+  def:['我在呢','嗯，刚看到','在的，怎么啦','挺好，你呢','怎么了，想我了？',
+       '在，你说','嗯嗯，在听','刚在忙别的，现在有空了']
 };
+/** 混搭用的那一句字卡：从你添加的聊天字卡里抽一句，太长的换掉 */
+function ckCardLine(){
+  var all=(state.cards||[]).filter(function(x){return x&&x.text&&String(x.text).trim()});
+  if(!all.length)return '';
+  var short=all.filter(function(x){return String(x.text).trim().length<=26});
+  var pool=short.length?short:all;
+  var t=String(pool[Math.floor(Math.random()*pool.length)].text||'').trim();
+  if(t.length>44)t=t.slice(0,44);
+  return t;
+}
 function ckAnswer(q){
   q=String(q||'').replace(/^查岗[:：]\s*/,'');
-  if(/吃|饭|餐|饿/.test(q))return pick(CK_ANSWERS.eat);
-  if(/睡|醒|困|觉/.test(q))return pick(CK_ANSWERS.sleep);
-  if(/忙|干嘛|做什么|在做什么/.test(q))return pick(CK_ANSWERS.busy);
-  if(/在哪|哪里|回家|到哪/.test(q))return pick(CK_ANSWERS.where);
+  /* 按问题内容挑最贴题的一类（顺序有讲究：更具体的放前面） */
+  if(/吃|饭|餐|饿|外卖|宵夜|早饭|午饭|晚饭|早餐/.test(q))return pick(CK_ANSWERS.eat);
+  if(/睡|醒|困|觉|午休|失眠|熬夜/.test(q))return pick(CK_ANSWERS.sleep);
+  if(/下班|上班|加班|通勤|公司了没/.test(q))return pick(CK_ANSWERS.work);
+  if(/忙|干嘛|做什么|摸鱼|开会|有事/.test(q))return pick(CK_ANSWERS.busy);
+  if(/在哪|哪里|回家|到哪|到家|出门|位置/.test(q))return pick(CK_ANSWERS.where);
+  if(/想我|想没想|惦记|有没有想/.test(q))return pick(CK_ANSWERS.miss);
+  if(/爱|喜欢我|在乎|心里有/.test(q))return pick(CK_ANSWERS.love);
+  if(/开心|心情|怎么样|好不好|还好吗/.test(q))return pick(CK_ANSWERS.mood);
+  if(/累|辛苦/.test(q))return pick(CK_ANSWERS.tired);
+  if(/洗|洗漱/.test(q))return pick(CK_ANSWERS.wash);
+  if(/冷|热|穿|伞|天气/.test(q))return pick(CK_ANSWERS.weather);
+  if(/在吗|在不在|人呢|在么/.test(q))return pick(CK_ANSWERS.here);
   return pick(CK_ANSWERS.def);
 }
 function replyChat(m){
@@ -5878,6 +6146,8 @@ function replyChat(m){
   if(m.kind==='checkin'){
     m.answered=true;
     m.hisReply=ckAnswer(m.text);
+    /* 混搭：贴题的短答 + 一句你字卡里的句子（没字卡时就只回短答） */
+    m.hisCard=ckCardLine();
     m.hisReplyTs=now();
     save();
     try{if(location.hash.replace('#','')==='chat')renderChat()}catch(e){}
@@ -6075,7 +6345,7 @@ function sheetCheckin(){
 }
 function sendCheckin(text){
   var c=activeContact();
-  state.messages.push({id:uid(),contactId:c.id,dir:'out',kind:'checkin',text:text,ts:now(),replyDue:now()+rndDelay(c)});
+  state.messages.push({id:uid(),contactId:c.id,dir:'out',kind:'checkin',text:text,ts:now(),readDue:now()+4000,replyDue:now()+rndDelay(c)});
   save();closeSheet();renderChat();schedule();
 }
 /* ===== 查岗：回答对方 ===== */
@@ -6697,7 +6967,7 @@ function syncCatchUp(){
         if(m.readDue&&!m.read&&m.readDue<=end)m.read=true;
         if(m.replyDue&&!m.answered&&m.replyDue<=end){
           m.answered=true;
-          if(m.kind==='checkin'){m.hisReply=ckAnswer(m.text);m.hisReplyTs=Math.min(m.replyDue,end)}
+          if(m.kind==='checkin'){m.hisReply=ckAnswer(m.text);m.hisCard=ckCardLine();m.hisReplyTs=Math.min(m.replyDue,end)}
           else if(m.kind==='gift'||m.kind==='buyreq'){shopAnswer(m)}
           else if(m.kind==='poll'){replyPoll(m,Math.min(m.replyDue,end))}
           else if(c.readNR&&Math.random()*100<c.readNRPct){m.replyDue=null}
@@ -6949,6 +7219,10 @@ document.addEventListener('click',function(e){
     else if(act==='mail-tab')mailTab(btn.getAttribute('data-t'));
     else if(act==='mail-back')mailBack();
     else if(act==='mail-reply')mailReply(id);
+    else if(act==='me-jump')meJumpTo(btn.getAttribute('data-to'))
+    else if(act==='pct-save')pctSave()
+    else if(act==='post-img'){var _pif=document.getElementById('postImgFile');if(_pif)_pif.click()}
+    else if(act==='post-img-del')postImgDel(btn.getAttribute('data-i'))
     else if(act==='post-comment')postCommentOpen(id);
     else if(act==='post-comment-send')postCommentSend(id);
     else if(act==='pat')tapPat();
@@ -7860,6 +8134,8 @@ function initOneWidgetDrag(grid){
     if(t&&t.id==='wdImgFile')readWidgetImg(t);
     /* 音乐：上传 MP3 / 一起听换壁纸 */
     if(t&&t.id==='musFile')musAddFiles(t);
+    /* 朋友圈：选图 */
+    if(t&&t.id==='postImgFile')postAddFiles(t);
     if(t&&t.id==='musBgFile'){
       pickImageFile(t,function(img){
         mediaAdopt(encodeImg(img,1400,{q:.92}),'listenbg').then(function(ref){
@@ -8472,6 +8748,7 @@ function momSave(){
   var s8=state.settings;
   s8.momMin=clamp(parseInt($('#momMin').value,10)||180,1,10080);
   s8.momMax=clamp(parseInt($('#momMax').value,10)||720,1,10080);
+  if($('#momStickerPct'))s8.momStickerPct=clamp(parseFloat($('#momStickerPct').value)||0,0,100);
   if($('#giftPct'))s8.giftPct=clamp(parseFloat($('#giftPct').value)||0,0,100);
   if($('#askPct'))s8.askPct=clamp(parseFloat($('#askPct').value)||0,0,100);
   s8.commentMin=clamp(parseInt($('#comMin').value,10)||180,1,10080);
