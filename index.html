@@ -1430,6 +1430,13 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .me-sec{scroll-margin-top:64px}
 .me-flash{animation:meFlash 1.2s ease-out}
 @keyframes meFlash{0%{background:rgba(242,143,176,.22)}100%{background:transparent}}
+
+/* ===== 表情包翻页 ===== */
+.stk-page{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0 2px;flex-wrap:wrap}
+.stk-page button{font-size:calc(13px*var(--fs));padding:9px 18px;border-radius:14px;min-height:40px;
+  background:rgba(255,255,255,.9);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.stk-page button:disabled{opacity:.4}
+.stk-page span{font-size:calc(12px*var(--fs));color:var(--sub)}
 </style>
 </head>
 <body>
@@ -3853,8 +3860,16 @@ function rndDelay(c,kind){
 function pickBurstCount(c){
   if(c.burstOn===false)return 1;
   var b=c.burst||[45,32,15,6,2];
-  var r=Math.random()*100,acc=0;
-  for(var i=0;i<5;i++){acc+=(b[i]||0);if(r<acc)return i+1}
+  /* ★ 原来是"累加阈值"：r=随机*100，累加到超过 r 就取这个条数。
+     可你填的 5 个数字加起来往往不等于 100（比如 45+40+30+25+10=150），
+     排在后面的就永远抽不到 —— 4 条、5 条变成 0%，看起来就是"老只发一条"。
+     现在按总和归一化：这 5 个数字当"相对权重"，自动换算成百分比，
+     填多少都能正确分配（45/40/30/25/10 → 30%/26.7%/20%/16.7%/6.7%）。 */
+  var sum=0,i;
+  for(i=0;i<5;i++)sum+=Math.max(0,Number(b[i])||0);
+  if(sum<=0)return 1;
+  var r=Math.random()*sum,acc=0;
+  for(i=0;i<5;i++){acc+=Math.max(0,Number(b[i])||0);if(r<acc)return i+1}
   return 1;
 }
 function pushIn(cid,text,t,replyTo){
@@ -4084,7 +4099,10 @@ function replyLetter(l){
   var c=contact(l.contactId);if(!c)return;
   l.answered=true;
   var n=clamp(((state.settings&&state.settings.letterCount)||2),1,8);
-  var pool=state.writerCards&&state.writerCards.length?state.writerCards:state.cards;
+  /* ★ 写信不再用"写信固定字卡"：改成从你添加的、分过类的字卡里随机抽；
+   一张分类字卡都没有时，退回全部聊天字卡（保证不会抽空）。 */
+        var _tagged=(state.cards||[]).filter(function(x){return x&&x.tag&&x.text});
+        var pool=_tagged.length?_tagged:state.cards;
   var body=drawCards(n,pool).join('\n\n');
   if(!body)body=drawCardText();
   state.letters.push({id:uid(),contactId:c.id,dir:'in',title:'Re：'+(l.title||'来信'),body:body,ts:now(),unread:true});
@@ -4703,8 +4721,8 @@ function cardSearchMatch(c){
 function renderCards(){
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">字卡库</span></div>';
   html+='<div class="screen">';
-  var libs=[['cards','聊天字卡'],['status','状态'],['mood','心情'],['pat','拍一拍'],['diary','日记'],['writer','写信']];
-  var total=state.cards.length+state.statusCards.length+state.moodCards.length+state.patCards.length+state.diaryCards.length+state.writerCards.length;
+  var libs=[['cards','聊天字卡'],['status','状态'],['mood','心情'],['pat','拍一拍'],['diary','日记']];
+  var total=state.cards.length+state.statusCards.length+state.moodCards.length+state.patCards.length+state.diaryCards.length;
   html+='<div class="cat-tabs">';
   for(var L=0;L<libs.length;L++)html+='<button data-act="lib" data-lib="'+libs[L][0]+'"'+(libs[L][0]===_lib?' class="on"':'')+'>'+libs[L][1]+'</button>';
   html+='</div>';
@@ -4741,10 +4759,10 @@ function renderCards(){
     var noteTxt;
     if(kind==='pat')noteTxt='拍一拍字卡用于陆沉回拍你时的话，不进入聊天回复，也不参与聊天字卡分类。';
     else if(kind==='diary')noteTxt='陆沉写日记时从这里抽，也会从你添加的字卡里抽。日记字卡不参与聊天回复。';
-    else if(kind==='writer')noteTxt='陆沉写信、回信时从"写信字卡"里抽，和聊天字卡分开；抽取条数在 设置 → 内容生成 里调。';
+    else if(kind==='writer')noteTxt='陆沉写信、回信时从你分过类的字卡里随机抽。';
     else noteTxt=nm+'字卡用于陆沉聊天顶部的'+nm+'框，会随机抽取；它不参与聊天字卡分类。';
     html+='<div class="note" style="margin-bottom:10px">固定字卡：'+noteTxt+'</div>';
-    html+='<div class="lib-actions"><button class="btn" data-act="sm-add" data-kind="'+kind+'">添加'+nm+'字卡</button></div>';
+    html+='<div class="lib-actions"><button class="btn" data-act="sm-add" data-kind="'+kind+'">添加'+nm+'字卡</button><button class="btn ghost" data-act="sm-batch" data-kind="'+kind+'">批量导入</button></div>';
     if(!kindShown.length)html+='<div class="empty"><span class="big">卡</span>'+(_cardQ?'没有匹配的字卡':'还没有'+nm+'字卡')+'</div>';
     html+='<div class="sm-list">';
     for(var s=0;s<kindShown.length;s++)html+='<div class="sm-item"><span class="txt">'+esc(kindShown[s].text)+'</span><button class="del" data-act="sm-del" data-kind="'+kind+'" data-id="'+kindShown[s].id+'">×</button></div>';
@@ -4902,6 +4920,59 @@ function importCards(file){
   fr.readAsText(file.files[0]);
   file.value='';
 }
+/** 固定字卡批量导入：一行一张，空行忽略，# 开头的行当注释跳过 */
+function smBatchParse(txt){
+  return String(txt==null?'':txt).split(/\r?\n/).map(function(x){return String(x).trim()})
+    .filter(function(x){return x&&x.charAt(0)!=='#'});
+}
+function sheetSmBatch(kind){
+  var nm=libName(kind);
+  openSheet('<h2>批量导入'+nm+'字卡</h2>'
+    +'<p class="meta" style="margin:-6px 0 8px">每一行算一张，空行自动忽略；# 开头的行会被跳过。</p>'
+    +'<textarea id="smBatchText" rows="12" placeholder="第一张字卡\n第二张字卡\n第三张字卡"></textarea>'
+    +'<div class="batch-foot"><button class="btn ghost small" data-act="sm-batch-file">从文件导入</button><span class="meta" id="smBatchCount">0 张</span></div>'
+    +'<div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="sm-batch-save" data-kind="'+kind+'">确定导入</button></div>'
+    +'<input type="file" id="smBatchFile" accept=".txt,text/plain" style="display:none">');
+  var ta=document.querySelector('#smBatchText');
+  if(ta){
+    var upd=function(){
+      var el=document.querySelector('#smBatchCount');
+      if(el)el.textContent=smBatchParse(ta.value).length+' 张';
+    };
+    ta.addEventListener('input',upd);
+    upd();
+  }
+}
+function smBatchFile(input){
+  if(!input||!input.files||!input.files[0])return;
+  var fr=new FileReader();
+  fr.onload=function(){
+    var ta=document.querySelector('#smBatchText');
+    if(ta){
+      ta.value=String(fr.result||'');
+      var el=document.querySelector('#smBatchCount');
+      if(el)el.textContent=smBatchParse(ta.value).length+' 张';
+      toast('已读入文件，确认后点确定导入');
+    }
+  };
+  fr.readAsText(input.files[0]);
+  try{input.value=''}catch(e){}
+}
+function smBatchSave(kind){
+  var ta=document.querySelector('#smBatchText');
+  var list=smBatchParse(ta?ta.value:'');
+  if(!list.length){toast('还没写内容');return}
+  var arr=libOf(kind);
+  if(!arr){toast('这个字卡库打不开');return}
+  for(var i=0;i<list.length;i++)arr.push({id:uid(),text:list[i]});
+  save();
+  closeSheet();
+  toast('已导入 '+list.length+' 张'+libName(kind)+'字卡');
+  try{
+    var h=location.hash.replace('#','');
+    if(h==='cards')renderCards(); else render();
+  }catch(e){}
+}
 function libOf(kind){return kind==='status'?state.statusCards:kind==='mood'?state.moodCards:kind==='pat'?state.patCards:kind==='diary'?state.diaryCards:state.writerCards}
 function libName(kind){return kind==='status'?'状态':kind==='mood'?'心情':kind==='pat'?'拍一拍':kind==='diary'?'日记':'写信'}
 function sheetStatusCard(kind){
@@ -4940,7 +5011,7 @@ function renderDiary(){
       var dd=new Date(ds+'T00:00:00');
       html+='<div class="card diary-card"><div class="d-date">'+(dd.getMonth()+1)+'月'+dd.getDate()+'日'+(ds===today?' · 今天':'')+'</div><div class="meta" style="margin-top:2px">陆沉的日记（字卡生成）</div><div class="d-txt">'+esc(d.text)+'</div>';
       html+=cmtBlock(ds,'his',d);
-      html+='<div class="d-cmt-in"><textarea id="cmtHis'+ds.replace(/-/g,'')+'" rows="2" placeholder="点评他的这篇日记…"></textarea><button data-act="diary-comment-his" data-ds="'+ds+'">发送</button></div>';
+      html+='<div class="d-cmt-in"><textarea id="cmtHis'+ds.replace(/-/g,'')+'" rows="2" placeholder="评论他的这篇日记…"></textarea><button data-act="diary-comment-his" data-ds="'+ds+'">发送</button></div>';
       html+='</div>';
     }
   }else{
@@ -4959,7 +5030,7 @@ function renderDiary(){
       html+='</div>';
     }
   }
-  html+='<div class="note" style="margin-top:12px">陆沉每天用字卡写日记，也会点评你的日记；你点评他的日记，他有机会回复你。</div>';
+  html+='<div class="note" style="margin-top:12px">陆沉每天用字卡写日记，也会评论你的日记；你评论他的日记，他有机会回复你。</div>';
   html+='</div>';
   $('#view').innerHTML=html;
 }
@@ -4999,7 +5070,7 @@ function diaryCommentHis(ds){
   d.hisComments=d.hisComments||[];
   d.hisComments.push({id:uid(),who:'me',text:v,ts:now()});
   inp.value='';
-  save();renderDiary();toast('已点评');
+  save();renderDiary();toast('已评论');
   var pct=(state.settings&&state.settings.diaryReplyPct)!=null?state.settings.diaryReplyPct:65;
   if(Math.random()*100<pct){
     state.diaryDue=state.diaryDue||[];
@@ -5550,7 +5621,7 @@ function sheetContact(id){
   html+='<label>回信节奏（陆沉多久写回信给你，以分钟为最小单位）</label><div class="rhy-grid">';
   html+='<div class="inl"><label>最快</label><div class="unit-row"><input id="cLetterMin" type="number" min="1" value="'+lp.val+'"><select id="cLetterUnit"><option value="m"'+(lp.unit==='m'?' selected':'')+'>分钟</option><option value="h"'+(lp.unit==='h'?' selected':'')+'>小时</option><option value="d"'+(lp.unit==='d'?' selected':'')+'>天</option></select></div></div>';
   html+='<div class="inl"><label>最慢</label><div class="unit-row"><input id="cLetterMax" type="number" min="1" value="'+lx.val+'"><select id="cLetterUnit2"><option value="m"'+(lx.unit==='m'?' selected':'')+'>分钟</option><option value="h"'+(lx.unit==='h'?' selected':'')+'>小时</option><option value="d"'+(lx.unit==='d'?' selected':'')+'>天</option></select></div></div></div>';
-  html+='<div class="sw-row"><span class="tt">连发消息<small>一次最多连发 5 条，按下方概率决定条数</small></span>'+sw('cBurstOn')+'</div>';
+  html+='<div class="sw-row"><span class="tt">连发消息<small>一次最多连发 5 条。下面 5 个数字是"相对权重"，自动按比例换算（总和不必等于 100）</small></span>'+sw('cBurstOn')+'</div>';
   html+='<div class="pct-grid">';
   var bnames=['1条','2条','3条','4条','5条'];
   for(var k=0;k<5;k++)html+='<div class="inl"><label>'+bnames[k]+'</label><input id="b'+(k+1)+'" type="number" min="0" max="100" value="'+(b[k]||0)+'"></div>';
@@ -5990,8 +6061,11 @@ function backupPanelHtml(){
       +'<span class="bk-tx"><b>'+c.n+'</b><i>'+c.d+'</i></span></label>';
   }
   h+='</div>';
-  h+='<label class="bk-imgs"><input type="checkbox" id="bkImgs"><span><b>导出包含图片</b>'
-    +'<i>不勾：档案小、导得快，但壁纸 / 头像 / 组件底图不会跟着走；勾上才一起打包（档案会大很多）。</i></span></label>';
+  /* ★ 这个勾以前默认是**没勾**的，于是很多人导出的备份里根本没有图片 ——
+     表情包、壁纸、头像、组件底图全都不会跟着走，而且文案只提了壁纸/头像/组件底图，
+     没提表情包，所以根本看不出问题。现在默认勾上，并把表情包写进说明。 */
+  h+='<label class="bk-imgs"><input type="checkbox" id="bkImgs" checked><span><b>导出包含图片</b>'
+    +'<i>默认勾上：<b>表情包</b>、壁纸、头像、组件底图会一起打包（档案会大一些）。取消勾选档案小、导得快，但这些图片不会跟着走 —— 导入后表情包会变成空的。</i></span></label>';
   h+='<div class="bk-mode"><span>导入方式</span><select id="bkMode">'
     +'<option value="merge">合并到当前数据</option>'
     +'<option value="replace">覆盖全部数据</option>'
@@ -6406,16 +6480,32 @@ function sheetTools(){
   html+='</div><div class="actions"><button class="cancel" data-act="sheet-close">关闭</button></div>';
   openSheet(html);
 }
+var _stkPage=0,STK_PER=24;
 function sheetStickers(){
   var html='<h2>表情包</h2>';
   html+='<p class="meta" style="margin:-6px 0 10px">点一下直接发 · 长按图片可删除</p>';
   if(state.stickers.length){
+    /* 表情包多了之后一屏拉不到底，这里做翻页，每页 24 张 */
+    var _tot=state.stickers.length;
+    var _pages=Math.max(1,Math.ceil(_tot/STK_PER));
+    if(_stkPage>_pages-1)_stkPage=_pages-1;
+    if(_stkPage<0)_stkPage=0;
+    var _from=_stkPage*STK_PER,_to=Math.min(_tot,_from+STK_PER);
     html+='<div class="stk-panel">';
-    for(var j=0;j<state.stickers.length;j++){
+    for(var j=_from;j<_to;j++){
       var s0=state.stickers[j];
       html+='<button class="stk-item" data-act="sticker-send" data-id="'+s0.id+'"><img class="stk-img" loading="lazy" src="'+mediaUrlSync(s0.img)+'" alt="表情"></button>';
     }
     html+='</div>';
+    if(_pages>1){
+      html+='<div class="stk-page">'
+        +'<button data-act="stk-page" data-p="-1"'+(_stkPage<=0?' disabled':'')+'>上一页</button>'
+        +'<span>第 '+(_stkPage+1)+' / '+_pages+' 页 · 共 '+_tot+' 张</span>'
+        +'<button data-act="stk-page" data-p="1"'+(_stkPage>=_pages-1?' disabled':'')+'>下一页</button>'
+        +'</div>';
+    }else{
+      html+='<div class="stk-page"><span>共 '+_tot+' 张</span></div>';
+    }
   }else{
     html+='<p class="meta" style="padding:6px 0">还没有表情图片，点下面「添加表情图片」从相册选一张</p>';
   }
@@ -6980,7 +7070,10 @@ function syncCatchUp(){
       if(l.contactId===c.id&&l.dir==='out'&&!l.answered&&l.replyDue&&l.replyDue<=end){
         l.answered=true;
         var n=clamp(((state.settings&&state.settings.letterCount)||2),1,8);
-        var pool=state.writerCards&&state.writerCards.length?state.writerCards:state.cards;
+        /* ★ 写信不再用"写信固定字卡"：改成从你添加的、分过类的字卡里随机抽；
+   一张分类字卡都没有时，退回全部聊天字卡（保证不会抽空）。 */
+        var _tagged=(state.cards||[]).filter(function(x){return x&&x.tag&&x.text});
+        var pool=_tagged.length?_tagged:state.cards;
         var body=drawCards(n,pool).join('\n\n');
         if(!body)body=drawCardText();
         if(_gen<_GENMAX){state.letters.push({id:uid(),contactId:c.id,dir:'in',title:'Re：'+(l.title||'来信'),body:body,ts:Math.min(l.replyDue,end),unread:true});_gen++}
@@ -7075,6 +7168,9 @@ document.addEventListener('click',function(e){
     else if(act==='sm-save')smSave(btn.getAttribute('data-kind'));
     else if(act==='sm-del')smDel(btn.getAttribute('data-kind'),id);
     else if(act==='sm-lib')sheetSmLib(btn.getAttribute('data-kind'));
+    else if(act==='sm-batch')sheetSmBatch(btn.getAttribute('data-kind'));
+    else if(act==='sm-batch-save')smBatchSave(btn.getAttribute('data-kind'));
+    else if(act==='sm-batch-file'){var _sbf=document.getElementById('smBatchFile');if(_sbf)_sbf.click()}
     else if(act==='contact-add')sheetContact('');
     else if(act==='contact-edit')sheetContact(id);
     else if(act==='contact-save')contactSave();
@@ -7221,6 +7317,7 @@ document.addEventListener('click',function(e){
     else if(act==='mail-reply')mailReply(id);
     else if(act==='me-jump')meJumpTo(btn.getAttribute('data-to'))
     else if(act==='pct-save')pctSave()
+    else if(act==='stk-page'){_stkPage+=(parseInt(btn.getAttribute('data-p'),10)||1);sheetStickers()}
     else if(act==='post-img'){var _pif=document.getElementById('postImgFile');if(_pif)_pif.click()}
     else if(act==='post-img-del')postImgDel(btn.getAttribute('data-i'))
     else if(act==='post-comment')postCommentOpen(id);
@@ -7281,6 +7378,7 @@ document.addEventListener('change',function(e){
   else if(e.target.id==='coverFile')readImg(e.target,'cover');
   else if(e.target.id==='stickerFile')addStickerFile(e.target);
   else if(e.target.id==='cardBatchFile')cardBatchFile(e.target);
+  else if(e.target.id==='smBatchFile')smBatchFile(e.target);
   else if(e.target.id==='cardSearch'){_cardQ=String(e.target.value||'').trim();renderCards();var _sb=document.querySelector('#cardSearch');if(_sb&&_sb.focus){_sb.focus();try{_sb.setSelectionRange(_sb.value.length,_sb.value.length)}catch(x){}}}
   else if(e.target.id==='imgFile')sendImageMsg(e.target);
   else if(e.target.id==='iconFile')readIconFile(e.target);
