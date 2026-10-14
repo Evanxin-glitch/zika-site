@@ -1316,7 +1316,7 @@ function defaultState(){
     diary:{},
     currentStatus:{text:'在喝咖啡',ts:t},currentMood:{text:'心情不错',ts:t},
     settings:{chatBg:'bg1',chatBgImg:'',cover:'cov1',coverImg:'',homeBg:'hb1',homeBgImg:'',callBg:'c1',callBgImg:'',fontScale:1,diaryCount:3,diaryReplyPct:65,letterCount:2,momMin:180,momMax:720,visitorOn:true,visitorMin:180,visitorMax:720,commentMin:180,commentMax:600,soundOn:true,quoteOn:true,readReceipt:true,typingOn:true,stopTyping:true,stopTypingPct:15,msgMenu:true,profileFans:888,profileFollowing:66,profileBio:'让一切自由',savedOn:true,savePct:15,patOn:true,patReplyPct:40,ntfOn:true,dailyOn:true,homeTheme:'aurora',auroraTint:'cream',bubblePreset:'default',bubbleRadius:17,bubbleOpacity:100,chatCss:'',keepAlive:'smart',keepVol:'light',kaCount:0,tarotRevPct:50,tarotDailyPct:40,emojiPct:15,quotePct:40,checkinPct:25,postPct:50,callOn:true,callMin:15,callMax:60,letterInitOn:true,letterInitMin:180,letterInitMax:1920},
-    appIcons:{},
+    appIcons:{}, widgetAreaH:0, widgetAreaSig:'',
     appOrder:['profile','chat','moments','mail','cards','diary','companion','tarot','tide','wallet','me'],
     widgets:{clock:true,days:true,music:true,note:true,feed:true},
     widgetNote:'1 miss you',
@@ -1345,6 +1345,32 @@ function migrate(s){
   if(!Array.isArray(s.cards))s.cards=[];
   if(s.diary&&typeof s.diary!=='object')s.diary={};
   if(!s.settings||typeof s.settings!=='object')s.settings={};
+  /* ★ 渲染路径会直接读下面这些键，缺一个就会在"导入备份后重画"时整屏崩掉。
+     真实案例：导入之后 state.appIcons 没了 → 首页 appItemHtml 报
+     "Cannot read properties of undefined (reading 'profile')" → 看起来就是"一导入就报错"。
+     normalizeBig 里有这些兜底，但导入走的是 migrate，所以这里必须也补上。 */
+  if(!s.appIcons||typeof s.appIcons!=='object')s.appIcons={};
+  if(!Array.isArray(s.appOrder)||!s.appOrder.length)s.appOrder=defaultState().appOrder.slice();
+  if(typeof s.appPage!=='number')s.appPage=0;
+  if(typeof s.unread!=='number')s.unread=0;
+  if(!s.widgetImgs||typeof s.widgetImgs!=='object')s.widgetImgs={};
+  if(!s.widgetPos||typeof s.widgetPos!=='object')s.widgetPos={};
+  if(!s.widgetSize||typeof s.widgetSize!=='object')s.widgetSize={};
+  if(!s.widgetPage||typeof s.widgetPage!=='object')s.widgetPage={};
+  if(!s.widgets||typeof s.widgets!=='object')s.widgets={};
+  if(!s.nextInit||typeof s.nextInit!=='object')s.nextInit={};
+  if(!s.nextPostDue||typeof s.nextPostDue!=='object')s.nextPostDue={};
+  if(!Array.isArray(s.profileBox))s.profileBox=[];
+  if(!Array.isArray(s.stickers))s.stickers=[];
+  if(!Array.isArray(s.feedEvents))s.feedEvents=[];
+  if(!Array.isArray(s.savedMsgs))s.savedMsgs=[];
+  if(!Array.isArray(s.checkinPresets))s.checkinPresets=[];
+  if(!Array.isArray(s.posts))s.posts=[];
+  if(!s.me||typeof s.me!=='object')s.me={name:'我',avatarType:'char',avatarImg:'',color:'#D98E5F'};
+  if(!s.companion||typeof s.companion!=='object')s.companion={bgKey:'cb1',bgImg:'',modes:[]};
+  if(!s.currentStatus||typeof s.currentStatus!=='object')s.currentStatus={text:'在忙'};
+  if(!s.currentMood||typeof s.currentMood!=='object')s.currentMood={text:'还行'};
+  if(!s.widgetMusic||typeof s.widgetMusic!=='object')s.widgetMusic={song:'',artist:'',src:''};
   for(var pd=0;pd<s.contacts.length;pd++){
     var cp=s.contacts[pd];
     if(!cp.id)cp.id='c'+pd+uid();
@@ -1878,17 +1904,29 @@ function mediaGetBlob(ref){
 }
 /* 地址缓存上限：正常用不到（图片通常十几张），
    只是防止一整个会话里反复上传导致 blob 地址无限堆积。 */
-var MEDIA_URL_MAX=120;
+/* 上限要够大：一个人存几百张表情包很正常，上限太小会把正在显示的图回收掉，
+   页面上就出现裂图。 */
+var MEDIA_URL_MAX=2000;
 function mediaUrlPrune(){
-  var touched=false;
+  if(_mediaOrder.length<=MEDIA_URL_MAX)return;
+  /* 正在页面上用着的地址绝对不能回收，否则图会当场变裂图 */
+  var inUse={},i;
+  try{
+    var imgs=document.querySelectorAll('img[src^="blob:"]');
+    for(i=0;i<imgs.length;i++){var sv=imgs[i].getAttribute('src');if(sv)inUse[sv]=1}
+    var styled=document.querySelectorAll('[style*="blob:"]');
+    for(i=0;i<styled.length;i++){var bi=styled[i].style&&styled[i].style.backgroundImage;if(bi)inUse[bi]=1}
+  }catch(e){}
+  var touched=false,keep=[];
   while(_mediaOrder.length>MEDIA_URL_MAX){
     var ref=_mediaOrder.shift();
     var u=_mediaUrlCache[ref];
+    if(u&&inUse[u]){ keep.push(ref); continue }   /* 还在用，留着 */
     if(u){try{URL.revokeObjectURL(u)}catch(e){}}
     delete _mediaUrlCache[ref];
     touched=true;
   }
-  /* 被回收的那些下次渲染会重新解析（mediaUrlSync 未命中时会自动补渲染） */
+  for(i=0;i<keep.length;i++)_mediaOrder.push(keep[i]);
   if(touched)try{scheduleMediaHydrate()}catch(e){}
 }
 function mediaUrl(ref){
@@ -2273,6 +2311,42 @@ function idbPutOK(key,val){
     启动时如果本机缓存被裁过（比如消息被裁成 0 条），
     紧接着的 boot 保存会拿这份"假空档"去覆盖大容量存储里的厚实副本 —— 那就真丢了。
     所以先比一比：新的这份明显更空、而库里那份还很厚，就跳过覆盖。 */
+var _idbFullLen=null,_idbFullRich=null;
+/* 高频保存的合并：发一条消息就存一次，存档大时每次 1 秒多，手机上会明显卡。
+   合并成"最多约 1 秒写一次 + 最后一版一定补写"，既不丢数据也不卡。 */
+var _fullTimer=null,_fullDirty=null,_lastFullJson=null;
+function scheduleFullWrite(json){
+  if(json&&json===_lastFullJson){ window.__saveDb=window.__saveDb||'ok'; return }
+  _fullDirty=json;
+  if(_fullTimer)return;
+  /* 本机那份被裁过时，IndexedDB 就是唯一完整副本 —— 这种情况必须尽快落盘，
+     不然这 1 秒里被系统杀掉进程，刚发的消息就没了。
+     本机那份是完整的（没被裁）才允许合并等待。 */
+  var _delay=window.__saveLocalLossy?80:900;
+  _fullTimer=setTimeout(function(){
+    _fullTimer=null;
+    var j=_fullDirty;_fullDirty=null;
+    if(!j)return;
+    idbPutFullSafe(j).then(function(good){
+      window.__saveDb=good;
+      if(good!=='fail'){_lastFullJson=j;window.__saveIdbAt=Date.now();return}
+      /* 大容量存储没写进去：本机那份完整就没事，被裁过就必须报警 */
+      window.__saveErr={t:Date.now(),name:'IdbWriteFailed',msg:'大容量存储写入失败',bytes:(j||'').length};
+      var _lossy=!!window.__saveLocalLossy||window.__saveStatus==='dbonly';
+      if(_lossy)window.__saveStatus='failed';
+      if(_lossy&&typeof toast==='function')toast('保存出问题了：本机缓存被裁、大容量存储又写不进去。请立刻到 设置→备份 导出备份');
+      /* 兜底：至少把大表写进 big 仓库，多留一条命 */
+      idbDumpNow();
+    });
+  },_delay);
+}
+/** 页面要关了：把还没落盘的那一版补上 */
+function flushFullWrite(){
+  if(_fullTimer){clearTimeout(_fullTimer);_fullTimer=null}
+  var j=_fullDirty;_fullDirty=null;
+  if(j&&j!==_lastFullJson){ try{idbPutOK('full',j);_lastFullJson=j}catch(e){} }
+  idbDumpNow();
+}
 function idbPutFullSafe(json){
   function richOf(txt){
     try{
@@ -2282,17 +2356,26 @@ function idbPutFullSafe(json){
       return m+c;
     }catch(e){return -1}
   }
+  function write(){ return idbPutOK('full',json).then(function(good){ if(good)_idbFullLen=json.length; return good?'ok':'fail' }) }
+  var newLen=json.length;
+  /* 常见路径：新存档跟库里那份差不多大 → 不存在"被裁空"的风险，
+     直接写，**不读库也不解析**。（大存档时这一下能省掉整份读+整份 parse） */
+  if(!window.__forceFullWrite&&_idbFullLen!=null&&newLen>_idbFullLen*0.5)return write();
+  /* 慢路径：新存档明显变小了，才去比一比是不是"启动时本机缓存被裁过"造成的假空档 */
   return idbGet('full').then(function(old){
-    if(!window.__forceFullWrite&&typeof old==='string'&&old.length>200){
-      var a=richOf(old),b=richOf(json);
-      if(a>=20&&b<a*0.5){
+    if(typeof old==='string'&&old.length>200){
+      _idbFullLen=old.length;
+      if(!window.__forceFullWrite&&_idbFullRich==null)_idbFullRich=richOf(old);
+      var a=_idbFullRich,b=richOf(json);
+      if(a!=null&&a>=20&&b<a*0.5){
         window.__saveSkippedBackup=1;
         window.__saveNote='这次的存档比大容量存储里的旧存档少很多，已跳过覆盖以保护数据（下次存完整内容时会正常写入）';
         return 'kept';
       }
+      _idbFullRich=b;
     }
-    return idbPutOK('full',json).then(function(good){return good?'ok':'fail'});
-  }).catch(function(){return 'fail'});
+    return write();
+  }).catch(function(){return write()});
 }
 function idbGet(key){
   return idbOpen().then(function(db){
@@ -2462,9 +2545,14 @@ function idbSelfCheck(){
 /** 每次存档都把大数组与大图同步进 IndexedDB 副本（合并写入，避免频繁触发） */
 var _bigTimer=null,_bigDirty=false;
 function idbSync(){
-  try{idbDump()}catch(e){}
+  /* 以前这里每次都 idbDump()：把 messages/posts/letters/cards/transfers 这几张大表
+     结构化克隆一份写进 IDB 的 big 仓库 —— 存档一大，这一步就是几 MB 的复制+写盘，
+     等于每次保存都干两遍活。而 hydrateBig 读的 __big__ 标记现在**没有任何代码再写**，
+     也就是说这份副本已经没人用了。所以日常只同步图片，big 副本改为"兜底时才写"。 */
   try{dumpImages()}catch(e){}
 }
+/** 兜底副本：只在整份写入失败 / 页面要关掉时才写一次 */
+function idbDumpNow(){ try{idbDump()}catch(e){} }
 function finalizeWrite(){
   _bigDirty=true;
   if(_bigTimer)return;
@@ -2475,7 +2563,13 @@ function flushBig(){
   _bigDirty=false;
   idbSync();
 }
+var _inSave=false;
 function save(){
+  /* 重入保护：save() 里间接又触发 save() 时（消息风暴那种情况），
+     一层层套下去会把调用栈打穿，报出 "Maximum call stack size exceeded" —— 
+     而那个错误又被当成"保存失败"，把人往存储空间的方向带。 */
+  if(_inSave){ window.__saveReentry=(window.__saveReentry||0)+1; return true }
+  _inSave=true;
   try{
     /* 关键：**边序列化边**把大图换成空串（用 JSON.stringify 的 replacer）。
        · 不先拼一份含所有 base64 的完整字符串 —— 以前每存一次就白拼十几 MB，
@@ -2528,22 +2622,7 @@ function save(){
       window.__saveDb='pending';
       window.__saveFullBytes=json.length;
       try{
-        idbPutFullSafe(json).then(function(good){
-          window.__saveDb=good;
-          if(good==='fail'){
-            /* 大容量存储没写进去。这时候要看本机那份是否完整：
-               · 本机写全了（ok）      → 没事
-               · 本机也被裁过（slim）或只写了要点（dbonly） → 等于没有任何一处存全，必须报警 */
-            window.__saveErr={t:Date.now(),name:'IdbWriteFailed',msg:'大容量存储写入失败',bytes:json.length};
-            var _lossy=!!window.__saveLocalLossy||window.__saveStatus==='dbonly';
-            if(_lossy)window.__saveStatus='failed';
-            if(_lossy&&typeof toast==='function'){
-              toast('保存出问题了：本机缓存被裁、大容量存储又写不进去。请立刻到 设置→备份 导出备份');
-            }
-          }else if(window.__saveStatus==='dbonly'){
-            window.__saveStatus='ok';   /* 核实成功：它确实是保住了 */
-          }
-        });
+        scheduleFullWrite(json);
       }catch(e){ window.__saveDb='fail'; dbOK=false }
     }else{
       window.__saveSkippedBackup=1;
@@ -2582,6 +2661,8 @@ function save(){
         : '保存失败：'+_ms+'（去 设置→存储 看诊断）');
     }
     return false;
+  }finally{
+    _inSave=false;
   }
 }
 /** 存档出问题时主动告诉用户，而不是默默把设置恢复成默认 */
@@ -2599,6 +2680,7 @@ function announceSave(ok,pre,json){
 }
 window.addEventListener('pagehide',function(){
   try{if(window.__saveRaw)localStorage.setItem(KEY_MIRROR,window.__saveRaw)}catch(e){}
+  try{flushFullWrite()}catch(e){}
   flushBig();
 });
 /* ================= 壁纸 / 封面 ================= */
@@ -2792,7 +2874,9 @@ function appByKey(v){
 }
 /* 单个 App 图标（两页共用） */
 function appItemHtml(a){
-  var ic=a.ic.replace(/stroke="#fff"/g,'stroke="'+a.c+'"').replace(/fill="#fff"/g,'fill="'+a.c+'"');
+  if(!a)return '';
+  state.appIcons=state.appIcons||{};        /* 兜底：宁可少一张自定义图标，也不能整屏白掉 */
+  var ic=String(a.ic||'').replace(/stroke="#fff"/g,'stroke="'+a.c+'"').replace(/fill="#fff"/g,'fill="'+a.c+'"');
   var hasIcon=!!state.appIcons[a.v];
   if(hasIcon)ic='<img class="app-icon-img" src="'+mediaUrlSync(state.appIcons[a.v])+'" alt="">';
   return '<div class="app-item" data-view="'+a.v+'"><div class="app-icon'+(hasIcon?' has-img':'')+'" style="background:'+(hasIcon?'#FFFFFF':'rgba(255,255,255,.34)')+'">'+ic+'</div>'
@@ -2835,7 +2919,40 @@ function widgetEstH(k){
    小的两个一行，其余各占一行，动态固定排最后。
    渲染和 fit 都用这一个函数，避免两处算得不一样（以前就是这么错位的）。 */
 /* 手动摆过的组件的占位矩形（用于让自动排版绕开它们） */
+/** 组件区高度（页面长度）—— 这是"长度固定"的唯一来源。
+    规则：
+      · 只按"纯自动排布"算（忽略手动位置，否则自动排布去避让会把高度拱大）
+      · 只在"组件集合变化"（增删组件、改尺寸）时重新计算
+      · 平时（包括拖拽）一律沿用记住的值 —— 所以怎么挪都不会变长
+    这样也避免了"首屏用估计值、第一次量到真实高度后又缩一下"的跳动。 */
+function widgetAreaSetSig(keys){
+  var a=[];
+  for(var i=0;i<keys.length;i++)a.push(keys[i]+':'+widgetSizeOf(keys[i]));
+  return a.join(',');
+}
+function widgetAreaHeight(keys,measure){
+  var sig=widgetAreaSetSig(keys);
+  if(state.widgetAreaSig!==sig){
+    state.widgetAreaSig=sig;
+    state.widgetAreaH=0;                 /* 组件集合变了 → 允许重新算 */
+  }
+  var pure=0;
+  try{
+    _ignoreManualRects=true;
+    pure=Math.max(0,Math.round(widgetWalk(keys,measure||widgetEstH).height));
+  }catch(e){ pure=0 }
+  finally{ _ignoreManualRects=false; }
+  var stored=Number(state.widgetAreaH)||0;
+  var h=Math.max(stored,pure);
+  if(h!==stored)state.widgetAreaH=h;
+  return h;
+}
+/* 算"组件区应该多高"的时候，必须忽略手动摆放的位置：
+   否则自动排布会去避开你手动挪下去的组件，把其他组件往下挤，
+   容器高度就跟着变大 —— 页面又变长了（这就是"固定长度"没生效的原因）。 */
+var _ignoreManualRects=false;
 function widgetManualRects(keys){
+  if(_ignoreManualRects)return [];
   var arr=[];
   for(var i=0;i<keys.length;i++){
     var k=keys[i],p=(state.widgetPos||{})[k];
@@ -3017,8 +3134,8 @@ function widgetGridInner(wdo,wds,wk,d,page){
     out+='<div class="widget wfree w-'+wv+' wsz-'+sz+'" '+attr+'style="'+st+'"><span class="widget-grip"></span>'+widgetInnerHtml(wv,wk,d)+'</div>';
   }
   /* 高度直接写进去，不等 rAF —— 否则刚打开的一瞬间容器是 0 高，组件会压到 App 图标上 */
-  /* 首屏高度同样只按自动排布算，别把手动位置算进来（否则一进首页就偏长） */
-  var _hTotal=Math.max(0,Math.round(walk.height));
+  /* 首屏高度同样只按"纯自动排布"算，别把手动位置算进来（否则一进首页就偏长） */
+  var _hTotal=widgetAreaHeight(keys,widgetEstH);
   out+='<div class="wfree-spacer" style="height:'+_hTotal+'px"></div>';
   return out;
 }
@@ -3067,7 +3184,10 @@ function fitWidgetGridNow(){
        容器就被撑高一次，整个首页跟着变长。
        现在手动摆放的组件一律被夹在这个固定区域内，挪多少次长度都不变；
        只有"增删组件/换尺寸"这种真正改变内容的事才会让它变。 */
-    var areaH=Math.max(0,Math.round(walk.height));
+    /* ★ 区域高度只按"纯自动排布"算，完全不看手动位置。
+       自动摆放那些没手动放过的组件时，仍然会避开你手动放的，
+       但那是"摆的位置"，不该影响"区域有多高"。 */
+    var areaH=widgetAreaHeight(keys,function(k){return real[k]||widgetEstH(k)});
     var gr=grid.getBoundingClientRect();
     /* 把手动摆放的组件夹回区域内（超出下边缘就顶回去），并把夹过的位置记下来 */
     var clamped=false;
@@ -3514,6 +3634,7 @@ function upgradeDiary(){
 
 /* ================= 调度器 ================= */
 var _timer=null,_typing=null,_ntfSilent=false,_ntfTimer=null;
+var _schedSpin=0,_schedSpinAt=0;
 var _replyTimer=null;
 function schedule(){
   if(_timer){clearTimeout(_timer);_timer=null}
@@ -3579,8 +3700,22 @@ function schedule(){
   items.sort(function(a,b){return a.ts-b.ts});
   var nx=items[0];
   var wait=nx.ts-now();
-  if(wait>0)_timer=setTimeout(function(){nx.fn();schedule()},Math.min(wait,2147483000));
-  else{nx.fn();schedule()}
+  if(wait>0){
+    _schedSpin=0;
+    _timer=setTimeout(function(){nx.fn();schedule()},Math.min(wait,2147483000));
+  }else{
+    /* ★ 这里原来是 {nx.fn();schedule()} —— 当场执行、当场再调用自己。
+       只要回调又造出一个"已到点"的任务（比如回复之后又产生新的待回消息），
+       就会同步无限递归：调用栈被打穿（RangeError: Maximum call stack size exceeded），
+       表现就是"消息一直发、计时器像失灵、保存报错"。
+       现在一律走 setTimeout，让出一次事件循环，栈就不会长。
+       再加一个自旋保护：短时间内连续到点太多次就主动放慢，避免把浏览器占死。 */
+    var _tn=now();
+    if(_tn-_schedSpinAt>1000){_schedSpinAt=_tn;_schedSpin=0}
+    _schedSpin++;
+    var _sd=_schedSpin>40?300:0;
+    _timer=setTimeout(function(){nx.fn();schedule()},_sd);
+  }
 }
 function markRead(m){
   if(m.read)return;
@@ -3605,6 +3740,8 @@ function rndLetterDelay(c){
   return rnd(min,max)*1000;
 }
 function replyLetter(l){
+  if(l&&l.answered)return;
+  if(l)l.answered=true;
   var c=contact(l.contactId);if(!c)return;
   l.answered=true;
   var n=clamp(((state.settings&&state.settings.letterCount)||2),1,8);
@@ -4657,7 +4794,7 @@ function renderMe(){
   for(var ia=0;ia<APPS.length;ia++){
     var ap=APPS[ia];
     var shown=state.appIcons[ap.v];
-    var prev=shown?'<img src="'+shown+'" alt="">':'<i style="background:'+ap.c+'">'+esc(ap.n.charAt(0))+'</i>';
+    var prev=shown?'<img src="'+mediaUrlSync(shown)+'" alt="">':'<i style="background:'+ap.c+'">'+esc(ap.n.charAt(0))+'</i>';
     html+='<div class="icon-edit-item"><span class="ie-ic'+(shown?' has-img':'')+'">'+prev+'</span>'
       +'<span class="ie-nm">'+esc(ap.n)+'图标</span>'
       +'<button data-act="icon-upload" data-v="'+ap.v+'">'+(shown?'换一张':'换图')+'</button>'
@@ -4870,7 +5007,7 @@ function sheetContact(id){
 function updAvatarPrev(){
   var p=$('#avatarPrev');if(!p)return;
   var nm=($('#cName')&&$('#cName').value.trim())||((contact(state.activeContact)||{}).name)||'?';
-  if(_avImg){p.innerHTML='<img src="'+_avImg+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';p.style.background='transparent';p.textContent='';return}
+  if(_avImg){p.innerHTML='<img src="'+mediaUrlSync(_avImg)+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';p.style.background='transparent';p.textContent='';return}
   p.style.background=_avColor;p.textContent=nm.charAt(0);
 }
 function pickColor(col){
@@ -5120,6 +5257,37 @@ function importBackup(input){
     }
     /* 导入是"整份替换"，属于有意为之的大改动，允许直接覆盖大容量存储里的旧副本 */
     try{window.__forceFullWrite=1}catch(e){}
+    /* ★ 关键：导入进来的存档里，"下次该发消息的时间"往往是几天前甚至几个月前，
+       直接跑补发逻辑就会一口气生成几百条消息（就是你看到的"陆沉一直发消息、
+       计时器不管用"）。所以导入后统一把节奏重置到"现在"重新开始。 */
+    try{
+      var _t0=now();
+      merged.lastActive=_t0;
+      merged.nextInit={};
+      merged.nextPostDue={};
+      merged.nextCallDue=_t0+rnd(15,60)*60000;
+      merged.nextLetterDue=_t0+rnd(180,1920)*60000;
+      merged.nextVisitDue=_t0+rnd(180,720)*60000;
+      merged.nextInviteDue=_t0+rnd(180,720)*60000;
+      delete merged._pending;
+      /* 把所有"已经到点但还没回"的标记清掉，补发时就不会一次爆一堆 */
+      var _i2;
+      if(Array.isArray(merged.messages))for(_i2=0;_i2<merged.messages.length;_i2++){
+        var _m2=merged.messages[_i2];
+        if(!_m2)continue;
+        if(_m2.readDue)_m2.read=true;
+        if(_m2.dir==='out'&&_m2.replyDue&&!_m2.answered)_m2.answered=true;
+      }
+      if(Array.isArray(merged.letters))for(_i2=0;_i2<merged.letters.length;_i2++){
+        var _l2=merged.letters[_i2];
+        if(_l2&&_l2.dir==='out'&&_l2.replyDue)_l2.answered=true;
+      }
+      if(Array.isArray(merged.posts))for(_i2=0;_i2<merged.posts.length;_i2++){
+        var _p2=merged.posts[_i2];
+        if(_p2&&_p2.commentDue)_p2.commented=true;
+      }
+    }catch(e){}
+    try{window.__saveReentry=0}catch(e){}
     /* ③ 大图放回内存 + 存进 IndexedDB（放到最后，失败也不影响数据本身） */
     /* 导出时图片是 dataURL；导入时要重新收进媒体库、还原成引用，
        否则状态里又会塞回一大堆 base64（内存和存档体积都会炸回去）。
@@ -5147,9 +5315,14 @@ function importBackup(input){
     try{window.__forceFullWrite=0}catch(e){}
     /* ⑤ 重画：这一步失败不代表数据没进来，所以单独兜住 */
     var painted=true;
-    try{ closeSheet();renderAll();schedule() }catch(e4){ painted=false }
+    try{ closeSheet();renderAll();schedule() }catch(e4){
+      painted=false;
+      /* 把真实原因留下来（以前只吞掉，用户只看到"界面重画时出错"） */
+      window.__paintErr={name:(e4&&e4.name)||'',msg:(e4&&e4.message)||String(e4),at:Date.now(),
+        stack:String((e4&&e4.stack)||'').split('\n').slice(0,8).join(' <- ')};
+    }
     if(painted)toast(mode==='replace'?'备份已导入（覆盖）':'备份已导入（合并）');
-    else toast('数据已导入，界面重画时出错，请刷新一下页面');
+    else toast('数据已导入，但界面重画出错：'+((window.__paintErr&&window.__paintErr.msg)||'未知')+'（刷新一下即可，数据是好的）');
     input.value='';
     });
   };
@@ -5278,6 +5451,11 @@ function resumePending(){
 function replyChat(m){
   var c=contact(m.contactId)||activeContact();
   if(!c)return;
+  if(m.answered)return;                 /* 已经回过了就别再回一次 */
+  /* ★ 关键：这里原来**没有**把 m.answered 置 true。
+     调度器的条件是"dir==='out' && replyDue && !answered"，
+     所以同一条消息会被反复判定为"还没回"，于是无限回复。 */
+  m.answered=true;
   if(m.kind==='poll'){replyPoll(m);return}
   var count=pickBurstCount(c),quote=null;
   if(Math.random()*100<((state.settings&&state.settings.quotePct)!=null?state.settings.quotePct:40)){
@@ -5523,7 +5701,7 @@ function sheetStickers(){
     html+='<div class="stk-panel">';
     for(var j=0;j<state.stickers.length;j++){
       var s0=state.stickers[j];
-      html+='<button class="stk-item" data-act="sticker-send" data-id="'+s0.id+'"><img class="stk-img" src="'+s0.img+'" alt="表情"></button>';
+      html+='<button class="stk-item" data-act="sticker-send" data-id="'+s0.id+'"><img class="stk-img" loading="lazy" src="'+mediaUrlSync(s0.img)+'" alt="表情"></button>';
     }
     html+='</div>';
   }else{
@@ -6021,6 +6199,13 @@ function sw2(key,on){
 /* ================= 后台保活：离线补发 ================= */
 function syncCatchUp(){
   _ntfSilent=true;
+  /* 补发的总量上限：离线很久（或导入了一份时间戳很旧的存档）时，
+     原来会按联系人 × 消息条数一路补下去，一次生成几百条消息 ——
+     界面卡死、计时器看起来"失灵"，一串同步调用还能把调用栈打穿。
+     这里统一封顶。 */
+  var _gen=0;
+  var _GENMAX=24;
+  var _MSGMAX=20000;
   var last=state.lastActive||now();
   state.lastActive=now();
   var end=now();
@@ -6028,10 +6213,12 @@ function syncCatchUp(){
   for(var k=0;k<state.contacts.length;k++){
     var c=state.contacts[k];
     var t=state.nextInit[c.id]||last,guard=0;
-    while(t<end&&guard<50){
+    while(t<end&&guard<50&&_gen<_GENMAX&&state.messages.length<_MSGMAX){
       t+=rndDelay(c,'init');
-      if(t<=end){pushBurst(c,t,pickBurstCount(c));maybePost(c,t);guard++}
+      if(t<=end){pushBurst(c,t,pickBurstCount(c));maybePost(c,t);guard++;_gen++}
+      else break;
     }
+    if(_gen>=_GENMAX){state.nextInit[c.id]=Math.max(t,end);continue}
     state.nextInit[c.id]=Math.max(t,end);
     for(var i=0;i<state.messages.length;i++){
       var m=state.messages[i];
@@ -6041,7 +6228,7 @@ function syncCatchUp(){
           m.answered=true;
           if(m.kind==='poll'){replyPoll(m,Math.min(m.replyDue,end))}
           else if(c.readNR&&Math.random()*100<c.readNRPct){m.replyDue=null}
-          else pushBurst(c,Math.min(m.replyDue,end),pickBurstCount(c));
+          else if(_gen<_GENMAX&&state.messages.length<_MSGMAX){pushBurst(c,Math.min(m.replyDue,end),pickBurstCount(c));_gen++}
         }
       }
     }
@@ -6053,7 +6240,7 @@ function syncCatchUp(){
         var pool=state.writerCards&&state.writerCards.length?state.writerCards:state.cards;
         var body=drawCards(n,pool).join('\n\n');
         if(!body)body=drawCardText();
-        state.letters.push({id:uid(),contactId:c.id,dir:'in',title:'Re：'+(l.title||'来信'),body:body,ts:Math.min(l.replyDue,end),unread:true});
+        if(_gen<_GENMAX){state.letters.push({id:uid(),contactId:c.id,dir:'in',title:'Re：'+(l.title||'来信'),body:body,ts:Math.min(l.replyDue,end),unread:true});_gen++}
       }
     }
   }
@@ -6076,8 +6263,10 @@ function syncCatchUp(){
     if(loop.getTime()-d1.getTime()>7*86400000)break;
   }
   _ntfSilent=false;
+  state.lastActive=end;
   save();renderAll();schedule();
-  toast('补发完成：离线期间的新消息已同步');
+  if(window.__saveReentry)toast('补发时出现了嵌套保存 '+window.__saveReentry+' 次（已自动拦住，不会再卡死）');
+  else toast('补发完成：离线期间的新消息已同步');
 }
 
 /* ================= 弹层 ================= */
@@ -6541,11 +6730,11 @@ function incomingCall(mode){
   var stage=mode==='video'?'<div class="video-stage" id="videoStage"></div>':'';
   ov.innerHTML='<div class="ring-box">'+stage+'<div class="call-avatar" id="callAv"></div><div class="call-name">'+esc(c.name)+'</div><div class="call-state">'+(mode==='video'?'邀请视频通话…':'正在呼叫…')+'</div><div class="call-timer"></div><div class="call-btns"><button class="call-btn accept" data-call="accept"><span class="ic">'+ICON_PHONE+'</span>接听</button><button class="call-btn" data-call="decline"><span class="ic">'+ICON_PHONE+'</span>拒绝</button></div></div>';
   var av=ov.querySelector('#callAv');
-  if(c.avatarType==='img'&&c.avatarImg){av.innerHTML='<img src="'+c.avatarImg+'" alt="">'}
+  if(c.avatarType==='img'&&c.avatarImg){av.innerHTML='<img src="'+mediaUrlSync(c.avatarImg)+'" alt="">'}
   else{av.style.background=c.color;av.textContent=(c.name||'?').charAt(0)}
   if(mode==='video'){
     var vs=ov.querySelector('#videoStage');
-    if(c.avatarType==='img'&&c.avatarImg)vs.innerHTML='<img class="vf" src="'+c.avatarImg+'" alt=""><span class="video-badge">HD</span>';
+    if(c.avatarType==='img'&&c.avatarImg)vs.innerHTML='<img class="vf" src="'+mediaUrlSync(c.avatarImg)+'" alt=""><span class="video-badge">HD</span>';
     else{vs.style.background=c.color;vs.innerHTML='<span style="font-family:var(--serif);font-size:calc(60px*var(--fs));font-weight:700;color:rgba(255,255,255,.75)">'+(c.name||'?').charAt(0)+'</span>'}
     vs.innerHTML+='<span class="vs-label">对方画面</span>';
   }
@@ -6588,7 +6777,7 @@ function callMini(){
   var ov=$('#callOverlay');
   ov.className='show mini';
   ov.setAttribute('style','background:none;box-shadow:none');
-  var av=c.avatarType==='img'&&c.avatarImg?'<img src="'+c.avatarImg+'" alt="">':'<i style="background:'+(c.color||'#7A9CC6')+'">'+(c.name||'?').charAt(0)+'</i>';
+  var av=c.avatarType==='img'&&c.avatarImg?'<img src="'+mediaUrlSync(c.avatarImg)+'" alt="">':'<i style="background:'+(c.color||'#7A9CC6')+'">'+(c.name||'?').charAt(0)+'</i>';
   ov.innerHTML='<div class="call-mini"><span class="cm-av">'+av+'</span><div class="cm-tx"><b>'+esc(c.name)+'</b><span class="cm-timer">'+( _call.mode==='video'?'视频':'语音')+'通话中 '+fmtCall(_call.sec||0)+'</span></div><button data-call="expand" data-nodrag="1" title="展开">'+ICON_EXPAND+'</button><button class="duan" data-call="hangup" data-nodrag="1" title="挂断">'+ICON_PHONE+'</button></div>';
   /* 记住上次把通话条拖到的位置 */
   if(state._callPos){
@@ -6605,9 +6794,9 @@ function callExpand(){
   ov.setAttribute('style',callBgStyle());
   var body;
   if(_call.mode==='video'){
-    body='<div class="video-stage">'+(c.avatarType==='img'&&c.avatarImg?'<img class="vf" src="'+c.avatarImg+'" alt=""><span class="video-badge">HD</span>':'<span style="font-family:var(--serif);font-size:calc(60px*var(--fs));font-weight:700;color:rgba(255,255,255,.75)">'+(c.name||'?').charAt(0)+'</span>')+'<span class="vs-label">对方画面</span></div>';
+    body='<div class="video-stage">'+(c.avatarType==='img'&&c.avatarImg?'<img class="vf" src="'+mediaUrlSync(c.avatarImg)+'" alt=""><span class="video-badge">HD</span>':'<span style="font-family:var(--serif);font-size:calc(60px*var(--fs));font-weight:700;color:rgba(255,255,255,.75)">'+(c.name||'?').charAt(0)+'</span>')+'<span class="vs-label">对方画面</span></div>';
   }else{
-    body='<div class="call-avatar">'+(c.avatarType==='img'&&c.avatarImg?'<img src="'+c.avatarImg+'" alt="">':'<i style="background:'+(c.color||'#7A9CC6')+'">'+(c.name||'?').charAt(0)+'</i>')+'</div>';
+    body='<div class="call-avatar">'+(c.avatarType==='img'&&c.avatarImg?'<img src="'+mediaUrlSync(c.avatarImg)+'" alt="">':'<i style="background:'+(c.color||'#7A9CC6')+'">'+(c.name||'?').charAt(0)+'</i>')+'</div>';
   }
   var micon='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9a8 8 0 0 1 16 0"/><path d="M5.5 11a5.5 5.5 0 0 1 13 0"/><path d="M12 12l3.5 4H14l-2 3-2-3H8.5z"/></svg>';
   var sicon='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 5l15 15"/><path d="M11 5v2.5m0 9V19a1 1 0 0 0 1.8.6M17 10c.8 1.5 1 2.8.6 4"/></svg>';
