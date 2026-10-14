@@ -1097,6 +1097,8 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .stg-bar{height:6px;border-radius:999px;background:rgba(200,175,190,.25);overflow:hidden;margin:7px 0 3px}
 .stg-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#FFC3D6,#E9759F)}
 .stg-acts{display:flex;gap:10px;margin-top:10px}
+.stg-sub{margin-top:12px;padding-top:10px;border-top:1px solid rgba(200,175,190,.28);font-size:calc(12px*var(--fs));font-weight:700;color:var(--ink)}
+.stg-row.stg-err b{color:#C4577E;font-weight:600;max-width:62%;text-align:right;word-break:break-all}
 /* ===== v8 组件外观：大圆角磨砂玻璃 =====
    版式参考用户给的截图：封面压圆头像 / 照片右下带标签条 / # 标题清单 / 黑胶唱片。
    只改外观，不动任何位置逻辑（widgetPos / 拖拽那套完全不碰）。 */
@@ -1783,9 +1785,41 @@ function restoreFull(d,tgt){
   if(typeof renderAll==='function')renderAll();
 }
 var state=load()||defaultState();
+/* 记下"本机存档本来就是空的"这个事实（__loadStatus 后面会被清掉） */
+window.__loadWasDbonly=(window.__loadStatus==='dbonly');
 /* 全新安装也要跑一次迁移：否则本版本新增的设置项会缺失（保存时又不会补） */
 try{state=migrate(state)}catch(e){}
 if(window.__restoreCandidate){var _rc=window.__restoreCandidate;window.__restoreCandidate=null;restoreFull(_rc,state)}
+/* 启动后比一比：IndexedDB 里的整份存档可能比 localStorage 那份更全
+   （localStorage 写不下时会被裁掉旧的聊天记录）。
+   不自动采用的话，用户会看到"聊天记录少了"——明明数据还在大容量存储里。
+   只在内存里已经有数据时比较；localStorage 全空的情况仍走原来的"要不要恢复"提示。 */
+function preferRicherFromIdb(){
+  try{
+    /* 注意：不能用"内存里有没有消息"当门槛。
+       localStorage 写不下时会把消息裁到 0 条，那种情况下恰恰最需要从大容量存储补回来。
+       真正要避开的只有一种：localStorage 本来就全空（那种走原来的"要不要恢复"提示流程）。 */
+    if(window.__loadWasDbonly)return;
+    idbGet('full').then(function(full){
+      if(typeof full!=='string'||full.length<200)return;
+      var t=null;
+      try{t=JSON.parse(full)}catch(e){return}
+      if(!t||typeof t!=='object'||!Array.isArray(t.contacts)||!t.contacts.length)return;
+      var a=Array.isArray(t.messages)?t.messages.length:0;
+      var b=state.messages.length;
+      var ac=Array.isArray(t.cards)?t.cards.length:0;
+      var bc=Array.isArray(state.cards)?state.cards.length:0;
+      if(a>b||ac>bc){
+        var what=(a>b)?(a+' 条消息'):(ac+' 张字卡');
+        state=normalizeBig(migrate(t));
+        try{window.__loadStatus='';window.__loadNote=''}catch(e){}
+        try{save()}catch(e){}
+        try{renderAll()}catch(e){}
+        if(typeof toast==='function')toast('已从大容量存储载入更完整的存档（'+what+'）');
+      }
+    }).catch(function(){});
+  }catch(e){}
+}
 /* ================= 图片媒体库（v8） =================
    图片不再以 base64 文本塞进状态里，而是：
      · 上传时转成二进制 Blob，存进独立的 IndexedDB（zika-media / media）
@@ -1883,6 +1917,92 @@ function mediaStats(){
     });
   }).catch(function(){return {n:0,bytes:0}});
 }
+/* ===== 备份用的图片收集 =====
+   注意：imgValues() 只认"超过 4000 字符的长字符串"，
+   而图片改成媒体库之后，状态里存的是 28 个字符的 zika-media:// 引用 ——
+   所以备份**不能**再用 imgValues 收图，否则导出的备份里一张图都没有，
+   换台设备恢复就全变默认图。下面这套按"路径"收，引用也认。 */
+function allImagePaths(root){
+  root=root||state;
+  var out=[],i;
+  function add(p){ if(out.indexOf(p)<0)out.push(p) }
+  for(i=0;i<IMG_PATHS.length;i++)add(IMG_PATHS[i]);
+  var k;
+  if(root.appIcons)for(k in root.appIcons)add('appIcons.'+k);
+  if(root.widgetImgs)for(k in root.widgetImgs)add('widgetImgs.'+k);
+  if(root.widgetPhoto)add('widgetPhoto.img');
+  if(root.stickers)for(i=0;i<root.stickers.length;i++)add('stickers.'+i+'.img');
+  if(root.contacts)for(i=0;i<root.contacts.length;i++)add('contacts.'+i+'.avatarImg');
+  if(root.messages)for(i=0;i<root.messages.length;i++)add('messages.'+i+'.img');
+  if(root.posts)for(i=0;i<root.posts.length;i++){
+    add('posts.'+i+'.avatarImg');
+    if(root.posts[i]&&Array.isArray(root.posts[i].imgs))
+      for(var j=0;j<root.posts[i].imgs.length;j++)add('posts.'+i+'.imgs.'+j);
+  }
+  return out;
+}
+function blobToDataUrl(blob){
+  return new Promise(function(res){
+    try{
+      var fr=new FileReader();
+      fr.onload=function(){res(String(fr.result||''))};
+      fr.onerror=function(){res('')};
+      fr.readAsDataURL(blob);
+    }catch(e){res('')}
+  });
+}
+/** 一个图片值 → 可写进备份文件的 dataURL（引用就回媒体库取二进制再转） */
+function mediaDataUrl(v){
+  if(!v)return Promise.resolve('');
+  if(!isMediaRef(v))return Promise.resolve(v);      /* 老的 dataURL 直接用 */
+  return mediaGetBlob(v).then(function(b){ return b?blobToDataUrl(b):'' });
+}
+/** 按勾选的分类收集要写进备份的图片 */
+function collectImagesForBackup(sel,withImages){
+  if(!withImages)return Promise.resolve({});
+  var paths=allImagePaths(state),jobs=[];
+  for(var i=0;i<paths.length;i++){
+    var p=paths[i];
+    var c=backupCatOfPath(p);
+    if(c&&sel.indexOf(c)<0)continue;
+    var v=imgAt(state,p);
+    if(!v)continue;
+    jobs.push({p:p,v:v});
+  }
+  var out={};
+  return Promise.all(jobs.map(function(j){
+    return mediaDataUrl(j.v).then(function(u){ if(u)out[j.p]=u }).catch(function(){});
+  })).then(function(){return out});
+}
+/** 四个本机键各占多少字节 —— 报"存储异常"时先看这几个数字 */
+function localKeySizes(){
+  var opts=[['主存档',KEY],['镜像',KEY_MIRROR],['上一份备份',KEY+'_bak'],['损坏原文',KEY_RAW]];
+  var out=[];
+  for(var i=0;i<opts.length;i++){
+    var v=null;
+    try{v=localStorage.getItem(opts[i][1])}catch(e){}
+    out.push({n:opts[i][0],len:v?v.length:0});
+  }
+  return out;
+}
+/** 手动释放：把旧副本挪进大容量存储再从 localStorage 删掉，然后重写存档 */
+function freeLocalSpace(){
+  var keys=[['mirror',KEY_MIRROR],['bak',KEY+'_bak'],['rawfail',KEY_RAW]];
+  var freed=0,cnt=0;
+  for(var i=0;i<keys.length;i++){
+    var v=null;
+    try{v=localStorage.getItem(keys[i][1])}catch(e){}
+    if(!v)continue;
+    try{idbPut('spill_'+keys[i][0],v)}catch(e){}
+    try{localStorage.removeItem(keys[i][1]);freed+=v.length;cnt++}catch(e){}
+  }
+  var ok=false;
+  try{window.__saveErr=null;ok=save()}catch(e){}
+  if(!cnt)toast('没有可释放的旧副本');
+  else if(ok)toast('已释放约 '+fmtBytes(freed)+'（'+cnt+' 份旧副本），存档已重新写入');
+  else toast('释放了约 '+fmtBytes(freed)+'，但仍写入失败，请看下面的诊断');
+  fillStoragePanel();
+}
 function fmtBytes(n){
   n=Number(n)||0;
   if(n<1024)return n+' B';
@@ -1896,8 +2016,8 @@ function fillStoragePanel(){
   if(!el)return;
   var est=(navigator.storage&&navigator.storage.estimate)?navigator.storage.estimate().catch(function(){return null}):Promise.resolve(null);
   var per=(navigator.storage&&navigator.storage.persisted)?navigator.storage.persisted().catch(function(){return false}):Promise.resolve(false);
-  Promise.all([est,mediaStats(),per]).then(function(a){
-    var e=a[0],m=a[1],persisted=a[2];
+  Promise.all([est,mediaStats(),per,idbGet('full').catch(function(){return null})]).then(function(a){
+    var e=a[0],m=a[1],persisted=a[2],_full=a[3];
     var h='';
     if(e&&e.quota){
       var pct=Math.min(100,Math.round((e.usage||0)/e.quota*100));
@@ -1909,6 +2029,18 @@ function fillStoragePanel(){
     }
     h+='<div class="stg-row"><span>图片</span><b>'+m.n+' 张 · '+fmtBytes(m.bytes)+'</b></div>';
     h+='<div class="stg-row"><span>持久化保护</span><b>'+(persisted?'已开启':'未开启')+'</b></div>';
+    h+='<div class="stg-sub">主存储（大容量）</div>';
+    h+='<div class="stg-row"><span>完整存档</span><b>'+(_full?fmtBytes(String(_full).length):'还没有')+'</b></div>';
+    h+='<div class="stg-row"><span>上次写入</span><b>'+esc(String(window.__saveDb||'—'))+'</b></div>';
+    h+='<div class="stg-sub">本机存档占用</div>';
+    var _ls=localKeySizes();
+    for(var _li=0;_li<_ls.length;_li++)h+='<div class="stg-row"><span>'+_ls[_li].n+'</span><b>'+fmtBytes(_ls[_li].len)+'</b></div>';
+    if(window.__saveErr){
+      h+='<div class="stg-row stg-err"><span>上次保存出错</span><b>'+esc(String(window.__saveErr.name||'')+' '+(window.__saveErr.msg||''))+'</b></div>';
+    }else{
+      h+='<div class="stg-row"><span>上次保存</span><b>'+(window.__saveStatus||'ok')+'</b></div>';
+    }
+    h+='<div class="stg-acts"><button class="btn ghost" style="flex:1" data-act="stg-free">释放本地空间</button></div>';
     h+='<div class="stg-acts"><button class="btn ghost" style="flex:1" data-act="stg-persist">'+(persisted?'重新申请':'申请持久化')+'</button><button class="btn ghost" style="flex:1" data-act="stg-refresh">刷新</button></div>';
     el.innerHTML=h;
   }).catch(function(){ el.innerHTML='<div class="stg-row"><span>读取失败</span><b></b></div>' });
@@ -2121,6 +2253,47 @@ function idbPut(key,val){
     });
   }).catch(function(){idbWarn()});
 }
+/** 会如实告诉成败的写入：idbPut 内部把错误吞掉了，
+    拿它来判断"存好了没有"会得出假成功，所以另开一个。 */
+function idbPutOK(key,val){
+  return idbOpen().then(function(db){
+    if(!db)return false;
+    return new Promise(function(res,rej){
+      try{
+        var tx=db.transaction('big','readwrite');
+        tx.objectStore('big').put(val,key);
+        tx.oncomplete=function(){res(true)};
+        tx.onerror=function(){rej(tx.error)};
+        tx.onabort=function(){rej(tx.error)};
+      }catch(e){rej(e)}
+    });
+  }).then(function(){return true}).catch(function(){try{idbWarn()}catch(e){}return false});
+}
+/** 写入整份存档前的保护：
+    启动时如果本机缓存被裁过（比如消息被裁成 0 条），
+    紧接着的 boot 保存会拿这份"假空档"去覆盖大容量存储里的厚实副本 —— 那就真丢了。
+    所以先比一比：新的这份明显更空、而库里那份还很厚，就跳过覆盖。 */
+function idbPutFullSafe(json){
+  function richOf(txt){
+    try{
+      var o=JSON.parse(txt);
+      var m=(o&&Array.isArray(o.messages))?o.messages.length:0;
+      var c=(o&&Array.isArray(o.cards))?o.cards.length:0;
+      return m+c;
+    }catch(e){return -1}
+  }
+  return idbGet('full').then(function(old){
+    if(!window.__forceFullWrite&&typeof old==='string'&&old.length>200){
+      var a=richOf(old),b=richOf(json);
+      if(a>=20&&b<a*0.5){
+        window.__saveSkippedBackup=1;
+        window.__saveNote='这次的存档比大容量存储里的旧存档少很多，已跳过覆盖以保护数据（下次存完整内容时会正常写入）';
+        return 'kept';
+      }
+    }
+    return idbPutOK('full',json).then(function(good){return good?'ok':'fail'});
+  }).catch(function(){return 'fail'});
+}
 function idbGet(key){
   return idbOpen().then(function(db){
     return new Promise(function(res,rej){
@@ -2206,6 +2379,41 @@ function writeLocal(json){
       }catch(e){}
     }
   }
+  /* ==== 关键一步：腾出"别的键"占的空间 ====
+     localMirror / _bak / _rawfail 三份副本加起来可能是主键的好几倍，
+     它们一直占着配额，会让主键怎么写都失败 —— 以前从来没释放过。
+     做法：先把内容挪进 IndexedDB（不丢），再从 localStorage 删掉，然后重试。 */
+  try{
+    var _spill=[['mirror',KEY_MIRROR],['bak',KEY+'_bak'],['rawfail',KEY_RAW]];
+    var _freedAny=false,_freedBytes=0;
+    for(var _si=0;_si<_spill.length;_si++){
+      var _txt=null;
+      try{_txt=localStorage.getItem(_spill[_si][1])}catch(e){}
+      if(!_txt)continue;
+      try{idbPut('spill_'+_spill[_si][0],_txt)}catch(e){}
+      try{localStorage.removeItem(_spill[_si][1]);_freedAny=true;_freedBytes+=_txt.length}catch(e){}
+    }
+    window.__saveDiag={json:json.length,freed:_freedBytes,at:Date.now()};
+    if(_freedAny){
+      /* 先用完整 json 试 */
+      try{
+        localStorage.setItem(KEY,json);
+        window.__saveStatus='slim';
+        window.__saveNote='本机存档空间紧张，已把旧副本挪到大容量存储腾出空间（约 '+Math.round(_freedBytes/1024)+' KB），你的数据都还在';
+        return {ok:true,json:json};
+      }catch(e){}
+      /* 再用瘦身版试 */
+      try{
+        var _sl=JSON.parse(json);slimForLocal(_sl);
+        var _sj=JSON.stringify(_sl);
+        localStorage.setItem(KEY,_sj);
+        window.__saveStatus='slim';
+        window.__saveNote='本机存档空间紧张，已腾出空间并只保留轻量副本；图片仍在大容量存储里';
+        return {ok:true,json:_sj};
+      }catch(e){}
+    }
+  }catch(e){}
+
   window.__saveStatus='failed';
   /* 最后一步：连消息都删光了还写不下，就只保设置，别把设置也丢了 */
   try{
@@ -2291,42 +2499,88 @@ function save(){
     }
     var pre=null;
     try{pre=localStorage.getItem(KEY)}catch(e){}
-    var ok=writeBoth(json);
-    if(ok){
-      window.__saveStatus='ok';
+
+    /* ===== 主存储改成 IndexedDB（这是"能存几个 G"的关键）=====
+       localStorage 只有约 5MB，聊天记录一多就永远写不下，于是天天报"存储异常"。
+       参考站的做法也是：主数据放 IndexedDB，localStorage 只当小的安全副本。
+       这里改成：完整存档先写 IndexedDB —— 它成了才算保存成功；
+                 localStorage 退化成"轻量缓存"，写不下只是降级，不再等于保存失败。 */
+    var _rich=true;
+    if(!pre){
       /* 脏数据保护：如果这份存档明显比备份里的还“空”，就不要拿它覆盖备份，
          免得刚出问题时一个默认存档把还能救回来的数据冲掉 */
-      var _rich=true;
-      if(!pre){
-        _rich=false;
-        try{
-          var _m=localStorage.getItem(KEY_MIRROR),_b=localStorage.getItem(KEY+'_bak');
-          var _o=null;
-          try{_o=JSON.parse(json)}catch(e0){}
-          var _kn=_o?Object.keys(_o).length:0;
-          var _cands=[_m,_b];
-          for(var _q=0;_q<_cands.length;_q++){
-            if(!_cands[_q])continue;
-            try{var _p=JSON.parse(_cands[_q]);if(_p&&Object.keys(_p).length>_kn+2)_rich=true}catch(e1){}
+      _rich=false;
+      try{
+        var _m=localStorage.getItem(KEY_MIRROR),_b=localStorage.getItem(KEY+'_bak');
+        var _o=null;
+        try{_o=JSON.parse(json)}catch(e0){}
+        var _kn=_o?Object.keys(_o).length:0;
+        var _cands=[_m,_b];
+        for(var _q=0;_q<_cands.length;_q++){
+          if(!_cands[_q])continue;
+          try{var _p=JSON.parse(_cands[_q]);if(_p&&Object.keys(_p).length>_kn+2)_rich=true}catch(e1){}
+        }
+      }catch(e2){}
+    }
+    var dbOK=false;
+    if(_rich&&window.indexedDB){
+      dbOK=true;                       /* 先乐观，紧接着异步核实真伪 */
+      window.__saveDb='pending';
+      window.__saveFullBytes=json.length;
+      try{
+        idbPutFullSafe(json).then(function(good){
+          window.__saveDb=good;
+          if(good==='fail'){
+            /* 大容量存储没写进去。这时候要看本机那份是否完整：
+               · 本机写全了（ok）      → 没事
+               · 本机也被裁过（slim）或只写了要点（dbonly） → 等于没有任何一处存全，必须报警 */
+            window.__saveErr={t:Date.now(),name:'IdbWriteFailed',msg:'大容量存储写入失败',bytes:json.length};
+            var _lossy=!!window.__saveLocalLossy||window.__saveStatus==='dbonly';
+            if(_lossy)window.__saveStatus='failed';
+            if(_lossy&&typeof toast==='function'){
+              toast('保存出问题了：本机缓存被裁、大容量存储又写不进去。请立刻到 设置→备份 导出备份');
+            }
+          }else if(window.__saveStatus==='dbonly'){
+            window.__saveStatus='ok';   /* 核实成功：它确实是保住了 */
           }
-        }catch(e2){}
-      }
-      if(_rich){
-        /* 整份存档也留一份到 IndexedDB，作为 localStorage 被清掉时的第二副本 */
-        try{idbPut('full',json)}catch(e){}
-      }else{
-        window.__saveSkippedBackup=1;
-      }
+        });
+      }catch(e){ window.__saveDb='fail'; dbOK=false }
     }else{
-      window.__saveStatus='local-failed';
-      /* localStorage 完全写不进：设置至少留在 IndexedDB 里 */
-      try{idbPut('full',json)}catch(e){}
+      window.__saveSkippedBackup=1;
+      dbOK=!!window.__saveDb&&window.__saveDb==='ok';
+    }
+
+    var ok=writeBoth(json);
+    /* 立刻记下"本机这份是否被裁过" —— 下面马上会把 __saveStatus 覆盖成 ok，
+       而 IndexedDB 的成败是异步回来的，到那时就看不出来了 */
+    window.__saveLocalLossy=(window.__saveStatus==='slim');
+    if(ok&&dbOK){
+      window.__saveStatus='ok';
+      if(window.__saveErr)window.__saveErr=null;
+    }else if(ok){
+      window.__saveStatus='ok';
+      if(window.__saveErr)window.__saveErr=null;
+    }else if(dbOK){
+      /* 本机缓存写不下，但完整存档已经进了大容量存储 —— 数据没丢，不算失败 */
+      window.__saveStatus='dbonly';
+      window.__saveNote='本机缓存写不下了，但完整存档已存进大容量存储，数据没有丢';
+    }else{
+      window.__saveStatus='failed';
     }
     finalizeWrite();
-    announceSave(ok,pre,json);
-    return ok;
+    announceSave(ok||dbOK,pre,json);
+    return ok||dbOK;
   }catch(e){
-    if(typeof toast==='function')toast('保存失败：浏览器存储异常');
+    /* 以前这里把**任何**异常都说成"浏览器存储异常"，害得排查方向全错。
+       现在把真实错误记下来并显示出来。 */
+    var _nm=(e&&e.name)||'',_ms=(e&&e.message)||String(e);
+    window.__saveErr={t:Date.now(),name:_nm,msg:_ms,bytes:(window.__saveBytes||0)};
+    var _isQuota=(_nm==='QuotaExceededError'||_nm==='NS_ERROR_DOM_QUOTA_REACHED'||/quota|exceeded|空间/i.test(_ms));
+    if(typeof toast==='function'){
+      toast(_isQuota
+        ? '保存失败：本机存储空间不足。去 设置→存储 点「释放本地空间」'
+        : '保存失败：'+_ms+'（去 设置→存储 看诊断）');
+    }
     return false;
   }
 }
@@ -2334,7 +2588,10 @@ function save(){
 function announceSave(ok,pre,json){
   try{
     if(!ok&&typeof toast==='function')toast('保存失败：浏览器存储异常，请到 设置→备份 导出备份');
-    if(window.__saveStatus==='slim'&&window.__saveNote&&!window.__saveNotified){
+    if(!ok&&typeof toast==='function'&&window.__saveStatus!=='failed'){
+      /* 交给下面的 note 说明，不再重复喊"存储异常" */
+    }
+    if((window.__saveStatus==='slim'||window.__saveStatus==='dbonly')&&window.__saveNote&&!window.__saveNotified){
       window.__saveNotified=1;
       if(typeof toast==='function')toast(window.__saveNote);
     }
@@ -4704,10 +4961,14 @@ function backupCatKeys(k){
 /** 大图路径属于哪一类 */
 function backupCatOfPath(p){
   if(p.indexOf('settings.')===0)return 'desktop';
+  if(p.indexOf('appIcons.')===0)return 'desktop';
   if(p.indexOf('me.')===0)return 'me';
   if(p.indexOf('companion.')===0)return 'companion';
   if(p.indexOf('contacts.')===0)return 'contacts';
   if(p.indexOf('widgetImgs.')===0||p.indexOf('widgetPhoto')===0)return 'widgets';
+  if(p.indexOf('messages.')===0)return 'chat';
+  if(p.indexOf('stickers.')===0)return 'stickers';
+  if(p.indexOf('posts.')===0)return 'moments';
   return '';
 }
 function cloneJSON(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
@@ -4751,12 +5012,15 @@ function backupBuild(sel,withImages){
   /* 大图统一处理：
      · 勾了"包含图片" → 图片单独放进 d.images，state 里删掉，避免同一张图存两份（体积翻倍）
      · 没勾 → 直接删掉，档案才会小（代价是导入后壁纸/头像恢复成默认） */
-  var live=imgValues(state);
+  /* 图片位置一律从 state 里摘掉（图片本体由 backupExport 异步收集进 d.images）。
+     这里必须按 allImagePaths 判定：媒体引用只有 28 个字符，imgValues 认不出来。 */
+  var paths=allImagePaths(state);
   var del=[];
-  for(var p in live){
+  for(var pi=0;pi<paths.length;pi++){
+    var p=paths[pi];
     var c=backupCatOfPath(p);
     if(c&&sel.indexOf(c)<0)continue;         /* 没勾这一类，整类都不动 */
-    if(withImages)d.images[p]=live[p];
+    if(!imgAt(state,p))continue;
     del.push(p);
   }
   for(var q=0;q<del.length;q++){
@@ -4768,7 +5032,7 @@ function backupBuild(sel,withImages){
     }
     if(ok&&cur)try{delete cur[dots[dots.length-1]]}catch(e){}
   }
-  d.hasImages=withImages&&Object.keys(d.images).length>0;
+  d.hasImages=false;                         /* 真正的值等 backupExport 收完再定 */
   return d;
 }
 function backupExport(){
@@ -4778,6 +5042,22 @@ function backupExport(){
   var cb=document.querySelector('#bkImgs');
   if(cb)withImages=!!cb.checked;
   var d=backupBuild(sel,withImages);
+  var btn=document.querySelector('[data-act=\"backup-export\"]');
+  if(withImages&&btn){ btn.disabled=true; btn.textContent='正在打包图片…' }
+  /* 图片要从媒体库读二进制再转 dataURL，是异步的，所以下载放到 then 里 */
+  collectImagesForBackup(sel,withImages).then(function(imgs){
+    d.images=imgs||{};
+    d.hasImages=withImages&&Object.keys(d.images).length>0;
+    try{ doBackupDownload(d,sel,withImages) }
+    finally{ if(btn){ btn.disabled=false; btn.textContent='导出' } }
+  }).catch(function(){
+    d.images=d.images||{};d.hasImages=false;
+    try{ doBackupDownload(d,sel,withImages) }catch(e){}
+    if(btn){ btn.disabled=false; btn.textContent='导出' }
+  });
+}
+/** 真正落盘：把备份对象变成文件下载 */
+function doBackupDownload(d,sel,withImages){
   var json=JSON.stringify(d);
   var blob=new Blob([json],{type:'application/json'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -4786,7 +5066,8 @@ function backupExport(){
   document.body.appendChild(a);a.click();
   setTimeout(function(){try{document.body.removeChild(a)}catch(e){}URL.revokeObjectURL(a.href)},800);
   var kb=Math.round(json.length/1024);
-  toast('已导出 '+sel.length+' 类数据（约 '+(kb>1024?(kb/1024).toFixed(1)+' MB':kb+' KB')+'）');
+  var n=d.hasImages?Object.keys(d.images).length:0;
+  toast('已导出 '+sel.length+' 类数据'+(withImages?('，含 '+n+' 张图片'):'')+'（约 '+(kb>1024?(kb/1024).toFixed(1)+' MB':kb+' KB')+'）');
 }
 /** 导入：分步做，出错能说清是哪一步 */
 function importBackup(input){
@@ -4837,13 +5118,20 @@ function importBackup(input){
       toast('备份里没有联系人，无法导入');
       input.value='';return;
     }
+    /* 导入是"整份替换"，属于有意为之的大改动，允许直接覆盖大容量存储里的旧副本 */
+    try{window.__forceFullWrite=1}catch(e){}
     /* ③ 大图放回内存 + 存进 IndexedDB（放到最后，失败也不影响数据本身） */
+    /* 导出时图片是 dataURL；导入时要重新收进媒体库、还原成引用，
+       否则状态里又会塞回一大堆 base64（内存和存档体积都会炸回去）。
+       某张收不进去就退回直接放原值 —— 绝不丢图。 */
     var imgs=d.images&&typeof d.images==='object'?d.images:null;
-    if(imgs){
-      for(var ik in imgs){
-        if(typeof imgs[ik]==='string'&&imgs[ik])imgSet(merged,ik,imgs[ik]);
-      }
-    }
+    var _imgJobs=[];
+    if(imgs)for(var ik in imgs){ if(typeof imgs[ik]==='string'&&imgs[ik])_imgJobs.push({k:ik,v:imgs[ik]}); }
+    Promise.all(_imgJobs.map(function(j){
+      return mediaAdopt(j.v,'import').then(function(ref){
+        try{ imgSet(merged,j.k,ref||j.v) }catch(e){}
+      }).catch(function(){ try{ imgSet(merged,j.k,j.v) }catch(e){} });
+    })).then(function(){
     var ok2=false;
     for(var ci=0;ci<merged.contacts.length;ci++)if(merged.contacts[ci].id===merged.activeContact)ok2=true;
     if(!ok2)merged.activeContact=merged.contacts[0].id;
@@ -4856,12 +5144,14 @@ function importBackup(input){
       if(imgs)idbPut('images',imgs);
     }catch(e2){}
     try{ save() }catch(e3){ toast('数据已导入，但保存失败：'+(e3&&e3.message?e3.message:e3)) }
+    try{window.__forceFullWrite=0}catch(e){}
     /* ⑤ 重画：这一步失败不代表数据没进来，所以单独兜住 */
     var painted=true;
     try{ closeSheet();renderAll();schedule() }catch(e4){ painted=false }
     if(painted)toast(mode==='replace'?'备份已导入（覆盖）':'备份已导入（合并）');
     else toast('数据已导入，界面重画时出错，请刷新一下页面');
     input.value='';
+    });
   };
   try{ fr.readAsText(f) }catch(e){ toast('这个文件读不了：'+(e&&e.message?e.message:e)); input.value='' }
 }
@@ -5855,6 +6145,7 @@ document.addEventListener('click',function(e){
     else if(act==='avatar-upload'){var af=$('#avatarFile');if(af)af.click()}
     else if(act==='avatar-reset'){_avImg=null;_avPicked=false;updAvatarPrev()}
   else if(act==='stg-persist'){stgPersist()}
+  else if(act==='stg-free'){freeLocalSpace()}
   else if(act==='stg-refresh'){fillStoragePanel();toast('已刷新')}
     else if(act==='bg-sheet')sheetChatBg();
     else if(act==='cover-sheet')sheetCover();
@@ -6131,7 +6422,7 @@ window.addEventListener('load',function(){
       try{if(e.data&&e.data.zika==='open-chat'){goView('chat')}}catch(x){}
     });
   }catch(e){}
-  var boot=[function(){state.lastActive=now()},function(){ensureDiary(now())},function(){refreshMood()},function(){applyTheme()},function(){try{resumePending()}catch(e){}},function(){applyChatCss()},function(){dailyPost()},function(){tarotDailyToday()},function(){syncCatchUp()},function(){router()},function(){rollLoginEvents()},function(){ntfBadge()}];
+  var boot=[function(){state.lastActive=now()},function(){ensureDiary(now())},function(){refreshMood()},function(){applyTheme()},function(){try{resumePending()}catch(e){}},function(){try{preferRicherFromIdb()}catch(e){}},function(){applyChatCss()},function(){dailyPost()},function(){tarotDailyToday()},function(){syncCatchUp()},function(){router()},function(){rollLoginEvents()},function(){ntfBadge()}];
   for(var i=0;i<boot.length;i++){try{boot[i]()}catch(e){}}
 });
 /* ===== v7：全局均匀抽卡 =====
