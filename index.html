@@ -1514,6 +1514,11 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
   border:1px dashed rgba(242,143,176,.4);font-size:calc(13px*var(--fs));color:var(--sub);line-height:1.9}
 .mp-empty-ic{display:block;font-size:calc(30px*var(--fs));color:#E9A9C0;margin-bottom:4px}
 .mp-empty i{font-style:normal;font-size:calc(11.5px*var(--fs))}
+
+/* ===== 图片失效时的体面占位（不再露出浏览器默认的破图 / alt 文字）===== */
+.media-dead{display:inline-flex;align-items:center;justify-content:center;
+  padding:8px 14px;margin:4px 0;border-radius:12px;font-size:calc(12px*var(--fs));
+  color:var(--sub);background:rgba(255,255,255,.66);box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}
 </style>
 </head>
 <body>
@@ -1574,7 +1579,8 @@ function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');
 function avatarHtml(c,size){
   size=size||40;
   var st='width:'+size+'px;height:'+size+'px';
-  if(c&&c.avatarType==='img'&&c.avatarImg)return '<img class="avatar" src="'+mediaUrlSync(c.avatarImg)+'" style="'+st+'" alt="">';
+  /* ★ 头像图失效（iOS 清过数据等）就落回"颜色+首字"，而不是一个空圆圈 */
+  if(c&&c.avatarType==='img'&&c.avatarImg&&!mediaDead(c.avatarImg))return '<img class="avatar" src="'+mediaUrlSync(c.avatarImg)+'" style="'+st+'" alt="">';
   var name=c?c.name:'?',co=c?c.color:'#6E7F5E',ch=(name||'?').trim().charAt(0);
   return '<svg class="avatar" width="'+size+'" height="'+size+'" viewBox="0 0 40 40" style="background:'+co+';border-radius:50%"><text x="20" y="26" text-anchor="middle" font-size="18" fill="#fff" font-family="\'Songti SC\',serif" font-weight="700">'+esc(ch)+'</text></svg>';
 }
@@ -2271,10 +2277,12 @@ function mediaUrlPrune(){
 function mediaUrl(ref){
   if(!isMediaRef(ref))return Promise.resolve(ref||'');
   if(_mediaUrlCache[ref])return Promise.resolve(_mediaUrlCache[ref]);
+  if(_mediaMissing[ref])return Promise.resolve('');      /* 已经确认没了，不用反复去查 */
   return mediaGetBlob(ref).then(function(b){
-    if(!b)return '';
-    try{var u=URL.createObjectURL(b);_mediaUrlCache[ref]=u;_mediaOrder.push(ref);mediaUrlPrune();return u}catch(e){return ''}
-  });
+    if(!b){ _mediaMissing[ref]=1; return '' }             /* ★ 记下"这张真没了" */
+    try{var u=URL.createObjectURL(b);_mediaUrlCache[ref]=u;_mediaOrder.push(ref);mediaUrlPrune();return u}
+    catch(e){ _mediaMissing[ref]=1; return '' }            /* ★ 造不出地址也算"这张用不了" */
+  }).catch(function(){ _mediaMissing[ref]=1; return '' });   /* ★ 取图过程报错也当作"没了" */
 }
 /** 媒体库占用统计：张数 + 二进制总字节 */
 function mediaStats(){
@@ -2313,6 +2321,9 @@ function allImagePaths(root){
   if(root.messages)for(i=0;i<root.messages.length;i++)add('messages.'+i+'.img');
   if(root.posts)for(i=0;i<root.posts.length;i++){
     add('posts.'+i+'.avatarImg');
+    /* ★ 他发的"表情包动态"里那张图！以前漏了它 → 备份不带、导入后变成"有引用没图片"，
+       界面上就是那个空白破框（用户报的那个 bug 的真正原因）。 */
+    if(root.posts[i]&&root.posts[i].sticker)add('posts.'+i+'.sticker');
     if(root.posts[i]&&Array.isArray(root.posts[i].imgs))
       for(var j=0;j<root.posts[i].imgs.length;j++)add('posts.'+i+'.imgs.'+j);
   }
@@ -2453,6 +2464,14 @@ function mediaAdopt(data,name){
   return mediaPut(blob,name).then(function(ref){return ref||data});
 }
 var _mediaPending={};
+/* ★ 已知取不到的媒体引用。
+   iOS 清理站点数据、或导入备份但图片没跟着来时，IndexedDB 里的图会真的没了。
+   以前遇到这种情况会渲染出 <img src="">，浏览器就把 alt 文案（"表情包"/"图片"）
+   显示成一个空白破框 —— 用户截图里那个白框就是这么来的。
+   现在：登记下来 → 给个透明像素（不再露 alt）→ 重要位置改成体面的占位提示。 */
+var _mediaMissing={};
+var TINY_PX='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+function mediaDead(v){ return !!(v&&_mediaMissing[v]) }
 /** 同步取地址：已解析过就直接给；没解析过先返回空，并异步解析后自动补渲染。
     这样所有老的渲染代码只要把"图片值"换成这个函数即可，不用重写 HTML 结构。 */
 function mediaUrlSync(v){
@@ -2460,11 +2479,15 @@ function mediaUrlSync(v){
   if(!isMediaRef(v))return v;                 /* 老 dataURL 原样返回 */
   var u=_mediaUrlCache[v];
   if(u)return u;
+  if(_mediaMissing[v])return TINY_PX;                    /* ★ 确认没了 → 透明像素，别露 alt 文字 */
   if(!_mediaPending[v]){
     _mediaPending[v]=1;
     mediaUrl(v).then(function(url){
       delete _mediaPending[v];
-      if(url){ try{renderAll()}catch(e){} }
+      try{renderAll()}catch(e){}                         /* 成功或失败都重绘一次 */
+    }).catch(function(){                                  /* ★ 万一是 reject，别把 pending 卡死 */
+      delete _mediaPending[v]; _mediaMissing[v]=1;
+      try{renderAll()}catch(e){}
     });
   }
   return '';
@@ -3238,7 +3261,7 @@ function appItemHtml(a){
   if(!a)return '';
   state.appIcons=state.appIcons||{};        /* 兜底：宁可少一张自定义图标，也不能整屏白掉 */
   var ic=String(a.ic||'').replace(/stroke="#fff"/g,'stroke="'+a.c+'"').replace(/fill="#fff"/g,'fill="'+a.c+'"');
-  var hasIcon=!!state.appIcons[a.v];
+  var hasIcon=!!state.appIcons[a.v]&&!mediaDead(state.appIcons[a.v]);   /* ★ 图标图失效了就当没设过，回落默认图标 */
   if(hasIcon)ic='<img class="app-icon-img" src="'+mediaUrlSync(state.appIcons[a.v])+'" alt="">';
   return '<div class="app-item" data-view="'+a.v+'"><div class="app-icon'+(hasIcon?' has-img':'')+'" style="background:'+(hasIcon?'#FFFFFF':'rgba(255,255,255,.34)')+'">'+ic+'</div>'
     +(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
@@ -3496,7 +3519,7 @@ function widgetGridInner(wdo,wds,wk,d,page){
     var attr=(wv==='feed'?'':'data-wkey="'+wv+'" ');
     var sz=widgetSizeOf(wv);
     var st='left:'+p.x+'%;top:'+p.y+'px;';
-    var _hasWbg=!!(state.widgetImgs&&state.widgetImgs[wv]);
+    var _hasWbg=!!(state.widgetImgs&&state.widgetImgs[wv])&&!mediaDead(state.widgetImgs[wv]);   /* ★ 底图失效就不用它 */
     /* 底图通过 CSS 变量交给样式表（样式表那边是 !important，直接写 background-image 会被压掉） */
     if(_hasWbg)st+="--wbg:url('"+mediaUrlSync(state.widgetImgs[wv])+"');";
     out+='<div class="widget wfree w-'+wv+' wsz-'+sz+(_hasWbg?' haswbg':'')+'" '+attr+'style="'+st+'"><span class="widget-grip"></span>'+widgetInnerHtml(wv,wk,d)+'</div>';
@@ -4404,6 +4427,15 @@ function _typingStillExpected(cid){
 function typingRow(c){
   return '<div class="msg-row in"><span class="bubble-av">'+cAvatar(c)+'</span><div class="bubble in typing"><span class="typing-dots"><i></i><i></i><i></i></span></div></div>';
 }
+/** 引用块里显示什么（决策/查岗这类卡片没有 text，要取它自己的字段） */
+function quoteLabel(om,c){
+  if(!om)return '（原消息已删除）';
+  if(om.type==='img'||om.type==='imgcleared')return '[图片]';
+  if(om.type==='sticker')return '[表情]';
+  var t=om.kind==='poll'?('决策：'+(om.question||'')):(om.kind==='checkin'?('查岗：'+(om.text||'')):(om.text||''));
+  if(!t)return '（原消息已删除）';
+  return '回复 @'+esc(c.name)+'：'+esc(trunc(t,30));
+}
 function bubbleHtml(m,c){
   if(m.dir==='sys')return '<div class="center-msg">'+esc(m.text)+'</div>';
   if(m.recalled)return '<div class="msg-row '+m.dir+'"><span class="bubble-av">'+(m.dir==='out'?meAvatar():cAvatar(c))+'</span><div class="bubble recalled">'+(m.dir==='out'?'你撤回了一条消息':'对方撤回了一条消息')+'</div></div>';
@@ -4523,17 +4555,19 @@ function bubbleHtml(m,c){
   var q='';
   if(m.replyTo){
     var om=byId(state.messages,m.replyTo);
-    q='<div class="quote-box">'+(om?((om.type==='img'||om.type==='imgcleared')?'[图片]':'回复 @'+esc(c.name)+'：'+esc(trunc(om.text,30))):'（原消息已删除）')+'</div>';
+    q='<div class="quote-box">'+quoteLabel(om,c)+'</div>';
   }
   /* 表情包 / 图片 / 纯文字 */
   var body,extraCls='';
   if(m.type==='sticker'&&m.img){
-    body='<img class="msg-sticker" src="'+mediaUrlSync(m.img)+'" alt="表情">';
+    body=mediaDead(m.img)?'<div class="media-dead">表情已失效</div>'
+        :'<img class="msg-sticker" src="'+mediaUrlSync(m.img)+'" alt="">';
     /* 表情包用自己的一类气泡：不要白底、不要边框、不要内边距，
        看起来就是一张贴图，而不是"一条带图的消息"。 */
     extraCls=' bubble-sticker';
   }else if(m.type==='img'&&m.img){
-    body='<img class="msg-img" src="'+mediaUrlSync(m.img)+'" alt="图片">';
+    body=mediaDead(m.img)?'<div class="media-dead">图片已失效</div>'
+        :'<img class="msg-img" src="'+mediaUrlSync(m.img)+'" alt="">';
     extraCls=' bubble-media';
   }else if(m.type==='img'||m.type==='imgcleared'||(m.type==='sticker'&&!m.img)){
     stripImgMsg(m);
@@ -4604,12 +4638,19 @@ function renderMoments(){
     var av=c?avatarHtml(c,40):avatarHtml({name:meNm,color:meCl},40);
     html+='<div class="card post"><div class="p-row"><div class="p-av">'+av+'</div><div class="p-main"><div class="nm">'+esc(nm)+'</div>';
     /* 他发的表情包动态：先贴图，再（可选）跟一句字卡文字 */
-    if(p.sticker)html+='<img class="p-sticker" src="'+mediaUrlSync(p.sticker)+'" alt="表情包">';
+    if(p.sticker){
+      html+=mediaDead(p.sticker)
+        ? '<div class="media-dead">表情已失效</div>'
+        : '<img class="p-sticker" src="'+mediaUrlSync(p.sticker)+'" alt="">';
+    }
     if(p.text)html+='<div class="txt">'+esc(p.text)+'</div>';
     /* 我发的图片动态：1 张大图 / 多张网格 */
     if(p.imgs&&p.imgs.length){
       html+='<div class="p-imgs n'+Math.min(4,p.imgs.length)+'">';
-      for(var pi=0;pi<p.imgs.length;pi++)html+='<img src="'+mediaUrlSync(p.imgs[pi])+'" alt="">';
+      for(var pi=0;pi<p.imgs.length;pi++){
+        if(mediaDead(p.imgs[pi]))continue;               /* 失效的图直接不占位，别留空框 */
+        html+='<img src="'+mediaUrlSync(p.imgs[pi])+'" alt="">';
+      }
       html+='</div>';
     }
     if(p.contactId)html+='<span class="tag">来自字卡</span>';
@@ -5825,7 +5866,7 @@ function sheetSmLib(kind){
 function meAvatarHtml(sz){
   sz=sz||46;
   var m=state.me||{};
-  if(m.avatarType==='img'&&m.avatarImg)return '<span class="me-av" style="width:'+sz+'px;height:'+sz+'px"><img src="'+mediaUrlSync(m.avatarImg)+'"></span>';
+  if(m.avatarType==='img'&&m.avatarImg&&!mediaDead(m.avatarImg))return '<span class="me-av" style="width:'+sz+'px;height:'+sz+'px"><img src="'+mediaUrlSync(m.avatarImg)+'"></span>';
   return '<span class="me-av" style="width:'+sz+'px;height:'+sz+'px;background:'+(m.color||'#D98E5F')+'">'+(m.name||'我').charAt(0)+'</span>';
 }
 var _meAvColor='#D98E5F',_meAvImg=null,_meAvPicked=false;
@@ -6599,6 +6640,12 @@ function replyPoll(m,at){
   for(var pi=0;pi<chosen.length;pi++){var oi=opts.indexOf(chosen[pi]);if(oi>=0)m.picked.push(oi)}
   var suffix=Math.random()<0.5?' '+drawCardText():'';
   pushIn(c.id,'我选「'+chosen.join('」「')+'」'+suffix,at||now());
+  /* ★ 让这句回答"引用"上面那条决策卡。
+     以前它孤零零地出现，往上翻半天才知道在回答什么（用户报过）。 */
+  try{
+    var _last=state.messages[state.messages.length-1];
+    if(_last&&_last.dir==='in')_last.replyTo=m.id;
+  }catch(e){}
   save();renderChat();schedule();
 }
 var _pollFast=true,_pollN=1;
@@ -6822,7 +6869,7 @@ function sheetStickers(){
     html+='<div class="stk-panel">';
     for(var j=_from;j<_to;j++){
       var s0=state.stickers[j];
-      html+='<button class="stk-item" data-act="sticker-send" data-id="'+s0.id+'"><img class="stk-img" loading="lazy" src="'+mediaUrlSync(s0.img)+'" alt="表情"></button>';
+      html+='<button class="stk-item" data-act="sticker-send" data-id="'+s0.id+'">'+(mediaDead(s0.img)?'<span class="media-dead">已失效</span>':'<img class="stk-img" loading="lazy" src="'+mediaUrlSync(s0.img)+'" alt="">')+'</button>';
     }
     html+='</div>';
     if(_pages>1){
