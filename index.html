@@ -1267,7 +1267,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .mv-itx span{font-size:calc(11px*var(--fs));color:var(--sub)}
 .mv-del{flex:none;width:30px;height:30px;min-height:30px;border-radius:50%;background:rgba(255,255,255,.7);color:#C4577E;font-size:calc(15px*var(--fs))}
 /* ===== 一起听：可自由摆放的悬浮条 ===== */
-.lsn-bar{position:fixed;left:50%;transform:translateX(-50%);top:calc(96px + env(safe-area-inset-top));z-index:95;
+.lsn-bar{position:fixed;left:50%;transform:translateX(-50%);top:calc(96px + env(safe-area-inset-top));z-index:95;touch-action:none;
   width:calc(100% - 28px);max-width:440px;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:20px;
   background:rgba(255,255,255,.86);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   box-shadow:0 10px 26px rgba(150,120,140,.22),inset 0 1px 0 rgba(255,255,255,.85);touch-action:none}
@@ -1808,6 +1808,9 @@ function migrate(s){
   if(s.settings.letterInitMin===undefined)s.settings.letterInitMin=180;
   if(s.settings.letterInitMax===undefined)s.settings.letterInitMax=1920;
   if(s.settings.visitorMax===undefined)s.settings.visitorMax=720;
+  if(s.settings.callAnswerPct===undefined)s.settings.callAnswerPct=75;
+  if(s.settings.callRejectPct===undefined)s.settings.callRejectPct=10;
+  if(s.settings.callDropPct===undefined)s.settings.callDropPct=12;
   if(s.settings.momStickerPct===undefined)s.settings.momStickerPct=35;
   /* 清掉以前存坏的两个"已绑定"标记（新版不再读它们） */
   delete s._cld;delete s._blp;
@@ -5410,6 +5413,9 @@ function meJumpTo(id){
 function pctSave(){
   var s8=state.settings||(state.settings={});
   function num(id,def){var e=$('#'+id);return e?clamp(parseFloat(e.value)||0,0,100):def}
+  s8.callAnswerPct=num('callAnsPct',75);
+  s8.callRejectPct=num('callRejPct',10);
+  s8.callDropPct=num('callDropPct',12);
   s8.momStickerPct=num('momStickerPct',35);
   s8.giftPct=num('giftPct',13);
   s8.askPct=num('askPct',8);
@@ -5475,6 +5481,9 @@ function renderMe(){
   html+='</div><div style="margin-top:10px"><button class="btn" style="width:100%" data-act="save-gen">保存</button></div></div></div>';
   html+='<div class="me-group-title">概率</div>';
   html+='<div class="me-sec" id="sec-pct"><h3>概率</h3><div class="card"><div class="rhy-grid">';
+  html+='<div class="inl"><label>你打给他·他接听概率 %</label><input id="callAnsPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.callAnswerPct)!=null?state.settings.callAnswerPct:75)+'"></div>';
+  html+='<div class="inl"><label>你打给他·他直接拒绝 %</label><input id="callRejPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.callRejectPct)!=null?state.settings.callRejectPct:10)+'"></div>';
+  html+='<div class="inl"><label>通话中他有事挂断 %</label><input id="callDropPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.callDropPct)!=null?state.settings.callDropPct:12)+'"></div>';
   html+='<div class="inl"><label>他动态带表情包概率 %</label><input id="momStickerPct" type="number" min="0" max="100" value="'+(state.settings.momStickerPct!=null?state.settings.momStickerPct:35)+'"></div>';
   html+='<div class="inl"><label>主动送礼物概率 %</label><input id="giftPct" type="number" min="0" max="100" value="'+(state.settings.giftPct!=null?state.settings.giftPct:13)+'"></div>';
   html+='<div class="inl"><label>找你代买概率 %</label><input id="askPct" type="number" min="0" max="100" value="'+(state.settings.askPct!=null?state.settings.askPct:8)+'"></div>';
@@ -7167,6 +7176,37 @@ function sw2(key,on){
 }
 
 /* ================= 后台保活：离线补发 ================= */
+/** ★ 你离开期间"已经到了该显示"的消息，不要一次全冒出来。
+    典型场景：他正在连发（第 2、3 条的时间戳是 20~50 秒后），
+    你切出去几分钟再回来 —— 这几条全都过期了，聊天区会一口气把它们铺出来。
+    这里把"离开期间到点"的收件按 20~50 秒重新往后排，回来时是一条一条慢慢来。
+    只动 dir==='in' 的收件，你自己的消息和系统消息不受影响。 */
+function spreadDueMessages(sinceTs){
+  var t=now(),k=0,i;
+  var base=t+10000,maxAssigned=0;
+  for(i=0;i<state.messages.length;i++){
+    var m=state.messages[i];
+    if(!m||m.dir!=='in')continue;
+    if(!(m.ts>sinceTs&&m.ts<=t))continue;      /* 只处理"离开期间到点"的 */
+    m.ts=base+k*rnd(20000,50000);
+    if(m.ts>maxAssigned)maxAssigned=m.ts;
+    k++;
+    if(k>=12)break;
+  }
+  if(!maxAssigned)return 0;
+  /* ★ 关键：本来排在后面、还没到点的收件，别被插到前面去（否则他会 1→3→2 地"说"）。
+     凡是时间戳落在"刚重排的这段区间"里的，一律推到后面。 */
+  for(i=0;i<state.messages.length;i++){
+    var m2=state.messages[i];
+    if(!m2||m2.dir!=='in')continue;
+    if(m2.ts>t&&m2.ts<maxAssigned){
+      m2.ts=maxAssigned+rnd(20000,50000);
+      maxAssigned=m2.ts;
+    }
+  }
+  try{save()}catch(e){}
+  return k;
+}
 function syncCatchUp(){
   _ntfSilent=true;
   /* 补发的总量上限：离线很久（或导入了一份时间戳很旧的存档）时，
@@ -7177,15 +7217,33 @@ function syncCatchUp(){
   var _GENMAX=24;
   var _MSGMAX=20000;
   var last=state.lastActive||now();
+  /* ★ 先处理"连发没发完、离开期间全部过期"的那批（用户问的就是这个） */
+  try{spreadDueMessages(last)}catch(e){}
   state.lastActive=now();
   var end=now();
   if(end-last<15000){_ntfSilent=false;save();schedule();return}
   for(var k=0;k<state.contacts.length;k++){
     var c=state.contacts[k];
-    var t=state.nextInit[c.id]||last,guard=0;
+    var t=state.nextInit[c.id]||last,guard=0,caught=0,_catchBase=now()+10000;
     while(t<end&&guard<50&&_gen<_GENMAX&&state.messages.length<_MSGMAX){
       t+=rndDelay(c,'init');
-      if(t<=end){pushBurst(c,t,pickBurstCount(c));maybePost(c,t);guard++;_gen++}
+      if(t<=end){
+        /* ★ 补发改成"往后排"：以前是拿过去的时间戳 pushBurst，错过的几轮
+           会在你回到页面的那一瞬间全部冒出来（刷屏，用户报的"他一直发消息"）。
+           现在第一轮排到 10 秒后、第二轮再往后推，每条之间仍是 20~50 秒，
+           而且最多补 2 轮 —— 回来时像"他刚想起你"，而不是一次性倒完。 */
+        if(caught<2){
+          /* 第二轮的起点要排在"上一轮最后一条"之后，否则两轮会交错，
+             他"说"的顺序就乱了（测试抓到过 10/40/86/55/75 这种乱序）。 */
+          var _b=(typeof _catchBase==='number')?_catchBase:now()+10000;
+          var _n=pickBurstCount(c);
+          pushBurst(c,_b,_n);
+          maybePost(c,_b);
+          _catchBase=_b+_n*rnd(20000,50000)+15000;
+          caught++;
+        }
+        guard++;_gen++;
+      }
       else break;
     }
     if(_gen>=_GENMAX){state.nextInit[c.id]=Math.max(t,end);continue}
@@ -7413,8 +7471,10 @@ document.addEventListener('click',function(e){
     else if(act==='save-copy'){saveCopy(parseInt(btn.getAttribute('data-idx'),10))}
     else if(act==='save-clear'){saveClear()}
     else if(act==='home-page'){var _hpEl=document.getElementById('homePages');if(_hpEl)_hpEl.scrollTo({left:_hpEl.clientWidth*(parseInt(btn.getAttribute('data-p'),10)||0),behavior:'smooth'})}
-    else if(act==='call-voice'){closeSheet();showCall('voice')}
-    else if(act==='call-video'){closeSheet();showCall('video')}
+    /* ★ 顶部这两个按钮是"我打给哥"：走新的 outgoingCall（先响铃、他再决定接不接），
+       不是以前那种一按就通的 showCall。他打给我的流程（incomingCall）不受影响。 */
+    else if(act==='call-voice'){closeSheet();outgoingCall('voice')}
+    else if(act==='call-video'){closeSheet();outgoingCall('video')}
     else if(act==='lib'){_lib=btn.getAttribute('data-lib');renderCards()}
     else if(act==='mode-pick')modePick(btn.getAttribute('data-id'));
     else if(act==='timer-start')timerStart();
@@ -7727,6 +7787,57 @@ function beginCall(mode){
     if(typeof toast==='function'){var _cc=activeContact();toast((_cc?_cc.name:'对方')+' 想给你打电话，进聊天就能接到')}
   }
 }
+/** 我打给哥：先响铃，3~15 秒后他给结果 —— 接 / 不接 / 直接拒绝。
+    概率在 设置 → 概率 里可调（默认 接 75% / 直接拒绝 10% / 其余为无人接听）。 */
+function outgoingCall(mode){
+  mode=mode||'voice';
+  if(_call){if(typeof toast==='function')toast('正在通话中');return}
+  var c=activeContact();if(!c)return;
+  var ov=$('#callOverlay');if(!ov)return;
+  _call={stage:'calling',mode:mode,contactId:c.id,outgoing:true,sec:0,_spk:0};
+  ov.className='show ring';
+  ov.setAttribute('style',callBgStyle());
+  var stage=mode==='video'?'<div class="video-stage" id="videoStage"></div>':'';
+  ov.innerHTML='<div class="ring-box">'+stage
+    +'<div class="call-avatar" id="callAv"></div>'
+    +'<div class="call-name">'+esc(c.name)+'</div>'
+    +'<div class="call-state" id="callState">'+(mode==='video'?'正在邀请视频通话…':'正在呼叫…')+'</div>'
+    +'<div class="call-timer"></div>'
+    +'<div class="call-btns"><button class="call-btn" data-call="hangup" data-nodrag="1"><span class="ic">'+ICON_PHONE+'</span>挂断</button></div>'
+    +'</div>';
+  var av=ov.querySelector('#callAv');
+  if(av){
+    if(c.avatarType==='img'&&c.avatarImg){av.innerHTML='<img src="'+mediaUrlSync(c.avatarImg)+'" alt="">'}
+    else{av.style.background=c.color;av.textContent=(c.name||'?').charAt(0)}
+  }
+  if(mode==='video'){
+    var vs=ov.querySelector('#videoStage');
+    if(vs){
+      if(c.avatarType==='img'&&c.avatarImg)vs.innerHTML='<img class="vf" src="'+mediaUrlSync(c.avatarImg)+'" alt=""><span class="video-badge">HD</span>';
+      else{vs.style.background=c.color;vs.innerHTML='<span style="font-family:var(--serif);font-size:calc(60px*var(--fs));font-weight:700;color:rgba(255,255,255,.75)">'+(c.name||'?').charAt(0)+'</span>'}
+      vs.innerHTML+='<span class="vs-label">对方画面</span>';
+    }
+  }
+  renderChat();
+  var st=state.settings||{};
+  var answerPct=(st.callAnswerPct!=null?st.callAnswerPct:75);
+  var rejectPct=(st.callRejectPct!=null?st.callRejectPct:10);
+  if(_callTk)clearTimeout(_callTk);
+  _callTk=setTimeout(function(){
+    if(!_call||_call.stage!=='calling')return;
+    var r=Math.random()*100;
+    if(r<answerPct){callAccept()}
+    else if(r<answerPct+rejectPct){outCallEnd('对方已拒绝')}
+    else{outCallEnd('对方无人接听')}
+  },rnd(3000,15000));
+}
+/** 我打出去的这通电话以某种原因结束 */
+function outCallEnd(why){
+  if(!_call)return;
+  endCall();
+  commitCallMsg(why);
+  if(typeof toast==='function')toast(why);
+}
 function incomingCall(mode){
   mode=mode||'voice';
   var c=activeContact();if(!c)return;
@@ -7764,6 +7875,20 @@ function callAccept(){
     if(el2)el2.textContent=fmtCall(_call.sec);
   },1000);
   speakLoop();
+  /* ★ 我打给他的时候，通话中他可能因为有事挂断（默认 12%，可在 设置 → 概率 里调） */
+  if(_call.outgoing){
+    var _dp=(state.settings&&state.settings.callDropPct!=null)?state.settings.callDropPct:12;
+    if(_callTk)clearTimeout(_callTk);
+    _callTk=setTimeout(function(){
+      if(!_call||_call.stage!=='talking')return;
+      if(Math.random()*100<_dp){
+        var why='他那边突然有事，先挂了';
+        endCall();
+        commitCallMsg(why);
+        if(typeof toast==='function')toast(why);
+      }
+    },rnd(60000,180000));
+  }
 }
 function callSpeak(){
   if(!_call||_call.stage!=='talking')return;
@@ -8687,7 +8812,13 @@ function musBar(on){
     +'<button data-mus="close" title="关闭"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
   try{document.body.appendChild(el)}catch(e){}
   var m=musState();
-  if(m.miniPos){el.style.left=m.miniPos.L+'px';el.style.top=m.miniPos.T+'px';el.style.right='auto'}
+  if(m.miniPos){
+    /* ★ 必须把 transform 清掉：CSS 里是 left:50%+translateX(-50%) 居中的，
+       一旦用 left/top 精确定位还留着 transform，元件就会整体偏半个宽度，
+       手指按到的位置和看到的位置对不上（用户报的"拖不动/跑到聊天室外"）。 */
+    el.style.transform='none';
+    el.style.left=m.miniPos.L+'px';el.style.top=m.miniPos.T+'px';el.style.right='auto';
+  }
   musBindBarDrag(el);
   musPaint();
 }
@@ -8708,6 +8839,8 @@ function musBindBarDrag(el){
     var r=el.getBoundingClientRect();
     baseL=r.left;baseT=r.top;sx=x;sy=y;moved=false;dragging=true;
     el.style.transition='none';
+    /* ★ 开始拖就把居中用的 transform 去掉，否则位移会被再平移半个宽度 */
+    el.style.transform='none';el.style.right='auto';
   }
   function move(x,y){
     if(!dragging)return;
@@ -9209,9 +9342,26 @@ function callMiniPosClamp(L,T){
   var ov=$('#callOverlay');
   var w=ov?ov.offsetWidth:280,h=ov?ov.offsetHeight:56;
   var vw=window.innerWidth||360,vh=window.innerHeight||640;
-  return {L:Math.max(6,Math.min(vw-w-6,L)),T:Math.max(6,Math.min(vh-h-6,T))};
+  /* ★ 聊天页底部是输入框：小框不许停在那一片，否则挡住输入框点不动。
+     留出 110px（输入栏 + 安全区）当禁区。 */
+  var bottomGuard=110;
+  var maxT=vh-h-6;
+  try{ if(inChatView())maxT=Math.min(maxT,vh-h-bottomGuard) }catch(e){}
+  return {L:Math.max(6,Math.min(vw-w-6,L)),T:Math.max(6,Math.min(maxT,T))};
 }
 function callMiniApplyPos(L,T){
+  /* ★ 同上：清掉早期规则留下的 translateX(-50%)，否则小框的可见位置
+     会比"代码认为的位置"偏左半个宽度，命中区域正好压住屏幕中间/输入框。 */
+  try{
+    var _ov=$('#callOverlay');
+    if(_ov){_ov.style.transform='none';_ov.style.right='auto'}
+  }catch(e){}
+  /* ★ 这里自己也夹一次：不管谁调用（拖拽、恢复上次位置、外部直接调用），
+     都不可能把条子停在聊天输入框那一片上。 */
+  try{
+    var _cp=callMiniPosClamp(L,T);
+    L=_cp.L;T=_cp.T;
+  }catch(e){}
   var ov=$('#callOverlay');
   if(!ov)return;
   ov.classList.add('dragged');
