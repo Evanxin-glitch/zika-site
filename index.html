@@ -1723,6 +1723,7 @@ function defaultState(){
 }
 function migrate(s){
   if(!Array.isArray(s.surveys))s.surveys=[];   /* 问卷 */
+  try{ if(typeof syncAppOrder==='function')syncAppOrder() }catch(e){}   /* ★ 补齐新加的 App 图标 */
   /* 存储里存过什么奇怪东西都不能让读取失败：坏字段就地修好，绝不让整个存档报废 */
   if(!s||typeof s!=='object')return s;
   if(!Array.isArray(s.contacts)||!s.contacts.length){
@@ -3233,6 +3234,19 @@ var ICON_BACK='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" strok
 var ICON_WALL='<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 14l4-4 5 5 3-3 4 4"/></svg>';
 var ICON_MORE='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5.5h.01M12 12h.01M12 18.5h.01"/></svg>';
 /* 桌面 App 列表（renderHome 与设置页的图标编辑共用，避免两处不一致） */
+/** ★ 把新加的 App 补进"图标顺序"清单。
+    首页是按 state.appOrder 渲染的，老存档里只有旧的 App，
+    所以新加的「问卷」在升级后不会显示（用户报的）。这里在开机迁移时补齐。 */
+function syncAppOrder(){
+  try{
+    var defs=appListDefs(),ids=[];
+    for(var i=0;i<defs.length;i++)ids.push(defs[i].v);
+    var cur=Array.isArray(state.appOrder)?state.appOrder.slice():[];
+    cur=cur.filter(function(v){return ids.indexOf(v)>=0});     /* 去掉已经不存在的 */
+    for(var j=0;j<ids.length;j++)if(cur.indexOf(ids[j])<0)cur.push(ids[j]);   /* 补上新的，放在后面 */
+    state.appOrder=cur;
+  }catch(e){}
+}
 function appListDefs(){
   return [
     {v:'survey',n:'问卷',c:'#8E7CC3',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/><path d="M15.5 17.5l1.5 1.5 3-3"/></svg>'},
@@ -4093,13 +4107,18 @@ function pushIn(cid,text,t,replyTo,catchup){
   if(t<=now()+1500)notifyIncoming(m);
   return m;
 }
-/** 他最近 withinMs 内发了几条（用来封顶：回复+主动消息叠一起会变成"一堆消息"） */
+/** 他"这一轮"已经发了几条。
+    ★ 口径很重要：只数"你最后一条消息之后"他发的那些。
+      这样你一发消息他就重新有 5 条额度 —— 他不会因为你之前跟他聊过就不回你。
+      （以前按"最近10分钟"算，结果他发满5条后连你的新消息都不回了，测试抓到过。） */
 function hisRecentCount(cid,withinMs){
-  var t=now(),n=0,win=withinMs||600000;      /* 默认看最近 10 分钟 */
+  var t=now(),n=0,win=withinMs||600000;
   for(var i=state.messages.length-1;i>=0;i--){
     var m=state.messages[i];
     if(!m||m.ts<t-win)break;
-    if(m.contactId===cid&&m.dir==='in'&&m.kind!=='sys')n++;
+    if(m.contactId!==cid)continue;
+    if(m.dir==='out')break;                  /* 遇到"我"发的 → 上一轮结束 */
+    if(m.dir==='in'&&m.kind!=='sys')n++;
   }
   return n;
 }
