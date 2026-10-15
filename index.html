@@ -1809,6 +1809,8 @@ function migrate(s){
   if(s.settings.letterInitMax===undefined)s.settings.letterInitMax=1920;
   if(s.settings.visitorMax===undefined)s.settings.visitorMax=720;
   if(s.settings.momStickerPct===undefined)s.settings.momStickerPct=35;
+  /* 清掉以前存坏的两个"已绑定"标记（新版不再读它们） */
+  delete s._cld;delete s._blp;
   if(s.settings.giftPct===undefined)s.settings.giftPct=13;
   if(s.settings.askPct===undefined)s.settings.askPct=8;
   if(s.settings.commentMin===undefined)s.settings.commentMin=180;
@@ -2980,8 +2982,17 @@ function coverStyle(){
 
 /* ================= 路由 ================= */
 var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop'];
+var _routedOnce=false;
 function router(){
   var h=location.hash.replace('#','');
+  /* ★ 冷启动（刚打开网站）一律进主页。
+     地址栏里可能残留上次的 #cards（从主屏幕图标打开时尤其常见，iOS 会沿用上次的地址），
+     以前就直接渲染那一页了，所以出现"一进去是字卡页面不是主页"。
+     会话内的正常跳转不受影响。 */
+  if(!_routedOnce){
+    _routedOnce=true;
+    if(h!=='home'){goView('home');return}
+  }
   if(VIEWS.indexOf(h)<0){goView('home');return}
   render(h);
 }
@@ -3972,6 +3983,8 @@ function upgradeDiary(){
 
 /* ================= 调度器 ================= */
 var _timer=null,_typing=null,_ntfSilent=false,_ntfTimer=null;
+/* 拖拽/长按只绑一次的标记：必须是模块变量，不能放 state（state 会存档，刷新后就废了） */
+var _blpBound=false,_cldBound=false;
 var _schedSpin=0,_schedSpinAt=0;
 var _replyTimer=null;
 function schedule(){
@@ -4036,11 +4049,25 @@ function schedule(){
     var de=ddq[di];
     if(de&&de.due&&de.due>t)items.push({ts:de.due,fn:(function(ee){return function(){diaryDueFire(ee)}})(de)});
   }
-  for(var cid in state.nextInit){
+  /* ★ 这里原来是 for(var cid in state.nextInit) —— 坑很大：
+     nextInit 一开始是空对象 {}，for...in 一次都不进，于是**他永远不会主动来找你**。
+     （新用户还会撞上 syncCatchUp 开头的"离开不到 15 秒就 return"，也不会填 nextInit。）
+     改成遍历联系人，每个人各自算自己的下一个时间点。 */
+  var _initList=state.contacts||[];
+  for(var _ii=0;_ii<_initList.length;_ii++){
+    var cid=_initList[_ii].id;
     var c=contact(cid);
     if(!c)continue;
     var nt=state.nextInit[cid];
-    if(!nt)nt=t+rndDelay(c,'init');
+    if(!nt){
+      /* ★ 这里原来只是"算出来用一下"，没有存回 state。
+         于是每次 schedule() 都会重新从"此刻"往后摇一个随机时间 ——
+         等于计时器被无限推后，他几乎永远不会主动来找你。
+         现在算出来立刻存回去，计时才是真的在走。 */
+      nt=t+rndDelay(c,'init');
+      state.nextInit[cid]=nt;
+      try{save()}catch(e){}
+    }
     items.push({ts:nt,fn:(function(cc){return function(){initiate(cc)}})(c)});
   }
   if(!items.length)return;
@@ -4069,7 +4096,9 @@ function markRead(m){
   m.read=true;
   var c=contact(m.contactId);
   if(c&&c.readNR&&Math.random()*100<c.readNRPct){m.replyDue=null;m.answered=true}
-  else if(c){_typing={contactId:c.id,ts:now(),hold:true}}
+  /* ★ 只有"确实还会回你"的消息才点亮输入中；已经不用回的就别点亮，
+     否则三点会一直挂着（这也是"一直显示输入中"的来源之一）。 */
+  else if(c&&m.replyDue&&!m.answered){_typing={contactId:c.id,ts:now(),hold:true}}
   save();renderChat();
 }
 function initiate(c){
@@ -4149,6 +4178,9 @@ function renderChat(){
   var body='<div class="chat-wrap" style="'+chatBgStyle()+'"><div id="chatList">';
   if(!msgs.length)body+='<div class="empty"><span class="big">字</span>还没有消息，先打个招呼吧</div>';
   for(var j=0;j<msgs.length;j++)body+=bubbleHtml(msgs[j],c);
+  /* ★ 自愈：万一"输入中"还挂着，但既没有待发的回复计划、也没有任何"该回还没回"的消息，
+     就把它收掉。这样不管以后哪条路径漏了清理，三点都不会永远转下去。 */
+  if(_typing&&!_typingStillExpected(_typing.contactId))_typing=null;
   if((state.settings&&state.settings.typingOn!==false)&&_typing&&_typing.contactId===c.id&&(_typing.hold||now()-_typing.ts<8000)){
     body+=typingRow(c);
   }
@@ -4188,6 +4220,15 @@ function meAvatar(){
   if(m.avatarType==='img'&&m.avatarImg)return '<img src="'+mediaUrlSync(m.avatarImg)+'" alt="">';
   return '<i style="background:'+(m.color||'#D98E5F')+'">'+(m.name||'我').charAt(0)+'</i>';
 }
+/** "输入中"还该不该显示：有计划在跑、或者还有该回没回的消息 → 该显示 */
+function _typingStillExpected(cid){
+  if(state._pending&&state._pending.contactId===cid)return true;
+  for(var i=0;i<state.messages.length;i++){
+    var m=state.messages[i];
+    if(m&&m.contactId===cid&&m.dir==='out'&&m.replyDue&&!m.answered)return true;
+  }
+  return false;
+}
 function typingRow(c){
   return '<div class="msg-row in"><span class="bubble-av">'+cAvatar(c)+'</span><div class="bubble in typing"><span class="typing-dots"><i></i><i></i><i></i></span></div></div>';
 }
@@ -4222,6 +4263,9 @@ function bubbleHtml(m,c){
       var reply='';
       if(answered){
         reply='<div class="ck-replied"><span>你已回复</span><b>'+esc(m.myReply)+'</b><i class="ck-done">已完成</i></div>';
+        if(m.hisReply){
+          reply+='<div class="ck-replied"><span>'+esc(c.name)+' 回复</span><b>'+esc(m.hisReply)+'</b></div>';
+        }
       }else{
         reply='<div class="ck-reply"><textarea class="ck-in" rows="1" placeholder="告诉对方你现在的状态……" data-ck="'+m.id+'"></textarea>'
           +'<div class="ck-chips">'
@@ -4626,6 +4670,15 @@ function readImg(input,kind){
 
 /* ================= 信箱 ================= */
 var _mailTab='in';
+/** 请他写信：从现在（我点击这一刻）算起，3~30 分钟内他一定写一封过来 */
+function mailAsk(){
+  var c=activeContact();
+  if(!c)return;
+  state.nextLetterDue=now()+rnd(3,30)*60000;
+  save();schedule();
+  toast('已经跟他说了，半小时内会寄信来');
+  try{renderMail()}catch(e){}
+}
 function renderMail(){
   var letters=state.letters.slice().sort(function(a,b){return b.ts-a.ts});
   var c=activeContact();
@@ -4636,6 +4689,13 @@ function renderMail(){
   var show=_mailTab==='in'?inbox:sent;
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">信箱</span></div>';
   html+='<div class="screen">';
+  /* ★ 请他写信：点一下，他半小时内一定寄一封信来。
+     计时从"我点的这一刻"开始，不是从打开网站开始。 */
+  html+='<div style="display:flex;align-items:center;gap:10px;margin:10px 0 12px">'
+    +'<button class="btn" style="width:auto;padding:10px 20px" data-act="mail-ask">请他写信</button>'
+    +'<span class="meta" style="flex:1">'+ (state.nextLetterDue&&state.nextLetterDue-now()<30*60000&&state.nextLetterDue>now()
+        ? ('他已经在写了，约 '+Math.max(1,Math.round((state.nextLetterDue-now())/60000))+' 分钟后到')
+        : '点了他会在半小时内寄一封来') +'</span></div>';
   html+='<div class="mail-tabs"><button class="m-tab'+( _mailTab==='in'?' on':'')+'" data-act="mail-tab" data-t="in">收件箱'+(inbox.length?' <span class="m-cnt">'+inbox.length+'</span>':'')+'</button><button class="m-tab'+( _mailTab==='out'?' on':'')+'" data-act="mail-tab" data-t="out">已发送'+(sent.length?' <span class="m-cnt">'+sent.length+'</span>':'')+'</button></div>';
   if(!show.length)html+='<div class="empty"><span class="big">信</span>'+( _mailTab==='in'?'收件箱还空着，等他来信吧':'还没有寄出的信')+'</div>';
   for(var i=0;i<show.length;i++){
@@ -5333,7 +5393,7 @@ function renderMe(){
   html+='<div class="me-group-title">节奏</div>';
   html+='<div class="me-sec" id="sec-cur"><h3>当前对象</h3><div class="card row" style="cursor:pointer" data-act="switch-contact">'+avatarHtml(c)+'<div><b>'+esc(c.name)+'</b><div class="meta">回复 '+fmtDur(c.replyMin)+'–'+fmtDur(c.replyMax)+' · 主动 '+fmtDur(c.initMin)+'–'+fmtDur(c.initMax)+'</div></div></div></div>';
   html+='<div class="me-sec" id="sec-init"><h3>主动发消息</h3><div class="card"><div class="rhy-grid">';
-  html+='<div class="inl"><label>最快（分）</label><input id="rInitMin" type="number" min="1" value="'+Math.round((c.initMin||900)/60)+'"></div><div class="inl"><label>最慢（分）</label><input id="rInitMax" type="number" min="1" value="'+Math.round((c.initMax||1800)/60)+'"></div></div><p class="meta" style="margin-top:6px">从你最后一次发消息后计算，他主动来找你</p></div></div>';
+  html+='<div class="inl"><label>最快（分）</label><input id="rInitMin" type="number" min="1" value="'+Math.round((c.initMin||900)/60)+'"></div><div class="inl"><label>最慢（分）</label><input id="rInitMax" type="number" min="1" value="'+Math.round((c.initMax||1800)/60)+'"></div></div><p class="meta" style="margin-top:6px">按这个间隔主动来找你；从他上次主动找你之后重新计时（关掉网站再打开不会重置）</p></div></div>';
   html+='<div class="me-sec" id="sec-call"><h3>主动来电</h3><div class="card"><div class="rhy-grid">';
   html+='<div class="inl"><label>最快（分）</label><input id="rCallMin" type="number" min="1" value="'+((state.settings&&state.settings.callMin)!=null?state.settings.callMin:15)+'"></div><div class="inl"><label>最慢（分）</label><input id="rCallMax" type="number" min="1" value="'+((state.settings&&state.settings.callMax)!=null?state.settings.callMax:60)+'"></div></div><p class="meta" style="margin-top:6px">到点按来电概率决定是否真的打来</p></div></div>';
   html+='<div class="me-sec" id="sec-letter"><h3>主动写信</h3><div class="card"><div class="rhy-grid">';
@@ -6221,6 +6281,9 @@ function replyChat(m){
      否则聊天流里根本分不清哪句是在回答查岗。 */
   if(m.kind==='checkin'){
     m.answered=true;
+    /* ★ 查岗的回复不走聊天流，所以必须在这里把"输入中"收掉，
+       否则 markRead 打开的三点会永远转下去（用户报的"一直显示输入中"就是这个）。 */
+    _typing=null;state._pending=null;
     m.hisReply=ckAnswer(m.text);
     /* 混搭：贴题的短答 + 一句你字卡里的句子（没字卡时就只回短答） */
     m.hisCard=ckCardLine();
@@ -6439,19 +6502,23 @@ function checkinReply(id,preset){
   m.myReply=txt;
   m.replyAt=now();
   var c=contact(m.contactId)||activeContact();
-  /* 把我的回复作为一条普通消息发出去，聊天记录里能看到 */
-  state.messages.push({id:uid(),contactId:c.id,dir:'out',text:txt,ts:now(),readDue:now()+4000});
+  /* ★ 按用户要求：回复查岗只写在卡片上，**不再**额外发一条聊天消息。
+     以前这里会 push 一条普通消息，聊天流里就多出一条重复的「准备睡觉」。 */
   save();renderChat();
-  toast('已回复');
-  /* 对方过一会儿回一句 */
+  toast('已报备');
+  /* 他过一会儿在**卡片上**回一句（同样不进聊天流） */
   var mid=m.id;
   setTimeout(function(){
     var mm=byId(state.messages,mid);
     if(!mm)return;
-    var back=pickChkReply(txt);
-    state.messages.push({id:uid(),contactId:c.id,dir:'in',text:back,ts:now()});
-    feedEvent(c.name+' 回复了你的报备','chat');
-    save();renderChat();schedule();
+    /* ★ 原来这里是 push 一条普通消息，内容取自 pickChkReply 里写死的 6 句，
+       所以"我也在想你。"会突然出现在聊天记录里。现在改成写在卡片的回复行上。 */
+    mm.hisReply=pickChkReply(txt);
+    mm.hisReplyTs=now();
+    try{feedEvent(c.name+' 回复了你的报备','chat')}catch(e){}
+    save();
+    try{if(location.hash.replace('#','')==='chat')renderChat()}catch(e){}
+    schedule();
   },rnd(4000,9000));
 }
 function pickChkReply(myTxt){
@@ -7315,6 +7382,7 @@ document.addEventListener('click',function(e){
     else if(act==='sheet-close')closeSheet();
     else if(act==='mail-read')mailRead(id);
     else if(act==='mail-tab')mailTab(btn.getAttribute('data-t'));
+    else if(act==='mail-ask')mailAsk()
     else if(act==='mail-back')mailBack();
     else if(act==='mail-reply')mailReply(id);
     else if(act==='me-jump')meJumpTo(btn.getAttribute('data-to'))
@@ -7472,7 +7540,10 @@ window.addEventListener('load',function(){
       try{if(e.data&&e.data.zika==='open-chat'){goView('chat')}}catch(x){}
     });
   }catch(e){}
-  var boot=[function(){state.lastActive=now()},function(){ensureDiary(now())},function(){refreshMood()},function(){applyTheme()},function(){try{resumePending()}catch(e){}},function(){try{preferRicherFromIdb()}catch(e){}},function(){applyChatCss()},function(){dailyPost()},function(){tarotDailyToday()},function(){syncCatchUp()},function(){router()},function(){rollLoginEvents()},function(){ntfBadge()}];
+  /* ★ 原来开机第一件事是 state.lastActive=now()：每打开一次网站就等于"你刚刚活动过"，
+     会把他的节奏整个重置掉。lastActive 只应该在"你真的发了消息"时更新（见发消息那里），
+     开机这里不再动它。 */
+  var boot=[function(){ensureDiary(now())},function(){refreshMood()},function(){applyTheme()},function(){try{resumePending()}catch(e){}},function(){try{preferRicherFromIdb()}catch(e){}},function(){applyChatCss()},function(){dailyPost()},function(){tarotDailyToday()},function(){syncCatchUp()},function(){router()},function(){rollLoginEvents()},function(){ntfBadge()}];
   for(var i=0;i<boot.length;i++){try{boot[i]()}catch(e){}}
 });
 /* ===== v7：全局均匀抽卡 =====
@@ -9032,7 +9103,10 @@ function saveCopy(i){
 }
 function saveClear(){state.mySaves=[];save();closeSheet();toast('已清空收藏')}
 function bindBubbleLongpress(){
-  if(state._blp)return;state._blp=true;
+  /* ★ 这里原来用 state._blp 当标记 —— state 是要存进存档的，
+     刷新一次后它还是 true，函数直接 return，长按就再也绑不上了。
+     改成模块内的变量：页面每次加载都会重新绑。 */
+  if(_blpBound)return;_blpBound=true;
   document.addEventListener('touchstart',function(e){
     var el=e.target;while(el&&el!==document.body&&!el.classList.contains('bubble'))el=el.parentNode;
     if(!el||el.classList.contains('typing'))return;
@@ -9061,7 +9135,9 @@ function callMiniApplyPos(L,T){
   ov.style.top=T+'px';ov.style.left=L+'px';ov.style.right='auto';
 }
 function bindCallDrag(){
-  if(state._cld)return;state._cld=true;
+  /* ★ 同上：state._cld 会被存档，刷新后直接 return → 打电话的小框拖不动。
+     这个 bug 用户报过两次，根因就在这。 */
+  if(_cldBound)return;_cldBound=true;
   var dragging=false,sx=0,sy=0,baseL=0,baseT=0,ov=null,moved=false;
   function start(x,y,target){
     ov=$('#callOverlay');
