@@ -1901,6 +1901,8 @@ function migrate(s){
   if(s.settings.typingOn===undefined)s.settings.typingOn=true;
   if(s.settings.stopTyping===undefined)s.settings.stopTyping=true;
   if(s.settings.stopTypingPct===undefined)s.settings.stopTypingPct=15;
+  if(s.settings.burstGapMin===undefined)s.settings.burstGapMin=20;
+  if(s.settings.burstGapMax===undefined)s.settings.burstGapMax=50;
   if(s.settings.profileHandle===undefined)s.settings.profileHandle='@lu.chen';
   if(!s.profileBox)s.profileBox=[];
   if(s.profileFollowed===undefined)s.profileFollowed=true;
@@ -3954,6 +3956,18 @@ function rndDelay(c,kind){
   if(min>max){var tmp=min;min=max;max=tmp}
   return rnd(min,max)*1000;
 }
+/** 他"连发"时每条之间隔多久（秒）。主动消息和他的回复都用这一个。
+    ★ 以前：主动消息是写死的 20~50 秒，而"回复"只有 0.9~1.8 秒 ——
+      所以回复看起来像"一次全冒出来"（用户报的"连发要有间隔"）。 */
+function burstGapMs(){
+  var st=state.settings||{};
+  var a=(st.burstGapMin!=null?st.burstGapMin:20), b=(st.burstGapMax!=null?st.burstGapMax:50);
+  a=Number(a);b=Number(b);
+  if(!isFinite(a)||a<1)a=20;
+  if(!isFinite(b)||b<1)b=50;
+  if(a>b){var t=a;a=b;b=t}
+  return rnd(a,b)*1000;
+}
 function pickBurstCount(c){
   if(c.burstOn===false)return 1;
   var b=c.burst||[45,32,15,6,2];
@@ -3974,7 +3988,9 @@ function pushIn(cid,text,t,replyTo){
   if(state.settings&&state.settings.soundOn)beep();
   if(replyTo)m.replyTo=replyTo;
   state.messages.push(m);
-  if(m.dir==='in'&&(location.hash.replace('#','')!=='chat'||state.activeContact!==m.contactId)){state.unread=(state.unread||0)+1;save()}
+  /* ★ 只有"此刻就该出现"的消息才算未读。
+     未来时间戳的那条等它到点再算 —— 否则会出现"有未读红点、聊天室里却没有"。 */
+  if(m.dir==='in'&&t<=now()+1500&&(location.hash.replace('#','')!=='chat'||state.activeContact!==m.contactId)){state.unread=(state.unread||0)+1;save()}
   /* ★ 连发的第 2、3 条时间戳是"未来 20~50 秒"，以前这里立刻就通知了，
      于是出现"通知里有一句话，聊天室却没有，过一会儿他才发过来"。
      现在只有"此刻就该出现"的消息才立刻通知，未来的那条等它到点在调度器里通知。 */
@@ -3995,7 +4011,7 @@ function pushBurst(c,baseTs,count,quoteId){
     var txt=composeText(c,prev),tries=0;
     /* 一次连发里不要重复同一句（换一句，最多试 6 次） */
     while(used.indexOf(txt)>=0&&tries++<6)txt=composeText(c,prev);
-    ts+=rnd(20,50)*1000;
+    ts+=burstGapMs();
     pushIn(c.id,txt,ts);
     used.push(txt);
     prev=txt;
@@ -4071,6 +4087,8 @@ function upgradeDiary(){
 var _timer=null,_typing=null,_ntfSilent=false,_ntfTimer=null;
 /* 拖拽/长按只绑一次的标记：必须是模块变量，不能放 state（state 会存档，刷新后就废了） */
 var _blpBound=false,_cldBound=false;
+/* 聊天区是否贴在底部：翻历史时不要被新消息拽走 */
+var _chatAtBottom=true;
 var _schedSpin=0,_schedSpinAt=0;
 var _replyTimer=null;
 function schedule(){
@@ -4086,6 +4104,12 @@ function schedule(){
     if(m.dir==='in'&&m.ts>t)items.push({ts:m.ts,fn:(function(mm){return function(){
       try{renderChat()}catch(e){}
       try{notifyIncoming(mm)}catch(e){}
+      /* ★ 到点了才算未读（和"界面上能不能看到"保持一致） */
+      try{
+        if(location.hash.replace('#','')!=='chat'||state.activeContact!==mm.contactId){
+          state.unread=(state.unread||0)+1;save()
+        }
+      }catch(e){}
     }})(m)});
   }
   for(var j=0;j<state.letters.length;j++){
@@ -4302,6 +4326,9 @@ function renderChat(){
     var m=state.messages[i];
     if(m.contactId===c.id&&m.ts<=t)msgs.push(m);
   }
+  /* ★ 按时间戳排序（同一时刻保持原顺序）。
+     以前是"纯数组顺序"显示，导致补发时改过时间戳的消息顺序和界面对不上。 */
+  msgs.sort(function(a,b){ return (a.ts||0)-(b.ts||0) });
   var top='<div class="chat-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pat-av" data-act="pat">'+avatarHtml(c,32)+'</span><div class="ct-who"><div class="ct-name">'+esc(c.name)+'</div><div class="ct-chips">'+statusChip()+'</div></div><div class="pr"><button class="back" data-act="call-voice" title="语音电话">'+ICON_CALL+'</button><button class="back" data-act="call-video" title="视频电话">'+ICON_VIDEO+'</button><button class="back" data-act="chat-room" title="聊天室设置">'+ICON_MORE+'</button></div></div>';
   /* 壁纸原来挂在 #chatList 上（那正是滚动容器，而且 CSS 里写了
      background-attachment:local），所以聊天记录一滑，壁纸跟着跑。
@@ -4335,12 +4362,25 @@ function renderChat(){
     if(fresh)wrap.innerHTML=fresh.innerHTML;
   }
   applyChatCss();
-  var list2=$('#chatList');if(list2)list2.scrollTop=list2.scrollHeight;
+  /* ★ 只有"你本来就贴在底部"时才自动滚到底。
+     以前无条件 scrollTop=scrollHeight —— 你往上翻旧消息时，
+     只要来一条新消息就被立刻拽回最底部（用户报过）。 */
+  var list2=$('#chatList');
+  if(list2){
+    try{
+      list2.addEventListener('scroll',function(){
+        _chatAtBottom=(this.scrollHeight-this.scrollTop-this.clientHeight)<90;
+      },{passive:true});
+      if(_chatAtBottom)list2.scrollTop=list2.scrollHeight;
+    }catch(e){}
+  }
   var ta=$('#chatText');
   if(ta){
     ta.addEventListener('input',function(){ta.style.height='auto';ta.style.height=Math.min(96,ta.scrollHeight)+'px'});
     ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
   }
+  /* ★ 聊天区已经把它们显示出来了 → 标记为"已露面"，以后不再重排（防吞消息） */
+  try{markShownIn(c?c.id:null)}catch(e){}
   inputRestore(_inSnap);      /* ★ 把焦点和正在输入的内容还给用户 */
 }
 function cAvatar(c){
@@ -4531,6 +4571,7 @@ function sendChat(){
     save();
     setTimeout(function(){toast(esc(activeContact().name)+' 收藏了你这条消息')},1500);
   }
+  _chatAtBottom=true;          /* 自己发消息时，理应看到最新那条 */
   save();renderChat();schedule();
 }
 function startQuote(id){_quoteId=id;renderChat()}
@@ -4805,6 +4846,19 @@ function readImg(input,kind){
 /* ================= 信箱 ================= */
 var _mailTab='in';
 /** 请他写信：从现在（我点击这一刻）算起，3~30 分钟内他一定写一封过来 */
+/** 信箱顶部那句话：常驻显示"下一封信还有多久到"（以前只在 30 分钟内才显示） */
+function nextLetterHint(){
+  var d=state.nextLetterDue;
+  if(!d||typeof d!=='number')return '还没有排上，点左边让他写一封';
+  var left=d-now();
+  if(left<=0)return '他应该马上就会寄信来了';
+  var mins=Math.round(left/60000);
+  var txt;
+  if(mins<60)txt=mins+' 分钟后';
+  else if(mins<60*24)txt=(Math.floor(mins/60))+' 小时 '+(mins%60)+' 分后';
+  else txt=(Math.floor(mins/1440))+' 天 '+Math.floor((mins%1440)/60)+' 小时后';
+  return '下一封信预计 <b>'+txt+'</b> 到';
+}
 function mailAsk(){
   var c=activeContact();
   if(!c)return;
@@ -4828,9 +4882,7 @@ function renderMail(){
      计时从"我点的这一刻"开始，不是从打开网站开始。 */
   html+='<div style="display:flex;align-items:center;gap:10px;margin:10px 0 12px">'
     +'<button class="btn" style="width:auto;padding:10px 20px" data-act="mail-ask">请他写信</button>'
-    +'<span class="meta" style="flex:1">'+ (state.nextLetterDue&&state.nextLetterDue-now()<30*60000&&state.nextLetterDue>now()
-        ? ('他已经在写了，约 '+Math.max(1,Math.round((state.nextLetterDue-now())/60000))+' 分钟后到')
-        : '点了他会在半小时内寄一封来') +'</span></div>';
+    +'<span class="meta" style="flex:1">'+ nextLetterHint() +'</span></div>';
   html+='<div class="mail-tabs"><button class="m-tab'+( _mailTab==='in'?' on':'')+'" data-act="mail-tab" data-t="in">收件箱'+(inbox.length?' <span class="m-cnt">'+inbox.length+'</span>':'')+'</button><button class="m-tab'+( _mailTab==='out'?' on':'')+'" data-act="mail-tab" data-t="out">已发送'+(sent.length?' <span class="m-cnt">'+sent.length+'</span>':'')+'</button></div>';
   if(!show.length)html+='<div class="empty"><span class="big">信</span>'+( _mailTab==='in'?'收件箱还空着，等他来信吧':'还没有寄出的信')+'</div>';
   for(var i=0;i<show.length;i++){
@@ -5436,7 +5488,7 @@ function sheetModeAdd(){
 function modeSave(){
   var name=inpVal('modeName').trim();
   if(!name){toast('起个名字');return}
-  var mins=clamp(parseInt(inpVal('modeMins'),10)||25,1,180);
+  var mins=inpNum('modeMins',25,1,180);
   state.companion.custom.push({id:uid(),name:name,mins:mins});
   save();closeSheet();renderCompanion();toast('已添加模式');
 }
@@ -5488,22 +5540,7 @@ function meJumpTo(id){
   }catch(e){}
 }
 function pctSave(){
-  var s8=state.settings||(state.settings={});
-  function num(id,def){var e=$('#'+id);return e?clamp(parseFloat(e.value)||0,0,100):def}
-  s8.callAnswerPct=num('callAnsPct',75);
-  s8.callRejectPct=num('callRejPct',10);
-  s8.callDropPct=num('callDropPct',12);
-  s8.momStickerPct=num('momStickerPct',35);
-  s8.giftPct=num('giftPct',13);
-  s8.askPct=num('askPct',8);
-  s8.diaryReplyPct=num('setDiaryReply',65);
-  s8.emojiPct=num('setEmojiPct',15);
-  s8.quotePct=num('setQuotePct',40);
-  s8.checkinPct=num('setCheckinPct',25);
-  s8.postPct=num('setPostPct',50);
-  s8.tarotRevPct=num('setRevPct',50);
-  s8.tarotDailyPct=num('setDailyPct',40);
-  s8.puzzlePct=num('setPuzzlePct',50);
+  applyNumFields();
   save();toast('概率已保存');
 }
 function renderMe(){
@@ -5705,19 +5742,75 @@ function puzzleSave(){
   if(m)state.settings.puzzleMax=clamp(parseInt(m.value,10)||3,1,5);
   save();toast('拼字卡设置已保存');
 }
+/** 安全读一个数字输入框。
+    ★ 只有"元素不存在 / 空着 / 不是数字"才用默认值 —— **填 0 就是 0**。
+    以前满项目写成 parseFloat(...)||默认值，把 0 吃掉了：
+    想把某个概率关成 0，结果被悄悄改成 50（自查扫出 39 处）。 */
+function inpNum(id,def,min,max){
+  var el=null;
+  try{ if(typeof $==='function')el=$('#'+id) }catch(e){}
+  if(!el){ try{ el=document.getElementById(id) }catch(e){} }
+  if(!el)return def;
+  var raw=String(el.value==null?'':el.value).trim();
+  if(raw==='')return def;
+  var v=parseFloat(raw);
+  if(isNaN(v))return def;
+  if(min!=null&&v<min)v=min;
+  if(max!=null&&v>max)v=max;
+  return v;
+}
+/** 把一个数字输入框写进对象。
+    ★ 页面上**没有这个框**就什么都不做 —— 否则"在 A 卡片点保存"会把 B 卡片的设置冲成默认值。 */
+function numField(obj,key,id,def,min,max){
+  var el=null;
+  try{ if(typeof $==='function')el=$('#'+id) }catch(e){}
+  if(!el){ try{ el=document.getElementById(id) }catch(e){} }
+  if(!el)return;
+  var raw=String(el.value==null?'':el.value).trim();
+  if(raw===''){ obj[key]=def; return }
+  var v=parseFloat(raw);
+  if(isNaN(v)){ obj[key]=def; return }
+  if(min!=null&&v<min)v=min;
+  if(max!=null&&v>max)v=max;
+  obj[key]=v;
+}
+/** 所有"数字型设置"统一在这里写。
+    以前 saveGen() 和 saveAllPct() 各写一遍同样的字段、而且一个用 parseInt 一个用 parseFloat，
+    容易互相覆盖（比如 12.5 被另一处截成 12）。现在两处都调这一个函数。 */
+function applyNumFields(){
+  var s8=state.settings||(state.settings={});
+  numField(s8,'diaryCount','setDiary',3,1,8);
+  numField(s8,'letterCount','setLetter',2,1,8);
+  numField(s8,'diaryReplyPct','setDiaryReply',65,0,100);
+  numField(s8,'tarotRevPct','setRevPct',50,0,100);
+  numField(s8,'tarotDailyPct','setDailyPct',40,0,100);
+  numField(s8,'emojiPct','setEmojiPct',15,0,100);
+  numField(s8,'quotePct','setQuotePct',40,0,100);
+  numField(s8,'checkinPct','setCheckinPct',25,0,100);
+  numField(s8,'postPct','setPostPct',50,0,100);
+  numField(s8,'savePct','setSavePct',15,0,100);
+  numField(s8,'patReplyPct','setPatPct',40,0,100);
+  numField(s8,'stopTypingPct','setStopPct',15,0,100);
+  numField(s8,'puzzlePct','setPuzzlePct',50,0,100);
+  numField(s8,'puzzleMax','setPuzzleMax',3,1,5);
+  numField(s8,'momStickerPct','momStickerPct',35,0,100);
+  numField(s8,'giftPct','giftPct',13,0,100);
+  numField(s8,'askPct','askPct',8,0,100);
+  numField(s8,'callAnswerPct','callAnsPct',75,0,100);
+  numField(s8,'callRejectPct','callRejPct',10,0,100);
+  numField(s8,'callDropPct','callDropPct',12,0,100);
+  var c0=activeContact();
+  if(c0){
+    numField(c0,'readNRPct','setReadNR',20,0,100);
+    numField(c0,'replyPct','setReplyPct',100,0,100);
+    numField(c0,'callPct','setCallPct',30,0,100);
+    numField(c0,'transferPct','setTransferPct',15,0,100);
+    numField(c0,'invitePct','setInvitePct',30,0,100);
+  }
+  return s8;
+}
 function saveGen(){
-  state.settings.diaryCount=clamp(parseInt(inpVal('setDiary'),10)||3,1,8);
-  state.settings.diaryReplyPct=clamp(parseInt(inpVal('setDiaryReply'),10)||65,0,100);
-  state.settings.letterCount=clamp(parseInt(inpVal('setLetter'),10)||2,1,8);
-  state.settings.tarotRevPct=clamp(parseInt(inpVal('setRevPct'),10)||50,0,100);
-  state.settings.tarotDailyPct=clamp(parseInt(inpVal('setDailyPct'),10)||40,0,100);
-  state.settings.emojiPct=clamp(parseInt(inpVal('setEmojiPct'),10)||15,0,100);
-  state.settings.quotePct=clamp(parseInt(inpVal('setQuotePct'),10)||40,0,100);
-  state.settings.checkinPct=clamp(parseInt(inpVal('setCheckinPct'),10)||25,0,100);
-  state.settings.postPct=clamp(parseInt(inpVal('setPostPct'),10)||50,0,100);
-  var pp=$('#setPuzzlePct'),pm=$('#setPuzzleMax');
-  if(pp)state.settings.puzzlePct=clamp(parseInt(pp.value,10)||0,0,100);
-  if(pm)state.settings.puzzleMax=clamp(parseInt(pm.value,10)||3,1,5);
+  applyNumFields();
   save();toast('已保存');
 }
 function sheetSmLib(kind){
@@ -5837,6 +5930,10 @@ function sheetContact(id){
   html+='<div class="inl"><label>最快</label><div class="unit-row"><input id="cLetterMin" type="number" min="1" value="'+lp.val+'"><select id="cLetterUnit"><option value="m"'+(lp.unit==='m'?' selected':'')+'>分钟</option><option value="h"'+(lp.unit==='h'?' selected':'')+'>小时</option><option value="d"'+(lp.unit==='d'?' selected':'')+'>天</option></select></div></div>';
   html+='<div class="inl"><label>最慢</label><div class="unit-row"><input id="cLetterMax" type="number" min="1" value="'+lx.val+'"><select id="cLetterUnit2"><option value="m"'+(lx.unit==='m'?' selected':'')+'>分钟</option><option value="h"'+(lx.unit==='h'?' selected':'')+'>小时</option><option value="d"'+(lx.unit==='d'?' selected':'')+'>天</option></select></div></div></div>';
   html+='<div class="sw-row"><span class="tt">连发消息<small>一次最多连发 5 条。下面 5 个数字是"相对权重"，自动按比例换算（总和不必等于 100）</small></span>'+sw('cBurstOn')+'</div>';
+  /* ★ 连发间隔（秒）：主动消息和他的回复都用它 */
+  var _bg=(state.settings||{});
+  html+='<div class="inl"><label>连发间隔·最快（秒）</label><input id="cGapMin" type="number" min="1" max="600" value="'+(_bg.burstGapMin!=null?_bg.burstGapMin:20)+'"></div>'
+    +'<div class="inl"><label>连发间隔·最慢（秒）</label><input id="cGapMax" type="number" min="1" max="600" value="'+(_bg.burstGapMax!=null?_bg.burstGapMax:50)+'"></div>';
   html+='<div class="pct-grid">';
   var bnames=['1条','2条','3条','4条','5条'];
   for(var k=0;k<5;k++)html+='<div class="inl"><label>'+bnames[k]+'</label><input id="b'+(k+1)+'" type="number" min="0" max="100" value="'+(b[k]||0)+'"></div>';
@@ -5917,6 +6014,11 @@ function contactSave(){
     c.name=name;c.replyMin=rMin;c.replyMax=rMax;c.initMin=iMin;c.initMax=iMax;c.letterMin=lMin;c.letterMax=lMax;
     /* 元素不在时不要让整段保存崩掉（和 .value 同一类风险） */
     var _cbo=$('#cBurstOn');c.burstOn=_cbo?_cbo.checked:!!c.burstOn;c.burst=burst;
+    /* 连发间隔（是全局设置，不是每个对象一份） */
+    var _bgv=(state.settings||(state.settings={}));
+    numField(_bgv,'burstGapMin','cGapMin',20,1,600);
+    numField(_bgv,'burstGapMax','cGapMax',50,1,600);
+    if(_bgv.burstGapMin>_bgv.burstGapMax){var _gt=_bgv.burstGapMin;_bgv.burstGapMin=_bgv.burstGapMax;_bgv.burstGapMax=_gt}
       var _crn=$('#cReadNR');c.readNR=_crn?_crn.checked:!!c.readNR;c.readNRPct=clamp(parseFloat(inpVal('cReadNRPct'))||0,0,100);
     c.replyPct=clamp(parseFloat(inpVal('cReplyPct'))||0,0,100);
     c.callPct=clamp(parseFloat(inpVal('cCallPct'))||0,0,100);
@@ -5959,7 +6061,7 @@ var BACKUP_CATS=[
  {k:'desktop',   n:'全局设置与桌面',    d:'主题、壁纸、字体、各种开关',   keys:['settings','appIcons','appOrder','appPage']},
  {k:'widgets',   n:'桌面小组件',        d:'组件内容、布局和媒体引用',     keys:['widgets','widgetsOn','widgetOrder','widgetSize','widgetPage','widgetPos','widgetImgs','widgetWeather','widgetCount','widgetProgress','widgetPhoto','widgetCalendar','widgetDaysLabel','widgetDaysUnit','widgetNote','widgetMusic','anniversaryDays']},
  {k:'chat',      n:'聊天记录',          d:'各联系人的文字和媒体消息',     keys:['messages','nextInit','nextCallDue','nextInviteDue']},
- {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet']},
+ {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet','mySaves','pollLog']},
  {k:'cards',     n:'字卡库',            d:'分组、字卡、固定字卡',         keys:['cards','cardCats','statusCards','moodCards','patCards','diaryCards','writerCards','_smDeleted','currentStatus','currentMood']},
  {k:'moments',   n:'朋友圈',            d:'动态、封面、访客',             keys:['posts','feedEvents','nextPostDue','nextVisitDue','visitorCount','profileBox','profileFollowed']},
  {k:'mail',      n:'信箱',              d:'信件、收发状态',               keys:['letters','nextLetterDue']},
@@ -5967,7 +6069,10 @@ var BACKUP_CATS=[
  {k:'tarot',     n:'塔罗',              d:'抽牌记录与每日运势',           keys:['tarotLog','tarotDaily','_tarotLast']},
  {k:'stickers',  n:'表情包',            d:'表情图片与 emoji',             keys:['stickers']},
  {k:'companion', n:'陪伴',              d:'专注模式与背景',               keys:['companion']},
- {k:'tide',      n:'潮汐',              d:'潮汐记录',                     keys:['tide']}
+ {k:'tide',      n:'潮汐',              d:'潮汐记录',                     keys:['tide']},
+ /* ★ 这两个以前没进任何分类：换手机/清缓存时歌单和商城记录会丢（自查扫出来的） */
+ {k:'music',     n:'音乐',              d:'歌单与播放状态',               keys:['music']},
+ {k:'shop',      n:'商城',              d:'商品、购买与代买记录',         keys:['shop']}
 ];
 function backupCatKeys(k){
   for(var i=0;i<BACKUP_CATS.length;i++)if(BACKUP_CATS[i].k===k)return BACKUP_CATS[i].keys;
@@ -6343,7 +6448,7 @@ function replyPump(){
     _typing=null;state._pending=null;save();renderChat();schedule();
     return;
   }
-  plan.nextAt=now()+rnd(900,1800);
+  plan.nextAt=now()+burstGapMs();   /* ★ 后续每条之间也留间隔 */
   save();renderChat();
   replyPump();
 }
@@ -6929,6 +7034,9 @@ function dailyPost(){
   save();
 }
 function notifyIncoming(m){
+  /* ★ 通知已经告诉用户"他发来了这句话"，那这条就必须留在聊天区里，
+     不能再被补发逻辑推到未来去（否则就是"通知有、聊天室没有"）。 */
+  try{ if(m&&m.dir==='in')m.shown=true }catch(e){}
   if(_ntfSilent)return;
   var c=contact(m.contactId);if(!c)return;
   var st=state.settings||{};
@@ -7258,12 +7366,27 @@ function sw2(key,on){
     你切出去几分钟再回来 —— 这几条全都过期了，聊天区会一口气把它们铺出来。
     这里把"离开期间到点"的收件按 20~50 秒重新往后排，回来时是一条一条慢慢来。
     只动 dir==='in' 的收件，你自己的消息和系统消息不受影响。 */
+/** 标记"已经露过面"的收件（弹过通知、或在聊天区显示过）。
+    这类消息永远不再被 spreadDueMessages 往后挪 ——
+    否则会出现"通知中心里有、聊天室里却没了"（用户报的吞消息）。 */
+function markShownIn(contactId){
+  var t=now(),ch=false,i;
+  for(i=0;i<state.messages.length;i++){
+    var m=state.messages[i];
+    if(!m||m.dir!=='in'||m.shown)continue;
+    if(contactId&&m.contactId!==contactId)continue;
+    if(m.ts<=t){m.shown=true;ch=true}
+  }
+  if(ch)try{save()}catch(e){}
+  return ch;
+}
 function spreadDueMessages(sinceTs){
   var t=now(),k=0,i;
   var base=t+10000,maxAssigned=0;
   for(i=0;i<state.messages.length;i++){
     var m=state.messages[i];
     if(!m||m.dir!=='in')continue;
+    if(m.shown)continue;                        /* ★ 已经弹过通知/显示过的不动它 */
     if(!(m.ts>sinceTs&&m.ts<=t))continue;      /* 只处理"离开期间到点"的 */
     m.ts=base+k*rnd(20000,50000);
     if(m.ts>maxAssigned)maxAssigned=m.ts;
@@ -8178,8 +8301,8 @@ function renderTide(){
 function tideSave(){
   var t=state.tide;
   t.start=(inpVal('tideStart')||'').trim();
-  t.days=clamp(parseInt(inpVal('tideDays'),10)||5,1,15);
-  t.cycle=clamp(parseInt(inpVal('tideCycle'),10)||28,15,60);
+  t.days=inpNum('tideDays',5,1,15);
+  t.cycle=inpNum('tideCycle',28,15,60);
   save();renderTide();
   toast(t.start?'已保存，下次预计已更新':'请选择开始日期');
 }
@@ -9236,7 +9359,7 @@ function startClock(){
 }
 startClock();
 function wdSave(){
-  state.anniversaryDays=clamp(parseInt(inpVal('wdDays'),10)||0,0,99999);
+  state.anniversaryDays=inpNum('wdDays',0,0,99999);
   state.widgetDaysLabel=(inpVal('wdDaysLabel')||'').trim()||'在一起';
   state.widgetDaysUnit=(inpVal('wdDaysUnit')||'').trim()||'天';
   state.widgetNote=(inpVal('wdNote')||'').trim()||'1 miss you';
@@ -9246,52 +9369,34 @@ function wdSave(){
 }
 function momSave(){
   var s8=state.settings;
-  s8.momMin=clamp(parseInt(inpVal('momMin'),10)||180,1,10080);
-  s8.momMax=clamp(parseInt(inpVal('momMax'),10)||720,1,10080);
+  s8.momMin=inpNum('momMin',180,1,10080);
+  s8.momMax=inpNum('momMax',720,1,10080);
   if($('#momStickerPct'))s8.momStickerPct=clamp(parseFloat(inpVal('momStickerPct'))||0,0,100);
   if($('#giftPct'))s8.giftPct=clamp(parseFloat(inpVal('giftPct'))||0,0,100);
   if($('#askPct'))s8.askPct=clamp(parseFloat(inpVal('askPct'))||0,0,100);
-  s8.commentMin=clamp(parseInt(inpVal('comMin'),10)||180,1,10080);
-  s8.commentMax=clamp(parseInt(inpVal('comMax'),10)||600,1,10080);
+  s8.commentMin=inpNum('comMin',180,1,10080);
+  s8.commentMax=inpNum('comMax',600,1,10080);
   if(s8.momMin>s8.momMax){var t0=s8.momMin;s8.momMin=s8.momMax;s8.momMax=t0}
   if(s8.commentMin>s8.commentMax){var t1=s8.commentMin;s8.commentMin=s8.commentMax;s8.commentMax=t1}
-  s8.callMin=clamp(parseInt(inpVal('rCallMin'),10)||15,1,10080);
-  s8.callMax=clamp(parseInt(inpVal('rCallMax'),10)||60,1,10080);
-  s8.letterInitMin=clamp(parseInt(inpVal('rLtrMin'),10)||180,1,10080);
-  s8.letterInitMax=clamp(parseInt(inpVal('rLtrMax'),10)||1920,1,10080);
+  s8.callMin=inpNum('rCallMin',15,1,10080);
+  s8.callMax=inpNum('rCallMax',60,1,10080);
+  s8.letterInitMin=inpNum('rLtrMin',180,1,10080);
+  s8.letterInitMax=inpNum('rLtrMax',1920,1,10080);
   if(s8.callMin>s8.callMax){var t2=s8.callMin;s8.callMin=s8.callMax;s8.callMax=t2}
   if(s8.letterInitMin>s8.letterInitMax){var t3=s8.letterInitMin;s8.letterInitMin=s8.letterInitMax;s8.letterInitMax=t3}
   var c0=activeContact();
   if(c0){
-    c0.initMin=clamp(parseInt(inpVal('rInitMin'),10)||15,1,10080)*60;
-    c0.initMax=clamp(parseInt(inpVal('rInitMax'),10)||30,1,10080)*60;
-    c0.letterMin=clamp(parseInt(inpVal('rLtrReplyMin'),10)||180,1,10080)*60;
-    c0.letterMax=clamp(parseInt(inpVal('rLtrReplyMax'),10)||1440,1,10080)*60;
+    c0.initMin=inpNum('rInitMin',15,1,10080)*60;
+    c0.initMax=inpNum('rInitMax',30,1,10080)*60;
+    c0.letterMin=inpNum('rLtrReplyMin',180,1,10080)*60;
+    c0.letterMax=inpNum('rLtrReplyMax',1440,1,10080)*60;
     if(c0.initMin>c0.initMax){var t4=c0.initMin;c0.initMin=c0.initMax;c0.initMax=t4}
     if(c0.letterMin>c0.letterMax){var t5=c0.letterMin;c0.letterMin=c0.letterMax;c0.letterMax=t5}
   }
   save();toast('节奏已保存');
 }
 function saveAllPct(){
-  var s8=state.settings;
-  s8.tarotRevPct=clamp(parseFloat(inpVal('setRevPct'))||50,0,100);
-  s8.tarotDailyPct=clamp(parseFloat(inpVal('setDailyPct'))||40,0,100);
-  s8.emojiPct=clamp(parseFloat(inpVal('setEmojiPct'))||15,0,100);
-  s8.quotePct=clamp(parseFloat(inpVal('setQuotePct'))||40,0,100);
-  s8.checkinPct=clamp(parseFloat(inpVal('setCheckinPct'))||25,0,100);
-  s8.postPct=clamp(parseFloat(inpVal('setPostPct'))||50,0,100);
-  s8.savePct=clamp(parseFloat(inpVal('setSavePct'))||15,0,100);
-  s8.patReplyPct=clamp(parseFloat(inpVal('setPatPct'))||40,0,100);
-  s8.stopTypingPct=clamp(parseFloat(inpVal('setStopPct'))||15,0,100);
-  s8.diaryReplyPct=clamp(parseFloat(inpVal('setDiaryReply'))||65,0,100);
-  var c0=activeContact();
-  if(c0){
-    c0.readNRPct=clamp(parseFloat(inpVal('setReadNR'))||20,0,100);
-    c0.replyPct=clamp(parseFloat(inpVal('setReplyPct'))||100,0,100);
-    c0.callPct=clamp(parseFloat(inpVal('setCallPct'))||30,0,100);
-    c0.transferPct=clamp(parseFloat(inpVal('setTransferPct'))||15,0,100);
-    c0.invitePct=clamp(parseFloat(inpVal('setInvitePct'))||30,0,100);
-  }
+  applyNumFields();
   save();toast('概率已保存');
 }
 function msgMenuIcon(k){
