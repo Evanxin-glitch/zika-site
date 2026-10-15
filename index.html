@@ -6577,7 +6577,11 @@ function importBackup(input){
     try{window.__forceFullWrite=0}catch(e){}
     /* ⑤ 重画：这一步失败不代表数据没进来，所以单独兜住 */
     var painted=true;
-    try{ closeSheet();renderAll();schedule() }catch(e4){
+    /* ★ 导入的是"老备份"时，里面的图标顺序清单没有新加的 App（比如问卷），
+     以前只有在"开机迁移"时才补 —— 所以导入后 App 会凭空消失，得刷新才回来。
+     这里导入完立刻补一次。 */
+  try{ if(typeof syncAppOrder==='function')syncAppOrder(); save() }catch(e5){}
+  try{ closeSheet();renderAll();schedule() }catch(e4){
       painted=false;
       /* 把真实原因留下来（以前只吞掉，用户只看到"界面重画时出错"） */
       window.__paintErr={name:(e4&&e4.name)||'',msg:(e4&&e4.message)||String(e4),at:Date.now(),
