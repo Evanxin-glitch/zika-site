@@ -981,7 +981,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .call-mini .cm-tx{text-align:center;min-width:0}
 .call-mini .cm-tx b{font-size:calc(15px*var(--fs));display:block}
 .call-mini .cm-tx span{font-size:calc(12px*var(--fs));color:var(--sub);font-variant-numeric:tabular-nums}
-.call-mini .duan{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--danger);color:#fff;flex-shrink:0;min-height:46px;box-shadow:0 6px 16px rgba(200,60,60,.3)}
+.call-mini .duan{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--danger);color:#fff;flex-shrink:0;min-height:26px;box-shadow:0 4px 10px rgba(200,60,60,.28)}
 .call-full .cf-ops{display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
 .cf-ops button{width:64px;height:64px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:rgba(255,255,255,.82);color:var(--ink);font-size:calc(11px*var(--fs));min-height:64px}
 .cf-ops button.on{background:#5F8F7B;color:#fff}
@@ -1010,17 +1010,17 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .w-note{display:flex;flex-direction:column;justify-content:center;gap:2px}
 .w-note span{color:var(--sub);font-size:calc(13px*var(--fs))}
 .w-note b{font-size:calc(16px*var(--fs));color:var(--green);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#callOverlay.mini{position:fixed;inset:auto;right:14px;bottom:auto;top:calc(14px + env(safe-area-inset-top));left:auto;width:246px;z-index:90;background:rgba(255,255,255,.52);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.78);border-radius:20px;box-shadow:0 12px 34px rgba(30,24,15,.24);color:var(--ink)}
-.call-mini{display:flex;align-items:center;gap:9px;padding:9px 11px}
-.call-mini .cm-av{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:var(--serif);font-size:calc(16px*var(--fs));font-weight:700;color:#fff;box-shadow:0 3px 10px rgba(80,60,40,.22)}
+#callOverlay.mini{position:fixed;inset:auto;right:14px;bottom:auto;top:calc(14px + env(safe-area-inset-top));left:auto;width:158px;z-index:90;background:rgba(255,255,255,.52);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.78);border-radius:20px;box-shadow:0 12px 34px rgba(30,24,15,.24);color:var(--ink)}
+.call-mini{display:flex;align-items:center;gap:6px;padding:6px 9px}
+.call-mini .cm-av{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:var(--serif);font-size:calc(12px*var(--fs));font-weight:700;color:#fff;box-shadow:0 3px 10px rgba(80,60,40,.22)}
 .call-mini .cm-av img{width:100%;height:100%;object-fit:cover}
 .call-mini .cm-av i{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-style:normal}
 .call-mini .cm-tx{flex:1;min-width:0}
-.call-mini .cm-tx b{font-size:calc(14px*var(--fs));display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.call-mini .cm-tx span{font-size:calc(11px*var(--fs));color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
-.call-mini button{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.85);color:var(--ink);flex-shrink:0;min-height:34px;padding:0}
+.call-mini .cm-tx b{font-size:calc(12px*var(--fs));display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.call-mini .cm-tx span{font-size:calc(10px*var(--fs));color:var(--sub);font-variant-numeric:tabular-nums;white-space:nowrap}
+.call-mini button{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.85);color:var(--ink);flex-shrink:0;min-height:26px;padding:0}
 .call-mini button.duan{background:var(--danger);color:#fff}
-.call-mini button svg{width:16px;height:16px}
+.call-mini button svg{width:12px;height:12px}
 .call-full .cf-ops{display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 16px calc(16px + env(safe-area-inset-bottom))}
 .cf-ops button{width:62px;height:62px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:rgba(255,255,255,.85);color:var(--ink);font-size:calc(11px*var(--fs));min-height:62px}
 .cf-ops button.on{background:#5F8F7B;color:#fff}
@@ -1084,14 +1084,14 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .widgets .wfree .widget-grip{position:absolute;right:7px;top:6px;width:14px;height:14px;opacity:.0;pointer-events:none;background:radial-gradient(currentColor 1.2px,transparent 1.3px);background-size:5px 5px;color:var(--sub)}
 .widgets.editfree .wfree .widget-grip{opacity:.55}
 #callOverlay.show.mini{inset:auto;top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;height:auto;background:none;box-shadow:none;pointer-events:none}
-#callOverlay.show.mini .call-mini{pointer-events:auto;position:relative;background:linear-gradient(150deg,rgba(255,255,255,.9),rgba(255,238,244,.82));backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(255,140,180,.3),inset 0 1px 0 rgba(255,255,255,.85);border-radius:30px;display:flex;flex-direction:row;align-items:center;gap:9px;padding:7px 10px;touch-action:none;cursor:grab;width:auto;max-width:calc(100vw - 20px);height:auto}
-#callOverlay.show.mini .call-mini .cm-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:var(--serif);font-size:calc(14px*var(--fs));font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(80,60,40,.18)}
+#callOverlay.show.mini .call-mini{pointer-events:auto;position:relative;background:linear-gradient(150deg,rgba(255,255,255,.9),rgba(255,238,244,.82));backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(255,140,180,.3),inset 0 1px 0 rgba(255,255,255,.85);border-radius:20px;display:flex;flex-direction:row;align-items:center;gap:5px;padding:5px 8px;touch-action:none;cursor:grab;width:auto;max-width:calc(100vw - 20px);height:auto}
+#callOverlay.show.mini .call-mini .cm-av{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:var(--serif);font-size:calc(11px*var(--fs));font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(80,60,40,.18)}
 #callOverlay.show.mini .call-mini .cm-av img{width:100%;height:100%;object-fit:cover}
 #callOverlay.show.mini .call-mini .cm-av i{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-style:normal}
 #callOverlay.show.mini .call-mini .cm-tx{flex:1;min-width:0;line-height:1.25}
-#callOverlay.show.mini .call-mini .cm-tx b{display:block;font-size:calc(14px*var(--fs));color:#7A4A5E;font-weight:600}
-#callOverlay.show.mini .call-mini .cm-timer{display:block;font-size:calc(11px*var(--fs));color:#C68BA0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#callOverlay.show.mini .call-mini button{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;min-width:0;border:none;cursor:pointer;background:rgba(255,255,255,.75);color:#B25E8B;box-shadow:0 2px 8px rgba(255,140,180,.22)}
+#callOverlay.show.mini .call-mini .cm-tx b{display:block;font-size:calc(12px*var(--fs));color:#7A4A5E;font-weight:600}
+#callOverlay.show.mini .call-mini .cm-timer{display:block;font-size:calc(10px*var(--fs));color:#C68BA0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#callOverlay.show.mini .call-mini button{width:26px;height:26px;min-height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:0;min-width:0;border:none;cursor:pointer;background:rgba(255,255,255,.75);color:#B25E8B;box-shadow:0 2px 8px rgba(255,140,180,.22)}
 #callOverlay.show.mini .call-mini button.duan{background:linear-gradient(150deg,#FF7B8E,#FF5A76);color:#fff}
 #callOverlay.show.mini .call-mini button svg{width:16px;height:16px}
 /* 拖动过的通话条：位置由内联样式决定（只在够宽的屏幕上生效） */
@@ -3025,6 +3025,7 @@ function goView(v,force){
   if(force!==false)render(v);
 }
 function render(v){
+  var _inSnap=inputSnapshot();   /* ★ 其它页面同理：重绘不打断正在输入的内容 */
   v=v||location.hash.replace('#','')||'home';
   if(v==='home')renderHome();
   else if(v==='profile')renderProfile();
@@ -3046,6 +3047,7 @@ function render(v){
   try{repairAllAvatars()}catch(e){}
   scheduleMediaHydrate();
   schedule();
+  inputRestore(_inSnap);
 }
 function renderAll(){render()}
 window.addEventListener('hashchange',router);
@@ -3075,6 +3077,7 @@ function appListDefs(){
 }
 var APPS=appListDefs();
 function renderHome(){
+  var _inSnap=inputSnapshot();
   var c=activeContact();
   var d=new Date(),hour=d.getHours();
   var greet=hour<6?'夜深了，还在等我吗':hour<9?'早上好':hour<12?'上午好':hour<14?'中午好':hour<18?'下午好':'晚上好';
@@ -3141,6 +3144,7 @@ function renderHome(){
   setTimeout(fitWidgetGridNow,60);
   setTimeout(fitWidgetGridNow,260);
   setTimeout(fitWidgetGridNow,700);
+  inputRestore(_inSnap);
 }
 /* 按 key 找 App 定义（两页共用） */
 function appByKey(v){
@@ -3609,6 +3613,7 @@ var TAROT_SPREADS=[
 ];
 var _tSpread='daily';
 function renderTarot(){
+  var _inSnap=inputSnapshot();
   tarotDailyToday();
   var c=activeContact();
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">塔罗</span></div><div class="screen">';
@@ -3640,6 +3645,7 @@ function renderTarot(){
   html+='</div></div>';
   html+='</div>';
   $('#view').innerHTML=html;
+  inputRestore(_inSnap);
 }
 function tarotCardHtml(cd,label){
   if(!cd)return '';
@@ -3689,15 +3695,15 @@ function tarotDoDraw(nums,who,question,spreadName){
   save();
 }
 function tarotDraw(){
-  var q=$('#tarotQ')?$('#tarotQ').value:'';
-  var n=$('#tarotNums')?$('#tarotNums').value:'';
+  var q=$('#tarotQ')?inpVal('tarotQ'):'';
+  var n=$('#tarotNums')?inpVal('tarotNums'):'';
   tarotDoDraw(n||'7','我',q,'');
   tarotDailyDraw('me');
   $('#tarotRes').innerHTML=tarotResHtml();
 }
 function tarotLu(){
   var c=activeContact();
-  var q=$('#tarotQ')?$('#tarotQ').value:'';
+  var q=$('#tarotQ')?inpVal('tarotQ'):'';
   var btn=document.querySelector('[data-act="tarot-lu"]');
   if(btn){btn.disabled=true;btn.textContent=c.name+' 正在凝神…'}
   setTimeout(function(){
@@ -4160,7 +4166,52 @@ var ICON_VIDEO='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stro
 function inChatView(){
   return location.hash.replace('#','')==='chat';
 }
+/** 整块重绘（innerHTML）会把输入框整个销毁：
+    iOS 上键盘会被立刻收掉，用户的感觉就是"输入框点不开、打不了字"。
+    通话中他不停发消息，每来一条就重绘一次，所以特别明显。
+    下面这对函数在重绘前后"记住 / 还原"焦点、内容和光标位置。 */
+/** 安全地读一个输入框的值：元素不存在就返回空串。
+    以前满项目写的是 inpVal('x') —— 只要那个 id 没渲染（或改名了），
+    这里就抛 TypeError，整段保存直接中断（自查就是这么抓到 #setStopPct 的）。 */
+function inpVal(id){
+  var e=null;
+  /* 沿用项目里统一的 $ 查找（真实浏览器里与 getElementById 等价，
+     但保持同一条查找路径，测试桩和页面行为才一致），找不到就再兜一次 */
+  try{ if(typeof $==='function')e=$('#'+id) }catch(err){}
+  if(!e){ try{ e=document.getElementById(id) }catch(err){} }
+  if(!e)return '';
+  return e.value==null?'':String(e.value);
+}
+function inputSnapshot(){
+  var el=null;
+  try{el=document.activeElement}catch(e){}
+  if(!el)return null;
+  var tag=(el.tagName||'').toUpperCase();
+  if(tag!=='INPUT'&&tag!=='TEXTAREA')return null;
+  var sel=null;
+  try{sel=(el.selectionStart!=null)?el.selectionStart:null}catch(e){}
+  return {tag:tag,id:el.id||'',cls:String(el.className||''),value:String(el.value==null?'':el.value),sel:sel};
+}
+function inputRestore(snap){
+  if(!snap)return;
+  var el=null;
+  try{
+    if(snap.id)el=document.getElementById(snap.id);
+    if(!el&&snap.cls){
+      var c=snap.cls.trim().split(/\s+/)[0];
+      if(c)el=document.querySelector(snap.tag.toLowerCase()+'.'+c);
+    }
+  }catch(e){}
+  if(!el)return;                                  /* 已经换页面了 → 不还原，免得乱聚焦 */
+  try{ if(String(el.tagName||'').toUpperCase()!==snap.tag)return }catch(e){}
+  try{ if(el.value!==snap.value)el.value=snap.value }catch(e){}
+  try{
+    el.focus();
+    if(snap.sel!=null&&el.setSelectionRange)el.setSelectionRange(snap.sel,snap.sel);
+  }catch(e){}
+}
 function renderChat(){
+  var _inSnap=inputSnapshot();
   /* 只有正停在聊天页时才整页重绘。否则（例如来电时）只更新聊天列表那一块，
      绝不把用户当前所在的页面覆盖成聊天页 */
   if(!inChatView()&&!document.getElementById('chatList'))return;
@@ -4210,6 +4261,7 @@ function renderChat(){
     ta.addEventListener('input',function(){ta.style.height='auto';ta.style.height=Math.min(96,ta.scrollHeight)+'px'});
     ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
   }
+  inputRestore(_inSnap);      /* ★ 把焦点和正在输入的内容还给用户 */
 }
 function cAvatar(c){
   if(c.avatarType==='img'&&c.avatarImg)return '<img src="'+mediaUrlSync(c.avatarImg)+'" alt="">';
@@ -4405,6 +4457,7 @@ function startQuote(id){_quoteId=id;renderChat()}
 
 /* ================= 朋友圈（推特风） ================= */
 function renderMoments(){
+  var _inSnap=inputSnapshot();
   var posts=state.posts.slice().sort(function(a,b){return b.ts-a.ts});
   var meNm=state.me&&state.me.name||'我';
   var meCl=state.me&&state.me.color||'#D98E5F';
@@ -4460,6 +4513,7 @@ function renderMoments(){
   }
   html+='</div>';
   $('#view').innerHTML=html;
+  inputRestore(_inSnap);
 }
 function postCommentOpen(id){
   var el=$('#pc'+id);if(el)el.style.display=el.style.display==='none'?'flex':'none';
@@ -4647,7 +4701,7 @@ function sheetCheckinAdd(){
   openSheet('<h2>添加查岗预设</h2><label>查岗内容</label><input id="ckAdd" placeholder="如：在干嘛"><div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="checkin-add-save">添加</button></div>');
 }
 function checkinAddSave(){
-  var t=$('#ckAdd').value.trim();
+  var t=inpVal('ckAdd').trim();
   if(!t){toast('写点什么');return}
   state.checkinPresets.push(t);
   save();closeSheet();renderMe();toast('已添加查岗预设');
@@ -4680,6 +4734,7 @@ function mailAsk(){
   try{renderMail()}catch(e){}
 }
 function renderMail(){
+  var _inSnap=inputSnapshot();
   var letters=state.letters.slice().sort(function(a,b){return b.ts-a.ts});
   var c=activeContact();
   var meNm=state.me&&state.me.name||'我';
@@ -4707,6 +4762,7 @@ function renderMail(){
   html+='</div>';
   html+='<button class="mail-fab" data-act="letter-new" title="写邮件"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7a2.8 2.8 0 0 0-4-4l-7 7v4h4z"/><path d="M16 5l3 3"/></svg></button>';
   $('#view').innerHTML=html;
+  inputRestore(_inSnap);
 }
 function mailTab(t){_mailTab=t;renderMail()}
 function mailRead(id){
@@ -4740,7 +4796,7 @@ function sheetLetter(){
   openSheet('<h2>写给 '+esc(c.name)+'</h2><label>标题</label><input id="letterTitle" placeholder="不写也可以"><label>内容</label><textarea id="letterBody" rows="5" placeholder="把想说的话写下来…"></textarea><div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="letter-send">寄出</button></div>');
 }
 function letterSend(){
-  var title=$('#letterTitle').value.trim(),body=$('#letterBody').value.trim();
+  var title=inpVal('letterTitle').trim(),body=inpVal('letterBody').trim();
   if(!body){toast('信里总得写点什么');return}
   var c=activeContact();
   state.letters.push({id:uid(),contactId:c.id,dir:'out',title:title||'（无题）',body:body,ts:now(),replyDue:now()+rndLetterDelay(c)});
@@ -4779,6 +4835,7 @@ function cardSearchMatch(c){
   return String(c.text||'').toLowerCase().indexOf(_cardQ.toLowerCase())>=0;
 }
 function renderCards(){
+  var _inSnap=inputSnapshot();
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">字卡库</span></div>';
   html+='<div class="screen">';
   var libs=[['cards','聊天字卡'],['status','状态'],['mood','心情'],['pat','拍一拍'],['diary','日记']];
@@ -4830,6 +4887,7 @@ function renderCards(){
   }
   html+='</div>';
   $('#view').innerHTML=html;
+  inputRestore(_inSnap);
 }
 /* ===== 分类管理 ===== */
 function catAdd(){
@@ -4931,9 +4989,9 @@ function cardBatchFile(input){
   input.value='';
 }
 function cardSave(){
-  var text=$('#cardText').value.trim();
+  var text=inpVal('cardText').trim();
   if(!text){toast('写点内容再保存');return}
-  var tag=$('#cardTag').value.trim();
+  var tag=inpVal('cardTag').trim();
   state.cards.push({id:uid(),text:text,tag:tag,created:now()});
   if(tag){
     state.cardCats=state.cardCats||[];
@@ -5043,7 +5101,7 @@ function sheetStatusCard(kind){
   openSheet('<h2>添加'+nm+'字卡</h2><label>内容</label><input id="smText" placeholder="'+ph+'"><div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="sm-save" data-kind="'+kind+'">保存</button></div>');
 }
 function smSave(kind){
-  var text=$('#smText').value.trim();
+  var text=inpVal('smText').trim();
   if(!text){toast('写点什么');return}
   var lib=libOf(kind);
   lib.push({id:uid(),text:text});
@@ -5059,6 +5117,7 @@ function smDel(kind,id){
 
 /* ================= 日记 ================= */
 function renderDiary(){
+  var _inSnap=inputSnapshot();
   var tab=state._diaryTab||'his';
   var today=dateStr(now());
   var keys=Object.keys(state.diary).sort().reverse();
@@ -5095,6 +5154,7 @@ function renderDiary(){
   html+='<div class="note" style="margin-top:12px">陆沉每天用字卡写日记，也会评论你的日记；你评论他的日记，他有机会回复你。</div>';
   html+='</div>';
   $('#view').innerHTML=html;
+  inputRestore(_inSnap);
 }
 function cmtBlock(ds,kind,d){
   var list=kind==='his'?(d.hisComments||[]):(d.myComments||[]);
@@ -5109,7 +5169,7 @@ function cmtBlock(ds,kind,d){
 function diaryTab(t){state._diaryTab=t;save();renderDiary()}
 function diarySaveMine(){
   var today=dateStr(now());
-  var v=($('#mineDiaryText').value||'').trim();
+  var v=(inpVal('mineDiaryText')||'').trim();
   if(!state.diary[today])ensureDiary(now());
   var d=state.diary[today];
   if(!v){d.mine={text:'',ts:0};save();renderDiary();toast('已清空');return}
@@ -5209,7 +5269,7 @@ function inviteAccept(id){
   m.accepted=true;m.acceptedAt=now();
   var mode=findMode(m.modeId)||{id:'',name:m.modeName||'专注',mins:m.mins||25};
   _curMode=mode.id;_left=(m.mins||25)*60;
-  state.messages.push({id:uid(),contactId:m.contactId,dir:'out',text:'好，一起「'+(m.modeName||'专注')+'」'+(m.mins||25)+'分钟',ts:now()});
+  state.messages.push({id:uid(),contactId:m.contactId,dir:'out',readDue:now()+4000,text:'好，一起「'+(m.modeName||'专注')+'」'+(m.mins||25)+'分钟',ts:now()});
   save();toast('已接受，去「陪伴」开始计时');
   goView('companion');
 }
@@ -5217,7 +5277,7 @@ function inviteDecline(id){
   var m=byId(state.messages,id);if(!m)return;
   m.accepted=false;m.refused=true;
   var c=contact(m.contactId)||activeContact();
-  state.messages.push({id:uid(),contactId:m.contactId,dir:'out',text:'这次先不了，下次陪你',ts:now()});
+  state.messages.push({id:uid(),contactId:m.contactId,dir:'out',readDue:now()+4000,text:'这次先不了，下次陪你',ts:now()});
   save();
   setTimeout(function(){
     state.messages.push({id:uid(),contactId:c.id,dir:'in',text:pick(['好，那我自己先开始，等你。','那我等你忙完。','没关系，我先把书翻开。']),ts:now()});
@@ -5227,6 +5287,7 @@ function inviteDecline(id){
   toast('已婉拒');
 }
 function renderCompanion(){
+  var _inSnap=inputSnapshot();
   clearTimeout(_tmrTick);_tmrTick=null;
   var cp=state.companion,modes=compModes();
   var bg=cp.bgImg?'background-image:url('+mediaUrlSync(cp.bgImg)+');background-size:cover;background-position:center':'background-image:'+(CB_PRESETS[cp.bgKey]||CB_PRESETS.cb1);
@@ -5245,6 +5306,7 @@ function renderCompanion(){
   html+='</div></div></div>';
   $('#view').innerHTML=html;
   tick();
+  inputRestore(_inSnap);
 }
 function fmtLeft(){
   var s=_left||0,m=Math.floor(s/60),ss=s%60;
@@ -5292,9 +5354,9 @@ function sheetModeAdd(){
   openSheet('<h2>添加陪伴模式</h2><label>模式名称</label><input id="modeName" placeholder="如：阅读 / 冥想"><label>时长（分钟）</label><input id="modeMins" type="number" min="1" max="180" value="25"><div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="mode-save">保存</button></div>');
 }
 function modeSave(){
-  var name=$('#modeName').value.trim();
+  var name=inpVal('modeName').trim();
   if(!name){toast('起个名字');return}
-  var mins=clamp(parseInt($('#modeMins').value,10)||25,1,180);
+  var mins=clamp(parseInt(inpVal('modeMins'),10)||25,1,180);
   state.companion.custom.push({id:uid(),name:name,mins:mins});
   save();closeSheet();renderCompanion();toast('已添加模式');
 }
@@ -5362,6 +5424,7 @@ function pctSave(){
   save();toast('概率已保存');
 }
 function renderMe(){
+  var _inSnap=inputSnapshot();
   var c=activeContact();
   var mc=0,pc=0,lc=0;
   for(var i=0;i<state.messages.length;i++)if(state.messages[i].contactId===c.id)mc++;
@@ -5458,6 +5521,9 @@ function renderMe(){
   html+='<div class="sw-row"><div><b>已读回执</b><span>显示我方消息已读状态</span></div><div class="switch'+(state.settings.readReceipt?' on':'')+'" data-act="st-sw" data-key="readReceipt"></div></div>';
   html+='<div class="sw-row"><div><b>正在输入的拟态</b><span>回复前显示三点输入</span></div><div class="switch'+(state.settings.typingOn?' on':'')+'" data-act="st-sw" data-key="typingOn"></div></div>';
   html+='<div class="sw-row"><div><b>欲言又止</b><span>小概率打了又删</span></div><div class="switch'+(state.settings.stopTyping?' on':'')+'" data-act="st-sw" data-key="stopTyping"></div></div>';
+  /* ★ 这个输入框以前漏了：保存代码要读 #setStopPct，但模板里没有，
+     于是 .value 抛错、整段保存中断（自查抓到的）。 */
+  html+='<div class="inl" style="margin-top:8px"><label>欲言又止概率 %</label><input id="setStopPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.stopTypingPct)!=null?state.settings.stopTypingPct:15)+'"></div>';
   html+='<div class="sw-row"><div><b>消息操作菜单</b><span>气泡旁显示 ⋮ 可复制删除</span></div><div class="switch'+(state.settings.msgMenu?' on':'')+'" data-act="st-sw" data-key="msgMenu"></div></div>';
   html+='<div class="me-group-title">美化</div>';
   html+='<div class="me-sec" id="sec-theme"><h3>主题与颜色</h3><div class="card">';
@@ -5518,6 +5584,7 @@ function renderMe(){
   html+='</div>';
   $('#view').innerHTML=html;
   setTimeout(fillStoragePanel,0);
+  inputRestore(_inSnap);
 }
 /** 设置页里的存档状态卡片 */
 function storageHealthHtml(){
@@ -5553,15 +5620,15 @@ function puzzleSave(){
   save();toast('拼字卡设置已保存');
 }
 function saveGen(){
-  state.settings.diaryCount=clamp(parseInt($('#setDiary').value,10)||3,1,8);
-  state.settings.diaryReplyPct=clamp(parseInt($('#setDiaryReply').value,10)||65,0,100);
-  state.settings.letterCount=clamp(parseInt($('#setLetter').value,10)||2,1,8);
-  state.settings.tarotRevPct=clamp(parseInt($('#setRevPct').value,10)||50,0,100);
-  state.settings.tarotDailyPct=clamp(parseInt($('#setDailyPct').value,10)||40,0,100);
-  state.settings.emojiPct=clamp(parseInt($('#setEmojiPct').value,10)||15,0,100);
-  state.settings.quotePct=clamp(parseInt($('#setQuotePct').value,10)||40,0,100);
-  state.settings.checkinPct=clamp(parseInt($('#setCheckinPct').value,10)||25,0,100);
-  state.settings.postPct=clamp(parseInt($('#setPostPct').value,10)||50,0,100);
+  state.settings.diaryCount=clamp(parseInt(inpVal('setDiary'),10)||3,1,8);
+  state.settings.diaryReplyPct=clamp(parseInt(inpVal('setDiaryReply'),10)||65,0,100);
+  state.settings.letterCount=clamp(parseInt(inpVal('setLetter'),10)||2,1,8);
+  state.settings.tarotRevPct=clamp(parseInt(inpVal('setRevPct'),10)||50,0,100);
+  state.settings.tarotDailyPct=clamp(parseInt(inpVal('setDailyPct'),10)||40,0,100);
+  state.settings.emojiPct=clamp(parseInt(inpVal('setEmojiPct'),10)||15,0,100);
+  state.settings.quotePct=clamp(parseInt(inpVal('setQuotePct'),10)||40,0,100);
+  state.settings.checkinPct=clamp(parseInt(inpVal('setCheckinPct'),10)||25,0,100);
+  state.settings.postPct=clamp(parseInt(inpVal('setPostPct'),10)||50,0,100);
   var pp=$('#setPuzzlePct'),pm=$('#setPuzzleMax');
   if(pp)state.settings.puzzlePct=clamp(parseInt(pp.value,10)||0,0,100);
   if(pm)state.settings.puzzleMax=clamp(parseInt(pm.value,10)||3,1,5);
@@ -5610,7 +5677,7 @@ function readMeFile(input){
 }
 function meResetAv(){_meAvImg=null;_meAvPicked=true;toast('将用昵称首字作头像，点保存生效')}
 function meSave(){
-  var name=($('#meName').value||'').trim()||'我';
+  var name=(inpVal('meName')||'').trim()||'我';
   state.me=state.me||{};
   state.me.name=name;
   if(_meAvImg){state.me.avatarType='img';state.me.avatarImg=_meAvImg}
@@ -5704,7 +5771,7 @@ function sheetContact(id){
 }
 function updAvatarPrev(){
   var p=$('#avatarPrev');if(!p)return;
-  var nm=($('#cName')&&$('#cName').value.trim())||((contact(state.activeContact)||{}).name)||'?';
+  var nm=($('#cName')&&inpVal('cName').trim())||((contact(state.activeContact)||{}).name)||'?';
   if(_avImg){p.innerHTML='<img src="'+mediaUrlSync(_avImg)+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';p.style.background='transparent';p.textContent='';return}
   p.style.background=_avColor;p.textContent=nm.charAt(0);
 }
@@ -5746,14 +5813,14 @@ function contactSave(){
   var btn=document.querySelector('[data-act="contact-save"]');
   if(!btn)return;
   var id=btn.getAttribute('data-id');
-  var name=$('#cName').value.trim();
+  var name=inpVal('cName').trim();
   if(!name){toast('给联系人起个名字');return}
-  var rMin=unitToSec($('#cReplyMin').value,$('#cReplyUnit').value);
-  var rMax=unitToSec($('#cReplyMax').value,$('#cReplyUnit2').value);
-  var iMin=unitToSec($('#cInitMin').value,$('#cInitUnit').value);
-  var iMax=unitToSec($('#cInitMax').value,$('#cInitUnit2').value);
-  var lMin=unitToSec($('#cLetterMin').value,$('#cLetterUnit').value);
-  var lMax=unitToSec($('#cLetterMax').value,$('#cLetterUnit2').value);
+  var rMin=unitToSec(inpVal('cReplyMin'),inpVal('cReplyUnit'));
+  var rMax=unitToSec(inpVal('cReplyMax'),inpVal('cReplyUnit2'));
+  var iMin=unitToSec(inpVal('cInitMin'),inpVal('cInitUnit'));
+  var iMax=unitToSec(inpVal('cInitMax'),inpVal('cInitUnit2'));
+  var lMin=unitToSec(inpVal('cLetterMin'),inpVal('cLetterUnit'));
+  var lMax=unitToSec(inpVal('cLetterMax'),inpVal('cLetterUnit2'));
   if(rMax<rMin){toast('回复“最慢”不能小于“最快”');return}
   if(iMax<iMin){toast('主动“最慢”不能小于“最快”');return}
   if(lMax<lMin){toast('回信“最慢”不能小于“最快”');return}
@@ -5762,11 +5829,12 @@ function contactSave(){
   if(!burst.reduce(function(a,b){return a+b},0))burst=[45,32,15,6,2];
   function applyC(c){
     c.name=name;c.replyMin=rMin;c.replyMax=rMax;c.initMin=iMin;c.initMax=iMax;c.letterMin=lMin;c.letterMax=lMax;
-    c.burstOn=$('#cBurstOn').checked;c.burst=burst;
-      c.readNR=$('#cReadNR').checked;c.readNRPct=clamp(parseFloat($('#cReadNRPct').value)||0,0,100);
-    c.replyPct=clamp(parseFloat($('#cReplyPct').value)||0,0,100);
-    c.callPct=clamp(parseFloat($('#cCallPct').value)||0,0,100);
-    c.transferPct=clamp(parseFloat($('#cTransferPct').value)||0,0,100);
+    /* 元素不在时不要让整段保存崩掉（和 .value 同一类风险） */
+    var _cbo=$('#cBurstOn');c.burstOn=_cbo?_cbo.checked:!!c.burstOn;c.burst=burst;
+      var _crn=$('#cReadNR');c.readNR=_crn?_crn.checked:!!c.readNR;c.readNRPct=clamp(parseFloat(inpVal('cReadNRPct'))||0,0,100);
+    c.replyPct=clamp(parseFloat(inpVal('cReplyPct'))||0,0,100);
+    c.callPct=clamp(parseFloat(inpVal('cCallPct'))||0,0,100);
+    c.transferPct=clamp(parseFloat(inpVal('cTransferPct'))||0,0,100);
     if(_avImg){
       /* 万一 _avImg 已经是 blob: 地址（老数据/异常路径），先修成引用再存 */
       if(typeof _avImg==='string'&&_avImg.indexOf('blob:')===0){
@@ -6322,7 +6390,7 @@ function maybeEmojiReply(c){
 }
 function sendPoll(question,options,multi,fast){
   var c=activeContact();
-  state.messages.push({id:uid(),contactId:c.id,dir:'out',kind:'poll',question:question,options:options,multi:multi||1,fast:fast!==false,ts:now(),replyDue:now()+(fast!==false?rnd(8,12)*1000:rnd(60,360)*1000)});
+  state.messages.push({id:uid(),contactId:c.id,dir:'out',readDue:now()+4000,kind:'poll',question:question,options:options,multi:multi||1,fast:fast!==false,ts:now(),replyDue:now()+(fast!==false?rnd(8,12)*1000:rnd(60,360)*1000)});
   save();closeSheet();renderChat();schedule();
 }
 function replyPoll(m,at){
@@ -6367,7 +6435,7 @@ function pollTime(v){
   for(var i=0;i<btns.length;i++)btns[i].classList.toggle('on',btns[i].getAttribute('data-v')===v);
 }
 function pollYesno(){
-  var q=$('#pollQ').value.trim();
+  var q=inpVal('pollQ').trim();
   if(!q){toast('写个问题吧');return}
   sendPoll(q,['是','否'],1,true);
 }
@@ -6802,6 +6870,7 @@ function hideNtf(){var b=$('#ntfBar');if(b)b.style.display='none'}
 function ntfGo(){hideNtf();goView('chat')}
 var _profileTab='diary';
 function renderProfile(){
+  var _inSnap=inputSnapshot();
   var c=activeContact();
   var posts=state.dailyPosts.slice().sort(function(a,b){return b.ts-a.ts});
   var trs=state.transfers.slice().sort(function(a,b){return b.ts-a.ts});
@@ -6843,6 +6912,7 @@ function renderProfile(){
   }
   html+='</div>';
   $('#view').innerHTML=html;
+  inputRestore(_inSnap);
 }
 function profileTab(t){_profileTab=t;renderProfile()}
 function diarySave(d){
@@ -7407,7 +7477,10 @@ document.addEventListener('click',function(e){
     else if(act==='ka-vol'){state.settings.keepVol=btn.getAttribute('data-v')||'light';save();renderMe()}
     else if(act==='pick-theme'){state.settings.homeTheme=btn.getAttribute('data-t');save();applyTheme();renderMe()}
     else if(act==='pick-tint'){state.settings.auroraTint=btn.getAttribute('data-t');save();applyTheme();renderMe()}
-    else if(act==='app-page'){var _sc=$('#appScroll');if(_sc)_sc.scrollTo({left:(parseInt(btn.getAttribute('data-p'),10)||0)*_sc.clientWidth,behavior:'smooth'});state.appPage=parseInt(btn.getAttribute('data-p'),10)||0;save()}
+    else if(act==='app-page'){/* ★ 原来找的是 #appScroll —— 这个 id 模板里从来没有，
+        主页图标下面那两个翻页小圆点点了没反应。真正的容器叫 #homePages。 */
+      var _sc=$('#homePages')||document.querySelector('.home-pages');
+      if(_sc)_sc.scrollTo({left:(parseInt(btn.getAttribute('data-p'),10)||0)*_sc.clientWidth,behavior:'smooth'});state.appPage=parseInt(btn.getAttribute('data-p'),10)||0;save()}
     else if(act==='tarot-spread'){_tSpread=btn.getAttribute('data-s');document.querySelectorAll('[data-act=tarot-spread]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-s')===_tSpread)})}
     else if(act==='tarot-draw')tarotDraw();
     else if(act==='tarot-lu')tarotLu();
@@ -7797,6 +7870,7 @@ function acceptTransfer(mid){
   save();renderChat();
 }
 function renderWallet(){
+  var _inSnap=inputSnapshot();
   var w=state.wallet||{balance:888,log:[]};
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">钱包</span></div>';
   html+='<div class="screen">';
@@ -7815,6 +7889,7 @@ function renderWallet(){
   html+='<div class="note" style="margin-top:12px">这是你们之间的小金库，转账收支都会记在这里。</div>';
   html+='</div>';
   $('#view').innerHTML=html;
+  inputRestore(_inSnap);
 }
 
 /* ===== v7：消息统计（聊天页顶栏入口） ===== */
@@ -7862,6 +7937,7 @@ function fmtDate(dt){
   return (dt.getMonth()+1)+'月'+dt.getDate()+'日';
 }
 function renderTide(){
+  var _inSnap=inputSnapshot();
   var t=state.tide||{start:'',days:5,cycle:28,history:[]};
   var info=tideInfo();
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">潮汐</span></div>';
@@ -7886,12 +7962,13 @@ function renderTide(){
   }
   html+='</div>';
   $('#view').innerHTML=html;
+  inputRestore(_inSnap);
 }
 function tideSave(){
   var t=state.tide;
-  t.start=($('#tideStart').value||'').trim();
-  t.days=clamp(parseInt($('#tideDays').value,10)||5,1,15);
-  t.cycle=clamp(parseInt($('#tideCycle').value,10)||28,15,60);
+  t.start=(inpVal('tideStart')||'').trim();
+  t.days=clamp(parseInt(inpVal('tideDays'),10)||5,1,15);
+  t.cycle=clamp(parseInt(inpVal('tideCycle'),10)||28,15,60);
   save();renderTide();
   toast(t.start?'已保存，下次预计已更新':'请选择开始日期');
 }
@@ -8011,6 +8088,7 @@ function widgetOn(k){
   return w[k]!==false;
 }
 function renderWidgetLib(){
+  var _inSnap=inputSnapshot();
   widgetEnsureOrder();
   var defs=widgetDefs(),on=0,i;
   for(i=0;i<defs.length;i++)if(widgetOn(defs[i].k))on++;
@@ -8060,6 +8138,7 @@ function renderWidgetLib(){
   html+='</div></div>';
   html+='</div>';
   $('#view').innerHTML=html;
+  inputRestore(_inSnap);
 }
 function wdlibContentSave(){
   state.widgetWeather={city:val('#wdCity'),temp:clamp(parseInt(val('#wdTemp'),10)||0,-50,60),text:val('#wdText')||'晴'};
@@ -8660,6 +8739,7 @@ function musBindBarDrag(el){
 
 /* ---------- 播放页 ---------- */
 function renderMusic(){
+  var _inSnap=inputSnapshot();
   var m=musState(),sg=musCur(),pr=musProgress();
   var c=activeContact();
   var sess=m.sess;
@@ -8702,6 +8782,7 @@ function renderMusic(){
   html+='</div></div>';
   $('#view').innerHTML=html;
   musPaint();
+  inputRestore(_inSnap);
 }
 
 
@@ -8764,7 +8845,7 @@ function shopRegen(){shopGen(true);save();renderShop();toast('换了一批新商
 function shopBuy(id){
   var it=shopItem(id);if(!it)return;
   var c=activeContact();if(!c){toast('先加个联系人吧');return}
-  state.messages.push({id:uid(),contactId:c.id,dir:'out',kind:'gift',itemName:it.name,emoji:it.emoji,
+  state.messages.push({id:uid(),contactId:c.id,dir:'out',readDue:now()+4000,kind:'gift',itemName:it.name,emoji:it.emoji,
     price:it.price,catName:it.catName,ts:now(),replyDue:now()+rndDelay(c),answered:false});
   var sh=shopState();
   sh.orders.unshift({id:uid(),name:it.name,emoji:it.emoji,price:it.price,dir:'out',ts:now(),status:'sent'});
@@ -8779,7 +8860,7 @@ function shopBuy(id){
 function shopAsk(id){
   var it=shopItem(id);if(!it)return;
   var c=activeContact();if(!c){toast('先加个联系人吧');return}
-  state.messages.push({id:uid(),contactId:c.id,dir:'out',kind:'buyreq',itemName:it.name,emoji:it.emoji,
+  state.messages.push({id:uid(),contactId:c.id,dir:'out',readDue:now()+4000,kind:'buyreq',itemName:it.name,emoji:it.emoji,
     price:it.price,catName:it.catName,ts:now(),replyDue:now()+rndDelay(c),answered:false});
   save();
   toast('已让 '+c.name+' 帮你买：'+it.name);
@@ -8850,6 +8931,7 @@ function shopHisAsk(c){
   return true;
 }
 function renderShop(){
+  var _inSnap=inputSnapshot();
   var sh=shopGen(),c=activeContact();
   var html='<div class="screen shop-screen">';
   html+='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><b>商城</b>'
@@ -8888,6 +8970,7 @@ function renderShop(){
   }
   html+='</div>';
   $('#view').innerHTML=html;
+  inputRestore(_inSnap);
 }
 
 /* ===== v7.2：小组件保存 / 消息菜单 / 图标拖拽 / 时钟 / 音乐 ===== */
@@ -8907,37 +8990,37 @@ function startClock(){
 }
 startClock();
 function wdSave(){
-  state.anniversaryDays=clamp(parseInt($('#wdDays').value,10)||0,0,99999);
-  state.widgetDaysLabel=($('#wdDaysLabel').value||'').trim()||'在一起';
-  state.widgetDaysUnit=($('#wdDaysUnit').value||'').trim()||'天';
-  state.widgetNote=($('#wdNote').value||'').trim()||'1 miss you';
-  state.widgetMusic.song=($('#wdSong').value||'').trim()||'Full moon';
-  state.widgetMusic.artist=($('#wdArtist').value||'').trim()||'LENmoment';
+  state.anniversaryDays=clamp(parseInt(inpVal('wdDays'),10)||0,0,99999);
+  state.widgetDaysLabel=(inpVal('wdDaysLabel')||'').trim()||'在一起';
+  state.widgetDaysUnit=(inpVal('wdDaysUnit')||'').trim()||'天';
+  state.widgetNote=(inpVal('wdNote')||'').trim()||'1 miss you';
+  state.widgetMusic.song=(inpVal('wdSong')||'').trim()||'Full moon';
+  state.widgetMusic.artist=(inpVal('wdArtist')||'').trim()||'LENmoment';
   save();renderAll();toast('小组件已保存');
 }
 function momSave(){
   var s8=state.settings;
-  s8.momMin=clamp(parseInt($('#momMin').value,10)||180,1,10080);
-  s8.momMax=clamp(parseInt($('#momMax').value,10)||720,1,10080);
-  if($('#momStickerPct'))s8.momStickerPct=clamp(parseFloat($('#momStickerPct').value)||0,0,100);
-  if($('#giftPct'))s8.giftPct=clamp(parseFloat($('#giftPct').value)||0,0,100);
-  if($('#askPct'))s8.askPct=clamp(parseFloat($('#askPct').value)||0,0,100);
-  s8.commentMin=clamp(parseInt($('#comMin').value,10)||180,1,10080);
-  s8.commentMax=clamp(parseInt($('#comMax').value,10)||600,1,10080);
+  s8.momMin=clamp(parseInt(inpVal('momMin'),10)||180,1,10080);
+  s8.momMax=clamp(parseInt(inpVal('momMax'),10)||720,1,10080);
+  if($('#momStickerPct'))s8.momStickerPct=clamp(parseFloat(inpVal('momStickerPct'))||0,0,100);
+  if($('#giftPct'))s8.giftPct=clamp(parseFloat(inpVal('giftPct'))||0,0,100);
+  if($('#askPct'))s8.askPct=clamp(parseFloat(inpVal('askPct'))||0,0,100);
+  s8.commentMin=clamp(parseInt(inpVal('comMin'),10)||180,1,10080);
+  s8.commentMax=clamp(parseInt(inpVal('comMax'),10)||600,1,10080);
   if(s8.momMin>s8.momMax){var t0=s8.momMin;s8.momMin=s8.momMax;s8.momMax=t0}
   if(s8.commentMin>s8.commentMax){var t1=s8.commentMin;s8.commentMin=s8.commentMax;s8.commentMax=t1}
-  s8.callMin=clamp(parseInt($('#rCallMin').value,10)||15,1,10080);
-  s8.callMax=clamp(parseInt($('#rCallMax').value,10)||60,1,10080);
-  s8.letterInitMin=clamp(parseInt($('#rLtrMin').value,10)||180,1,10080);
-  s8.letterInitMax=clamp(parseInt($('#rLtrMax').value,10)||1920,1,10080);
+  s8.callMin=clamp(parseInt(inpVal('rCallMin'),10)||15,1,10080);
+  s8.callMax=clamp(parseInt(inpVal('rCallMax'),10)||60,1,10080);
+  s8.letterInitMin=clamp(parseInt(inpVal('rLtrMin'),10)||180,1,10080);
+  s8.letterInitMax=clamp(parseInt(inpVal('rLtrMax'),10)||1920,1,10080);
   if(s8.callMin>s8.callMax){var t2=s8.callMin;s8.callMin=s8.callMax;s8.callMax=t2}
   if(s8.letterInitMin>s8.letterInitMax){var t3=s8.letterInitMin;s8.letterInitMin=s8.letterInitMax;s8.letterInitMax=t3}
   var c0=activeContact();
   if(c0){
-    c0.initMin=clamp(parseInt($('#rInitMin').value,10)||15,1,10080)*60;
-    c0.initMax=clamp(parseInt($('#rInitMax').value,10)||30,1,10080)*60;
-    c0.letterMin=clamp(parseInt($('#rLtrReplyMin').value,10)||180,1,10080)*60;
-    c0.letterMax=clamp(parseInt($('#rLtrReplyMax').value,10)||1440,1,10080)*60;
+    c0.initMin=clamp(parseInt(inpVal('rInitMin'),10)||15,1,10080)*60;
+    c0.initMax=clamp(parseInt(inpVal('rInitMax'),10)||30,1,10080)*60;
+    c0.letterMin=clamp(parseInt(inpVal('rLtrReplyMin'),10)||180,1,10080)*60;
+    c0.letterMax=clamp(parseInt(inpVal('rLtrReplyMax'),10)||1440,1,10080)*60;
     if(c0.initMin>c0.initMax){var t4=c0.initMin;c0.initMin=c0.initMax;c0.initMax=t4}
     if(c0.letterMin>c0.letterMax){var t5=c0.letterMin;c0.letterMin=c0.letterMax;c0.letterMax=t5}
   }
@@ -8945,23 +9028,23 @@ function momSave(){
 }
 function saveAllPct(){
   var s8=state.settings;
-  s8.tarotRevPct=clamp(parseFloat($('#setRevPct').value)||50,0,100);
-  s8.tarotDailyPct=clamp(parseFloat($('#setDailyPct').value)||40,0,100);
-  s8.emojiPct=clamp(parseFloat($('#setEmojiPct').value)||15,0,100);
-  s8.quotePct=clamp(parseFloat($('#setQuotePct').value)||40,0,100);
-  s8.checkinPct=clamp(parseFloat($('#setCheckinPct').value)||25,0,100);
-  s8.postPct=clamp(parseFloat($('#setPostPct').value)||50,0,100);
-  s8.savePct=clamp(parseFloat($('#setSavePct').value)||15,0,100);
-  s8.patReplyPct=clamp(parseFloat($('#setPatPct').value)||40,0,100);
-  s8.stopTypingPct=clamp(parseFloat($('#setStopPct').value)||15,0,100);
-  s8.diaryReplyPct=clamp(parseFloat($('#setDiaryReply').value)||65,0,100);
+  s8.tarotRevPct=clamp(parseFloat(inpVal('setRevPct'))||50,0,100);
+  s8.tarotDailyPct=clamp(parseFloat(inpVal('setDailyPct'))||40,0,100);
+  s8.emojiPct=clamp(parseFloat(inpVal('setEmojiPct'))||15,0,100);
+  s8.quotePct=clamp(parseFloat(inpVal('setQuotePct'))||40,0,100);
+  s8.checkinPct=clamp(parseFloat(inpVal('setCheckinPct'))||25,0,100);
+  s8.postPct=clamp(parseFloat(inpVal('setPostPct'))||50,0,100);
+  s8.savePct=clamp(parseFloat(inpVal('setSavePct'))||15,0,100);
+  s8.patReplyPct=clamp(parseFloat(inpVal('setPatPct'))||40,0,100);
+  s8.stopTypingPct=clamp(parseFloat(inpVal('setStopPct'))||15,0,100);
+  s8.diaryReplyPct=clamp(parseFloat(inpVal('setDiaryReply'))||65,0,100);
   var c0=activeContact();
   if(c0){
-    c0.readNRPct=clamp(parseFloat($('#setReadNR').value)||20,0,100);
-    c0.replyPct=clamp(parseFloat($('#setReplyPct').value)||100,0,100);
-    c0.callPct=clamp(parseFloat($('#setCallPct').value)||30,0,100);
-    c0.transferPct=clamp(parseFloat($('#setTransferPct').value)||15,0,100);
-    c0.invitePct=clamp(parseFloat($('#setInvitePct').value)||30,0,100);
+    c0.readNRPct=clamp(parseFloat(inpVal('setReadNR'))||20,0,100);
+    c0.replyPct=clamp(parseFloat(inpVal('setReplyPct'))||100,0,100);
+    c0.callPct=clamp(parseFloat(inpVal('setCallPct'))||30,0,100);
+    c0.transferPct=clamp(parseFloat(inpVal('setTransferPct'))||15,0,100);
+    c0.invitePct=clamp(parseFloat(inpVal('setInvitePct'))||30,0,100);
   }
   save();toast('概率已保存');
 }
