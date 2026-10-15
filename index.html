@@ -3243,7 +3243,17 @@ function syncAppOrder(){
     for(var i=0;i<defs.length;i++)ids.push(defs[i].v);
     var cur=Array.isArray(state.appOrder)?state.appOrder.slice():[];
     cur=cur.filter(function(v){return ids.indexOf(v)>=0});     /* 去掉已经不存在的 */
-    for(var j=0;j<ids.length;j++)if(cur.indexOf(ids[j])<0)cur.push(ids[j]);   /* 补上新的，放在后面 */
+    for(var j=ids.length-1;j>=0;j--)if(cur.indexOf(ids[j])<0)cur.unshift(ids[j]);   /* ★ 新加的 App 放最前面（第一页第一个） */
+    /* ★ 一次性修正：之前那版把「问卷」接到了最后（跑到第二页去了），
+       对已经出现过这个问题的存档，把它挪到第一个。只做一次，之后你自己怎么拖都行。 */
+    try{
+      if(!state.settings)state.settings={};
+      if(!state.settings._appFirstFix){
+        state.settings._appFirstFix=1;
+        var _si=cur.indexOf('survey');
+        if(_si>0){ cur.splice(_si,1); cur.unshift('survey') }
+      }
+    }catch(e){}
     state.appOrder=cur;
   }catch(e){}
 }
@@ -3292,7 +3302,7 @@ function renderHome(){
     +'</div>';
 
   var apps=APPS;
-  var PER=8,apg=state.appPage||0;
+  var PER=6,apg=state.appPage||0;
   html+='<div class="app-grid" id="appGrid_0">';
   for(var i=0;i<order.length&&i<6;i++){
     var a=appByKey(order[i]);
@@ -3302,28 +3312,35 @@ function renderHome(){
   html+='</div>';
   html+='</div>';
 
-  /* ===== 第二页：组件 + 其余应用 ===== */
-  html+='<div class="home-page" data-page="1">';
-  html+='<div class="home-title home-title-2">'+esc(siteName())+'</div>';
-  html+='<button class="wd-add" data-view="widgets" data-page="1" title="添加组件">＋</button>';
-  html+='<div class="widgets" id="widgetGrid1">'+widgetGridInner(wdo,wds,wk,d,1)+'</div>';
-  html+='<div class="app-grid" id="appGrid_1">';
-  for(var i2=6;i2<order.length;i2++){
-    var a2=appByKey(order[i2]);
-    if(!a2)continue;
-    html+=appItemHtml(a2);
+  /* ===== 其余页面：每页 6 个应用，放不下的自动开新页 =====
+     ★ 以前写死"第二页装下所有剩下的"，第二页被小组件占满时，
+       后面的 App 就被压住看不见了（用户报的"问卷被覆盖找不到了"）。 */
+  var _PER=6;
+  var _pageCount=Math.max(1,Math.ceil(order.length/_PER));
+  for(var _pg=1;_pg<_pageCount;_pg++){
+    html+='<div class="home-page" data-page="'+_pg+'">';
+    html+='<div class="home-title home-title-2">'+esc(siteName())+'</div>';
+    html+='<button class="wd-add" data-view="widgets" data-page="'+_pg+'" title="添加组件">＋</button>';
+    /* 第 2 页仍然放小组件；第 3 页起只放应用，不再塞小组件 */
+    html+='<div class="widgets" id="widgetGrid'+_pg+'">'+(_pg===1?widgetGridInner(wdo,wds,wk,d,1):'')+'</div>';
+    html+='<div class="app-grid" id="appGrid_'+_pg+'">';
+    for(var _ai=_pg*_PER;_ai<order.length&&_ai<(_pg+1)*_PER;_ai++){
+      var _ap=appByKey(order[_ai]);
+      if(!_ap)continue;
+      html+=appItemHtml(_ap);
+    }
+    html+='</div>';
+    html+='</div>';
   }
-  html+='</div>';
-  html+='</div>';
 
   html+='</div>';
   html+='<div class="page-dots">';
-  for(var pg=0;pg<2;pg++)html+='<span class="dot'+(pg===apg?' on':'')+'" data-act="home-page" data-p="'+pg+'"></span>';
+  for(var pg=0;pg<_pageCount;pg++)html+='<span class="dot'+(pg===apg?' on':'')+'" data-act="home-page" data-p="'+pg+'"></span>';
   html+='</div>';
   var _asc=document.getElementById('homePages');
   if(_asc&&!state._ascBound){state._ascBound=true;_asc.addEventListener('scroll',function(){
     var _p=Math.round(this.scrollLeft/this.clientWidth);
-    if(_p!==state.appPage&&_p<2){state.appPage=_p;save();var _ds=document.querySelectorAll('.page-dots .dot');for(var _i=0;_i<_ds.length;_i++)_ds[_i].classList.toggle('on',_i===_p)}
+    if(_p!==state.appPage&&_p<_pageCount){state.appPage=_p;save();var _ds=document.querySelectorAll('.page-dots .dot');for(var _i=0;_i<_ds.length;_i++)_ds[_i].classList.toggle('on',_i===_p)}
   });}
   html+='<div class="home-foot">长按图标或小组件即可拖动换位 · 数据保存在本机浏览器<br>换手机记得在 设置 → 备份 里导出</div>';
   html+='</div>';
