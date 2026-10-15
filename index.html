@@ -377,6 +377,8 @@ background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
 .page-dots .dot{width:7px;height:7px;border-radius:50%;background:rgba(120,100,80,.28);transition:all .2s;min-width:0;padding:0}
 .page-dots .dot.on{background:#F28FB0;width:18px;border-radius:4px}
 /* 设置页分组 */
+.pct-sub{font-size:calc(12.5px*var(--fs));font-weight:700;color:var(--green);margin:12px 0 6px;letter-spacing:.5px}
+.pct-sub:first-child{margin-top:2px}
 .me-group-title{font-family:var(--serif);font-size:calc(17px*var(--fs));font-weight:800;margin:20px 0 10px;color:#C97B8E;letter-spacing:1px;display:flex;align-items:center;gap:8px}
 .me-group-title:after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(201,123,142,.4),transparent)}
 /* 塔罗 */
@@ -1519,6 +1521,67 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .media-dead{display:inline-flex;align-items:center;justify-content:center;
   padding:8px 14px;margin:4px 0;border-radius:12px;font-size:calc(12px*var(--fs));
   color:var(--sub);background:rgba(255,255,255,.66);box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}
+
+/* ===== 问卷（颜色全部走主题变量，切主题会跟着变）===== */
+.sv-new{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);
+  border-radius:18px;padding:15px;font-weight:700;color:var(--green);cursor:pointer}
+.sv-new .ic{width:38px;height:38px;border-radius:12px;background:var(--green);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:20px}
+.sv-new small{display:block;font-weight:400;color:var(--sub);font-size:11.5px;margin-top:2px}
+.sv-t{font-size:12.5px;font-weight:700;color:var(--green);margin:16px 4px 7px;letter-spacing:.5px}
+.sv-t .n{color:var(--sub);font-weight:400;margin-left:6px}
+.sv-box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:0 15px}
+.sv-empty{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:center;color:var(--sub);font-size:13px}
+.sv-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 0;border-top:1px solid var(--line);cursor:pointer}
+.sv-row:first-child{border-top:0}
+.sv-row .tt{font-weight:700;font-size:14.5px;color:var(--ink)}
+.sv-row .mt{font-size:11.5px;color:var(--sub);margin-top:3px}
+.sv-tag{font-size:11px;padding:3px 9px;border-radius:10px;white-space:nowrap}
+.sv-tag.done{background:var(--green-soft);color:var(--green);font-weight:700}
+.sv-tag.wait{background:var(--orange-soft);color:var(--orange)}
+.sv-tag.todo{background:rgba(201,123,142,.16);color:#B96A84;font-weight:700}
+.sv-grp{margin-top:12px}
+.sv-gt{font-size:12.5px;font-weight:700;color:var(--ink);margin:0 2px 6px;display:flex;justify-content:space-between}
+.sv-gt .n{color:var(--sub);font-weight:400;font-size:11.5px}
+.sv-q{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:13px;border:1px solid var(--line);
+  background:var(--card);margin:6px 0;font-size:13.5px;color:var(--ink);cursor:pointer}
+.sv-q.on{background:var(--green-soft);border-color:var(--green);font-weight:700}
+.sv-q .bx{width:17px;height:17px;border-radius:50%;border:1.6px solid var(--line);flex:0 0 auto}
+.sv-q .bx.sq{border-radius:5px}
+.sv-q.on .bx{background:var(--green);border-color:var(--green)}
+.sv-q .tx{flex:1;min-width:0}
+.sv-q .ty{font-size:11px;color:var(--sub);flex:0 0 auto}
+.sv-del{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--sub);line-height:1}
+.sv-acts{display:flex;gap:8px;margin-top:8px}
+.sv-acts .btn{flex:1}
+.sv-chips{display:flex;gap:8px;flex-wrap:wrap}
+.sv-chip{padding:9px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);
+  font-size:13px;color:var(--ink)}
+.sv-chip.on{background:var(--green);color:#fff;border-color:var(--green);font-weight:700}
+.sv-foot{display:flex;gap:10px;margin-top:16px}
+.sv-foot .cancel,.sv-foot .ok{flex:1;padding:13px;border-radius:15px;font-weight:700;font-size:14.5px;border:0}
+.sv-foot .cancel{background:rgba(255,255,255,.7);border:1px solid var(--line);color:var(--sub)}
+.sv-foot .ok{background:var(--green);color:#fff}
+/* 聊天里的问卷卡 */
+.bubble.bubble-survey{background:transparent;box-shadow:none;padding:0;max-width:100%}
+.sv-card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:13px 15px;
+  box-shadow:0 2px 10px rgba(160,140,110,.08);min-width:230px}
+.sv-ch{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--sub);margin-bottom:2px}
+.sv-ch b{color:var(--green);font-size:13.5px}
+.sv-ct{font-weight:800;font-size:14.5px;color:var(--ink);margin:4px 0 2px}
+.sv-qq{font-weight:700;font-size:13.5px;color:var(--ink);margin:11px 0 2px}
+.sv-o{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:12px;border:1px solid var(--line);
+  background:#fff;margin:5px 0;font-size:13px;color:var(--ink)}
+.sv-o .bx{width:16px;height:16px;border-radius:50%;border:1.6px solid var(--line);flex:0 0 auto}
+.sv-o .bx.sq{border-radius:5px}
+.sv-o.on{background:var(--green-soft);border-color:var(--green);font-weight:700}
+.sv-o.on .bx{background:var(--green);border-color:var(--green)}
+.sv-cf{display:flex;justify-content:flex-end;margin-top:11px}
+.sv-sub{padding:8px 18px;border-radius:13px;background:var(--green);color:#fff;border:0;font-weight:700;font-size:13.5px}
+
+/* 离线补发的标记（跟在时间前面，颜色走主题变量） */
+.msg-meta .cu{font-size:calc(10px*var(--fs));line-height:1.5;padding:0 5px;border-radius:7px;
+  background:var(--orange-soft);color:var(--orange);font-weight:700;margin-right:5px}
 </style>
 </head>
 <body>
@@ -1659,6 +1722,7 @@ function defaultState(){
   };
 }
 function migrate(s){
+  if(!Array.isArray(s.surveys))s.surveys=[];   /* 问卷 */
   /* 存储里存过什么奇怪东西都不能让读取失败：坏字段就地修好，绝不让整个存档报废 */
   if(!s||typeof s!=='object')return s;
   if(!Array.isArray(s.contacts)||!s.contacts.length){
@@ -1909,6 +1973,7 @@ function migrate(s){
   if(s.settings.stopTypingPct===undefined)s.settings.stopTypingPct=15;
   if(s.settings.burstGapMin===undefined)s.settings.burstGapMin=20;
   if(s.settings.burstGapMax===undefined)s.settings.burstGapMax=50;
+  if(s.settings.surveyPct===undefined)s.settings.surveyPct=8;   /* 他主动发问卷概率 */
   /* ★ 网站名称：用户可以自己输入（默认"沉与昕之恋"） */
   if(s.settings.siteName==null)s.settings.siteName='沉与昕之恋';
   if(s.settings.profileHandle===undefined)s.settings.profileHandle='@lu.chen';
@@ -2487,9 +2552,11 @@ function mediaUrlSync(v){
     mediaUrl(v).then(function(url){
       delete _mediaPending[v];
       try{renderAll()}catch(e){}                         /* 成功或失败都重绘一次 */
+      try{ntfRefreshAvatar()}catch(e){}                  /* 通知条的头像也补上 */
     }).catch(function(){                                  /* ★ 万一是 reject，别把 pending 卡死 */
       delete _mediaPending[v]; _mediaMissing[v]=1;
       try{renderAll()}catch(e){}
+      try{ntfRefreshAvatar()}catch(e){}
     });
   }
   return '';
@@ -3088,7 +3155,7 @@ function coverStyle(){
 }
 
 /* ================= 路由 ================= */
-var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop'];
+var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey'];
 var _routedOnce=false;
 function router(){
   var h=location.hash.replace('#','');
@@ -3148,6 +3215,7 @@ function render(v){
   else if(v==='widgets')renderWidgetLib();
   else if(v==='music')renderMusic();
   else if(v==='shop')renderShop();
+  else if(v==='survey')renderSurvey();
   else renderMe();
   /* 一起听开着的时候：离开听歌界面自动缩成悬浮条，回到听歌界面自动收起 */
   try{if(typeof musBarToggle==='function')musBarToggle()}catch(e){}
@@ -3167,6 +3235,7 @@ var ICON_MORE='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" strok
 /* 桌面 App 列表（renderHome 与设置页的图标编辑共用，避免两处不一致） */
 function appListDefs(){
   return [
+    {v:'survey',n:'问卷',c:'#8E7CC3',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/><path d="M15.5 17.5l1.5 1.5 3-3"/></svg>'},
     {v:'profile',n:'主页',c:'#B25E8B',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="18" height="15" rx="3"/><path d="M8 5l1.5-2h5L16 5"/><circle cx="12" cy="12.5" r="4"/></svg>'},
     {v:'chat',n:'聊天',c:'#F28FB0',ic:'<img src="'+P2_ICON+'" style="width:100%;height:100%;object-fit:cover">'},
     {v:'moments',n:'朋友圈',c:'#D98E5F',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>'},
@@ -4009,8 +4078,9 @@ function pickBurstCount(c){
   for(i=0;i<5;i++){acc+=Math.max(0,Number(b[i])||0);if(r<acc)return i+1}
   return 1;
 }
-function pushIn(cid,text,t,replyTo){
+function pushIn(cid,text,t,replyTo,catchup){
   var m={id:uid(),contactId:cid,dir:'in',text:text,ts:t};
+  if(catchup)m.catchup=1;      /* ★ 离线补发的消息：气泡上会带一个小"补发"标 */
   if(state.settings&&state.settings.soundOn)beep();
   if(replyTo)m.replyTo=replyTo;
   state.messages.push(m);
@@ -4023,14 +4093,32 @@ function pushIn(cid,text,t,replyTo){
   if(t<=now()+1500)notifyIncoming(m);
   return m;
 }
-function pushBurst(c,baseTs,count,quoteId){
+/** 他最近 withinMs 内发了几条（用来封顶：回复+主动消息叠一起会变成"一堆消息"） */
+function hisRecentCount(cid,withinMs){
+  var t=now(),n=0,win=withinMs||600000;      /* 默认看最近 10 分钟 */
+  for(var i=state.messages.length-1;i>=0;i--){
+    var m=state.messages[i];
+    if(!m||m.ts<t-win)break;
+    if(m.contactId===cid&&m.dir==='in'&&m.kind!=='sys')n++;
+  }
+  return n;
+}
+/** 他还能再发几条（10 分钟内总共不超过 5 条） */
+function hisQuota(cid){ return Math.max(0,5-hisRecentCount(cid)) }
+function pushBurst(c,baseTs,count,quoteId,catchup){
+  /* ★ 封顶：他 10 分钟内总共最多 5 条。
+     以前"回复你（最多5条）"和"他主动来找你（又最多5条）"会叠起来，
+     实测出现过一次 8 条（用户报的）。 */
+  var _q=hisQuota(c.id);
+  if(_q<=0)return;
+  if(count>_q)count=_q;
   /* ★ 时间戳原来写成 baseTs + i*rnd(20,50)*1000：
      每次乘的是**新的**随机数，两个独立随机数相减会跑出范围，
      实测出现过 66 秒、60 秒的间隔（设定是 20~50 秒），甚至可能是负数导致消息乱序。
      现在改成"每条在上一条基础上再加 20~50 秒"，间隔恒定落在范围内、顺序也一定递增。 */
   var prev=null,ts=baseTs,used=[];
   var first=composeText(c,prev);
-  pushIn(c.id,first,ts,quoteId);
+  pushIn(c.id,first,ts,quoteId,catchup);
   used.push(first);
   prev=first;
   for(var i=1;i<count;i++){
@@ -4038,7 +4126,7 @@ function pushBurst(c,baseTs,count,quoteId){
     /* 一次连发里不要重复同一句（换一句，最多试 6 次） */
     while(used.indexOf(txt)>=0&&tries++<6)txt=composeText(c,prev);
     ts+=burstGapMs();
-    pushIn(c.id,txt,ts);
+    pushIn(c.id,txt,ts,null,catchup);
     used.push(txt);
     prev=txt;
   }
@@ -4206,6 +4294,16 @@ function schedule(){
     }
     items.push({ts:nt,fn:(function(cc){return function(){initiate(cc)}})(c)});
   }
+  /* 问卷：到点他填（★ 必须在朋友圈循环之外，否则没有朋友圈时永远不跑） */
+  /* 问卷：到点他填 */
+  (function(){
+    var svs=state.surveys||[];
+    for(var _si=0;_si<svs.length;_si++){
+      var _sv=svs[_si];
+      if(_sv.dir!=='out'||_sv.answered||_sv.replyDue==null)continue;
+      items.push({ts:_sv.replyDue,fn:(function(x){return function(){try{svAutoFill(x)}catch(e){}}})(_sv)});
+    }
+  })();
   if(!items.length)return;
   items.sort(function(a,b){return a.ts-b.ts});
   var nx=items[0];
@@ -4239,8 +4337,9 @@ function markRead(m){
 }
 function initiate(c){
   refreshMood();
-  if(state.checkinPresets&&state.checkinPresets.length&&Math.random()*100<((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)){state.messages.push({id:uid(),contactId:c.id,dir:'in',kind:'checkin',text:'查岗：'+pick(state.checkinPresets),ts:now()});save();renderChat()}
-  pushBurst(c,now(),pickBurstCount(c));
+  /* ★ 他主动来找你：只发 1 条（以前是按权重连发，最多 5 条 → 一登录就一堆消息） */
+  if(hisQuota(c.id)>0&&state.checkinPresets&&state.checkinPresets.length&&Math.random()*100<((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)){state.messages.push({id:uid(),contactId:c.id,dir:'in',kind:'checkin',text:'查岗：'+pick(state.checkinPresets),ts:now()});save();renderChat()}
+  pushBurst(c,now(),1);
   /* 偶尔顺手买个小礼物送过来，或者让你帮他代买一件 */
   /* 主动消息偶尔顺手带一份礼物 / 让你帮他代买一件（概率可在 设置 里调） */
   var _stG=state.settings||{};
@@ -4250,6 +4349,8 @@ function initiate(c){
   else if(_askPct>0&&Math.random()*100<_askPct)shopHisAsk(c);
   feedEvent(c.name+' 给你发来了消息','chat');
   if(Math.random()*100<((state.settings&&state.settings.postPct)!=null?state.settings.postPct:50))maybePost(c,now());
+  /* ★ 他主动给你发问卷 */
+  if(Math.random()*100<((state.settings&&state.settings.surveyPct)!=null?state.settings.surveyPct:8))try{svHisSend(c)}catch(e){}
   state.nextInit[c.id]=now()+rndDelay(c,'init');
   save();renderAll();schedule();
 }
@@ -4410,7 +4511,12 @@ function renderChat(){
   inputRestore(_inSnap);      /* ★ 把焦点和正在输入的内容还给用户 */
 }
 function cAvatar(c){
-  if(c.avatarType==='img'&&c.avatarImg)return '<img src="'+mediaUrlSync(c.avatarImg)+'" alt="">';
+  /* ★ 以前图还在异步取 / 或图已失效时，这里渲染出 <img src=""> → 通知条上就是一个空圆圈。
+     现在取不到就先显示"颜色+首字"，等图回来了再换（媒体加载完会重绘）。 */
+  if(c.avatarType==='img'&&c.avatarImg){
+    var _u=mediaUrlSync(c.avatarImg);
+    if(_u&&_u!==TINY_PX)return '<img src="'+_u+'" alt="">';
+  }
   return '<i style="background:'+(c.color||'#7A9CC6')+'">'+(c.name||'?').charAt(0)+'</i>';
 }
 function meAvatar(){
@@ -4441,6 +4547,11 @@ function quoteLabel(om,c){
 }
 function bubbleHtml(m,c){
   if(m.dir==='sys')return '<div class="center-msg">'+esc(m.text)+'</div>';
+  /* ★ 问卷卡：一整份问卷就是一张卡（他的选择高亮；他发来的可以在这里直接勾选）*/
+  if(m.kind==='survey'&&m.surveyId){
+    return '<div class="msg-row '+m.dir+'"><span class="bubble-av">'+(m.dir==='out'?meAvatar():cAvatar(c))+'</span>'
+      +'<div class="bubble bubble-survey">'+surveyCardHtml(findSurvey(m.surveyId),m.dir==='out')+'</div></div>';
+  }
   if(m.recalled)return '<div class="msg-row '+m.dir+'"><span class="bubble-av">'+(m.dir==='out'?meAvatar():cAvatar(c))+'</span><div class="bubble recalled">'+(m.dir==='out'?'你撤回了一条消息':'对方撤回了一条消息')+'</div></div>';
   if(m.kind==='poll'){
     var isInP=(m.dir==='in');
@@ -4578,6 +4689,7 @@ function bubbleHtml(m,c){
     body='<span style="color:var(--sub)">[表情或图片已失效]</span>';
   }else body=esc(m.text);
   var meta='<div class="msg-meta">'
+    +(m.catchup?'<span class="cu">补发</span>':'')
     +'<span class="t">'+fmtTime(m.ts)+'</span>'
     +((m.dir==='out'&&!(state.settings&&state.settings.readReceipt===false))?'<span class="st'+((m.read)?'':' gray')+'">'+(m.read?'✓✓':'✓')+'</span>':'')
     +((state.settings&&state.settings.msgMenu!==false)?'<button class="msg-menu-btn" data-act="msg-menu" data-id="'+m.id+'" title="消息操作">⋮</button>':'')
@@ -5650,22 +5762,58 @@ function renderMe(){
   html+='<div class="inl"><label>最多拼几张（1–5）</label><input id="setPuzzleMax" type="number" min="1" max="5" value="'+((state.settings&&state.settings.puzzleMax)!=null?state.settings.puzzleMax:3)+'"></div>';
   html+='</div><div style="margin-top:10px"><button class="btn" style="width:100%" data-act="save-gen">保存</button></div></div></div>';
   html+='<div class="me-group-title">概率</div>';
-  html+='<div class="me-sec" id="sec-pct"><h3>概率</h3><div class="card"><div class="rhy-grid">';
-  html+='<div class="inl"><label>你打给他·他接听概率 %</label><input id="callAnsPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.callAnswerPct)!=null?state.settings.callAnswerPct:75)+'"></div>';
-  html+='<div class="inl"><label>你打给他·他直接拒绝 %</label><input id="callRejPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.callRejectPct)!=null?state.settings.callRejectPct:10)+'"></div>';
-  html+='<div class="inl"><label>通话中他有事挂断 %</label><input id="callDropPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.callDropPct)!=null?state.settings.callDropPct:12)+'"></div>';
-  html+='<div class="inl"><label>他动态带表情包概率 %</label><input id="momStickerPct" type="number" min="0" max="100" value="'+(state.settings.momStickerPct!=null?state.settings.momStickerPct:35)+'"></div>';
-  html+='<div class="inl"><label>主动送礼物概率 %</label><input id="giftPct" type="number" min="0" max="100" value="'+(state.settings.giftPct!=null?state.settings.giftPct:13)+'"></div>';
-  html+='<div class="inl"><label>找你代买概率 %</label><input id="askPct" type="number" min="0" max="100" value="'+(state.settings.askPct!=null?state.settings.askPct:8)+'"></div>';
-  html+='<div class="inl"><label>日记互动概率%</label><input id="setDiaryReply" type="number" min="0" max="100" value="'+((state.settings&&state.settings.diaryReplyPct)!=null?state.settings.diaryReplyPct:65)+'"></div>';
-  html+='<div class="inl"><label>表情回复概率%</label><input id="setEmojiPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.emojiPct)!=null?state.settings.emojiPct:15)+'"></div>';
-  html+='<div class="inl"><label>引用你的消息概率%</label><input id="setQuotePct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.quotePct)!=null?state.settings.quotePct:40)+'"></div>';
-  html+='<div class="inl"><label>主动消息带查岗概率%</label><input id="setCheckinPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)+'"></div>';
-  html+='<div class="inl"><label>主动消息后发朋友圈概率%</label><input id="setPostPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.postPct)!=null?state.settings.postPct:50)+'"></div>';
-  html+='<div class="inl"><label>塔罗逆位概率%</label><input id="setRevPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.tarotRevPct)!=null?state.settings.tarotRevPct:50)+'"></div>';
-  html+='<div class="inl"><label>塔罗每日陆沉抽牌概率%</label><input id="setDailyPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.tarotDailyPct)!=null?state.settings.tarotDailyPct:40)+'"></div>';
-  html+='<div class="inl"><label>拼字卡概率%</label><input id="setPuzzlePct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.puzzlePct)!=null?state.settings.puzzlePct:50)+'"></div>';
+  html+='<div class="me-sec" id="sec-pct"><h3>概率</h3><div class="card">';
+  /* ★ 一个功能的概率放在一起（以前是混在一起的一长串，找起来很乱） */
+  html+='<div class="pct-sub">聊天与回复</div><div class="rhy-grid">'
+    +'<div class="inl"><label>表情回复概率 %</label><input id="setEmojiPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.emojiPct)!=null?state.settings.emojiPct:15)+'"></div>'
+    +'<div class="inl"><label>引用你的消息概率 %</label><input id="setQuotePct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.quotePct)!=null?state.settings.quotePct:40)+'"></div>'
+    +'<div class="inl"><label>欲言又止概率 %</label><input id="setStopPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.stopTypingPct)!=null?state.settings.stopTypingPct:15)+'"></div>'
+    +'<div class="inl"><label>收藏你的消息概率 %</label><input id="setSavePct" type="number" min="0" max="100" value="'+(state.settings.savePct!=null?state.settings.savePct:15)+'"></div>'
+    +'<div class="inl"><label>拍一拍回拍概率 %</label><input id="setPatPct" type="number" min="0" max="100" value="'+(state.settings.patReplyPct!=null?state.settings.patReplyPct:40)+'"></div>'
+    +'</div>';
+  html+='<div class="pct-sub">他主动来找你</div><div class="rhy-grid">'
+    +'<div class="inl"><label>主动消息带查岗概率 %</label><input id="setCheckinPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)+'"></div>'
+    +'<div class="inl"><label>顺手送礼物概率 %</label><input id="giftPct" type="number" min="0" max="100" value="'+(state.settings.giftPct!=null?state.settings.giftPct:13)+'"></div>'
+    +'<div class="inl"><label>找你代买概率 %</label><input id="askPct" type="number" min="0" max="100" value="'+(state.settings.askPct!=null?state.settings.askPct:8)+'"></div>'
+    +'<div class="inl"><label>主动消息后发朋友圈概率 %</label><input id="setPostPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.postPct)!=null?state.settings.postPct:50)+'"></div>'
+    +'<div class="inl"><label>邀请一起专注概率 %</label><input id="setInvitePctAll" type="number" min="0" max="100" value="'+((state.settings.invitePct!=null?state.settings.invitePct:30))+'"></div>'
+    +'</div>';
+  html+='<div class="pct-sub">朋友圈</div><div class="rhy-grid">'
+    +'<div class="inl"><label>他动态带表情包概率 %</label><input id="momStickerPct" type="number" min="0" max="100" value="'+(state.settings.momStickerPct!=null?state.settings.momStickerPct:35)+'"></div>'
+    +'</div>';
+  html+='<div class="pct-sub">通话</div><div class="rhy-grid">'
+    +'<div class="inl"><label>你打给他·接听概率 %</label><input id="callAnsPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.callAnswerPct)!=null?state.settings.callAnswerPct:75)+'"></div>'
+    +'<div class="inl"><label>你打给他·直接拒绝 %</label><input id="callRejPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.callRejectPct)!=null?state.settings.callRejectPct:10)+'"></div>'
+    +'<div class="inl"><label>通话中他有事挂断 %</label><input id="callDropPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.callDropPct)!=null?state.settings.callDropPct:12)+'"></div>'
+    +'</div>';
+  html+='<div class="pct-sub">日记 / 信箱</div><div class="rhy-grid">'
+    +'<div class="inl"><label>日记互动概率 %</label><input id="setDiaryReply" type="number" min="0" max="100" value="'+((state.settings&&state.settings.diaryReplyPct)!=null?state.settings.diaryReplyPct:65)+'"></div>'
+    +'</div>';
+  html+='<div class="pct-sub">塔罗 / 字卡</div><div class="rhy-grid">'
+    +'<div class="inl"><label>塔罗逆位概率 %</label><input id="setRevPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.tarotRevPct)!=null?state.settings.tarotRevPct:50)+'"></div>'
+    +'<div class="inl"><label>塔罗每日他抽牌概率 %</label><input id="setDailyPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.tarotDailyPct)!=null?state.settings.tarotDailyPct:40)+'"></div>'
+    +'<div class="inl"><label>拼字卡概率 %</label><input id="setPuzzlePct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.puzzlePct)!=null?state.settings.puzzlePct:50)+'"></div>'
+    +'</div>';
+  html+='<div class="pct-sub">问卷</div><div class="rhy-grid">'
+    +'<div class="inl"><label>他主动发问卷概率 %</label><input id="surveyPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.surveyPct)!=null?state.settings.surveyPct:8)+'"></div>'
+    +'</div>';
+  html+='<p class="meta" style="margin-top:10px">当前对象自己的概率（已读不回 / 朋友圈回复 / 来电 / 转账 / 邀请）在 设置 → 节奏 → 当前对象 里调</p>';
   html+='<div style="margin-top:10px"><button class="btn" style="width:100%" data-act="pct-save">保存概率</button></div></div></div>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   html+='<div class="me-group-title">字卡与内容</div>';
   html+='<div class="me-sec" id="sec-cards"><h3>字卡库</h3><div class="stats">'
@@ -5682,7 +5830,7 @@ function renderMe(){
   html+='<div class="me-sec" id="sec-stickers"><h3>表情包</h3><div style="display:flex;gap:10px;align-items:center"><button class="btn ghost" style="flex:1" data-act="emoji">表情包面板</button><span class="meta">已添加 '+state.stickers.length+' 张</span></div></div>';
   html+='<div class="me-sec" id="sec-puzzle"><h3>拼字卡</h3><div class="card">'
     +'<div class="sw-row"><div><b>拼字卡</b><span>开启后，他的每条消息都有概率把 1–3 张字卡拼成一条发给你</span></div>'+sw2('puzzle',state.settings.puzzle===true)+'</div>'
-    +'<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>拼字卡概率%</label><input id="setPuzzlePct2" type="number" min="0" max="100" value="'+((state.settings&&state.settings.puzzlePct)!=null?state.settings.puzzlePct:50)+'"></div>'
+    +'<div class="rhy-grid" style="margin-top:8px">'
     +'<div class="inl"><label>最多拼几张（1–5）</label><input id="setPuzzleMax2" type="number" min="1" max="5" value="'+((state.settings&&state.settings.puzzleMax)!=null?state.settings.puzzleMax:3)+'"></div></div>'
     +'<button class="btn" style="width:100%;margin-top:10px" data-act="puzzle-save">保存拼字卡设置</button>'
     +'</div></div>';
@@ -5692,8 +5840,8 @@ function renderMe(){
   html+='<div class="sw-row"><div><b>他收藏我的消息</b><span>发消息后他有一定概率收藏</span></div>'+sw2('savedOn',state.settings.savedOn!==false)+'</div>';
   html+='<div class="sw-row"><div><b>拍一拍</b><span>双击头像拍一拍</span></div><div class="switch'+(state.settings.patOn?' on':'')+'" data-act="st-sw" data-key="patOn"></div></div>';
   html+='<div class="sw-row"><div><b>每日一句</b><span>每次打开网站自动更新一句</span></div><div class="switch'+(state.settings.dailyOn?' on':'')+'" data-act="st-sw" data-key="dailyOn"></div></div>';
-  html+='<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>收藏概率%</label><input id="setSavePct" type="number" min="0" max="100" value="'+state.settings.savePct+'"></div><div class="inl"><label>拍一拍回拍概率%</label><input id="setPatPct" type="number" min="0" max="100" value="'+state.settings.patReplyPct+'"></div></div>';
-  html+='<div class="rhy-grid"><div class="inl"><label>已读不回概率%</label><input id="setReadNR" type="number" min="0" max="100" value="'+(c.readNRPct!=null?c.readNRPct:20)+'"></div><div class="inl"><label>朋友圈回复概率%</label><input id="setReplyPct" type="number" min="0" max="100" value="'+(c.replyPct!=null?c.replyPct:100)+'"></div><div class="inl"><label>来电概率%</label><input id="setCallPct" type="number" min="0" max="100" value="'+(c.callPct!=null?c.callPct:30)+'"></div><div class="inl"><label>转账概率%</label><input id="setTransferPct" type="number" min="0" max="100" value="'+(c.transferPct!=null?c.transferPct:15)+'"></div><div class="inl"><label>邀请一起专注概率%</label><input id="setInvitePct" type="number" min="0" max="100" value="'+(c.invitePct!=null?c.invitePct:30)+'"></div></div>';
+
+
   html+='<button class="btn" style="width:100%;margin-top:8px" data-act="save-allpct">保存全部概率</button>';
   html+='<div class="me-sec" id="sec-inter"><h3>交互</h3><div class="card">';
   html+='<div class="sw-row"><div><b>引用回复</b><span>点消息可引用原消息</span></div><div class="switch'+(state.settings.quoteOn?' on':'')+'" data-act="st-sw" data-key="quoteOn"></div></div>';
@@ -5702,7 +5850,7 @@ function renderMe(){
   html+='<div class="sw-row"><div><b>欲言又止</b><span>小概率打了又删</span></div><div class="switch'+(state.settings.stopTyping?' on':'')+'" data-act="st-sw" data-key="stopTyping"></div></div>';
   /* ★ 这个输入框以前漏了：保存代码要读 #setStopPct，但模板里没有，
      于是 .value 抛错、整段保存中断（自查抓到的）。 */
-  html+='<div class="inl" style="margin-top:8px"><label>欲言又止概率 %</label><input id="setStopPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.stopTypingPct)!=null?state.settings.stopTypingPct:15)+'"></div>';
+
   html+='<div class="sw-row"><div><b>消息操作菜单</b><span>气泡旁显示 ⋮ 可复制删除</span></div><div class="switch'+(state.settings.msgMenu?' on':'')+'" data-act="st-sw" data-key="msgMenu"></div></div>';
   html+='<div class="me-group-title">美化</div>';
   /* ★ 网站名称：用户可以自己输入（默认"沉与昕之恋"） */
@@ -5800,8 +5948,7 @@ function storageHealthHtml(){
 }
 function puzzleSave(){
   state.settings=state.settings||{};
-  var p=$('#setPuzzlePct2'),m=$('#setPuzzleMax2');
-  if(p)state.settings.puzzlePct=clamp(parseInt(p.value,10)||0,0,100);
+  var m=$('#setPuzzleMax2');
   if(m)state.settings.puzzleMax=clamp(parseInt(m.value,10)||3,1,5);
   save();toast('拼字卡设置已保存');
 }
@@ -5854,6 +6001,7 @@ function applyNumFields(){
   numField(s8,'savePct','setSavePct',15,0,100);
   numField(s8,'patReplyPct','setPatPct',40,0,100);
   numField(s8,'stopTypingPct','setStopPct',15,0,100);
+  numField(s8,'surveyPct','surveyPct',8,0,100);
   numField(s8,'puzzlePct','setPuzzlePct',50,0,100);
   numField(s8,'puzzleMax','setPuzzleMax',3,1,5);
   numField(s8,'momStickerPct','momStickerPct',35,0,100);
@@ -6124,7 +6272,7 @@ var BACKUP_CATS=[
  {k:'desktop',   n:'全局设置与桌面',    d:'主题、壁纸、字体、各种开关',   keys:['settings','appIcons','appOrder','appPage']},
  {k:'widgets',   n:'桌面小组件',        d:'组件内容、布局和媒体引用',     keys:['widgets','widgetsOn','widgetOrder','widgetSize','widgetPage','widgetPos','widgetImgs','widgetWeather','widgetCount','widgetProgress','widgetPhoto','widgetCalendar','widgetDaysLabel','widgetDaysUnit','widgetNote','widgetMusic','anniversaryDays']},
  {k:'chat',      n:'聊天记录',          d:'各联系人的文字和媒体消息',     keys:['messages','nextInit','nextCallDue','nextInviteDue']},
- {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet','mySaves','pollLog']},
+ {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet','mySaves','pollLog','surveys']},
  {k:'cards',     n:'字卡库',            d:'分组、字卡、固定字卡',         keys:['cards','cardCats','statusCards','moodCards','patCards','diaryCards','writerCards','_smDeleted','currentStatus','currentMood']},
  {k:'moments',   n:'朋友圈',            d:'动态、封面、访客',             keys:['posts','feedEvents','nextPostDue','nextVisitDue','visitorCount','profileBox','profileFollowed']},
  {k:'mail',      n:'信箱',              d:'信件、收发状态',               keys:['letters','nextLetterDue']},
@@ -6469,6 +6617,10 @@ var EMOJIS=['😊','😘','🥰','😭','🥺','😳','😂','🤔','😠','💕
 /* 回复不是"一串 setTimeout"就完事：计划会存进 state._pending。
    这样切出去 / 切回来（甚至页面被系统回收后重开）也能接着把没发完的补上。 */
 function replyPlan(c,texts,quote,emojiMode){
+  /* ★ 配额：他最近已经说了 5 条就不再补（避免"我发 1 条他回 8 条"） */
+  var _q=hisQuota(c.id);
+  if(_q<=0)return;
+  if(texts&&texts.length>_q)texts=texts.slice(0,_q);
   state._pending={contactId:c.id,queue:texts.slice(),idx:0,quote:quote||null,
     emojiMode:!!emojiMode,nextAt:now()+rnd(900,1800),stopRolled:false,ts:now()};
   save();
@@ -6671,6 +6823,231 @@ function replyPoll(m,at){
   save();renderChat();schedule();
 }
 var _pollFast=true,_pollN=1;
+
+/* ================= 问卷 ================= */
+/* 题库：6 组。m:true 表示这道题可以多选 */
+var SURVEY_BANK=[
+ {g:'想念与心动',qs:[
+  {t:'今天想我的次数？',o:['一次都没','偶尔想起','好几次','一直想着'],m:false},
+  {t:'想我的时候最想做什么？',o:['想抱你','想听你声音','想见你','想静静待着'],m:true},
+  {t:'如果现在能瞬移到我身边？',o:['抱住你','牵手散步','什么都不做就待着','先亲一下'],m:false}]},
+ {g:'今天过得怎么样',qs:[
+  {t:'今天吃得怎么样？',o:['很好','一般','没怎么吃','光顾着忙了'],m:false},
+  {t:'今天最累的是？',o:['工作','通勤','人际','没什么'],m:true},
+  {t:'今天有什么开心的事？',o:['想到你','吃到好吃的','事情顺利','没什么特别的'],m:true},
+  {t:'现在最想做的事？',o:['躺下','吃东西','找你聊天','出门走走'],m:false}]},
+ {g:'心情与状态',qs:[
+  {t:'现在的心情是？',o:['很平静','有点想你','有点累','有点烦'],m:false},
+  {t:'心情不好时最想要？',o:['你抱我','你听我说','一个人待着','你逗我笑'],m:false},
+  {t:'压力主要来自？',o:['工作','家里','未来','说不清'],m:true},
+  {t:'现在最需要我做什么？',o:['陪我说话','给我空间','夸夸我','先别问'],m:false}]},
+ {g:'约会与计划',qs:[
+  {t:'这周末想干什么？',o:['宅家','出门吃','见朋友','和你约会'],m:true},
+  {t:'想去的约会地点？',o:['家里','咖啡店','电影院','公园散步','短途旅行'],m:true},
+  {t:'想吃什么？',o:['火锅','日料','家常菜','甜品','你做的'],m:true},
+  {t:'下次见面想多久？',o:['几小时','一整天','两天以上','看情况'],m:false}]},
+ {g:'关系与安全感',qs:[
+  {t:'在关系里最在意什么？',o:['坦诚','陪伴','有回应','尊重边界'],m:true},
+  {t:'什么会让你没安全感？',o:['回消息慢','语气变冷','不主动','说不到未来'],m:true},
+  {t:'我可以怎么做得更好？',o:['多陪你','多说想你','记住约定','别乱想'],m:true},
+  {t:'想对我说但没说出口的话？',o:['我很想你','谢谢你','有点怕失去你','以后也在一起'],m:false}]},
+ {g:'悄悄话',qs:[
+  {t:'现在最想我碰你哪里？',o:['牵手','抱一下','摸头','亲一下'],m:false},
+  {t:'睡前最想听到哪句？',o:['晚安','我想你','明天见','叫我的名字'],m:false},
+  {t:'如果只能留一句话给我？',o:['我一直在','别怕','我选你','等我'],m:false}]}
+];
+function surveyExpired(sv){ return !!(sv&&!sv.answered&&sv.dueAt&&now()>sv.dueAt) }
+function findSurvey(id){ var a=state.surveys||[]; for(var i=0;i<a.length;i++)if(a[i].id===id)return a[i]; return null }
+function surveySig(qs){ return qs.map(function(q){return q.t}).join('|') }
+function pushSys(cid,text,ts){ var m={id:uid(),contactId:cid,dir:'sys',text:text,ts:ts||now()}; state.messages.push(m); return m }
+var SV_DUE=[[ '1 分钟',60000],['10 分钟',600000],['1 小时',3600000],['明天',86400000]];
+var _svSel={},_svTitle='',_svDue=600000,_svMine=[];
+function svFindBank(key){ for(var g=0;g<SURVEY_BANK.length;g++)for(var q=0;q<SURVEY_BANK[g].qs.length;q++){ var k=SURVEY_BANK[g].g+'#'+SURVEY_BANK[g].qs[q].t; if(k===key)return SURVEY_BANK[g].qs[q] } return null }
+function svPicked(){ var out=[]; for(var k in _svSel)if(_svSel[k]){ var q=svFindBank(k); if(q)out.push({g:k.split('#')[0],t:q.t,o:q.o.slice(),m:q.m}) } return out.concat(_svMine) }
+function svDueLabel(ms){ for(var i=0;i<SV_DUE.length;i++)if(SV_DUE[i][1]===ms)return SV_DUE[i][0]; return '1 小时' }
+/* ---- 问卷 App 页面 ---- */
+function svListBlock(title,arr,dir){
+  var h='<div class="sv-t">'+title+' <span class="n">'+arr.length+' 份</span></div>';
+  if(!arr.length)return h+'<div class="sv-empty">还没有</div>';
+  h+='<div class="sv-box">';
+  for(var i=0;i<arr.length;i++){
+    var sv=arr[i],st='';
+    if(sv.answered)st='<span class="sv-tag done">已回答</span>';
+    else if(surveyExpired(sv))st='<span class="sv-tag wait">已过期</span>';
+    else if(dir==='in')st='<span class="sv-tag todo">待填写 ›</span>';
+    else st='<span class="sv-tag wait">等待中 '+Math.max(1,Math.ceil((sv.dueAt-now())/3600000))+'h</span>';
+    h+='<div class="sv-row" data-act="sv-open" data-id="'+sv.id+'"><div><div class="tt">'+esc(sv.title||'问卷')+'</div>'
+      +'<div class="mt">'+sv.qs.length+' 题 · '+fmtAgo(sv.ts)+'</div></div>'+st+'</div>';
+  }
+  return h+'</div>';
+}
+function renderSurvey(){
+  var _inSnap=inputSnapshot();
+  var c=activeContact();
+  var all=(state.surveys||[]).filter(function(x){return x.contactId===c.id}).sort(function(a,b){return b.ts-a.ts});
+  var mine=all.filter(function(x){return x.dir==='out'}),his=all.filter(function(x){return x.dir==='in'});
+  var html='<div class="chat-top"><button class="back" data-view="home">'+ICON_BACK+'</button>'
+    +'<span style="flex:1;font-weight:800;font-size:calc(18px*var(--fs))">问卷</span></div>';
+  html+='<div class="chat-wrap" style="padding:12px 14px 40px;overflow-y:auto;-webkit-overflow-scrolling:touch">';
+  html+='<div class="sv-new" data-act="sv-new"><span class="ic">＋</span><div>新建问卷<small>从题库挑题，也可以自己出题</small></div></div>';
+  html+=svListBlock('我发出去的',mine,'out');
+  html+=svListBlock('他发给我的',his,'in');
+  html+='<p class="meta" style="margin-top:12px">已经发过的整份问卷不能重复发 · 超过 24 小时没答会显示已过期</p>';
+  html+='</div>';
+  $('#view').innerHTML=html;
+  inputRestore(_inSnap);
+}
+/* ---- 新建问卷（弹层） ---- */
+function sheetSurveyNew(){
+  var html='<h2>新建问卷</h2>';
+  html+='<label>问卷标题</label><input id="svTitle" maxlength="20" placeholder="例如：今天想问你几件事" value="'+esc(_svTitle)+'">';
+  html+='<div class="sv-t" style="margin-top:14px">题库 · 点一下选中</div>';
+  for(var g=0;g<SURVEY_BANK.length;g++){
+    var grp=SURVEY_BANK[g],cnt=0;
+    for(var q=0;q<grp.qs.length;q++)if(_svSel[grp.g+'#'+grp.qs[q].t])cnt++;
+    html+='<div class="sv-grp"><div class="sv-gt">'+esc(grp.g)+'<span class="n">已选 '+cnt+'/'+grp.qs.length+'</span></div>';
+    for(var q2=0;q2<grp.qs.length;q2++){
+      var qq=grp.qs[q2],key=grp.g+'#'+qq.t,on=!!_svSel[key];
+      html+='<div class="sv-q'+(on?' on':'')+'" data-act="sv-pick" data-k="'+esc(key)+'"><span class="bx'+(qq.m?' sq':'')+'"></span>'
+        +'<span class="tx">'+esc(qq.t)+'</span><span class="ty">'+(qq.m?'多选':'单选')+'</span></div>';
+    }
+    html+='</div>';
+  }
+  if(_svMine.length){
+    html+='<div class="sv-grp"><div class="sv-gt">我出的题<span class="n">'+_svMine.length+' 道</span></div>';
+    for(var mi=0;mi<_svMine.length;mi++)html+='<div class="sv-q on"><span class="bx'+( _svMine[mi].m?' sq':'')+'"></span><span class="tx">'+esc(_svMine[mi].t)+'</span>'
+      +'<button class="sv-del" data-act="sv-delq" data-i="'+mi+'">×</button></div>';
+    html+='</div>';
+  }
+  html+='<div class="sv-t">自己加一道题<span class="n">格式：题目 / 选项1 / 选项2</span></div>';
+  html+='<input id="svMyQ" placeholder="例子：今天想吃什么？/ 火锅 / 日料 / 家常菜">';
+  html+='<div class="sv-acts"><button class="btn ghost" data-act="sv-addq">＋ 加这道题</button>'
+    +'<button class="btn ghost" data-act="sv-addq-m">＋ 多选题</button></div>';
+  html+='<div class="sv-t">回复时间</div><div class="sv-chips">';
+  for(var d=0;d<SV_DUE.length;d++)html+='<button class="sv-chip'+(_svDue===SV_DUE[d][1]?' on':'')+'" data-act="sv-due" data-v="'+SV_DUE[d][1]+'">'+SV_DUE[d][0]+'</button>';
+  html+='</div>';
+  var n=svPicked().length;
+  html+='<div class="sv-foot"><button class="cancel" data-act="sheet-close">取消</button>'
+    +'<button class="ok" data-act="sv-send">发给他（'+n+' 题）</button></div>';
+  openSheet(html);
+}
+function svAddQ(multi){
+  var raw=String(inpVal('svMyQ')||'').trim();
+  if(!raw){toast('先写题目');return}
+  var parts=raw.split('/').map(function(x){return x.trim()}).filter(function(x){return x});
+  if(parts.length<3){toast('格式：题目 / 选项1 / 选项2');return}
+  _svMine.push({g:'我出的',t:parts[0],o:parts.slice(1,7),m:!!multi});
+  sheetSurveyNew();toast('已加入');
+}
+function svSend(){
+  var c=activeContact(),qs=svPicked();
+  if(!qs.length){toast('先选几道题');return}
+  var sig=surveySig(qs);
+  var all=state.surveys||[];
+  for(var i=0;i<all.length;i++)if(all[i].contactId===c.id&&all[i].dir==='out'&&all[i].sig===sig){toast('这份问卷已经发过了');return}
+  var t=now();
+  var sv={id:uid(),contactId:c.id,dir:'out',title:(String(inpVal('svTitle')||'').trim()||('问卷 · '+qs.length+' 题')),qs:qs,sig:sig,
+          ts:t,dueAt:t+86400000,replyDue:t+_svDue,answered:false,answers:null};
+  state.surveys=state.surveys||[];state.surveys.push(sv);
+  state.messages.push({id:uid(),contactId:c.id,dir:'out',kind:'survey',surveyId:sv.id,text:'问卷',readDue:t+4000,ts:t});
+  _svSel={};_svTitle='';_svMine=[];_svDue=600000;
+  closeSheet();save();
+  try{goView('chat')}catch(e){}
+  try{renderChat()}catch(e){}
+  schedule();toast('问卷已发出，'+svDueLabel(sv.replyDue-t)+'后他会填');
+}
+/* ---- 他填问卷 ---- */
+function svAutoFill(sv){
+  if(!sv||sv.answered||sv.dir!=='out')return;
+  if(surveyExpired(sv)){save();try{renderAll()}catch(e){}return}
+  var ans=[];
+  for(var i=0;i<sv.qs.length;i++){
+    var q=sv.qs[i],n=(q.o||[]).length;if(n<1){ans.push([]);continue}
+    var pool=[];for(var k=0;k<n;k++)pool.push(k);
+    var cnt=1;
+    if(q.m&&n>2)cnt=1+Math.floor(Math.random()*Math.min(3,n-1));   /* 多选：1~3 个 */
+    var pick=[];
+    for(var c2=0;c2<cnt&&pool.length;c2++)pick.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+    pick.sort(function(a,b){return a-b});
+    ans.push(pick);
+  }
+  sv.answers=ans;sv.answered=true;sv.answeredTs=now();
+  var ct=contact(sv.contactId);
+  if(ct)pushSys(ct.id,(ct.name||'他')+' 填完了问卷',now());
+  save();
+  try{renderAll()}catch(e){}
+  try{renderChat()}catch(e){}
+  schedule();
+}
+/* ---- 他给我发问卷 ---- */
+function svHisSend(c){
+  if(!c)return;
+  var flat=[];for(var g=0;g<SURVEY_BANK.length;g++)for(var q=0;q<SURVEY_BANK[g].qs.length;q++)flat.push(SURVEY_BANK[g].qs[q]);
+  var n=3+Math.floor(Math.random()*3),sel=[],pool=flat.slice();
+  for(var i=0;i<n&&pool.length;i++)sel.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  var t=now();
+  var sv={id:uid(),contactId:c.id,dir:'in',title:'想问你几件事',qs:sel.map(function(q){return {g:'',t:q.t,o:q.o.slice(),m:q.m}}),
+          sig:'his:'+surveySig(sel),ts:t,dueAt:t+86400000,answered:false,answers:null,myAns:null};
+  state.surveys=state.surveys||[];state.surveys.push(sv);
+  pushIn(c.id,'我给你做了份问卷，填一下？',t);
+  var lm=state.messages[state.messages.length-1];if(lm){lm.kind='survey';lm.surveyId=sv.id}
+  feedEvent(c.name+' 给你发了一份问卷','survey');
+  save();notifyIncoming(lm||{contactId:c.id,text:'发来一份问卷',dir:'in'});
+}
+/* ---- 我填他发的问卷 ---- */
+function svMyAnswer(svId,qi,oi){
+  var sv=findSurvey(svId);if(!sv||sv.answered||sv.dir!=='in')return;
+  sv.myAns=sv.myAns||sv.qs.map(function(){return []});
+  var q=sv.qs[qi];if(!q)return;
+  if(q.m){
+    var arr=sv.myAns[qi]||[],at=arr.indexOf(oi);
+    if(at>=0)arr.splice(at,1); else arr.push(oi);
+    sv.myAns[qi]=arr;
+  }else{
+    sv.myAns[qi]=[oi];       /* ★ 单选：直接替换（以前这里被后面一行覆盖掉了，等于选不上） */
+  }
+  save();try{renderChat()}catch(e){}
+}
+function svMySubmit(svId){
+  var sv=findSurvey(svId);if(!sv||sv.answered||sv.dir!=='in')return;
+  var need=false;
+  for(var i=0;i<sv.qs.length;i++)if(!(sv.myAns&&sv.myAns[i]&&sv.myAns[i].length))need=true;
+  if(need){toast('还有题目没选');return}
+  sv.answers=sv.myAns.map(function(a){return a.slice()});
+  sv.answered=true;sv.answeredTs=now();
+  var c=contact(sv.contactId);
+  save();
+  if(c)pushIn(c.id,'谢谢你告诉我。',now()+rnd(4000,9000));
+  save();toast('已提交');
+  try{renderChat()}catch(e){}
+  try{renderAll()}catch(e){}
+  schedule();
+}
+/* ---- 聊天里的问卷卡 ---- */
+function surveyCardHtml(sv,isMine){
+  if(!sv)return '<div class="sv-card">问卷已删除</div>';
+  var h='<div class="sv-card"><div class="sv-ch"><b>问卷</b><span>'+fmtTime(sv.ts)+'</span></div>';
+  if(sv.title)h+='<div class="sv-ct">'+esc(sv.title)+'</div>';
+  for(var i=0;i<sv.qs.length;i++){
+    var q=sv.qs[i];
+    h+='<div class="sv-qq">'+(i+1)+'. '+esc(q.t)+'</div>';
+    for(var k=0;k<(q.o||[]).length;k++){
+      var on=false;
+      if(sv.answered&&sv.answers&&sv.answers[i])on=sv.answers[i].indexOf(k)>=0;
+      else if(!sv.answered&&sv.dir==='in'&&sv.myAns&&sv.myAns[i])on=sv.myAns[i].indexOf(k)>=0;
+      var tap=(!sv.answered&&sv.dir==='in'&&!surveyExpired(sv));
+      h+='<div class="sv-o'+(on?' on':'')+'"'+(tap?' data-act="sv-ans" data-id="'+sv.id+'" data-q="'+i+'" data-o="'+k+'"':'')+'>'
+        +'<span class="bx'+(q.m?' sq':'')+'"></span>'+esc(q.o[k])+'</div>';
+    }
+  }
+  h+='<div class="sv-cf">';
+  if(sv.answered)h+='<span class="sv-tag done">'+((sv.dir==='out')?'TA 已填':'你已填')+'</span>';
+  else if(surveyExpired(sv))h+='<span class="sv-tag wait">已过期</span>';
+  else if(sv.dir==='in')h+='<button class="sv-sub" data-act="sv-submit" data-id="'+sv.id+'">提交</button>';
+  else h+='<span class="sv-tag wait">等待中</span>';
+  h+='</div></div>';
+  return h;
+}
 function sheetPoll(){
   var c=activeContact();
   var html='<h2>让 '+esc(c.name)+' 决定</h2><label>回复时间</label>';
@@ -7102,6 +7479,17 @@ function dailyPost(){
   state._dailyAt=t;
   save();
 }
+var _ntfLast=null;
+/** 媒体加载完之后，把通知条上的头像刷新一下（不然一直是空圆圈） */
+function ntfRefreshAvatar(){
+  try{
+    var bar=$('#ntfBar');
+    if(!bar||!_ntfLast||bar.style.display==='none')return;
+    var c=contact(_ntfLast.contactId);if(!c)return;
+    var av=bar.querySelector('.ntf-av');
+    if(av)av.innerHTML=cAvatar(c);
+  }catch(e){}
+}
 function notifyIncoming(m){
   /* ★ 通知已经告诉用户"他发来了这句话"，那这条就必须留在聊天区里，
      不能再被补发逻辑推到未来去（否则就是"通知有、聊天室没有"）。 */
@@ -7124,6 +7512,7 @@ function notifyIncoming(m){
   if(st.ntfSound!==false)ntfBeep();
   if(st.ntfVibe!==false&&!document.hidden)ntfVibrate();
   var bar=$('#ntfBar');if(!bar)return;
+  _ntfLast=m;
   bar.innerHTML='<span class="ntf-av">'+cAvatar(c)+'</span><div class="ntf-tx"><b>'+esc(c.name)+'</b><span>'+esc(trunc(body,34))+'</span></div><svg class="ntf-x" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   bar.style.display='flex';
   if(_ntfTimer)clearTimeout(_ntfTimer);
@@ -7414,7 +7803,7 @@ function ntfPanelHtml(){
   h+='<div class="ntf-block"><div class="nb-head"><b>邀请概率</b><span class="ntf-tag">'+((st.invitePct!=null?st.invitePct:30))+'%</span></div>';
   h+='<span class="nb-desc">他每次"想起来"邀请你时，有多大概率真的发出邀请。下面还能设两次邀请之间大概隔多久。</span>';
   h+='<div class="rhy-grid" style="margin-top:8px">'
-    +'<div class="inl"><label>邀请概率%</label><input id="setInvitePctAll" type="number" min="0" max="100" value="'+((st.invitePct!=null?st.invitePct:30))+'"></div>'
+
     +'<div class="inl"><label>最快间隔（分钟）</label><input id="setInviteMin" type="number" min="1" max="10080" value="'+((st.inviteMin!=null?st.inviteMin:60))+'"></div>'
     +'<div class="inl"><label>最慢间隔（分钟）</label><input id="setInviteMax" type="number" min="1" max="10080" value="'+((st.inviteMax!=null?st.inviteMax:240))+'"></div>'
     +'</div>'
@@ -7501,14 +7890,13 @@ function syncCatchUp(){
            会在你回到页面的那一瞬间全部冒出来（刷屏，用户报的"他一直发消息"）。
            现在第一轮排到 10 秒后、第二轮再往后推，每条之间仍是 20~50 秒，
            而且最多补 2 轮 —— 回来时像"他刚想起你"，而不是一次性倒完。 */
-        if(caught<2){
+        if(caught<1){
           /* 第二轮的起点要排在"上一轮最后一条"之后，否则两轮会交错，
              他"说"的顺序就乱了（测试抓到过 10/40/86/55/75 这种乱序）。 */
           var _b=(typeof _catchBase==='number')?_catchBase:now()+10000;
-          var _n=pickBurstCount(c);
-          pushBurst(c,_b,_n);
+          pushBurst(c,_b,1,null,true);  /* ★ 补发只补 1 条，并且打上"补发"标记 */
           maybePost(c,_b);
-          _catchBase=_b+_n*rnd(20000,50000)+15000;
+          _catchBase=_b+rnd(20000,50000)+15000;
           caught++;
         }
         guard++;_gen++;
@@ -7678,7 +8066,17 @@ document.addEventListener('click',function(e){
     else if(act==='checkin-add')sheetCheckinAdd();
     else if(act==='checkin-add-save')checkinAddSave();
     else if(act==='checkin-del')checkinDel(parseInt(btn.getAttribute('data-idx'),10));
-    else if(act==='site-name-save'){
+    else if(act==='sv-new'){_svTitle='';_svDue=600000;sheetSurveyNew()}
+  else if(act==='sv-pick'){var _k=btn.getAttribute('data-k');if(_svSel[_k])delete _svSel[_k];else _svSel[_k]=1;sheetSurveyNew()}
+  else if(act==='sv-due'){_svDue=parseInt(btn.getAttribute('data-v'),10)||600000;sheetSurveyNew()}
+  else if(act==='sv-addq')svAddQ(false)
+  else if(act==='sv-addq-m')svAddQ(true)
+  else if(act==='sv-delq'){var _di=parseInt(btn.getAttribute('data-i'),10);_svMine.splice(_di,1);sheetSurveyNew()}
+  else if(act==='sv-send')svSend()
+  else if(act==='sv-open'){try{goView('chat')}catch(e){};try{renderChat()}catch(e){}}
+  else if(act==='sv-ans')svMyAnswer(btn.getAttribute('data-id'),parseInt(btn.getAttribute('data-q'),10),parseInt(btn.getAttribute('data-o'),10))
+  else if(act==='sv-submit')svMySubmit(btn.getAttribute('data-id'))
+  else if(act==='site-name-save'){
     var _sn=String(inpVal('setSiteName')||'').replace(/\s+/g,' ').trim().slice(0,24);
     state.settings.siteName=_sn||'沉与昕之恋';
     save();applySiteName();renderMe();renderHome();toast('网站名称已保存');
