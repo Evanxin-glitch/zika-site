@@ -423,25 +423,49 @@ background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
 .ph-nm{font-family:var(--serif);font-size:calc(19px*var(--fs));font-weight:800;color:var(--ink)}
 .ph-hd{font-size:calc(13px*var(--fs));color:#9A8C7C}
 .ph-stats{display:flex;justify-content:space-around;padding:8px 0 10px}
+/* ★ 主页头部：左头像 + 右两格数字（按设计稿） */
+.ph-row{display:flex;align-items:center;gap:16px;padding:8px 6px 0}
+.ph-row .ph-av{flex:none}
+.ph-row .ph-stats{flex:1;padding:0}
+.ph-row .ph-stats .ps{min-width:0}
+.ph-id{display:flex;align-items:baseline;gap:8px;padding:10px 6px 0}
+.ph-id b{font-size:calc(16px*var(--fs))}
+.ph-id .ph-hd{font-size:calc(12.5px*var(--fs));color:var(--sub)}
+.ph-sig2{padding:4px 6px 0;font-size:calc(12.5px*var(--fs));color:var(--sub);line-height:1.6}
+.ph-btns{justify-content:flex-start;padding:10px 6px 12px}
+.mom-cam{width:40px;height:40px;min-height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  color:var(--green);background:var(--card);border:1px solid var(--line)}
+.mom-cam svg{width:20px;height:20px}
 .ph-stats .ps{text-align:center;min-width:80px}
 .ph-stats .ps b{display:block;font-size:calc(20px*var(--fs));color:var(--ink)}
 .ph-stats .ps span{font-size:calc(12px*var(--fs));color:#9A8C7C}
 .ph-btns{display:flex;gap:10px;justify-content:center;padding:2px 0 12px}
-.ph-follow{flex:1;max-width:170px;background:#E7E4DE;border:none;border-radius:999px;padding:9px 0;font-size:calc(14px*var(--fs));color:#6B6156;font-weight:600}
-.ph-follow.on{background:#1D9BF0;color:#fff}
-.ph-msg{flex:1;max-width:170px;background:#E7E4DE;border:none;border-radius:999px;padding:9px 0;font-size:calc(14px*var(--fs));color:#6B6156;font-weight:600}
+.ph-follow{flex:1;max-width:170px;background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:14px;padding:10px 0;font-size:calc(13.5px*var(--fs));color:#6B6156;font-weight:700}
+/* ★ 颜色一律跟着"设置里选的主题"走（applyTheme 会刷 --green 这些变量），
+   不要写死任何颜色 —— 换主题时它会跟着变。 */
+.ph-follow.on{background:var(--green);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(70,90,80,.22)}
+.ph-msg{flex:1;max-width:170px;background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:14px;padding:10px 0;font-size:calc(13.5px*var(--fs));color:#6B6156;font-weight:700}
 .ph-bio{background:var(--glass);border:1px solid var(--glass-brd);border-radius:18px;padding:12px 14px;margin:0 4px 10px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .ph-whisper{display:block;font-size:calc(10px*var(--fs));letter-spacing:2px;color:#C9977B;font-weight:700;margin-bottom:4px}
 .ph-wtxt{font-size:calc(14px*var(--fs));color:var(--ink);line-height:1.5}
 .ph-sig{margin-top:6px;font-size:calc(12px*var(--fs));color:#9A8C7C}
 .ph-tabs{display:flex;justify-content:space-around;margin:4px 4px 10px;border-bottom:1px solid rgba(220,205,185,.6);padding-bottom:8px}
 .ph-tabs .pt2{background:none;border:none;font-size:calc(14px*var(--fs));color:#9A8C7C;padding:6px 12px;font-weight:600;border-bottom:2px solid transparent}
-.ph-tabs .pt2.on{color:var(--ink);border-bottom-color:#1D9BF0}
+.ph-tabs .pt2.on{color:var(--green);border-bottom-color:var(--green)}
+.ph-tabs .pt2 b{font-size:calc(11.5px*var(--fs));font-weight:700;opacity:.75;margin-left:2px}
+/* ★ 礼物架：一格一格的货架 */
+.gift-shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:2px}
+.gift-c{background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-brd);border-radius:16px;padding:11px 6px;text-align:center;
+  box-shadow:0 6px 16px rgba(150,120,140,.1)}
+.gift-c .g-e{font-size:calc(26px*var(--fs));line-height:1.2}
+.gift-c b{display:block;font-size:calc(11.5px*var(--fs));margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gift-c span{display:block;font-size:calc(10px*var(--fs));color:var(--sub);margin-top:2px}
 .diary-item{background:var(--glass);border:1px solid var(--glass-brd);border-radius:18px;padding:12px 14px;margin:0 4px 10px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .diary-item .d-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .d-date{font-size:calc(10px*var(--fs));letter-spacing:1.5px;color:#C9977B;font-weight:700}
 .d-ops{display:flex;gap:10px}
-.d-save{background:none;border:none;font-size:calc(12px*var(--fs));color:#1D9BF0;font-weight:600;padding:2px 0}
+.d-save{background:none;border:none;font-size:calc(12px*var(--fs));color:var(--green);font-weight:600;padding:2px 0}
 .d-del{background:none;border:none;font-size:calc(12px*var(--fs));color:#E05C5C;font-weight:600;padding:2px 0}
 .diary-item .d-body{font-size:calc(13px*var(--fs));color:var(--ink);line-height:1.65;white-space:pre-wrap}
 
@@ -835,6 +859,37 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
 .pc-in{display:flex;gap:8px;margin-top:8px;align-items:center}
 .pc-in input{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;background:rgba(255,255,255,.6);font-size:calc(13px*var(--fs));min-height:44px;box-sizing:border-box}
 .pc-in button{min-height:44px;padding:0 14px;border-radius:10px;background:var(--green);color:#fff}
+/* ===== 朋友圈：动态不要外围白框（仿微信）=====
+   以前每条动态都套一张白卡（.card.post），像一张张卡片；
+   微信是直接铺在背景上、只用一条细线分隔。这里改用 .moment，
+   和 .post 那套玻璃卡完全脱钩，避免被主题里的 !important 又染回来。 */
+.moment{display:flex;gap:10px;padding:14px 2px;margin:0;background:none!important;border:none!important;
+  border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.moment+.moment{border-top:1px solid var(--line)!important}
+.moment .p-main{flex:1;min-width:0}
+.moment .nm{font-weight:700;font-size:calc(14.5px*var(--fs));color:var(--green)}
+.moment .txt{font-size:calc(15px*var(--fs));white-space:pre-wrap;word-break:break-word;padding:3px 0}
+.moment .p-sticker{max-width:150px;border-radius:14px;display:block;margin-top:6px}
+.moment .p-imgs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.moment .p-imgs img{width:104px;height:104px;object-fit:cover;border-radius:12px;display:block}
+.moment .p-imgs.n1 img{width:100%;height:190px}
+.moment .p-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px}
+.moment .ptime{font-size:calc(11.5px*var(--fs));color:var(--sub)}
+.moment .p-ops{display:flex;gap:14px;align-items:center}
+.moment .op{display:flex;align-items:center;gap:4px;font-size:calc(12.5px*var(--fs));color:var(--sub);min-height:34px;padding:0 2px}
+.moment .op.on{color:#D4605A;font-weight:700}
+.moment .op .like-ic{font-size:calc(15px*var(--fs))}
+.moment .tag{align-self:flex-start}
+.moment .cmt-box{margin-top:8px;background:rgba(238,234,238,.94);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px}
+.moment .cmt-like{font-size:calc(12.5px*var(--fs));color:#6B5A63}
+.moment .cmt-hr{height:1px;background:rgba(176,152,168,.3);margin:5px 0}
+.moment .cmt{font-size:calc(12.5px*var(--fs));line-height:1.7;color:var(--ink)}
+.moment .cmt b{color:var(--green);font-weight:700}
+.moment .cmt-re{color:var(--sub);font-size:calc(11.5px*var(--fs));margin:0 3px}
+.moment .pc-in{display:flex;gap:8px;margin-top:8px;align-items:center}
+.moment .pc-in input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit;
+  background:rgba(255,255,255,.72);font-size:calc(13px*var(--fs));min-height:40px}
+.moment .pc-in button{min-height:40px;padding:0 14px;border-radius:10px;background:var(--green);color:#fff;flex:none}
 .me-overlay{position:absolute;right:10px;bottom:8px;display:flex;flex-direction:column;align-items:center;gap:4px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.45)}
 .me-overlay b{font-size:calc(14px*var(--fs))}
 /* 邮件 */
@@ -873,6 +928,12 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
 .mail-detail .md-title{font-size:calc(17px*var(--fs));font-weight:700;text-align:center}
 .mail-detail .md-meta{text-align:center;font-size:calc(12px*var(--fs));color:var(--sub);margin:4px 0 12px}
 .mail-detail .md-body{font-size:calc(15px*var(--fs));line-height:1.75;white-space:pre-wrap;word-break:break-word;background:rgba(255,255,255,.5);border-radius:12px;padding:12px}
+/* ★ 打开一封信：按"信纸"观感统一（比普通卡片更实、标题用宋体居中） */
+.mail-detail{background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,252,254,.95))!important;
+  border:1px solid rgba(255,255,255,.92)!important;border-radius:22px!important;
+  box-shadow:0 12px 30px rgba(160,130,150,.14)!important;padding:18px 17px!important}
+.mail-detail .md-title{font-family:var(--serif);font-size:calc(19px*var(--fs));font-weight:800}
+.mail-detail .md-body{background:rgba(255,255,255,.58);border-radius:14px;padding:13px;line-height:1.85}
 .wallet-hero{background:linear-gradient(140deg,#C9A227,#E4C465);color:#fff;border-radius:24px;padding:22px 20px;margin-bottom:14px;box-shadow:0 10px 26px rgba(201,162,39,.28)}
 .wallet-hero .wh-label{font-size:calc(13px*var(--fs));opacity:.9}
 .wallet-hero .wh-amt{font-size:calc(34px*var(--fs));font-weight:800;font-family:var(--serif);margin:4px 0 2px;font-variant-numeric:tabular-nums}
@@ -1071,6 +1132,15 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .d-cmt-in{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
 .d-cmt-in textarea{flex:1;min-height:44px;border-radius:12px;border:1px solid var(--line);padding:8px 10px;font:inherit;background:rgba(255,255,255,.6);font-size:calc(13px*var(--fs));box-sizing:border-box}
 .d-cmt-in button{white-space:nowrap;min-height:44px}
+/* ★ 日记底部那一行：赞 / 评论 / 时间（评论输入框平时收起，点 💬 才展开） */
+.diary-card .d-date{display:flex;align-items:center;gap:8px}
+.diary-card .d-date .d-save{margin-left:auto;color:var(--green);font-size:calc(11.5px*var(--fs))}
+.d-foo{display:flex;align-items:center;gap:16px;margin-top:9px;color:var(--sub);font-size:calc(12.5px*var(--fs))}
+.d-foo .d-like,.d-foo .d-cbtn{color:var(--sub);font-size:calc(12.5px*var(--fs));min-height:32px;padding:0 2px}
+.d-foo .d-like.on{color:#EE7BA4;font-weight:700}
+.d-foo .d-cbtn.on{color:#EE7BA4;font-weight:700}
+.d-foo .d-tm{margin-left:auto;font-size:calc(11.5px*var(--fs));color:var(--sub)}
+.d-cmt-in.hide{display:none}
 /* ===== 潮汐系统 ===== */
 .tide-hero{background:linear-gradient(140deg,#E89FB4,#C49BD9);color:#fff;border-radius:24px;padding:22px 20px;margin-bottom:14px;box-shadow:0 10px 26px rgba(216,130,160,.3)}
 .tide-hero .th-label{font-size:calc(13px*var(--fs));opacity:.92}
@@ -1382,9 +1452,17 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
   color:#4A3B44;background:rgba(255,255,255,.66);border-color:rgba(255,255,255,.9)}
 /* ★ 播放/暂停键：这块空间里原来只有进度条没有播放键，
    歌一旦是暂停的，人在空间里就"放不出来"，只能退出去音乐页（用户报的"不能播放"）。 */
-.lsn-space .lsn-ops{display:flex;justify-content:center;margin-top:14px}
-.lsn-space .lsn-play{width:56px;height:56px;min-height:56px;border-radius:50%;color:#fff;
-  background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.55);
+.lsn-space .lsn-ops{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:15px}
+.lsn-space .lsn-tb{width:44px;height:44px;min-height:44px;border-radius:50%;color:#fff;
+  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.42);
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.lsn-space .lsn-tb svg{width:19px;height:19px}
+.lsn-space .lsn-tb.on{background:rgba(124,224,166,.34);border-color:rgba(124,224,166,.72);box-shadow:0 0 0 3px rgba(124,224,166,.14)}
+.lsn-space.lsn-light .lsn-tb{color:#4A3B44;background:rgba(255,255,255,.66);border-color:rgba(255,255,255,.9)}
+.lsn-space.lsn-light .lsn-tb.on{background:rgba(124,224,166,.5);border-color:rgba(95,143,123,.6)}
+.lsn-space .lsn-play{width:58px;height:58px;min-height:58px;border-radius:50%;color:#fff;
+  background:rgba(255,255,255,.32);border:1px solid rgba(255,255,255,.58);
   display:flex;align-items:center;justify-content:center;
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   box-shadow:0 10px 26px rgba(24,16,30,.24)}
@@ -1900,30 +1978,46 @@ function migrate(s){
       if(cw.letterMin===undefined)cw.letterMin=600;
       if(cw.letterMax===undefined)cw.letterMax=7200;
     }
-    if(!s.writerCards||!Array.isArray(s.writerCards))s.writerCards=(s._smDeleted&&s._smDeleted.writer)?[]:defaultState().writerCards;
-    if(!s.diaryCards||!Array.isArray(s.diaryCards))s.diaryCards=(s._smDeleted&&s._smDeleted.diary)?[]:defaultState().diaryCards;
-    if(!s.checkinPresets||!Array.isArray(s.checkinPresets))s.checkinPresets=['在干嘛','吃饭了吗','想我了吗','在哪'];
-    if(!s.stickers||!Array.isArray(s.stickers))s.stickers=[];
-    if(!s.appIcons||typeof s.appIcons!=='object')s.appIcons={};
+  }
+  /* ★ 这几行本来写在上面那个 `version<5` 的块里 —— 于是"版本号≥5 但缺这些字段"的备份
+     （导入别人的备份、或从旧版导出的备份）会整段跳过，字段一直是 undefined，
+     然后 字卡库 / 设置页 一读 `.length` 就抛错 = 白屏。
+     它们本来就是"缺了就补"的守卫，跟版本无关，必须无条件跑。 */
+  if(!s.writerCards||!Array.isArray(s.writerCards))s.writerCards=(s._smDeleted&&s._smDeleted.writer)?[]:defaultState().writerCards;
+  if(!s.diaryCards||!Array.isArray(s.diaryCards))s.diaryCards=(s._smDeleted&&s._smDeleted.diary)?[]:defaultState().diaryCards;
+  if(!s.statusCards||!Array.isArray(s.statusCards))s.statusCards=(s._smDeleted&&s._smDeleted.status)?[]:defaultState().statusCards;
+  if(!s.moodCards||!Array.isArray(s.moodCards))s.moodCards=(s._smDeleted&&s._smDeleted.mood)?[]:defaultState().moodCards;
+  if(!s.patCards||!Array.isArray(s.patCards))s.patCards=(s._smDeleted&&s._smDeleted.pat)?[]:defaultState().patCards;
+  if(!s.checkinPresets||!Array.isArray(s.checkinPresets))s.checkinPresets=['在干嘛','吃饭了吗','想我了吗','在哪'];
+  if(!s.stickers||!Array.isArray(s.stickers))s.stickers=[];
+  if(!s.appIcons||typeof s.appIcons!=='object')s.appIcons={};
+  if(!s.wallet)s.wallet={balance:888,log:[]};
+  if(!s.wallet.log)s.wallet.log=[];
+  if(!Array.isArray(s.pollLog))s.pollLog=[];
+  if(!s.shop||typeof s.shop!=='object')s.shop={items:[],orders:[],day:'',cat:'all'};
+  if(!Array.isArray(s.shop.items))s.shop.items=[];
+  if(!Array.isArray(s.shop.orders))s.shop.orders=[];
+  if(!s.companion)s.companion=defaultState().companion;
+  if(!s.companion.modes||!s.companion.modes.length)s.companion.modes=defaultState().companion.modes;
+  if(!s.companion.custom)s.companion.custom=[];
+  if(s.settings){
+    if(s.settings.callBg===undefined)s.settings.callBg='c1';
+    if(s.settings.callBgImg===undefined)s.settings.callBgImg='';
+    if(s.settings.fontScale===undefined)s.settings.fontScale=1;
+    if(!s.settings.homeBg)s.settings.homeBg='hb1';
+    if(!s.settings.homeBgImg)s.settings.homeBgImg='';
+  }
+  if(!s.version||s.version<5){
     if(!s.settings)s.settings={};
     if(!s.settings.homeBg)s.settings.homeBg='hb1';
     if(!s.settings.homeBgImg)s.settings.homeBgImg='';
-    if(!s.companion)s.companion=defaultState().companion;
-    if(!s.companion.modes||!s.companion.modes.length)s.companion.modes=defaultState().companion.modes;
-    if(!s.companion.custom)s.companion.custom=[];
-    if(s.settings){
-      if(s.settings.callBg===undefined)s.settings.callBg='c1';
-      if(s.settings.callBgImg===undefined)s.settings.callBgImg='';
-      if(s.settings.fontScale===undefined)s.settings.fontScale=1;
-    }
-    if(!s.wallet)s.wallet={balance:888,log:[]};
-    if(!s.wallet.log)s.wallet.log=[];
     if(s.wallet.balance===undefined)s.wallet.balance=888;
-    if(!s.me)s.me={name:'我',avatarType:'char',avatarImg:'',color:'#D98E5F'};
-    if(!s.me.name)s.me.name='我';
-    if(!s.me.avatarType)s.me.avatarType='char';
-    if(!s.me.color)s.me.color='#D98E5F';
   }
+  /* ★ "我"的档案也是守卫，同样不该被版本号挡住（缺了 me 会让朋友圈头部读崩） */
+  if(!s.me)s.me={name:'我',avatarType:'char',avatarImg:'',color:'#D98E5F'};
+  if(!s.me.name)s.me.name='我';
+  if(!s.me.avatarType)s.me.avatarType='char';
+  if(!s.me.color)s.me.color='#D98E5F';
   for(var i=0;i<s.contacts.length;i++){
     var c=s.contacts[i];
     if(c.avatarType===undefined)c.avatarType='char';
@@ -4571,6 +4665,9 @@ function postComment(p){
 /* ================= 聊天 ================= */
 var _quoteId=null;
 var _multiSel=null;   /* 多选：选中的那一条 */
+/* ★ 主动要求"整页重画"的开关：只有在 引用条/多选条 这种"输入框之外的东西也要变"的时候才需要。
+   平时（他打字中、来新消息）你在打字就只换消息列表，不碰输入框。 */
+var _chatNeedsFullPaint=false;
 var _lpFired=0;       /* 长按是否已经弹出菜单 */
 function trunc(s,n){s=String(s||'');return s.length>n?s.slice(0,n)+'…':s}
 var ICON_PLUS='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
@@ -4618,10 +4715,17 @@ function inputRestore(snap){
   }catch(e){}
   if(!el)return;                                  /* 已经换页面了 → 不还原，免得乱聚焦 */
   try{ if(String(el.tagName||'').toUpperCase()!==snap.tag)return }catch(e){}
-  try{ if(el.value!==snap.value)el.value=snap.value }catch(e){}
+  /* ★ 只在"重建后确实空了"的时候把旧内容填回去。
+     如果输入框里已经有你刚打的字（重绘没把它冲掉），就绝不拿旧快照覆盖 —— 
+     否则会出现"打到一半的字被吃掉/回退"。 */
+  try{ if(!String(el.value||'').length&&el.value!==snap.value)el.value=snap.value }catch(e){}
   try{
     el.focus();
-    if(snap.sel!=null&&el.setSelectionRange)el.setSelectionRange(snap.sel,snap.sel);
+    var _n=String(el.value||'').length;
+    /* 光标：内容跟快照一致 → 还原到原来的位置；内容变了 → 老实放到最后，
+       别把光标插进字中间把后面的字切掉。 */
+    var _pos=(el.value===snap.value&&snap.sel!=null)?snap.sel:_n;
+    if(el.setSelectionRange)el.setSelectionRange(_pos,_pos);
   }catch(e){}
 }
 function renderChat(){
@@ -4658,7 +4762,36 @@ function renderChat(){
   }
   body+=multiBarHtml();
   body+='<div class="chat-input"><button class="tool-btn" data-act="tools">'+ICON_PLUS+'</button><textarea id="chatText" rows="1" placeholder="说点什么…"></textarea><button class="tool-btn" data-act="emoji">'+ICON_EMOJI+'</button><button data-act="send-chat">发送</button></div></div>';
-  if(inChatView()){
+  /* ★ 重绘前先记住"离底部多少像素"。
+     以前重绘后不做任何恢复：列表重建 → scrollTop 回到 0 → 你正翻着旧消息（比如在填问卷），
+     点一下选项就被甩到很久以前那批消息上（用户报的）。
+     记住离底部的距离，重绘后按新高度还原，"你正在看的那一条"就钉在原地。 */
+  var _keepBot=null;
+  try{ var _ls0=document.getElementById('chatList'); if(_ls0&&_ls0.scrollHeight)_keepBot=Math.max(0,_ls0.scrollHeight-_ls0.scrollTop-_ls0.clientHeight) }catch(e0){}
+  /* ★ 正在打字的时候不许重建输入框。
+     用户报的："他正在输入中的时候我打不了字，打到一半输入框就收回去了。"
+     原因：输入框 #chatText 和消息列表在同一个 body 里，而这里以前一律 $('#view').innerHTML=…
+     → 你正聚焦的输入框被销毁 → 手机上键盘收起、打到一半的字也丢。
+     他"输入中"会触发 markRead→renderChat，所以这个坑特别容易踩。
+     修法：只要你正在输入（输入框聚焦 或 里面有没发出去的字），就只换消息列表那一块，
+     输入框 / 工具条 / 引用条原封不动 → 键盘不掉、光标不动、字不丢。
+     （引用条、多选条这种"输入框外也要变"的，走 _chatNeedsFullPaint 强制整页重画。） */
+  var _composing=false;
+  try{
+    var _ta0=document.getElementById('chatText');
+    _composing=!!(_ta0&&(document.activeElement===_ta0||String(_ta0.value||'').length>0));
+  }catch(e0){}
+  if(_chatNeedsFullPaint)_composing=false;
+  _chatNeedsFullPaint=false;
+  var _listNow=null;
+  try{ _listNow=document.getElementById('chatList') }catch(e0){}
+  if(inChatView()&&_composing&&_listNow){
+    var _holder=document.createElement('div');
+    _holder.innerHTML=body;
+    var _freshList=_holder.querySelector?(_holder.querySelector('#chatList')||_holder.querySelector('.chat-wrap')):null;
+    if(_freshList&&'innerHTML' in _freshList){ _listNow.innerHTML=_freshList.innerHTML; }
+    else { $('#view').innerHTML=top+body; }
+  }else if(inChatView()){
     $('#view').innerHTML=top+body;
   }else{
     /* 不在聊天页：只把聊天列表那一块更新掉，不动当前页面 */
@@ -4681,7 +4814,16 @@ function renderChat(){
       list2.addEventListener('scroll',function(){
         _chatAtBottom=(this.scrollHeight-this.scrollTop-this.clientHeight)<90;
       },{passive:true});
-      if(_chatAtBottom)list2.scrollTop=list2.scrollHeight;
+      if(_chatAtBottom){
+        list2.scrollTop=list2.scrollHeight;
+        /* ★ 图片/表情包是之后才加载出来的，加载完内容会变长 ——
+           只设一次 scrollTop 的话位置就偏了（"有时候进聊天室停在很久以前的消息"就是这个）。
+           这里等图加载完、以及几个时间点再校正一次。 */
+        chatPinBottomSoon(list2);
+      }else if(_keepBot!=null){
+        /* 你本来翻在上面 → 按"离底部同样的距离"还原，不要把你甩回顶上 */
+        list2.scrollTop=Math.max(0,list2.scrollHeight-list2.clientHeight-_keepBot);
+      }
     }catch(e){}
   }
   var ta=$('#chatText');
@@ -4693,6 +4835,23 @@ function renderChat(){
   /* ★ 聊天区已经把它们显示出来了 → 标记为"已露面"，以后不再重排（防吞消息） */
   try{markShownIn(c?c.id:null)}catch(e){}
   inputRestore(_inSnap);      /* ★ 把焦点和正在输入的内容还给用户 */
+}
+/** ★ 贴底要"贴到最后一刻"。
+    聊天列表里的图片/表情包是异步加载的，刚画完时 scrollHeight 比最终小，
+    只贴一次的话等图加载完就停在中间偏上了（用户报的"进聊天室有时落在很久以前"）。
+    这里在图 loading 完、以及几个时间点各校正一次，并且只在"你本来就贴底"时才动。 */
+function chatPinBottomSoon(list){
+  if(!list)return;
+  var pin=function(){ try{ if(_chatAtBottom)list.scrollTop=list.scrollHeight }catch(e){} };
+  try{ setTimeout(pin,80);setTimeout(pin,260);setTimeout(pin,700);setTimeout(pin,1500); }catch(e){}
+  try{
+    var imgs=list.querySelectorAll('img');
+    for(var i=0;i<imgs.length;i++){
+      if(imgs[i].complete)continue;
+      imgs[i].addEventListener('load',pin);
+      imgs[i].addEventListener('error',pin);
+    }
+  }catch(e){}
 }
 /** ★ 聊天室里"整页"一动都不该动（滚动只发生在 #chatList 里面）。
     iOS 上滑到头继续拖（橡皮筋）、或者键盘弹起再收起，会把整页顶上去不回来 ——
@@ -4937,17 +5096,24 @@ function sendChat(){
     setTimeout(function(){toast(esc(activeContact().name)+' 收藏了你这条消息')},1500);
   }
   _chatAtBottom=true;          /* 自己发消息时，理应看到最新那条 */
+  _chatNeedsFullPaint=true;    /* 发完要把引用条收掉/清空输入 → 这一次必须整页重画 */
   save();renderChat();schedule();
 }
-function startQuote(id){_quoteId=id;renderChat()}
+/** 需要"输入框之外也跟着变"的重绘（引用条、多选条）走这里 */
+function chatRepaint(){_chatNeedsFullPaint=true;renderChat()}
+function startQuote(id){_quoteId=id;chatRepaint()}
 
 /* ================= 朋友圈（推特风） ================= */
+var _pcOpen=null;   /* 朋友圈里哪一条的评论输入框是展开的（仿微信：点 💬 才出现） */
+/** 发动态的入口图标（设计稿：像微信朋友圈那样，右上角一个小相机） */
+var ICON_CAM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.6A2.6 2.6 0 0 1 5.6 6h1.1l1-1.7h5.6l1 1.7h1.1A2.6 2.6 0 0 1 18 8.6V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="10.5" cy="12.6" r="3.3"/></svg>';
 function renderMoments(){
-  var _inSnap=inputSnapshot();
-  var posts=state.posts.slice().sort(function(a,b){return b.ts-a.ts});
+  var _inSnap=inputSnapshot();  var posts=state.posts.slice().sort(function(a,b){return b.ts-a.ts});
   var meNm=state.me&&state.me.name||'我';
   var meCl=state.me&&state.me.color||'#D98E5F';
-  var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">朋友圈</span></div>';
+  /* ★ 设计稿：发布入口是右上角一个小相机图标（仿微信朋友圈），
+     不再是页面顶部那一大块"说点什么…+图片+发布"的输入卡。 */
+  var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">朋友圈</span><span class="pr"><button class="mom-cam" data-act="post-sheet" title="发一条动态">'+ICON_CAM+'</button></span></div>';
   html+='<div class="screen">';
   if((state.settings&&state.settings.visitorOn)&&(state.visitorCount||0)>0){
     var vc2=activeContact();
@@ -4956,18 +5122,12 @@ function renderMoments(){
     html+='<div class="card visitor-card"><span class="v-ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v2M14 3v2M5 5h14M6 5l1.5 14a2 2 0 0 0 2 1.8h5a2 2 0 0 0 2-1.8L18 5"/><path d="M9.5 11l1.8 1.8 3.2-3.2"/></svg></span><div><b>'+esc(vc2?vc2.name:'他')+' 来过了</b><span class="meta">来访 '+(state.visitorCount||0)+' 次 · 最近 '+vtxt+'</span></div></div>';
   }
   html+='<div class="cover" style="'+coverStyle()+'"><button class="cov-btn" data-act="cover-sheet">换封面</button><div class="me-overlay">'+avatarHtml({name:meNm,color:meCl,avatarType:(state.me&&state.me.avatarType)||'char',avatarImg:(state.me&&state.me.avatarImg)||''},40)+'<b>'+esc(meNm)+'</b></div></div>';
-  html+='<div class="post-form card"><textarea id="postText" placeholder="说点什么，发一条朋友圈…"></textarea>'
-    +'<div class="pf-imgs" id="postImgs">'+postImgsHtml()+'</div>'
-    +'<div class="pf-tools"><button class="pf-img" data-act="post-img">🖼 图片</button>'
-    +'<span class="pf-tip">最多 4 张</span>'
-    +'<button class="btn" data-act="post-create">发布</button></div>'
-    +'<input type="file" id="postImgFile" accept="image/*" multiple style="display:none"></div>';
-  if(!posts.length)html+='<div class="empty"><span class="big">圈</span>还没有动态，第一条等你来发</div>';
+  if(!posts.length)html+='<div class="empty"><span class="big">圈</span>还没有动态，点右上角的小相机发第一条</div>';
   for(var i=0;i<posts.length;i++){
     var p=posts[i],c=p.contactId?contact(p.contactId):null;
     var nm=c?c.name:meNm;
     var av=c?avatarHtml(c,40):avatarHtml({name:meNm,color:meCl},40);
-    html+='<div class="card post"><div class="p-row"><div class="p-av">'+av+'</div><div class="p-main"><div class="nm">'+esc(nm)+'</div>';
+    html+='<div class="moment"><div class="p-row"><div class="p-av">'+av+'</div><div class="p-main"><div class="nm">'+esc(nm)+'</div>';
     /* 他发的表情包动态：先贴图，再（可选）跟一句字卡文字 */
     if(p.sticker){
       html+=mediaDead(p.sticker)
@@ -4986,22 +5146,25 @@ function renderMoments(){
     }
     if(p.contactId)html+='<span class="tag">来自字卡</span>';
     html+='<div class="p-foot"><span class="ptime">'+fmtTime(p.ts)+'</span><div class="p-ops">';
-    if(p.contactId)html+='<button class="op'+(p.liked?' on':'')+'" data-act="post-like" data-id="'+p.id+'"><span class="like-ic">♥</span>'+(p.liked?'已赞':'赞')+'</button>';
-    html+='<button class="op" data-act="post-comment" data-id="'+p.id+'"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>评论</button>';
+    if(p.contactId)html+='<button class="op'+(p.liked?' on':'')+'" data-act="post-like" data-id="'+p.id+'"><span class="like-ic">'+(p.liked?'♥':'♡')+'</span>'+(p.liked?'已赞':'赞')+'</button>';
+    html+='<button class="op'+( _pcOpen===p.id?' on':'')+'" data-act="post-comment" data-id="'+p.id+'"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>'+((p.comments&&p.comments.length)?(' '+p.comments.length):'')+'</button>';
     html+='</div></div>';
+    /* ★ 仿微信：谁赞了 + 评论 放在同一块浅灰底里，中间一条细线隔开（评论默认就是收起的） */
     var likes=[];
     if(p.liked)likes.push(meNm);
     if(p.heLiked)likes.push(nm);
-    if(likes.length)html+='<div class="p-likes">♥ '+esc(likes.join('、'))+'</div>';
-    if(p.comments&&p.comments.length){
+    var _hasC=!!(p.comments&&p.comments.length);
+    if(likes.length||_hasC){
       html+='<div class="cmt-box">';
-      for(var k=0;k<p.comments.length;k++){
+      if(likes.length)html+='<div class="cmt-like">♡ '+esc(likes.join('，'))+'</div>';
+      if(likes.length&&_hasC)html+='<div class="cmt-hr"></div>';
+      if(_hasC)for(var k=0;k<p.comments.length;k++){
         var cm=p.comments[k],cc=cm.contactId?contact(cm.contactId):null;
         html+='<div class="cmt'+(cm.replyTo?' reply':'')+'"><b>'+esc(cc?cc.name:meNm)+'：</b>'+(cm.replyTo?'<span class="cmt-re">回复</span>':'')+esc(cm.text)+'</div>';
       }
       html+='</div>';
     }
-    html+='<div class="pc-in" id="pc'+p.id+'" style="display:none"><input id="pcTxt'+p.id+'" placeholder="写下你的评论…"><button data-act="post-comment-send" data-id="'+p.id+'">发送</button></div>';
+    html+='<div class="pc-in" id="pc'+p.id+'" style="display:'+( _pcOpen===p.id?'flex':'none')+'"><input id="pcTxt'+p.id+'" placeholder="评论…"><button data-act="post-comment-send" data-id="'+p.id+'">发送</button></div>';
     html+='</div></div></div>';
   }
   html+='</div>';
@@ -5009,7 +5172,9 @@ function renderMoments(){
   inputRestore(_inSnap);
 }
 function postCommentOpen(id){
-  var el=$('#pc'+id);if(el)el.style.display=el.style.display==='none'?'flex':'none';
+  /* ★ 仿微信：点 💬 才展开输入框（再点收起）；展开的那条要记住，重绘后还开着 */
+  _pcOpen=(_pcOpen===id)?null:id;
+  renderMoments();
 }
 function postCommentSend(id){
   var inp=$('#pcTxt'+id);if(!inp)return;
@@ -5087,6 +5252,18 @@ function postAddFiles(input){
   }
   next();
 }
+/** ★ 发一条动态：设计稿里是"右上角小相机 → 弹出这个小面板"（不再是顶部长输入框） */
+function sheetPost(){
+  openSheet('<h2>发一条动态</h2>'
+    +'<textarea id="postText" rows="4" placeholder="说点什么…"></textarea>'
+    +'<div class="pf-imgs" id="postImgs">'+postImgsHtml()+'</div>'
+    +'<input type="file" id="postImgFile" accept="image/*" multiple style="display:none">'
+    +'<div style="display:flex;gap:8px;margin-top:10px">'
+    +'<button class="btn ghost" style="flex:1" data-act="post-img">🖼 图片</button>'
+    +'<button class="btn" style="flex:1" data-act="post-create">发布</button></div>'
+    +'<p class="meta" style="margin-top:8px">最多 4 张图</p>'
+    +'<div class="actions"><button class="cancel" data-act="sheet-close">取消</button></div>');
+}
 function postCreate(){
   var ta=$('#postText');if(!ta)return;
   var text=ta.value.trim();
@@ -5097,7 +5274,7 @@ function postCreate(){
   if(c){var st9=state.settings||{};var cmn=(st9.commentMin||180)*60000,cmx=(st9.commentMax||600)*60000;if(cmn>cmx){var cq=cmn;cmn=cmx;cmx=cq}p.commentDue=p.ts+rnd(cmn,cmx)}
   state.posts.push(p);
   ta.value='';_postImgs=[];
-  save();renderMoments();schedule();toast('已发布');
+  save();try{closeSheet()}catch(e){}renderMoments();schedule();toast('已发布');
 }
 function sheetCover(){
   var st=state.settings;
@@ -5345,6 +5522,7 @@ function mailRead(id){
     /* ★ 收到回信了：这一页也把回信摊开看，不用再翻回收件箱 */
     html+='<div class="meta" style="margin-top:12px">'+(l.answered?( _rp?'已收到回信':'这封的回信不在这份存档里（多半是导入备份时没带过来）'):'等待他的回信…')+'</div>';
     if(_rp)html+=mailReplyHtml(_rp);
+    html+='<div style="display:flex;gap:10px;margin-top:14px"><button class="btn" style="flex:1" data-act="letter-new">再写一封</button></div>';
   }
   html+='</div></div>';
   $('#view').innerHTML=html;
@@ -5694,9 +5872,14 @@ function renderDiary(){
       var ds=keys[i],d=state.diary[ds];
       if(!d||!d.text)continue;
       var dd=new Date(ds+'T00:00:00');
-      html+='<div class="card diary-card"><div class="d-date">'+(dd.getMonth()+1)+'月'+dd.getDate()+'日'+(ds===today?' · 今天':'')+'</div><div class="meta" style="margin-top:2px">陆沉的日记（字卡生成）</div><div class="d-txt">'+esc(d.text)+'</div>';
+      var _wkd=['日','一','二','三','四','五','六'][dd.getDay()];
+      html+='<div class="card diary-card"><div class="d-date">'+(dd.getMonth()+1)+'月'+dd.getDate()+'日 · 星期'+_wkd+(ds===today?' · 今天':'')
+        +'<button class="d-save" data-act="diary-save" data-d="'+ds+'">收藏到BOX</button></div>'
+        +'<div class="meta" style="margin-top:2px">他写的</div><div class="d-txt">'+esc(d.text)+'</div>';
       html+=cmtBlock(ds,'his',d);
-      html+='<div class="d-cmt-in"><textarea id="cmtHis'+ds.replace(/-/g,'')+'" rows="2" placeholder="评论他的这篇日记…"></textarea><button data-act="diary-comment-his" data-ds="'+ds+'">发送</button></div>';
+      html+='<div class="d-foo"><button class="d-like'+(d.liked?' on':'')+'" data-act="diary-like" data-ds="'+ds+'" data-kind="his">'+(d.liked?'♥ 已赞':'♡ 赞')+'</button>'
+        +'<button class="d-cbtn" data-act="diary-cmt" data-ds="'+ds+'">💬 评论'+((d.hisComments&&d.hisComments.length)?(' '+d.hisComments.length):'')+'</button></div>';
+      html+='<div class="d-cmt-in'+( _dcOpen===('his'+ds)?'':' hide')+'" id="dci_his'+ds.replace(/-/g,'')+'"><textarea id="cmtHis'+ds.replace(/-/g,'')+'" rows="2" placeholder="评论他的这篇日记…"></textarea><button data-act="diary-comment-his" data-ds="'+ds+'">发送</button></div>';
       html+='</div>';
     }
   }else{
@@ -5710,8 +5893,12 @@ function renderDiary(){
       var d2=state.diary[keys[j]];
       if(!d2||!d2.mine||!d2.mine.text||keys[j]===today)continue;
       var dd2=new Date(keys[j]+'T00:00:00');
-      html+='<div class="card diary-card"><div class="d-date">'+(dd2.getMonth()+1)+'月'+dd2.getDate()+'日</div><div class="meta" style="margin-top:2px">我的日记</div><div class="d-txt">'+esc(d2.mine.text)+'</div>';
+      var _wkd2=['日','一','二','三','四','五','六'][dd2.getDay()];
+      html+='<div class="card diary-card"><div class="d-date">'+(dd2.getMonth()+1)+'月'+dd2.getDate()+'日 · 星期'+_wkd2+'</div><div class="meta" style="margin-top:2px">我写的</div><div class="d-txt">'+esc(d2.mine.text)+'</div>';
       html+=cmtBlock(keys[j],'mine',d2);
+      html+='<div class="d-foo"><button class="d-like'+((d2.mine&&d2.mine.liked)?' on':'')+'" data-act="diary-like" data-ds="'+keys[j]+'" data-kind="mine">'+((d2.mine&&d2.mine.liked)?'♥ 已赞':'♡ 赞')+'</button>'
+        +'<button class="d-cbtn" data-act="diary-cmt" data-ds="'+keys[j]+'">💬 评论'+((d2.myComments&&d2.myComments.length)?(' '+d2.myComments.length):'')+'</button>'
+        +(d2.mine&&d2.mine.ts?('<span class="d-tm">'+fmtTime(d2.mine.ts)+'</span>'):'')+'</div>';
       html+='</div>';
     }
   }
@@ -5731,6 +5918,21 @@ function cmtBlock(ds,kind,d){
   return h+'</div>';
 }
 function diaryTab(t){state._diaryTab=t;save();renderDiary()}
+var _dcOpen=null;   /* 日记里哪个评论框是展开的（点 💬 才出现） */
+function diaryCmt(ds){
+  var key=(state._diaryTab==='mine'?'mine':'his')+ds;
+  _dcOpen=(_dcOpen===key)?null:key;
+  renderDiary();
+}
+function diaryLike(ds,kind){
+  ensureDiary(now());
+  var d=state.diary[ds];if(!d)return;
+  if(kind==='mine'){
+    d.mine=d.mine||{text:'',ts:0};
+    d.mine.liked=!d.mine.liked;
+  }else d.liked=!d.liked;
+  save();renderDiary();
+}
 function diarySaveMine(){
   var today=dateStr(now());
   var v=(inpVal('mineDiaryText')||'').trim();
@@ -7805,21 +8007,22 @@ function renderProfile(){
   var diaryKeys=Object.keys(state.diary||{}).sort().reverse();
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">'+esc(c.name)+'</span></div>';
   html+='<div class="screen">';
-  html+='<div class="ph-head"><span class="ph-av" data-act="pat">'+avatarHtml(c,72)+'</span><div class="ph-nm">'+esc(c.name)+'</div><div class="ph-hd">'+esc(state.settings.profileHandle||'@lu.chen')+'</div></div>';
-  html+='<div class="ph-stats"><div class="ps"><b>'+posts.length+'</b><span>帖子</span></div><div class="ps"><b>'+esc(state.settings.profileFans)+'</b><span>粉丝</span></div><div class="ps"><b>'+esc(state.settings.profileFollowing)+'</b><span>关注</span></div></div>';
+  /* ★ 设计稿的头像排布：左边大头像 + 右边两格数字（关注 / 粉丝），
+     下面才是 昵称 + @账号 + 个性签名 + 两个按钮（以前是全部居中，和设计稿不一样）。 */
+  var _fans=state.settings.profileFans||0,_foll=state.settings.profileFollowing||0;
+  html+='<div class="ph-row"><span class="ph-av" data-act="pat">'+avatarHtml(c,72)+'</span>'
+    +'<div class="ph-stats"><div class="ps"><b>'+esc(_foll)+'</b><span>关注</span></div><div class="ps"><b>'+esc(_fans)+'</b><span>粉丝</span></div></div></div>';
+  html+='<div class="ph-id"><b>'+esc(c.name)+'</b><span class="ph-hd">'+esc(state.settings.profileHandle||'@lu.chen')+'</span></div>';
+  if(state.settings.profileBio)html+='<div class="ph-sig2">'+esc(state.settings.profileBio)+'</div>';
   var fol=state.profileFollowed!==false;
-  html+='<div class="ph-btns"><button class="ph-follow'+(fol?' on':'')+'" data-act="prof-follow">'+(fol?'已关注':'关注')+'</button><button class="ph-msg" data-view="chat">发消息</button></div>';
+  html+='<div class="ph-btns"><button class="ph-follow'+(fol?' on':'')+'" data-act="prof-follow">'+(fol?'已关注':'关注')+'</button><button class="ph-msg" data-view="chat">私信</button></div>';
   var whisper=posts.length?posts[0].text:'够 我陪你看日落。';
-  html+='<div class="ph-bio"><span class="ph-whisper">DAILY WHISPER</span><div class="ph-wtxt">'+esc(whisper)+'</div>'+(state.settings.profileBio?'<div class="ph-sig">'+esc(state.settings.profileBio)+'</div>':'')+'</div>';
-  html+='<div class="ph-tabs"><button class="pt2'+( _profileTab==='diary'?' on':'')+'" data-act="profile-tab" data-t="diary">日记</button><button class="pt2'+( _profileTab==='sv'?' on':'')+'" data-act="profile-tab" data-t="sv">收藏</button><button class="pt2'+( _profileTab==='tr'?' on':'')+'" data-act="profile-tab" data-t="tr">礼物架</button></div>';
-  if(_profileTab==='diary'){
-    if(!diaryKeys.length)html+='<div class="empty"><span class="big">日</span>他还没有写日记</div>';
-    for(var di=0;di<diaryKeys.length;di++){
-      var dk=diaryKeys[di],dv=state.diary[dk];
-      if(!dv||!dv.text)continue;
-      html+='<div class="diary-item"><div class="d-top"><span class="d-date">DIARY·'+dk+'</span><span class="d-ops"><button class="d-save" data-act="diary-save" data-d="'+dk+'">收藏到BOX</button><button class="d-del" data-act="diary-del" data-d="'+dk+'">删除</button></span></div><div class="d-body">'+esc(dv.text)+'</div></div>';
-    }
-  }else if(_profileTab==='sv'){
+  html+='<div class="ph-bio"><span class="ph-whisper">DAILY WHISPER</span><div class="ph-wtxt">'+esc(whisper)+'</div></div>';
+  /* ★ 主页只有「收藏 / 礼物架」两栏 —— 日记这一栏按用户要求彻底去掉（日记在桌面的「日记」App 里） */
+  if(_profileTab==='diary')_profileTab='sv';
+  var _gifts=profileGifts();
+  html+='<div class="ph-tabs"><button class="pt2'+(_profileTab==='sv'?' on':'')+'" data-act="profile-tab" data-t="sv">收藏 <b>'+(saved.length+box.length)+'</b></button><button class="pt2'+(_profileTab==='tr'?' on':'')+'" data-act="profile-tab" data-t="tr">礼物架 <b>'+_gifts.length+'</b></button></div>';
+  if(_profileTab==='sv'){
     if(!saved.length&&!box.length)html+='<div class="empty"><span class="big">藏</span>还没有收藏</div>';
     for(var b2=0;b2<box.length;b2++){
       var bb=box[b2];
@@ -7830,10 +8033,20 @@ function renderProfile(){
       html+='<div class="saved-item"><svg viewBox="0 0 24 24" width="18" height="18" fill="#E05C5C" stroke="#E05C5C" stroke-width="2"><path d="M12 21s-7-4.6-9.3-9C1.1 8.7 2.5 5.5 5.6 5.1c2-.3 3.9.8 4.7 2.5.8-1.7 2.7-2.8 4.7-2.5 3.1.4 4.5 3.6 2.9 6.9C19 16.4 12 21 12 21z"/></svg><div><div class="s-txt">'+esc(sm.text)+'</div><div class="meta">'+c.name+' 收藏 · '+fmtTime(sm.ts)+'</div></div></div>';
     }
   }else{
-    if(!trs.length)html+='<div class="empty"><span class="big">礼</span>还没有礼物记录</div>';
-    for(var j=0;j<trs.length;j++){
-      var tr=trs[j];
-      html+='<div class="tr-item"><div class="tr-ic'+(tr.status==='accepted'?'':' grey')+'">'+(tr.status==='accepted'?'收':'退')+'</div><div><b>¥'+tr.amount.toFixed(2)+'</b><div class="meta">'+(tr.status==='accepted'?'已收款':'已退还')+' · '+fmtTime(tr.ts)+'</div></div></div>';
+    /* ★ 礼物架 = 商城里他送你的礼物（+ 你送他的），摆成货架的样子；
+       以前这里是"转账记录"，和"礼物架"这个名字对不上（用户确认过要改成礼物）。 */
+    if(!_gifts.length)html+='<div class="empty"><span class="big">礼</span>还没有礼物，去商城让他送你一件</div>';
+    else{
+      html+='<div class="gift-shelf">';
+      for(var g2=0;g2<_gifts.length;g2++){
+        var gf=_gifts[g2];
+        html+='<div class="gift-c">'
+          +'<div class="g-e">'+esc(gf.emoji||'🎁')+'</div>'
+          +'<b>'+esc(gf.name||'礼物')+'</b>'
+          +'<span>'+esc(gf.dir==='in'?'他送':'我送')+' · '+dateStr(gf.ts).slice(5)+'</span>'
+          +'</div>';
+      }
+      html+='</div>';
     }
   }
   html+='</div>';
@@ -7841,6 +8054,27 @@ function renderProfile(){
   inputRestore(_inSnap);
 }
 function profileTab(t){_profileTab=t;renderProfile()}
+/** ★ 礼物架的数据：商城的礼物记录 + 聊天里"他送我的礼物"卡片（以前这里放的是转账记录） */
+function profileGifts(){
+  var out=[];
+  try{
+    var os=(state.shop&&state.shop.orders)||[];
+    for(var i=0;i<os.length;i++){
+      var o=os[i];
+      if(!o)continue;
+      out.push({name:o.name,emoji:o.emoji,ts:o.ts,dir:o.dir==='in'?'in':'out',price:o.price});
+    }
+  }catch(e){}
+  try{
+    for(var j=0;j<state.messages.length;j++){
+      var m=state.messages[j];
+      /* 聊天里 kind=gift 且是"他发来的"，就是他送我的礼物（代买答应的那种） */
+      if(m&&m.kind==='gift'&&m.dir==='in'&&m.itemName)out.push({name:m.itemName,emoji:m.emoji,ts:m.ts,dir:'in',price:m.price});
+    }
+  }catch(e){}
+  out.sort(function(a,b){return (b.ts||0)-(a.ts||0)});
+  return out;
+}
 function diarySave(d){
   var dv=state.diary[d];if(!dv)return;
   state.profileBox=state.profileBox||[];
@@ -8273,8 +8507,9 @@ document.addEventListener('click',function(e){
     if(act==='switch-contact')sheetSwitch();
     else if(act==='send-chat')sendChat();
     else if(act==='quote'){if(state.settings&&state.settings.quoteOn===false)toast('引用回复已关闭');else startQuote(id)}
-    else if(act==='quote-cancel'){_quoteId=null;renderChat()}
+    else if(act==='quote-cancel'){_quoteId=null;chatRepaint()}
     else if(act==='post-create')postCreate();
+    else if(act==='post-sheet')sheetPost();
     else if(act==='letter-new')sheetLetter();
     else if(act==='letter-send')letterSend();
     else if(act==='card-add')sheetCard()
@@ -8399,6 +8634,8 @@ document.addEventListener('click',function(e){
     else if(act==='tide-record'){tideRecord()}
     else if(act==='tide-del'){tideDel(parseInt(btn.getAttribute('data-idx'),10))}
     else if(act==='diary-tab')diaryTab(btn.getAttribute('data-t'));
+    else if(act==='diary-like')diaryLike(btn.getAttribute('data-ds'),btn.getAttribute('data-kind'));
+    else if(act==='diary-cmt')diaryCmt(btn.getAttribute('data-ds'));
     else if(act==='diary-save-mine'||act==='diary-clear-mine')diarySaveMine();
     else if(act==='diary-comment-his')diaryCommentHis(btn.getAttribute('data-ds'));
     else if(act==='mom-save'){momSave()}
@@ -9952,7 +10189,13 @@ function musSpaceHtml(){
    +    '<div class="lsn-song" id="lsnSongV">'+nm+'</div>'
    +    '<div class="lsn-track" data-mus="seek"><i id="lsnFillV" style="width:'+Math.round(pr.p*100)+'%"></i></div>'
    +    '<div class="lsn-times"><span id="lsnNowV">'+musFmt(pr.now)+'</span><span id="lsnDurV">'+musFmt(pr.dur)+'</span></div>'
-   +    '<div class="lsn-ops"><button class="lsn-play" data-mus="toggle" id="lsnPlayV" title="播放 / 暂停">'+(pr.playing?ICON_PAUSE:ICON_PLAY)+'</button></div>'
+   +    '<div class="lsn-ops">'
+   +      '<button class="lsn-tb'+(m.shuffle?' on':'')+'" data-mus="shuffle" id="lsnShufV" title="随机播放">'+ICON_SHUFFLE+'</button>'
+   +      '<button class="lsn-tb" data-mus="prev" title="上一首">'+ICON_PREV+'</button>'
+   +      '<button class="lsn-play" data-mus="toggle" id="lsnPlayV" title="播放 / 暂停">'+(pr.playing?ICON_PAUSE:ICON_PLAY)+'</button>'
+   +      '<button class="lsn-tb" data-mus="next" title="下一首">'+ICON_NEXT+'</button>'
+   +      '<button class="lsn-tb'+(m.loop==='one'?' on':'')+'" data-mus="loop" id="lsnLoopV" title="循环">'+(m.loop==='one'?ICON_LOOPONE:ICON_REPEAT)+'</button>'
+   +    '</div>'
    +    '<div class="lsn-meta"><span class="lsn-breath"></span>一起听 <b id="lsnMinV">'+musSessMins()+'</b> 分钟 · '+esc(c?c.name:'他')+'也在听</div>'
    +  '</div>'
    +  '<div class="lsn-said" id="lsnSaidV">'+musSpaceSaidHtml()+'</div>'
@@ -10081,6 +10324,8 @@ function musSpacePaint(force){
     var e4=q('lsnDurV');if(e4)e4.textContent=musFmt(pr.dur);
     var e5=q('lsnMinV');if(e5)e5.textContent=String(musSessMins());
     var e6=q('lsnPlayV');if(e6)e6.innerHTML=pr.playing?ICON_PAUSE:ICON_PLAY;
+    var e7=q('lsnShufV');if(e7){if(m.shuffle)e7.classList.add('on');else e7.classList.remove('on')}
+    var e8=q('lsnLoopV');if(e8){e8.innerHTML=(m.loop==='one'?ICON_LOOPONE:ICON_REPEAT);if(m.loop==='one')e8.classList.add('on');else e8.classList.remove('on')}
   }catch(e){}
 }
 
@@ -10505,7 +10750,7 @@ function sheetMsgMenu(id){
 function msgMultiEnter(id){
   _multiSel={on:true,ids:{}};
   if(id)_multiSel.ids[id]=1;
-  closeSheet();renderChat();
+  closeSheet();chatRepaint();
   toast('多选模式：点消息选中，可批量复制/收藏/删除');
 }
 function msgMultiToggle(id){
@@ -10559,7 +10804,7 @@ function msgMultiDelete(){
   state.messages=keep;
   save();exitMulti();toast('已删除 '+list.length+' 条');
 }
-function exitMulti(){_multiSel=null;renderChat()}
+function exitMulti(){_multiSel=null;chatRepaint()}
 function multiBarHtml(){
   if(!_multiSel||!_multiSel.on)return '';
   var n=msgMultiCount();
