@@ -863,13 +863,15 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
    以前每条动态都套一张白卡（.card.post），像一张张卡片；
    微信是直接铺在背景上、只用一条细线分隔。这里改用 .moment，
    和 .post 那套玻璃卡完全脱钩，避免被主题里的 !important 又染回来。 */
-.moment{display:flex;gap:10px;padding:16px 2px;min-height:112px;margin:0;background:none!important;border:none!important;
+/* ★ 关键：.moment 必须是**块级**，不能是 flex ——
+   之前写成 flex 后，里面那层 .p-row 没有 flex:1，整块会"按内容收缩"，
+   于是短评论的评论框只有 116px 宽、长评论的 408px（用户说的"长度不固定"就是这个）。
+   现在：.moment 块级铺满 → .p-row 横向排头像+正文 → 正文 flex:1 占满 →
+   评论框长度（宽度）永远一致，高度随评论多少自然变。 */
+.moment{display:block;padding:16px 2px;margin:0;background:none!important;border:none!important;
   border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .moment+.moment{border-top:1px solid var(--line)!important}
-/* ★ 每条动态的"骨架"高度固定住：头像 + 昵称 + 正文 + 底部那行(时间/赞/评论)。
-   用户报的"没评论的比我评论的短了一半" —— 以前没有最小高度，只有一行字的动态塌成一小条；
-   现在每条至少 112px，有没有评论都占同样的骨架，差别只来自那块评论本身。 */
-.moment .p-row{min-height:96px}
+.moment .p-row{display:flex;gap:10px;min-height:96px}
 .moment .p-main{flex:1;min-width:0;display:flex;flex-direction:column}
 .moment .p-foot{margin-top:auto}
 .moment .p-main{flex:1;min-width:0}
@@ -888,7 +890,11 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
 .moment .tag{align-self:flex-start}
 /* ★ 评论块要保持"原来那个长度"（用户：你朋友圈评论区都缩小一半了？我要这个长度）
    所以这里给足内边距和大一点的字号，不要去压缩它。 */
-.moment .cmt-box{margin-top:10px;background:rgba(238,234,238,.94);border-radius:12px;padding:12px 13px;display:flex;flex-direction:column;gap:6px}
+/* ★ 评论框：**宽度固定**（永远占满正文那一行，跟内容多少无关）；
+   高度**随内容**（只点赞就一行高，有评论就自然变高）—— 跟微信一致（用户定的）。 */
+.moment .cmt-box{margin-top:10px;background:rgba(238,234,238,.94);border-radius:12px;padding:10px 13px;
+  display:flex;flex-direction:column;gap:6px;box-sizing:border-box}
+.moment .cmt-empty{color:#A79AA1}
 .moment .cmt-like{font-size:calc(13px*var(--fs));color:#6B5A63;padding-bottom:2px}
 .moment .cmt-hr{height:1px;background:rgba(176,152,168,.3);margin:7px 0}
 .moment .cmt{font-size:calc(13.5px*var(--fs));line-height:1.95;color:var(--ink)}
@@ -1827,8 +1833,10 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .chat-input button[data-act="send-chat"]{min-height:34px!important;padding:0 14px!important;border-radius:11px!important;font-size:calc(12.5px*var(--fs))!important}
 /* 小圆钮（如组件库里的圆形操作）保持圆 */
 /* ★ 钱包：黑白极简（用户选 B 方案） */
+/* ★ 钱包整页（含顶栏那一条）都用灰底：以前顶栏下面露出一条粉色的缝（用户：把最上边对齐） */
+#view:has(.wlt){background:#F2F2F3}
 .wlt{background:#F2F2F3;color:#111;min-height:100%;padding:0 18px 26px}
-.wlt h1{font-family:var(--serif);font-size:31px;letter-spacing:1px;margin:6px 0 14px;color:#111}
+.wlt h1{font-family:var(--serif);font-size:31px;letter-spacing:1px;margin:0 0 12px;color:#111}
 .wlt-nums{display:flex;gap:10px;margin-bottom:16px}
 .wlt-nums .n{flex:1}
 .wlt-nums b{display:block;font-size:24px;font-weight:800;color:#111;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
@@ -5258,6 +5266,11 @@ function renderMoments(){
     var likes=[];
     if(p.liked)likes.push(meNm);
     if(p.heLiked)likes.push(nm);
+    /* ★ 跟微信一样（用户拿微信截图定的）：
+       · 没人赞、也没人评论 → 一条评论框都不显示，只留底部那行（时间 / 💬 / ⋯）
+       · 有人赞 或 有人评论 → 出评论框：赞在上、一条细线、评论在下；
+         框的内边距/圆角/底色完全一致，长度随内容多少自然变化（不硬撑高、也不塞占位字）。
+       之前"每条都塞一个空框"是理解错了，这里改回来。 */
     var _hasC=!!(p.comments&&p.comments.length);
     if(likes.length||_hasC){
       html+='<div class="cmt-box">';
@@ -5305,6 +5318,7 @@ function postCommentSend(id){
       p.replyMineTo=_myId;
     }
   }catch(e){}
+  _pcOpen=null;   /* 发完把输入框收起来（不然它会一直挂在那条动态下面） */
   save();renderMoments();schedule();toast('已评论');
 }
 /** 他回复我的评论（到点时由调度器触发） */
@@ -9345,8 +9359,7 @@ function renderWallet(){
   var w=state.wallet||{balance:888,log:[]};
   if(!w.log)w.log=[];
   var mo=walletMonthSum(),his=walletHisSum(),lc=activeContact();
-  var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">账户</span>'
-    +'<span class="pr">'+avatarHtml({name:(state.me&&state.me.name)||'我',color:(state.me&&state.me.color)||'#D98E5F'},32)+'</span></div>';
+  var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">账户</span></div>';
   html+='<div class="screen wlt">';
   html+='<h1>账户</h1>';
   html+='<div class="wlt-nums"><div class="n"><b>+¥'+mo.inc.toFixed(2)+'</b><span>本月收入</span></div>'
@@ -9360,7 +9373,7 @@ function renderWallet(){
     +'<div class="bk-bt"><span class="bk-no">•••• 6688</span><span class="bk-amt">¥'+w.balance.toFixed(2)+'</span></div></div>';
   html+='<div class="bank silver'+(_wltCard===1?' front':' back')+'" data-act="wlt-card">'
     +'<div class="bk-top"><span>个人账户</span><span class="bk-logo">nz.</span></div>'
-    +'<div class="bk-nm">哥哥的卡</div><div class="bk-sub">NZ PRIVATE</div>'
+    +'<div class="bk-nm">陆沉的卡</div><div class="bk-sub">NZ PRIVATE</div>'
     +'<div class="bk-bt"><span class="bk-no">•••• 1029</span><span class="bk-amt">¥'+his.toFixed(2)+'</span></div></div>';
   html+='</div>';
   html+='<div class="wlt-acts"><button data-act="wlt-topup">＋ 充值</button><button data-act="transfer-out">↗ 转账</button></div>';
