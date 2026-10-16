@@ -851,6 +851,15 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
 .m-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4C9EE8;margin-left:6px;vertical-align:middle}
 .m-sum{font-size:calc(12.5px*var(--fs));color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 .m-st{font-size:calc(11px*var(--fs));color:var(--green);margin-top:2px}
+/* 「已发送」那封信下面直接展开他的回信（浅绿小块） */
+.mail-reply{margin:-3px 2px 12px;padding:11px 13px;border-radius:14px;
+  background:rgba(216,240,227,.94);border:1px solid rgba(122,178,150,.34);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72)}
+.mail-reply .mr-top{display:flex;align-items:center;gap:8px}
+.mail-reply .mr-tag{font-size:calc(11px*var(--fs));font-weight:800;color:#2F6B52;background:rgba(255,255,255,.8);
+  border-radius:999px;padding:2px 9px;flex:none}
+.mail-reply .mr-title{font-size:calc(13.5px*var(--fs));font-weight:700;color:#2F6B52;margin:7px 0 3px;word-break:break-word}
+.mail-reply .mr-body{font-size:calc(13.5px*var(--fs));line-height:1.72;color:#33604D;white-space:pre-wrap;word-break:break-word}
 .mail-fab{position:fixed;right:18px;bottom:calc(24px + env(safe-area-inset-bottom));width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(95,143,123,.4);z-index:20}
 .mail-detail .md-av{display:flex;justify-content:center;margin-bottom:10px}
 .mail-detail .md-title{font-size:calc(17px*var(--fs));font-weight:700;text-align:center}
@@ -1225,6 +1234,10 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .mv-sess .mv-sessbg,.mv-sess .mv-sessend{margin-left:auto;font-size:calc(12px*var(--fs));color:#fff;background:rgba(255,255,255,.22);
   border-radius:10px;padding:5px 10px;min-height:30px}
 .mv-sess .mv-sessend{margin-left:6px;background:rgba(255,120,140,.34)}
+.mv-sess .mv-sessic{width:34px;padding:0;display:flex;align-items:center;justify-content:center;flex:none}
+.mv-sess .mv-sessic svg{width:15px;height:15px}
+/* 横幅里现在有三个 .mv-sessbg：只让第一个吃掉剩余空间，后面两个正常挨着排 */
+.mv-sess .mv-sessbg+.mv-sessbg{margin-left:0}
 .mv-card{margin-top:6px;padding:20px 18px 18px;border-radius:26px;text-align:center;
   background:linear-gradient(160deg,rgba(255,255,255,.72),rgba(255,236,244,.5));
   border:1px solid rgba(255,255,255,.72);box-shadow:0 10px 26px rgba(180,140,160,.13)}
@@ -1284,6 +1297,67 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .lsn-bar button{flex:none;width:38px;height:38px;min-height:38px;border-radius:12px;background:rgba(255,255,255,.7);color:var(--ink);
   display:flex;align-items:center;justify-content:center}
 .lsn-bar button svg{width:17px;height:17px}
+
+/* ===== 一起听 · 独立空间 =====
+   规格（用户定的）：和聊天室完全分开，是一块自己的全屏空间；
+   布局 = 两头像 + 「正在一起听」+ 歌名 + 进度条 + 「一起听 X 分钟 · 他也在听」+ 呼吸灯；
+   背景 = 你在一起听里设的那张壁纸，不压暗、不改色；他说的话在卡片下面的小气泡里。 */
+.lsn-space{position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;align-items:center;
+  background-size:cover;background-position:center;background-repeat:no-repeat;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;animation:lsnIn .28s ease}
+@keyframes lsnIn{from{opacity:0;transform:scale(.99)}to{opacity:1;transform:none}}
+.lsn-space .lsn-x{position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top));z-index:3;
+  width:42px;height:42px;min-height:42px;border-radius:50%;background:rgba(255,255,255,.3);color:#fff;
+  display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.5);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.lsn-space .lsn-x svg{width:19px;height:19px}
+.lsn-space .lsn-mini{position:absolute;right:64px;top:calc(14px + env(safe-area-inset-top));z-index:3;
+  height:42px;min-height:42px;padding:0 15px;border-radius:999px;color:#fff;font-size:calc(12.5px*var(--fs));
+  background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.5);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.lsn-wrap{width:100%;max-width:430px;padding:calc(74px + env(safe-area-inset-top)) 20px calc(30px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;align-items:center}
+.lsn-card{width:100%;border-radius:28px;padding:24px 20px 20px;text-align:center;color:#fff;
+  background:rgba(255,255,255,.17);border:1px solid rgba(255,255,255,.36);
+  backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+  box-shadow:0 20px 50px rgba(24,16,30,.3),inset 0 1px 0 rgba(255,255,255,.5)}
+.lsn-avs{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.lsn-avs .lsn-av{width:56px;height:56px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(255,255,255,.9);box-shadow:0 6px 16px rgba(20,14,26,.26);background:rgba(255,255,255,.5)}
+.lsn-avs .lsn-av.his{margin-left:-14px}
+.lsn-avs .lsn-av svg,.lsn-avs .lsn-av img{width:52px;height:52px;border-radius:50%;display:block}
+.lsn-avs .lsn-av i{display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;
+  color:#fff;font-style:normal;font-weight:800;font-size:20px;font-family:var(--serif)}
+.lsn-wave{position:absolute;left:50%;bottom:-13px;transform:translateX(-50%);display:flex;gap:3px;align-items:flex-end;height:12px}
+.lsn-wave i{width:3px;border-radius:2px;background:rgba(255,255,255,.9);animation:lsnwave 1.1s ease-in-out infinite}
+.lsn-wave i:nth-child(1){height:6px}
+.lsn-wave i:nth-child(2){height:11px;animation-delay:.18s}
+.lsn-wave i:nth-child(3){height:5px;animation-delay:.36s}
+@keyframes lsnwave{0%,100%{transform:scaleY(.55)}50%{transform:scaleY(1.25)}}
+.lsn-kicker{font-size:calc(12.5px*var(--fs));letter-spacing:2px;color:rgba(255,255,255,.88)}
+.lsn-song{margin-top:6px;font-family:var(--serif);font-size:calc(21px*var(--fs));font-weight:800;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 12px rgba(20,14,26,.35)}
+.lsn-track{margin:16px auto 6px;height:5px;border-radius:999px;background:rgba(255,255,255,.32);overflow:hidden}
+.lsn-track i{display:block;height:100%;border-radius:999px;background:rgba(255,255,255,.95);transition:width .4s linear}
+.lsn-times{display:flex;justify-content:space-between;font-size:calc(11px*var(--fs));color:rgba(255,255,255,.82);font-variant-numeric:tabular-nums}
+.lsn-meta{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;
+  font-size:calc(12.5px*var(--fs));color:rgba(255,255,255,.94)}
+.lsn-meta b{font-variant-numeric:tabular-nums}
+.lsn-breath{width:9px;height:9px;border-radius:50%;flex:none;background:#9BE8B8;animation:lsnbreath 2s ease-in-out infinite}
+@keyframes lsnbreath{0%{box-shadow:0 0 0 0 rgba(155,232,184,.7);opacity:1}70%{box-shadow:0 0 0 11px rgba(155,232,184,0);opacity:.72}100%{box-shadow:0 0 0 0 rgba(155,232,184,0);opacity:1}}
+.lsn-said{width:100%;margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.lsn-bub{display:flex;align-items:flex-start;gap:8px;animation:lsnpop .3s ease}
+@keyframes lsnpop{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+.lsn-bub .lsn-bubav{width:26px;height:26px;border-radius:50%;overflow:hidden;flex:none;display:flex;
+  align-items:center;justify-content:center;border:1.5px solid rgba(255,255,255,.85)}
+.lsn-bub .lsn-bubav svg,.lsn-bub .lsn-bubav img,.lsn-bub .lsn-bubav i{width:23px;height:23px;border-radius:50%;display:block}
+.lsn-bub .lsn-bubav i{display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;font-size:12px;color:#fff}
+.lsn-bub b{max-width:82%;font-weight:600;font-size:calc(13.5px*var(--fs));line-height:1.55;color:var(--ink);
+  background:rgba(255,255,255,.93);border-radius:4px 15px 15px 15px;padding:9px 13px;
+  box-shadow:0 6px 18px rgba(24,16,30,.16);word-break:break-word}
+.lsn-bgbtn{margin-top:20px;height:38px;min-height:38px;padding:0 18px;border-radius:999px;color:#fff;
+  font-size:calc(12.5px*var(--fs));background:rgba(255,255,255,.24);border:1px solid rgba(255,255,255,.44);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 
 /* ===== 统一大卡片（转账 / 决策 / 查岗 / 礼物 / 代买）=====
    之前这几张卡片是各写各的，转账太小、风格也不统一。
@@ -1766,6 +1840,13 @@ function migrate(s){
   if(!s.currentStatus||typeof s.currentStatus!=='object')s.currentStatus={text:'在忙'};
   if(!s.currentMood||typeof s.currentMood!=='object')s.currentMood={text:'还行'};
   if(!s.widgetMusic||typeof s.widgetMusic!=='object')s.widgetMusic={song:'',artist:'',src:''};
+  /* ★ 一起听：会话是"正在发生"的东西，不该跨天复活。
+     实测出来的毛病：边听边导出一份备份 → 过几个月导入 → 卡片上写
+     「一起听了 129600 分钟」，点退出还往聊天室留一条同样数字的鬼记录。
+     放太久（>6 小时没关过）的一起听，一律当成上次已经结束了。 */
+  try{
+    if(s.music&&typeof s.music==='object'&&s.music.sess&&musSessStale(s.music.sess))s.music.sess=null;
+  }catch(e){}
   for(var pd=0;pd<s.contacts.length;pd++){
     var cp=s.contacts[pd];
     if(!cp.id)cp.id='c'+pd+uid();
@@ -3079,6 +3160,13 @@ function save(){
       window.__saveNote='本机缓存写不下了，但完整存档已存进大容量存储，数据没有丢';
     }else{
       window.__saveStatus='failed';
+      /* ★ 最危险的状态：本机缓存被裁、大容量存储也写不进去。
+         以前这里只留下一个光秃秃的 "failed"，设置→存储 那一行不显示任何原因
+         （它读的是 __saveErr），用户既不知道发生了什么、也不知道该做什么。
+         现在把原因和该做的事一起记下来，面板直接显示。 */
+      window.__saveErr={t:Date.now(),name:'StorageFull',
+        msg:'本机缓存和大容量存储都写不进去了：请立刻到「备份」导出一份存档',
+        bytes:(window.__saveBytes||0)};
     }
     finalizeWrite();
     announceSave(ok||dbOK,pre,json);
@@ -3169,6 +3257,10 @@ function router(){
     if(h!=='home'){goView('home');return}
   }
   if(VIEWS.indexOf(h)<0){goView('home');return}
+  /* ★ 每次"进入聊天室"都要贴到底。
+     以前只有"你本来就贴底"才自动滚（为了不打扰翻历史），
+     但离开聊天室再回来时那个标记还是 false，结果停在很久以前的消息上（用户报的）。 */
+  try{ if(h==='chat')_chatAtBottom=true }catch(e){}
   render(h);
 }
 /** 统一的页面跳转。原来直接改 location.hash：
@@ -4407,7 +4499,9 @@ function replyLetter(l){
         var pool=_tagged.length?_tagged:state.cards;
   var body=drawCards(n,pool).join('\n\n');
   if(!body)body=drawCardText();
-  state.letters.push({id:uid(),contactId:c.id,dir:'in',title:'Re：'+(l.title||'来信'),body:body,ts:now(),unread:true});
+  /* ★ reId 记住"这封是回哪一封的"：信箱的「已发送」要把回信直接展开在那封信下面。
+     老存档里的回信没有这个字段，renderMail 会用标题「Re：XXX」兜底认亲。 */
+  state.letters.push({id:uid(),contactId:c.id,dir:'in',title:'Re：'+(l.title||'来信'),body:body,ts:now(),unread:true,reId:l.id});
   feedEvent(c.name+' 回信了','mail');
   save();renderMail();schedule();toast(c.name+' 回了你的信');
 }
@@ -5071,6 +5165,24 @@ function mailAsk(){
   toast('已经跟他说了，半小时内会寄信来');
   try{renderMail()}catch(e){}
 }
+/** 找出一封"已发送"的信对应的回信。
+    新数据直接用 reId 认亲；老存档里的回信没有 reId，用标题「Re：XXX」兜底。 */
+function letterReplyOf(l){
+  if(!l||l.dir!=='out')return null;
+  var all=state.letters||[],i,x;
+  for(i=0;i<all.length;i++){x=all[i];if(x&&x.dir==='in'&&x.reId&&x.reId===l.id)return x}
+  var t='Re：'+(l.title||'来信');
+  for(i=0;i<all.length;i++){x=all[i];if(x&&x.dir==='in'&&!x.reId&&x.title===t)return x}
+  return null;
+}
+/** 浅绿小块的 HTML：他的回信（「已发送」下面直接展开） */
+function mailReplyHtml(rp){
+  if(!rp)return '';
+  return '<div class="mail-reply"><div class="mr-top"><span class="mr-tag">已收到回信</span>'
+    +'<span class="m-time">'+fmtTime(rp.ts)+'</span></div>'
+    +'<div class="mr-title">'+esc(rp.title||'回信')+'</div>'
+    +'<div class="mr-body">'+esc(rp.body||'')+'</div></div>';
+}
 function renderMail(){
   var _inSnap=inputSnapshot();
   var letters=state.letters.slice().sort(function(a,b){return b.ts-a.ts});
@@ -5094,6 +5206,9 @@ function renderMail(){
     var nm=lc?lc.name:meNm;
     var av=lc?avatarHtml(lc,40):avatarHtml({name:meNm,color:meCl},40);
     html+='<div class="mail-item'+(l.unread?' unread':'')+'" data-act="mail-read" data-id="'+l.id+'">'+av+'<div class="m-body"><div class="m-top"><b>'+esc(nm)+'</b><span class="m-time">'+fmtTime(l.ts)+'</span></div><div class="m-title">'+esc(l.title||'（无题）')+(l.unread?'<i class="m-dot"></i>':'')+'</div><div class="m-sum">'+esc(trunc(l.body,42))+'</div>'+( _mailTab==='out'?'<div class="m-st">'+(l.answered?'已回复':'等待回复')+'</div>':'')+'</div></div>';
+    /* ★「已发送」：收到回信的那封，下面直接展开他的回信（浅绿小块 + 已收到回信）。
+       收件箱里那封「Re: XXX」照样保留，两边都能看。 */
+    if(_mailTab==='out')html+=mailReplyHtml(letterReplyOf(l));
   }
   html+='</div>';
   html+='<button class="mail-fab" data-act="letter-new" title="写邮件"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7a2.8 2.8 0 0 0-4-4l-7 7v4h4z"/><path d="M16 5l3 3"/></svg></button>';
@@ -5116,7 +5231,10 @@ function mailRead(id){
   if(l.dir==='in'){
     html+='<div style="display:flex;gap:10px;margin-top:14px"><button class="btn" style="flex:1" data-act="mail-reply" data-id="'+l.id+'">回复</button></div>';
   }else{
-    html+='<div class="meta" style="margin-top:12px">'+(l.answered?'他已经在回信了，去收件箱看吧':'等待他的回信…')+'</div>';
+    var _rp=letterReplyOf(l);
+    /* ★ 收到回信了：这一页也把回信摊开看，不用再翻回收件箱 */
+    html+='<div class="meta" style="margin-top:12px">'+(l.answered?( _rp?'已收到回信':'他已经在回信了，去收件箱看吧'):'等待他的回信…')+'</div>';
+    if(_rp)html+=mailReplyHtml(_rp);
   }
   html+='</div></div>';
   $('#view').innerHTML=html;
@@ -9235,7 +9353,7 @@ function initOneWidgetDrag(grid){
     if(t&&t.id==='musBgFile'){
       pickImageFile(t,function(img){
         mediaAdopt(encodeImg(img,1400,{q:.92}),'listenbg').then(function(ref){
-          var m=musState();m.bg=ref;save();closeSheet();renderMusic();toast('壁纸已更换');
+          var m=musState();m.bg=ref;save();closeSheet();renderMusic();try{musSpacePaint(true)}catch(e){};toast('壁纸已更换');
         });
       });
     }
@@ -9261,8 +9379,12 @@ document.addEventListener('click',function(e){
   if(a==='bg-pick'){e.preventDefault();musPickBg(b.getAttribute('data-k'));return}
   if(a==='bg-up'){e.preventDefault();var f=document.getElementById('musBgFile');if(f)f.click();return}
   if(a==='mini'){e.preventDefault();musBar(true);goView('chat');return}
-  if(a==='expand'){e.preventDefault();musBar(false);goView('music');return}
+  /* 悬浮条「放大」= 回到那块独立空间（不再跳音乐页） */
+  if(a==='expand'){e.preventDefault();musBar(false);if(musState().sess)musSpaceOpen();else try{renderAll()}catch(er){};return}
   if(a==='close'){e.preventDefault();musListenEnd();return}
+  /* 独立空间：右上角 ✕ = 退出一起听；「缩小」= 留着会话，收回悬浮条 */
+  if(a==='space-x'){e.preventDefault();musListenEnd();return}
+  if(a==='space-mini'){e.preventDefault();musSpaceClose();try{renderAll()}catch(er){};return}
 });
 /* 商城的按钮 */
 document.addEventListener('click',function(e){
@@ -9418,6 +9540,7 @@ function musProgress(){
   return {p:d?Math.max(0,Math.min(1,now/d)):0,now:now,dur:d,playing:musPlaying()};
 }
 /** 把当前状态刷到"小组件 / 播放页 / 悬浮条"上（哪个在就刷哪个） */
+var _musLastSongKey='';
 function musPaint(){
   try{
     var sg=musCur(),pr=musProgress();
@@ -9451,6 +9574,10 @@ function musPaint(){
     var ln=document.getElementById('lsnSong');if(ln)ln.textContent=name;
     var lc=document.getElementById('lsnSub');if(lc)lc.textContent=pr.playing?('共享播放 · '+musFmt(pr.now)):'共享播放 · 已暂停';
     var vv=document.getElementById('mvVinyl');if(vv)vv.className='mp-art'+(pr.playing?' spin':'');
+    /* 一起听 · 独立空间：开着就顺手刷新（歌名/进度/分钟/他说的话） */
+    if(_lsnEl)musSpacePaint();
+    /* 一起听：换歌了没有（挂在这儿，人待在空间里不动也能触发他说话 / 点一首） */
+    if(state.music&&state.music.sess)musSessWatch();
   }catch(e){}
 }
 /** 上传：支持一次选多首 */
@@ -9501,18 +9628,152 @@ function musSetVol(v){var m=musState();m.vol=Math.max(0,Math.min(1,v));try{musAu
 
 /* ---------- 一起听 ---------- */
 function musSess(){var m=musState();return m.sess}
+/** 这个"一起听"会话是不是早就该结束了（放太久 = 上次没退出，不是真在听）
+    阈值写死在函数里，别用外部变量：migrate() 在脚本还没跑到下面那几行时就会被调用，
+    那时候外部 var 还是 undefined，判断会静默失效。 */
+function musSessStale(sess){
+  if(!sess||typeof sess!=='object')return true;
+  if(typeof sess.startedAt!=='number'||!sess.startedAt)return true;
+  return (now()-sess.startedAt)>6*60*60*1000;    /* 6 小时 */
+}
+/** ===== 一起听 · 陪伴 =====
+    规则（用户定的）：
+    · 每首歌按概率决定说不说、说几句：
+        15% 不说话 ｜ 60% 说 1 句 ｜ 25% 说 2 句（两句连着一起来，不留间隔）
+    · 内容混合：60% 从【你的字卡库】抽，40% 从【预设听歌句】抽；字卡库空就全用预设
+    · 他还有 10% 概率切歌（写死在代码里，不进设置；每 2 首最多一次）
+    · 退出时在聊天里留一条记录 */
+var MUS_TALK_PRESET=[
+  '这首歌我想起你了。','刚才那段副歌，我想起你笑起来的样子。','这首适合一起听。',
+  '你听着，我就在旁边。','别切，让它放完。','耳机分你一半。','这一句歌词，像在说我们。',
+  '安静听会儿，我在。','你听歌的样子，我想看。','想和你一起听到睡着。'
+];
+var MUS_LAST_SKIP=0,MUS_LAST_ASK=0;
+function musTalkLine(){
+  /* 60% 从字卡抽，40% 用预设；字卡空就全用预设 */
+  try{
+    if(Math.random()<0.6){
+      var pool=[];
+      if(typeof state.cards!=='undefined'&&state.cards&&state.cards.length)
+        for(var i=0;i<state.cards.length;i++)if(state.cards[i]&&state.cards[i].text)pool.push(state.cards[i].text);
+      if(pool.length)return pool[Math.floor(Math.random()*pool.length)];
+    }
+  }catch(e){}
+  return MUS_TALK_PRESET[Math.floor(Math.random()*MUS_TALK_PRESET.length)];
+}
+function musTalkRoll(){
+  var r=Math.random();
+  if(r<0.15)return 0;          /* 15% 一句都不说 */
+  if(r<0.75)return 1;          /* 60% 说 1 句 */
+  return 2;                    /* 25% 说 2 句 */
+}
+/** 他说的每一句都走这里：只进 music.sess.said（独立空间的小气泡），绝不进聊天室 */
+function musSessSay(text){
+  var m=musState(); if(!m||!m.sess||!text)return;
+  m.sess.said=m.sess.said||[];
+  m.sess.said.push({t:String(text),ts:now()});
+  if(m.sess.said.length>6)m.sess.said.shift();
+  try{save()}catch(e){}
+  try{musPaint()}catch(e){}
+}
+/** 他能点一首：他说「我想听你那首《X》，放这个吧」，然后自己跳过去。
+    概率写死在 musSessSongStart 里，不进设置。 */
+function musSessAskSong(){
+  var m=musState(); if(!m||!m.sess)return false;
+  var songs=m.songs||[]; if(songs.length<2)return false;
+  var i=m.cur||0,n=i,g=0;
+  while(n===i&&g++<30)n=Math.floor(Math.random()*songs.length);
+  if(n===i)return false;
+  var sg=songs[n]; if(!sg)return false;
+  musSessSay('我想听你那首《'+(sg.name||'未命名')+'》，放这个吧');
+  /* 说完再跳，别一句话没看到就换歌了 */
+  setTimeout(function(){
+    try{ var m2=musState(); if(!m2||!m2.sess)return;
+      var s2=(m2.songs||[])[n];
+      /* 歌单可能在这几秒里被改过：按 id 重新找一遍，找不到就不跳 */
+      if(s2&&sg.id){ for(var k=0;k<m2.songs.length;k++)if(m2.songs[k].id===sg.id){n=k;break} }
+      if(n>=m2.songs.length)return;
+      musLoad(n,true);
+    }catch(e){}
+  }, rnd(1500,3000));
+  return true;
+}
+/** 一首歌开始时调用：决定他这一次说不说、说几句 */
+function musSessSongStart(){
+  var m=musState(); if(!m||!m.sess)return;
+  var n=musTalkRoll(), c=activeContact(); if(!c)return;
+  for(var i=0;i<n;i++){
+    (function(k){
+      /* ★ 时机随机（不排时间表）：第一句落在 2~18 秒里任一刻，第二句紧跟 1~5 秒 */
+      var d=(k===0)?rnd(2000,18000):rnd(1000,5000);
+      setTimeout(function(){
+        try{
+          var m2=musState(); if(!m2||!m2.sess)return;      /* 已经退出了就别说了 */
+          musSessSay(musTalkLine());
+        }catch(e){}
+      }, d);
+    })(i);
+  }
+  /* ★ 10% 概率切歌 / 12% 概率"点一首"（都写死；点一首每 3 首最多一次，切歌每 2 首最多一次，二者不叠加） */
+  try{
+    var playing=m.cur||0;
+    var r=Math.random();
+    if(r<0.12&&(m.songs||[]).length>=2&&(playing-MUS_LAST_ASK)>=3){
+      MUS_LAST_ASK=playing;
+      musSessAskSong();
+    }else if(r<0.22&&(playing-MUS_LAST_SKIP)>=2){
+      MUS_LAST_SKIP=playing;
+      setTimeout(function(){
+        try{ var m3=musState(); if(!m3||!m3.sess)return; musNext(false) }catch(e){}
+      }, rnd(6000,15000));
+    }
+  }catch(e){}
+}
+/** 一起听开着的时候，盯着"换歌了没有"。
+    以前只在切换页面（musBarToggle）时才检查，所以待在独立空间里不动，
+    他下一首开始就不会说话了。现在挂到 musPaint 上，人在哪都能触发。 */
+function musSessWatch(){
+  var m=musState();
+  if(!m||!m.sess){_musLastSongKey='';return}
+  var sg=(m.songs||[])[m.cur||0];
+  var key=sg?String(sg.id||sg.ref||m.cur):'';
+  if(key&&key!==_musLastSongKey){_musLastSongKey=key;setTimeout(function(){try{musSessSongStart()}catch(e){}},400)}
+}
 function musListenStart(){
   var m=musState(),c=activeContact();
-  m.sess={byMe:true,contactId:c?c.id:'',startedAt:Date.now()};
+  /* ★ 记住"你原先在哪一页"：右上角 ✕ 退出时要回到那儿，而不是硬跳到音乐页 */
+  var from=String(location.hash||'').replace('#','')||'home';
+  m.sess={byMe:true,contactId:c?c.id:'',startedAt:Date.now(),from:from,said:[]};
   if(!m.songs.length)toast('先上传几首歌，再一起听');
-  save();
-  goView('music');
+  try{save()}catch(e){}
+  _musLastSongKey='';
+  musSpaceOpen();          /* ★ 进"一起听"就是进这块独立空间，不再跳音乐页 */
   musPaint();
 }
-function musListenEnd(){
-  var m=musState();m.sess=null;save();
+function musListenEnd(opt){
+  var m=musState();
+  var back=(m.sess&&m.sess.from)||'home';
+  /* ★ 退出时在聊天里留一条记录：「一起听了 12 分钟 · 歌单 3 首」 */
+  try{
+    if(m.sess&&m.sess.startedAt){
+      var c=contact(m.sess.contactId)||activeContact();
+      var mins=Math.max(1,Math.round((now()-m.sess.startedAt)/60000));
+      var s2=state.music||{},cnt=(s2.songs||[]).length;
+      if(c)pushSys(c.id,'一起听了 '+mins+' 分钟'+(cnt?(' · 歌单 '+cnt+' 首'):''),now());
+    }
+  }catch(e){}
+  var cur=String(location.hash||'').replace('#','');
+  m.sess=null;save();
+  musSpaceClose();
   musBar(false);
-  try{renderMusic()}catch(e){}
+  /* ★ 退出后回到"进一起听之前"那一页。
+     以前不管你在哪都 renderMusic() —— 在聊天室点退出会被直接换成音乐页（用户报的）。 */
+  try{
+    if(opt&&opt.stay)renderAll();
+    else if(back&&back!==cur)goView(back);
+    else if(cur==='music')renderMusic();
+    else renderAll();
+  }catch(e){}
   musPaint();
 }
 function musSessBgStyle(){
@@ -9530,7 +9791,96 @@ function sheetMusBg(){
     +'<div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="sheet-close">完成</button></div>';
   openSheet(html);
 }
-function musPickBg(k){var m=musState();m.bg=k;save();closeSheet();renderMusic();toast('壁纸已更换')}
+function musPickBg(k){var m=musState();m.bg=k;save();closeSheet();renderMusic();try{musSpacePaint(true)}catch(e){};toast('壁纸已更换')}
+
+/* ---------- 一起听 · 独立空间 ----------
+   用户定的规格：
+     · 和聊天室完全分开：它是一块自己的全屏空间（不进聊天室、也不占用 #view）
+     · 布局 = 两头像 + 「正在一起听」+ 歌名 + 进度条 + 「一起听 X 分钟 · 他也在听」+ 呼吸灯
+     · 背景 = 你在一起听里设的那张壁纸（不压暗、不改色）
+     · 他说的话在卡片下面的小气泡里，时机随机
+     · 右上角 ✕ = 退出（回你原来在的那一页，并在聊天里留一条记录） */
+var _lsnEl=null,_lsnSig='';
+function musSpaceEl(){return _lsnEl}
+function musSessMins(){
+  var m=musState();
+  var t=(m.sess&&m.sess.startedAt)||now();
+  return Math.max(0,Math.round((now()-t)/60000));
+}
+function musSessSaid(){var m=musState();return (m.sess&&m.sess.said)||[]}
+function musSpaceSaidHtml(){
+  var c=activeContact(),list=musSessSaid(),h='';
+  for(var i=0;i<list.length;i++){
+    h+='<div class="lsn-bub"><span class="lsn-bubav">'+(c?avatarHtml(c,26):'')+'</span><b>'+esc(list[i]&&list[i].t||'')+'</b></div>';
+  }
+  return h;
+}
+function musSpaceHtml(){
+  var m=musState(),sg=musCur(),pr=musProgress(),c=activeContact();
+  var nm=sg?esc(sg.name||'未命名'):'还没有歌';
+  var X='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  return '<button class="lsn-x" data-mus="space-x" title="退出一起听">'+X+'</button>'
+   +'<button class="lsn-mini" data-mus="space-mini">缩小</button>'
+   +'<div class="lsn-wrap">'
+   +  '<div class="lsn-card">'
+   +    '<div class="lsn-avs"><span class="lsn-av me">'+meAvatar()+'</span><span class="lsn-av his">'+(c?avatarHtml(c,56):'')+'</span>'
+   +      '<span class="lsn-wave"><i></i><i></i><i></i></span></div>'
+   +    '<div class="lsn-kicker">正在一起听</div>'
+   +    '<div class="lsn-song" id="lsnSongV">'+nm+'</div>'
+   +    '<div class="lsn-track" data-mus="seek"><i id="lsnFillV" style="width:'+Math.round(pr.p*100)+'%"></i></div>'
+   +    '<div class="lsn-times"><span id="lsnNowV">'+musFmt(pr.now)+'</span><span id="lsnDurV">'+musFmt(pr.dur)+'</span></div>'
+   +    '<div class="lsn-meta"><span class="lsn-breath"></span>一起听 <b id="lsnMinV">'+musSessMins()+'</b> 分钟 · '+esc(c?c.name:'他')+'也在听</div>'
+   +  '</div>'
+   +  '<div class="lsn-said" id="lsnSaidV">'+musSpaceSaidHtml()+'</div>'
+   +  '<button class="lsn-bgbtn" data-mus="bg-sheet">换壁纸</button>'
+   +'</div>';
+}
+/** 壁纸直接铺在这块空间上：不压暗、不改色（渐变走 background，图片走 background-image+cover） */
+function musSpaceBgApply(el){
+  if(!el||!el.style)return;
+  try{
+    var v=String(musSessBgStyle());
+    if(v.indexOf('url(')===0){el.style.backgroundImage=v;el.style.backgroundSize='cover';el.style.backgroundPosition='center'}
+    else el.style.background=v;
+  }catch(e){}
+}
+function musSpaceOpen(){
+  var m=musState();
+  if(!m.sess)return;
+  if(_lsnEl){musSpacePaint(true);return}
+  var el=document.createElement('div');
+  el.id='lsnSpace';el.className='lsn-space';
+  el.innerHTML=musSpaceHtml();
+  _lsnEl=el;_lsnSig='';
+  try{document.body.appendChild(el)}catch(e){}
+  musSpaceBgApply(el);
+  try{musBar(false)}catch(e){}
+  musSpacePaint(true);
+}
+function musSpaceClose(){
+  try{if(_lsnEl&&_lsnEl.parentNode)_lsnEl.parentNode.removeChild(_lsnEl)}catch(e){}
+  _lsnEl=null;_lsnSig='';
+}
+/** 刷新空间里的内容：换歌 / 他说了新的一句 / 换了壁纸 → 整体重画；光走进度就只改数字 */
+function musSpacePaint(force){
+  if(!_lsnEl)return;
+  try{
+    var m=musState(),sg=musCur(),pr=musProgress();
+    var sig=String(m.cur)+'|'+(sg?String(sg.id||sg.name||''):'')+'|'+musSessSaid().length+'|'+String(m.bg||'');
+    if(force||sig!==_lsnSig||!_lsnEl.innerHTML){
+      _lsnSig=sig;
+      _lsnEl.innerHTML=musSpaceHtml();
+      musSpaceBgApply(_lsnEl);
+      return;
+    }
+    var q=function(id){try{return _lsnEl.querySelector('#'+id)}catch(e){return null}};
+    var e1=q('lsnSongV');if(e1)e1.textContent=sg?(sg.name||'未命名'):'还没有歌';
+    var e2=q('lsnFillV');if(e2)e2.style.width=Math.round(pr.p*100)+'%';
+    var e3=q('lsnNowV');if(e3)e3.textContent=musFmt(pr.now);
+    var e4=q('lsnDurV');if(e4)e4.textContent=musFmt(pr.dur);
+    var e5=q('lsnMinV');if(e5)e5.textContent=String(musSessMins());
+  }catch(e){}
+}
 
 /* ---------- 悬浮条（可自由摆放） ---------- */
 function musBar(on){
@@ -9561,7 +9911,10 @@ function musBar(on){
 function musBarToggle(){
   var m=musState();
   var inMusic=String(location.hash||'').replace('#','')==='music';
-  musBar(!!m.sess&&!inMusic);
+  /* ★ 独立空间开着的时候不飘悬浮条（空间本身就是"放大态"） */
+  musBar(!!m.sess&&!inMusic&&!_lsnEl);
+  /* 一起听：检测"换歌了" → 决定他这次说不说、要不要点一首 */
+  try{musSessWatch()}catch(e){}
 }
 function musBindBarDrag(el){
   var dragging=false,sx=0,sy=0,baseL=0,baseT=0,moved=false;
@@ -9620,6 +9973,7 @@ function renderMusic(){
   if(sess){
     html+='<div class="mv-sess"><span class="mv-dot"></span>'+esc(c?c.name:'对方')+' 正在一起听'
       +'<button class="mv-sessbg" data-mus="bg-sheet">换壁纸</button>'
+      +'<button class="mv-sessbg mv-sessic" data-mus="expand" title="进一起听空间">'+ICON_EXPAND.replace('width="22" height="22"','width="15" height="15"')+'</button>'
       +'<button class="mv-sessbg" data-mus="mini">缩小</button>'
       +'<button class="mv-sessend" data-mus="sess-end">结束</button></div>';
   }
