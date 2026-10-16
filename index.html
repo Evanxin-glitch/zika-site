@@ -1380,6 +1380,16 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .lsn-space.lsn-light .lsn-wave i{background:rgba(74,59,68,.7)}
 .lsn-space.lsn-light .lsn-x,.lsn-space.lsn-light .lsn-mini,.lsn-space.lsn-light .lsn-bgbtn{
   color:#4A3B44;background:rgba(255,255,255,.66);border-color:rgba(255,255,255,.9)}
+/* ★ 播放/暂停键：这块空间里原来只有进度条没有播放键，
+   歌一旦是暂停的，人在空间里就"放不出来"，只能退出去音乐页（用户报的"不能播放"）。 */
+.lsn-space .lsn-ops{display:flex;justify-content:center;margin-top:14px}
+.lsn-space .lsn-play{width:56px;height:56px;min-height:56px;border-radius:50%;color:#fff;
+  background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.55);
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  box-shadow:0 10px 26px rgba(24,16,30,.24)}
+.lsn-space .lsn-play svg{width:23px;height:23px}
+.lsn-space.lsn-light .lsn-play{color:#4A3B44;background:rgba(255,255,255,.72);border-color:rgba(255,255,255,.95)}
 
 /* ===== 统一大卡片（转账 / 决策 / 查岗 / 礼物 / 代买）=====
    之前这几张卡片是各写各的，转账太小、风格也不统一。
@@ -6148,7 +6158,13 @@ function renderMe(){
   html+='<div class="sw-row"><div><b>音乐播放</b><span>正在听的歌</span></div><div class="switch'+(state.widgets.music?' on':'')+'" data-act="wd-sw" data-key="music"></div></div>';
   html+='<div class="sw-row"><div><b>便签</b><span>一句话贴纸</span></div><div class="switch'+(state.widgets.note?' on':'')+'" data-act="wd-sw" data-key="note"></div></div>';
   html+='<div class="sw-row"><div><b>陆沉动态</b><span>日记/消息/朋友圈/塔罗通知</span></div><div class="switch'+(state.widgets.feed?' on':'')+'" data-act="wd-sw" data-key="feed"></div></div>';
-  html+='<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>在一起天数</label><input id="wdDays" type="number" min="0" value="'+state.anniversaryDays+'"></div><div class="inl"><label>天数标题</label><input id="wdDaysLabel" value="'+esc(state.widgetDaysLabel||'在一起')+'"></div><div class="inl"><label>天数单位</label><input id="wdDaysUnit" value="'+esc(state.widgetDaysUnit||'天')+'"></div><div class="inl"><label>便签文字</label><input id="wdNote" value="'+esc(state.widgetNote||'')+'"></div><div class="inl"><label>歌曲名</label><input id="wdSong" value="'+esc(state.widgetMusic.song)+'"></div><div class="inl"><label>歌手</label><input id="wdArtist" value="'+esc(state.widgetMusic.artist)+'"></div></div><p class="meta" style="margin:8px 0 6px">小组件背景图（长按可拖动换位）</p><div style="display:flex;flex-wrap:wrap;gap:6px"><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="clock">时间背景</label><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="days">天数背景</label><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="music">音乐背景</label><label class="btn small ghost" style="flex:1" for="wdImgFile" data-wdkey="note">便签背景</label></div><button class="btn ghost" style="width:100%;margin-top:6px" data-act="wd-img-clear">恢复默认背景</button><button class="btn ghost" style="width:100%;margin-top:6px" data-act="wd-pos-reset">小组件回到默认位置</button><input type="file" id="wdImgFile" accept="image/*" style="display:none">';
+  /* ★ 每个组件的底图按钮（以前这里只有 时间/天数/音乐/便签 四个 <label for>，
+     倒数日/天气/相册/进度环 根本没有入口 —— 用户报的"倒数日底图换不了"就是这个）。
+     现在和"组件库"用同一套按钮（JS 驱动，不依赖 label 的 for，iOS 上更稳）。 */
+  var _wdBtns='<button class="preset-btn" data-act="wd-photo" data-k="photo">相册封面图</button>';
+  var _wdDefs=widgetDefs();
+  for(var _wbi=0;_wbi<_wdDefs.length;_wbi++)_wdBtns+='<button class="preset-btn" data-act="wdlib-img" data-k="'+_wdDefs[_wbi].k+'">'+_wdDefs[_wbi].n+'底图</button>';
+  html+='<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>在一起天数</label><input id="wdDays" type="number" min="0" value="'+state.anniversaryDays+'"></div><div class="inl"><label>天数标题</label><input id="wdDaysLabel" value="'+esc(state.widgetDaysLabel||'在一起')+'"></div><div class="inl"><label>天数单位</label><input id="wdDaysUnit" value="'+esc(state.widgetDaysUnit||'天')+'"></div><div class="inl" style="width:100%"><label>在一起 · 起始日期（填了就按日期每天自动 +1；留空用上面的天数）</label><input id="wdCalDate" type="date" value="'+esc((state.widgetCalendar||{}).date||'')+'"></div><div class="inl"><label>便签文字</label><input id="wdNote" value="'+esc(state.widgetNote||'')+'"></div><div class="inl"><label>歌曲名</label><input id="wdSong" value="'+esc(state.widgetMusic.song)+'"></div><div class="inl"><label>歌手</label><input id="wdArtist" value="'+esc(state.widgetMusic.artist)+'"></div></div><p class="meta" style="margin:8px 0 6px">小组件背景图（每个组件都能单独换；长按组件可拖动换位）</p><div class="wdlib-imgrow">'+_wdBtns+'</div><button class="btn ghost" style="width:100%;margin-top:6px" data-act="wd-img-clear">恢复默认背景</button><button class="btn ghost" style="width:100%;margin-top:6px" data-act="wd-pos-reset">小组件回到默认位置</button><input type="file" id="wdImgFile" accept="image/*" style="display:none">';
   html+='<div class="sw-row"><div><b>天气</b><span>城市 / 温度 / 状况</span></div><div class="switch'+(state.widgets.weather?' on':'')+'" data-act="wd-sw" data-key="weather"></div></div>';
   html+='<div class="sw-row"><div><b>相册</b><span>一张照片 + 配文</span></div><div class="switch'+(state.widgets.photo?' on':'')+'" data-act="wd-sw" data-key="photo"></div></div>';
   html+='<div class="sw-row"><div><b>倒数日</b><span>距离某天还有多久</span></div><div class="switch'+(state.widgets.count?' on':'')+'" data-act="wd-sw" data-key="count"></div></div>';
@@ -9936,6 +9952,7 @@ function musSpaceHtml(){
    +    '<div class="lsn-song" id="lsnSongV">'+nm+'</div>'
    +    '<div class="lsn-track" data-mus="seek"><i id="lsnFillV" style="width:'+Math.round(pr.p*100)+'%"></i></div>'
    +    '<div class="lsn-times"><span id="lsnNowV">'+musFmt(pr.now)+'</span><span id="lsnDurV">'+musFmt(pr.dur)+'</span></div>'
+   +    '<div class="lsn-ops"><button class="lsn-play" data-mus="toggle" id="lsnPlayV" title="播放 / 暂停">'+(pr.playing?ICON_PAUSE:ICON_PLAY)+'</button></div>'
    +    '<div class="lsn-meta"><span class="lsn-breath"></span>一起听 <b id="lsnMinV">'+musSessMins()+'</b> 分钟 · '+esc(c?c.name:'他')+'也在听</div>'
    +  '</div>'
    +  '<div class="lsn-said" id="lsnSaidV">'+musSpaceSaidHtml()+'</div>'
@@ -10063,6 +10080,7 @@ function musSpacePaint(force){
     var e3=q('lsnNowV');if(e3)e3.textContent=musFmt(pr.now);
     var e4=q('lsnDurV');if(e4)e4.textContent=musFmt(pr.dur);
     var e5=q('lsnMinV');if(e5)e5.textContent=String(musSessMins());
+    var e6=q('lsnPlayV');if(e6)e6.innerHTML=pr.playing?ICON_PAUSE:ICON_PLAY;
   }catch(e){}
 }
 
@@ -10412,6 +10430,9 @@ function wdSave(){
   state.anniversaryDays=inpNum('wdDays',0,0,99999);
   state.widgetDaysLabel=(inpVal('wdDaysLabel')||'').trim()||'在一起';
   state.widgetDaysUnit=(inpVal('wdDaysUnit')||'').trim()||'天';
+  /* ★「在一起 · 起始日期」：填了它，天数就按日期每天自己 +1（和组件库里那个是同一个字段）；
+     留空则继续用手填的天数。以前设置页只有手填数字，所以天数永远不变。 */
+  if($('#wdCalDate'))state.widgetCalendar={date:(inpVal('wdCalDate')||'').trim()};
   state.widgetNote=(inpVal('wdNote')||'').trim()||'1 miss you';
   state.widgetMusic.song=(inpVal('wdSong')||'').trim()||'Full moon';
   state.widgetMusic.artist=(inpVal('wdArtist')||'').trim()||'LENmoment';
