@@ -863,9 +863,15 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
    以前每条动态都套一张白卡（.card.post），像一张张卡片；
    微信是直接铺在背景上、只用一条细线分隔。这里改用 .moment，
    和 .post 那套玻璃卡完全脱钩，避免被主题里的 !important 又染回来。 */
-.moment{display:flex;gap:10px;padding:14px 2px;margin:0;background:none!important;border:none!important;
+.moment{display:flex;gap:10px;padding:16px 2px;min-height:112px;margin:0;background:none!important;border:none!important;
   border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .moment+.moment{border-top:1px solid var(--line)!important}
+/* ★ 每条动态的"骨架"高度固定住：头像 + 昵称 + 正文 + 底部那行(时间/赞/评论)。
+   用户报的"没评论的比我评论的短了一半" —— 以前没有最小高度，只有一行字的动态塌成一小条；
+   现在每条至少 112px，有没有评论都占同样的骨架，差别只来自那块评论本身。 */
+.moment .p-row{min-height:96px}
+.moment .p-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.moment .p-foot{margin-top:auto}
 .moment .p-main{flex:1;min-width:0}
 .moment .nm{font-weight:700;font-size:calc(14.5px*var(--fs));color:var(--green)}
 .moment .txt{font-size:calc(15px*var(--fs));white-space:pre-wrap;word-break:break-word;padding:3px 0}
@@ -880,10 +886,12 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
 .moment .op.on{color:#D4605A;font-weight:700}
 .moment .op .like-ic{font-size:calc(15px*var(--fs))}
 .moment .tag{align-self:flex-start}
-.moment .cmt-box{margin-top:8px;background:rgba(238,234,238,.94);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:4px}
-.moment .cmt-like{font-size:calc(12.5px*var(--fs));color:#6B5A63}
-.moment .cmt-hr{height:1px;background:rgba(176,152,168,.3);margin:5px 0}
-.moment .cmt{font-size:calc(12.5px*var(--fs));line-height:1.7;color:var(--ink)}
+/* ★ 评论块要保持"原来那个长度"（用户：你朋友圈评论区都缩小一半了？我要这个长度）
+   所以这里给足内边距和大一点的字号，不要去压缩它。 */
+.moment .cmt-box{margin-top:10px;background:rgba(238,234,238,.94);border-radius:12px;padding:12px 13px;display:flex;flex-direction:column;gap:6px}
+.moment .cmt-like{font-size:calc(13px*var(--fs));color:#6B5A63;padding-bottom:2px}
+.moment .cmt-hr{height:1px;background:rgba(176,152,168,.3);margin:7px 0}
+.moment .cmt{font-size:calc(13.5px*var(--fs));line-height:1.95;color:var(--ink)}
 .moment .cmt b{color:var(--green);font-weight:700}
 .moment .cmt-re{color:var(--sub);font-size:calc(11.5px*var(--fs));margin:0 3px}
 .moment .pc-in{display:flex;gap:8px;margin-top:8px;align-items:center}
@@ -1766,6 +1774,102 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 /* 离线补发的标记（跟在时间前面，颜色走主题变量） */
 .msg-meta .cu{font-size:calc(10px*var(--fs));line-height:1.5;padding:0 5px;border-radius:7px;
   background:var(--orange-soft);color:var(--orange);font-weight:700;margin-right:5px}
+
+/* ============================================================
+   ★ 全站按钮统一：高透玻璃（"极透"档）+ 整体缩小一号
+   用户定的：字卡库 / 主页 / 信箱 那三张草稿用的档位 —— 玻璃里基本不加色，
+   选中与主操作靠"更白更亮 + 字更黑更重"区分，不依赖任何颜色，
+   所以换任何主题都不会打架（这个文件最后加载，能压过前面的旧规则）。
+   不改的：聊天对话气泡、问卷选项行、字卡文字块、卡片容器（那些是内容不是按钮）。
+   ============================================================ */
+.btn,.sheet .actions button,.sheet .cancel,.sv-sub,.ph-follow,.ph-msg,
+.d-tab,.m-tab,.cat-tabs button,.wdlib-btn,.wdlib-sz button,.poll-time .pt-btn,.poll-log-btn,
+.msg-menu-item,.tool-btn,.back,.mom-cam,.cov-btn,.page-top .ic,.mstepper button,
+.gift-btn,.shop-buy,.shop-ask,.pf-img,.d-cmt-in button,.pc-in button,.fab{
+  background:linear-gradient(150deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,.28) 55%,rgba(255,255,255,.32) 100%)!important;
+  border:1px solid rgba(255,255,255,.7)!important;
+  box-shadow:0 6px 16px rgba(150,120,140,.1),0 1px 0 rgba(255,255,255,.9) inset!important;
+  backdrop-filter:blur(16px) saturate(135%);-webkit-backdrop-filter:blur(16px) saturate(135%);
+  color:var(--ink)!important;font-weight:600;
+}
+/* 选中 / 主操作：更白更亮 + 字更重（这就是"选中"的表达方式） */
+.btn:not(.ghost),.sheet .actions .ok,.sv-sub,.d-tab.on,.m-tab.on,.cat-tabs button.on,
+.ph-follow.on,.wdlib-btn:not(.added),.poll-time .pt-btn.on,.mstepper button,.shop-buy,
+.chat-input button[data-act="send-chat"]{
+  background:linear-gradient(150deg,rgba(255,255,255,.78) 0%,rgba(255,250,252,.58) 100%)!important;
+  border-color:rgba(255,255,255,.95)!important;
+  box-shadow:0 8px 20px rgba(150,120,140,.18),0 1px 0 rgba(255,255,255,.98) inset!important;
+  color:#3F3238!important;font-weight:800;
+}
+/* 尺寸：整体缩小一号 */
+.btn{min-height:36px!important;padding:8px 14px!important;border-radius:11px!important;font-size:calc(13.5px*var(--fs))!important}
+.btn.small{min-height:32px!important;padding:6px 12px!important}
+.btn.ghost{background:linear-gradient(150deg,rgba(255,255,255,.52),rgba(255,255,255,.3))!important;color:var(--ink)!important}
+.sheet .actions button{min-height:36px!important;padding:8px 0!important;border-radius:11px!important;font-size:calc(13.5px*var(--fs))!important}
+.sheet .cancel,.sheet .actions .cancel{background:linear-gradient(150deg,rgba(255,255,255,.5),rgba(255,255,255,.28))!important;color:var(--sub)!important}
+.d-tab,.m-tab{min-height:32px!important;padding:4px 0!important;border-radius:11px!important;font-size:calc(12.5px*var(--fs))!important}
+.prof-tabs .pt2{min-height:34px!important;padding:5px 0!important;border-radius:11px!important;font-size:calc(12.5px*var(--fs))!important}
+.cat-tabs button{padding:5px 12px!important;border-radius:16px!important;font-size:calc(12px*var(--fs))!important}
+.wdlib-sz button{min-height:28px!important;padding:0 10px!important;border-radius:9px!important}
+.wdlib-btn{min-height:32px!important;padding:6px 14px!important;border-radius:14px!important;font-size:calc(12.5px*var(--fs))!important}
+.wdlib-chip{background:linear-gradient(150deg,rgba(255,255,255,.5),rgba(255,255,255,.3))!important;border-color:rgba(255,255,255,.7)!important;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.poll-time .pt-btn,.poll-log-btn{border-radius:12px!important}
+.mstepper button{width:34px!important;height:34px!important;border-radius:10px!important;font-size:calc(15px*var(--fs))!important}
+.sv-sub{padding:7px 16px!important;border-radius:11px!important;font-size:calc(12.5px*var(--fs))!important}
+.ph-follow,.ph-msg{min-height:34px!important;padding:6px 0!important;border-radius:11px!important;font-size:calc(12.5px*var(--fs))!important}
+/* 图标类按钮：34px 方形（返回 / ＋ / 表情 / 相机 …）
+   ★ 「换封面」那种"有字的按钮"不能套这个尺寸，否则会被压成小方块、字还得换行 */
+.tool-btn,.back,.mom-cam,.page-top .ic{width:34px!important;height:34px!important;min-height:34px!important;
+  border-radius:11px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}
+.cov-btn{padding:5px 11px!important;border-radius:11px!important;font-size:calc(11.5px*var(--fs))!important;white-space:nowrap!important;height:auto!important;width:auto!important}
+.tool-btn svg,.back svg,.mom-cam svg{width:17px!important;height:17px!important}
+.chat-input button[data-act="send-chat"]{min-height:34px!important;padding:0 14px!important;border-radius:11px!important;font-size:calc(12.5px*var(--fs))!important}
+/* 小圆钮（如组件库里的圆形操作）保持圆 */
+/* ★ 钱包：黑白极简（用户选 B 方案） */
+.wlt{background:#F2F2F3;color:#111;min-height:100%;padding:0 18px 26px}
+.wlt h1{font-family:var(--serif);font-size:31px;letter-spacing:1px;margin:6px 0 14px;color:#111}
+.wlt-nums{display:flex;gap:10px;margin-bottom:16px}
+.wlt-nums .n{flex:1}
+.wlt-nums b{display:block;font-size:24px;font-weight:800;color:#111;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.wlt-nums span{font-size:12.5px;color:#8A8A8E}
+.wlt-sec{display:flex;align-items:center;gap:10px;margin:4px 0 10px;color:#111;font-weight:800;font-size:18px}
+.wlt-sec .arw{margin-left:auto;display:flex;gap:6px}
+.wlt-sec .arw button{min-height:28px!important;padding:0 10px!important;border-radius:9px!important;background:#fff!important;
+  border:1px solid #E4E4E6!important;box-shadow:none!important;color:#111!important;font-size:15px!important;font-weight:700!important}
+/* ★ 两张卡用 flex 排：前面的在左、后面的往右露一截。
+   以前用 position:absolute + right:0，实测后卡被挤成一条竖排文字的窄条 —— flex 更稳。 */
+.wlt-cards{display:flex;align-items:center;margin:0 0 16px;padding-left:2px}
+.wlt .bank{position:relative!important;flex:0 0 auto;border-radius:20px;padding:17px 18px 15px;color:#fff;
+  background:linear-gradient(140deg,#1C1C1E,#3A3A3C);box-shadow:0 14px 30px rgba(0,0,0,.28);width:236px;height:172px;
+  transition:opacity .18s,transform .18s;text-align:left}
+.wlt .bank.silver{width:228px;height:164px;background:linear-gradient(140deg,#FFFFFF,#EAEAEC);color:#1A1A1C;
+  border:1px solid #E4E4E6;box-shadow:0 12px 26px rgba(0,0,0,.12)}
+.wlt .bank.front{order:1;z-index:2}
+.wlt .bank.back{order:2;margin-left:-56px;transform:scale(.94);opacity:.62}
+.wlt .bk-top{display:flex;justify-content:space-between;font-size:12px;opacity:.7}
+.wlt .bk-nm{font-family:var(--serif);font-size:21px;font-weight:800;margin:17px 0 2px}
+.wlt .bk-sub{font-size:11.5px;opacity:.7;letter-spacing:1px}
+.wlt .bk-bt{display:flex;justify-content:space-between;align-items:flex-end;margin-top:20px}
+.wlt .bk-no{font-size:12.5px;opacity:.8;letter-spacing:2px}
+.wlt .bk-amt{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.wlt-acts{display:flex;gap:10px;margin:2px 0 18px}
+.wlt-acts button{flex:1;min-height:46px!important;border-radius:14px!important;background:#fff!important;border:1px solid #E4E4E6!important;
+  box-shadow:0 4px 12px rgba(0,0,0,.05)!important;color:#111!important;font-weight:700!important;font-size:14.5px!important}
+.wlt-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #E9E9EB;border-radius:18px;padding:13px 14px;margin-bottom:9px}
+.wlt .wr-ic{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13.5px;flex:none}
+.wlt .wr-ic.in{background:#3F8A67}
+.wlt .wr-ic.out{background:#C08A52}
+.wlt .wr-tx{flex:1;min-width:0}
+.wlt .wr-tx b{display:block;font-size:14.5px;color:#111}
+.wlt .wr-tx span{font-size:11.5px;color:#8A8A8E}
+.wlt .wr-am{font-weight:800;font-size:15.5px;font-variant-numeric:tabular-nums}
+.wlt .wr-am.in{color:#2F7A57}
+.wlt .wr-am.out{color:#B94A45}
+.wlt-empty{background:#fff;border:1px solid #E9E9EB;border-radius:18px;padding:22px 0;text-align:center;color:#8A8A8E;font-size:13px}
+.wlt-note{font-size:11.5px;color:#8A8A8E;text-align:center;margin-top:12px;line-height:1.7}
+.tp-quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.tp-quick .tp-q{min-height:34px!important;padding:0 14px!important;border-radius:11px!important;font-size:13px!important}
 </style>
 </head>
 <body>
@@ -4993,7 +5097,9 @@ function bubbleHtml(m,c){
   }
   if(m.kind==='buyreq'){
     var isInQ=(m.dir==='in');
-    var qst=m.accepted?'已帮你买下':(m.refused?'这次没买':'等回应');
+    /* ★ 代买卡上的状态要说清"谁买给谁"（以前我这边也写"已帮你买下"，看着像我自己买的） */
+    var qst=isInQ?(m.accepted?'你买下了':(m.refused?'你先没买':'等回应'))
+                :(m.accepted?'他买给你了':(m.refused?'他说先不买':'等回应'));
     var qcls=m.accepted?'ok':(m.refused?'no':'wait');
     var qbtns='';
     if(isInQ&&!m.accepted&&!m.refused)qbtns='<div class="gc-btns"><button data-shop="help" data-id="'+m.id+'">帮他买</button><button class="gray" data-shop="refuse" data-id="'+m.id+'">先不买</button></div>';
@@ -5121,7 +5227,9 @@ function renderMoments(){
     if(state.lastVisit){var vd=Math.round((now()-state.lastVisit)/60000);vtxt=vd<1?'刚刚':vd<60?vd+' 分钟前':Math.round(vd/60)+' 小时前'}
     html+='<div class="card visitor-card"><span class="v-ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v2M14 3v2M5 5h14M6 5l1.5 14a2 2 0 0 0 2 1.8h5a2 2 0 0 0 2-1.8L18 5"/><path d="M9.5 11l1.8 1.8 3.2-3.2"/></svg></span><div><b>'+esc(vc2?vc2.name:'他')+' 来过了</b><span class="meta">来访 '+(state.visitorCount||0)+' 次 · 最近 '+vtxt+'</span></div></div>';
   }
-  html+='<div class="cover" style="'+coverStyle()+'"><button class="cov-btn" data-act="cover-sheet">换封面</button><div class="me-overlay">'+avatarHtml({name:meNm,color:meCl,avatarType:(state.me&&state.me.avatarType)||'char',avatarImg:(state.me&&state.me.avatarImg)||''},40)+'<b>'+esc(meNm)+'</b></div></div>';
+  /* ★ 封面上的「换封面」按钮删掉了（用户）：它和头像/昵称压在一起，
+     而且设置里本来就能换封面 → 入口只留设置那一个。 */
+  html+='<div class="cover" style="'+coverStyle()+'"><div class="me-overlay">'+avatarHtml({name:meNm,color:meCl,avatarType:(state.me&&state.me.avatarType)||'char',avatarImg:(state.me&&state.me.avatarImg)||''},40)+'<b>'+esc(meNm)+'</b></div></div>';
   if(!posts.length)html+='<div class="empty"><span class="big">圈</span>还没有动态，点右上角的小相机发第一条</div>';
   for(var i=0;i<posts.length;i++){
     var p=posts[i],c=p.contactId?contact(p.contactId):null;
@@ -5145,11 +5253,8 @@ function renderMoments(){
       html+='</div>';
     }
     if(p.contactId)html+='<span class="tag">来自字卡</span>';
-    html+='<div class="p-foot"><span class="ptime">'+fmtTime(p.ts)+'</span><div class="p-ops">';
-    if(p.contactId)html+='<button class="op'+(p.liked?' on':'')+'" data-act="post-like" data-id="'+p.id+'"><span class="like-ic">'+(p.liked?'♥':'♡')+'</span>'+(p.liked?'已赞':'赞')+'</button>';
-    html+='<button class="op'+( _pcOpen===p.id?' on':'')+'" data-act="post-comment" data-id="'+p.id+'"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>'+((p.comments&&p.comments.length)?(' '+p.comments.length):'')+'</button>';
-    html+='</div></div>';
-    /* ★ 仿微信：谁赞了 + 评论 放在同一块浅灰底里，中间一条细线隔开（评论默认就是收起的） */
+    /* ★ 仿微信：谁赞了 + 评论 放在同一块浅灰底里，中间一条细线隔开（评论默认就是收起的）。
+       顺序按草稿：正文 → 评论块 → 底部那行(时间/赞/评论)，这样有没有评论都不影响骨架高度。 */
     var likes=[];
     if(p.liked)likes.push(meNm);
     if(p.heLiked)likes.push(nm);
@@ -5165,6 +5270,10 @@ function renderMoments(){
       html+='</div>';
     }
     html+='<div class="pc-in" id="pc'+p.id+'" style="display:'+( _pcOpen===p.id?'flex':'none')+'"><input id="pcTxt'+p.id+'" placeholder="评论…"><button data-act="post-comment-send" data-id="'+p.id+'">发送</button></div>';
+    html+='<div class="p-foot"><span class="ptime">'+fmtTime(p.ts)+'</span><div class="p-ops">';
+    if(p.contactId)html+='<button class="op'+(p.liked?' on':'')+'" data-act="post-like" data-id="'+p.id+'"><span class="like-ic">'+(p.liked?'♥':'♡')+'</span>'+(p.liked?'已赞':'赞')+'</button>';
+    html+='<button class="op'+( _pcOpen===p.id?' on':'')+'" data-act="post-comment" data-id="'+p.id+'"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg>'+((p.comments&&p.comments.length)?(' '+p.comments.length):'')+'</button>';
+    html+='</div></div>';
     html+='</div></div></div>';
   }
   html+='</div>';
@@ -8510,6 +8619,10 @@ document.addEventListener('click',function(e){
     else if(act==='quote-cancel'){_quoteId=null;chatRepaint()}
     else if(act==='post-create')postCreate();
     else if(act==='post-sheet')sheetPost();
+    else if(act==='wlt-topup')sheetTopup();
+    else if(act==='topup-quick')topupQuick(btn.getAttribute('data-v'));
+    else if(act==='topup-ok')walletTopup();
+    else if(act==='wlt-card')walletCard(btn.getAttribute('data-d'));
     else if(act==='letter-new')sheetLetter();
     else if(act==='letter-send')letterSend();
     else if(act==='card-add')sheetCard()
@@ -9186,24 +9299,82 @@ function acceptTransfer(mid){
   state.messages.push({id:uid(),contactId:c.id,dir:'sys',text:c.name+' 已收款 ¥'+(m.amount||0).toFixed(2),ts:now()});
   save();renderChat();
 }
+/* ★ 钱包重做（用户选的"黑白极简"，照参考图 N2 Pay 的账户页版式） */
+var _wltCard=0;   /* 0 = 我的银行卡在前  1 = 哥哥的卡在前 */
+function walletMonthSum(){
+  var w=state.wallet||{balance:888,log:[]};
+  var d=new Date(),y=d.getFullYear(),m=d.getMonth(),inc=0,out=0;
+  for(var i=0;i<(w.log||[]).length;i++){
+    var t=w.log[i],td=new Date(t.ts||0);
+    if(td.getFullYear()!==y||td.getMonth()!==m)continue;
+    if(t.dir==='in')inc+=t.amount||0;else out+=t.amount||0;
+  }
+  return {inc:inc,out:out};
+}
+function walletHisSum(){
+  var w=state.wallet||{balance:888,log:[]},s=0;
+  for(var i=0;i<(w.log||[]).length;i++)if(w.log[i].dir==='out')s+=w.log[i].amount||0;
+  return s;
+}
+function walletCard(d){ _wltCard=_wltCard?0:1; renderWallet() }
+function sheetTopup(){
+  var quick=[10,50,100,520,1314],row='';
+  for(var i=0;i<quick.length;i++)row+='<button class="tp-q" data-act="topup-quick" data-v="'+quick[i]+'">¥'+quick[i]+'</button>';
+  openSheet('<h2>充值</h2><label>金额（元）· 充到"我的银行卡"上</label>'
+    +'<input id="topupAmt" type="number" inputmode="decimal" placeholder="例如 100" value="100">'
+    +'<div class="tp-quick">'+row+'</div>'
+    +'<p class="meta" style="margin-top:8px">虚拟充值，不涉及真钱；充完卡面余额和"本月收入"会立刻变</p>'
+    +'<div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="topup-ok">充值</button></div>');
+}
+function topupQuick(v){var el=document.getElementById('topupAmt');if(el)el.value=String(v)}
+function walletTopup(){
+  var el=document.getElementById('topupAmt');
+  var amt=el?parseFloat(String(el.value).replace(/[^\d.]/g,'')):NaN;
+  if(!amt||amt<=0||!isFinite(amt)){toast('写个金额吧');return}
+  amt=Math.round(amt*100)/100;
+  if(!state.wallet)state.wallet={balance:888,log:[]};
+  if(!state.wallet.log)state.wallet.log=[];
+  state.wallet.balance=Math.round((state.wallet.balance+amt)*100)/100;
+  state.wallet.log.unshift({id:uid(),dir:'in',amount:amt,ts:now(),who:'充值',topup:true});
+  save();try{closeSheet()}catch(e){}
+  renderWallet();
+  toast('已充值 ¥'+amt.toFixed(2)+'，卡面余额更新了');
+}
 function renderWallet(){
   var _inSnap=inputSnapshot();
   var w=state.wallet||{balance:888,log:[]};
-  var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">钱包</span></div>';
-  html+='<div class="screen">';
-  html+='<div class="wallet-hero"><div class="wh-label">我的余额</div><div class="wh-amt">¥'+w.balance.toFixed(2)+'</div><div class="wh-note">陆沉转给你的会自动入账</div></div>';
-  var sentOut=0;
-  for(var li=0;li<w.log.length;li++)if(w.log[li].dir==='out')sentOut+=w.log[li].amount||0;
-  var lc=activeContact();
-  html+='<div class="wallet-hero lc"><div class="wh-label">'+esc(lc?lc.name:'陆沉')+' 的钱包</div><div class="wh-amt">¥'+sentOut.toFixed(2)+'</div><div class="wh-note">你转给他的，都记在这里</div><button class="btn" style="margin-top:8px;background:rgba(255,255,255,.85);color:#A5475B;min-height:44px" data-act="transfer-out">给'+esc(lc?lc.name:'陆沉')+'转账</button></div>';
+  if(!w.log)w.log=[];
+  var mo=walletMonthSum(),his=walletHisSum(),lc=activeContact();
+  var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">账户</span>'
+    +'<span class="pr">'+avatarHtml({name:(state.me&&state.me.name)||'我',color:(state.me&&state.me.color)||'#D98E5F'},32)+'</span></div>';
+  html+='<div class="screen wlt">';
+  html+='<h1>账户</h1>';
+  html+='<div class="wlt-nums"><div class="n"><b>+¥'+mo.inc.toFixed(2)+'</b><span>本月收入</span></div>'
+    +'<div class="n"><b>¥'+mo.out.toFixed(2)+'</b><span>本月支出</span></div></div>';
+  html+='<div class="wlt-sec">我的银行卡<span class="arw"><button data-act="wlt-card" data-d="prev">‹</button><button data-act="wlt-card" data-d="next">›</button></span></div>';
+  html+='<div class="wlt-cards">';
+  /* 我的卡（深色）· 他的卡（浅色）：点 ‹ › 或点卡片切换前后 */
+  html+='<div class="bank dark'+(_wltCard===0?' front':' back')+'" data-act="wlt-card">'
+    +'<div class="bk-top"><span>我的账户</span><span class="bk-logo">nz.</span></div>'
+    +'<div class="bk-nm">我的银行卡</div><div class="bk-sub">招商银行</div>'
+    +'<div class="bk-bt"><span class="bk-no">•••• 6688</span><span class="bk-amt">¥'+w.balance.toFixed(2)+'</span></div></div>';
+  html+='<div class="bank silver'+(_wltCard===1?' front':' back')+'" data-act="wlt-card">'
+    +'<div class="bk-top"><span>个人账户</span><span class="bk-logo">nz.</span></div>'
+    +'<div class="bk-nm">哥哥的卡</div><div class="bk-sub">NZ PRIVATE</div>'
+    +'<div class="bk-bt"><span class="bk-no">•••• 1029</span><span class="bk-amt">¥'+his.toFixed(2)+'</span></div></div>';
+  html+='</div>';
+  html+='<div class="wlt-acts"><button data-act="wlt-topup">＋ 充值</button><button data-act="transfer-out">↗ 转账</button></div>';
+  html+='<div class="wlt-sec" style="font-size:14.5px;font-weight:700;margin-top:4px">转账记录</div>';
   var log=w.log.slice().sort(function(a,b){return b.ts-a.ts});
-  html+='<div class="wl-t">收支明细</div>';
-  if(!log.length)html+='<div class="card"><div class="empty" style="padding:18px 0">还没有收支记录</div></div>';
+  if(!log.length)html+='<div class="wlt-empty">还没有记录，充值或转账就会出现在这里</div>';
   for(var i=0;i<log.length;i++){
-    var t=log[i];
-    html+='<div class="wl-item card"><div class="wl-dot '+(t.dir==='in'?'in':'out')+'">'+(t.dir==='in'?'收':'转')+'</div><div><b>'+(t.dir==='in'?esc(t.who||'陆沉')+' 转给我':'转给 '+esc(t.who||'陆沉'))+'</b><div class="meta">'+fmtTime(t.ts)+'</div></div><span class="wl-amt '+(t.dir==='in'?'in':'out')+'">'+(t.dir==='in'?'+':'−')+'¥'+t.amount.toFixed(2)+'</span></div>';
+    var t=log[i],isIn=t.dir==='in';
+    var nm=isIn?(t.topup?'充值':esc(t.who||'陆沉')+' 转给我'):('转给 '+esc(t.who||'陆沉'));
+    html+='<div class="wlt-row"><span class="wr-ic '+(isIn?'in':'out')+'">'+(isIn?(t.topup?'充':'收'):'转')+'</span>'
+      +'<div class="wr-tx"><b>'+nm+'</b><span>'+fmtTime(t.ts)+'</span></div>'
+      +'<span class="wr-am '+(isIn?'in':'out')+'">'+(isIn?'+':'−')+'¥'+(t.amount||0).toFixed(2)+'</span></div>';
   }
-  html+='<div class="note" style="margin-top:12px">这是你们之间的小金库，转账收支都会记在这里。</div>';
+  html+='<div class="wlt-note">这是你们之间的小金库：充值/转账/他转给你的，全记在这里。</div>';
   html+='</div>';
   $('#view').innerHTML=html;
   inputRestore(_inSnap);
@@ -10565,7 +10736,15 @@ function shopAnswer(m){
       state.messages.push({id:uid(),contactId:c.id,dir:'in',kind:'gift',itemName:m.itemName,emoji:m.emoji,
         price:m.price,catName:m.catName,ts:now(),accepted:true,fromAsk:true});
       sh.orders.unshift({id:uid(),name:m.itemName,emoji:m.emoji,price:m.price,dir:'in',ts:now(),status:'gift'});
-      pushIn(c.id,pick(['帮你买好啦，记得收','已经下单了','给你的，别跟我客气']),now()+1200);
+      /* ★ 代买答应了就直接说这句预设的话（用户要的味道）：
+         "宝宝想要，宝宝得到。你想要的买给你了。" 以前回的是"帮你买好啦/已经下单了"这种，
+         听着像客服通知，不像他。 */
+      pushIn(c.id,pick([
+        '宝宝想要，宝宝得到。',
+        '你想要的，买给你了。',
+        '宝宝想要，宝宝得到 —— 买给你了，等收货吧。',
+        '买好了。你想要的，我都记着呢。'
+      ]),now()+1200);
     }else{
       m.refused=true;
       pushIn(c.id,pick(['这次先不买啦','最近有点紧，下次一定','换一个好不好']),now());
