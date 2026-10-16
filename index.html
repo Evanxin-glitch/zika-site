@@ -76,8 +76,11 @@ input:focus,textarea:focus{border-color:var(--green)}
    原来写死 height:calc(100dvh - 96px)，顶栏实际更高时就会多出一截空白，
    看起来像上边框被拉长。 */
 #view>.chat-top{flex-shrink:0}
-#view:has(.chat-top){display:flex;flex-direction:column;height:100dvh;max-height:100dvh;overflow:hidden}
-#chatList{flex:1;overflow-y:auto;padding:12px 12px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch}
+#view:has(.chat-top){display:flex;flex-direction:column;height:100dvh;max-height:100dvh;overflow:hidden;overscroll-behavior:none}
+/* ★ 聊天列表滑到头继续拖，以前会把滚动"接力"给整个页面 →
+   整页被顶上去不回来，底部输入框就停在半空、下面露一大片空白（用户报的"被带起来"）。
+   .screen / .home-page 早就写了 contain，就聊天列表漏了。 */
+#chatList{flex:1;overflow-y:auto;padding:12px 12px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;overscroll-behavior-y:contain}
 /* 聊天壁纸固定在外层（不滚动）上，滑聊天记录时壁纸不动 */
 .chat-wrap{background-size:cover;background-position:center;background-repeat:no-repeat}
 /* ===== 气泡：内容自适应宽度，时间/已读挪到气泡外面 ===== */
@@ -860,6 +863,11 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
   border-radius:999px;padding:2px 9px;flex:none}
 .mail-reply .mr-title{font-size:calc(13.5px*var(--fs));font-weight:700;color:#2F6B52;margin:7px 0 3px;word-break:break-word}
 .mail-reply .mr-body{font-size:calc(13.5px*var(--fs));line-height:1.72;color:#33604D;white-space:pre-wrap;word-break:break-word}
+/* 收件箱里标出"这是回信"（和他主动写来的信区分开） */
+.m-re-tag{display:inline-block;font-size:calc(10.5px*var(--fs));font-weight:800;color:#2F6B52;
+  background:rgba(216,240,227,.95);border:1px solid rgba(122,178,150,.4);border-radius:999px;
+  padding:1px 7px;margin-right:6px;vertical-align:1px;flex:none}
+.m-re-to{font-size:calc(11px*var(--fs));color:var(--green);margin-top:2px}
 .mail-fab{position:fixed;right:18px;bottom:calc(24px + env(safe-area-inset-bottom));width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(95,143,123,.4);z-index:20}
 .mail-detail .md-av{display:flex;justify-content:center;margin-bottom:10px}
 .mail-detail .md-title{font-size:calc(17px*var(--fs));font-weight:700;text-align:center}
@@ -1358,6 +1366,20 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .lsn-bgbtn{margin-top:20px;height:38px;min-height:38px;padding:0 18px;border-radius:999px;color:#fff;
   font-size:calc(12.5px*var(--fs));background:rgba(255,255,255,.24);border:1px solid rgba(255,255,255,.44);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+/* ★ 浅色壁纸（比如自己上传的浅底图）时，白字会彻底看不见 ——
+   量一下壁纸的亮度，浅底就把这块空间里所有文字/按钮自动翻成深色；
+   深色壁纸完全不动（还是白字 + 文字阴影）。 */
+.lsn-space.lsn-light .lsn-card{background:rgba(255,255,255,.52);border-color:rgba(255,255,255,.78);
+  box-shadow:0 20px 50px rgba(120,96,116,.18),inset 0 1px 0 rgba(255,255,255,.9)}
+.lsn-space.lsn-light .lsn-kicker{color:rgba(74,59,68,.74)}
+.lsn-space.lsn-light .lsn-song{color:#4A3B44;text-shadow:none}
+.lsn-space.lsn-light .lsn-times{color:rgba(74,59,68,.72)}
+.lsn-space.lsn-light .lsn-track{background:rgba(74,59,68,.16)}
+.lsn-space.lsn-light .lsn-track i{background:rgba(74,59,68,.78)}
+.lsn-space.lsn-light .lsn-meta{color:rgba(74,59,68,.88)}
+.lsn-space.lsn-light .lsn-wave i{background:rgba(74,59,68,.7)}
+.lsn-space.lsn-light .lsn-x,.lsn-space.lsn-light .lsn-mini,.lsn-space.lsn-light .lsn-bgbtn{
+  color:#4A3B44;background:rgba(255,255,255,.66);border-color:rgba(255,255,255,.9)}
 
 /* ===== 统一大卡片（转账 / 决策 / 查岗 / 礼物 / 代买）=====
    之前这几张卡片是各写各的，转账太小、风格也不统一。
@@ -2634,10 +2656,14 @@ function mediaUrlSync(v){
     mediaUrl(v).then(function(url){
       delete _mediaPending[v];
       try{renderAll()}catch(e){}                         /* 成功或失败都重绘一次 */
+      /* ★ 一起听的独立空间不归 renderAll 管（它挂在 body 上），
+         这里必须单独叫它重画一次 —— 否则上传的壁纸要"退出再进"才显示得出来。 */
+      try{if(_lsnEl)musSpacePaint(true)}catch(e){}
       try{ntfRefreshAvatar()}catch(e){}                  /* 通知条的头像也补上 */
     }).catch(function(){                                  /* ★ 万一是 reject，别把 pending 卡死 */
       delete _mediaPending[v]; _mediaMissing[v]=1;
       try{renderAll()}catch(e){}
+      try{if(_lsnEl)musSpacePaint(true)}catch(e){}
       try{ntfRefreshAvatar()}catch(e){}
     });
   }
@@ -3406,15 +3432,22 @@ function renderHome(){
 
   /* ===== 其余页面：每页 6 个应用，放不下的自动开新页 =====
      ★ 以前写死"第二页装下所有剩下的"，第二页被小组件占满时，
-       后面的 App 就被压住看不见了（用户报的"问卷被覆盖找不到了"）。 */
+       后面的 App 就被压住看不见了（用户报的"问卷被覆盖找不到了"）。
+     ★ 现在前三页都能摆小组件（用户只要求到第 3 页）。
+       页数还是按 App 数量自动算；只有"组件被放到了更后面的页"时才补足页数。 */
   var _PER=6;
-  var _pageCount=Math.max(1,Math.ceil(order.length/_PER));
+  var _wMax=0,_wk3;
+  for(_wk3 in (state.widgetPage||{})){
+    if(state.widgets&&state.widgets[_wk3]===false)continue;
+    var _wv3=widgetPageOf(_wk3);
+    if(_wv3>_wMax)_wMax=_wv3;
+  }
+  var _pageCount=Math.max(1,Math.ceil(order.length/_PER),_wMax+1);
   for(var _pg=1;_pg<_pageCount;_pg++){
     html+='<div class="home-page" data-page="'+_pg+'">';
     html+='<div class="home-title home-title-2">'+esc(siteName())+'</div>';
     html+='<button class="wd-add" data-view="widgets" data-page="'+_pg+'" title="添加组件">＋</button>';
-    /* 第 2 页仍然放小组件；第 3 页起只放应用，不再塞小组件 */
-    html+='<div class="widgets" id="widgetGrid'+_pg+'">'+(_pg===1?widgetGridInner(wdo,wds,wk,d,1):'')+'</div>';
+    html+='<div class="widgets" id="widgetGrid'+_pg+'">'+(_pg<=WIDGET_PAGE_MAX?widgetGridInner(wdo,wds,wk,d,_pg):'')+'</div>';
     html+='<div class="app-grid" id="appGrid_'+_pg+'">';
     for(var _ai=_pg*_PER;_ai<order.length&&_ai<(_pg+1)*_PER;_ai++){
       var _ap=appByKey(order[_ai]);
@@ -3690,13 +3723,23 @@ function widgetSetSize(k,s){
   save();closeSheet();renderHome();
   toast('尺寸已改为'+widgetSizeLabel(k));
 }
+/* ★ 小组件可以放在第一页 / 第二页 / 第三页（用户定的：不做自由增减页数，
+   第 3 页就够了 —— 他的 App 数量本来也只排得满三页）。 */
+var WIDGET_PAGE_MAX=2;
+function widgetPageClamp(v){
+  v=parseInt(v,10);
+  if(isNaN(v)||v<0)v=0;
+  if(v>WIDGET_PAGE_MAX)v=WIDGET_PAGE_MAX;
+  return v;
+}
 function widgetPageOf(k){
   var p=state.widgetPage||{};
-  return p[k]===1?1:0;
+  return widgetPageClamp(p[k]);
 }
-function widgetPageLabel(k){return widgetPageOf(k)===1?'第二页':'第一页'}
+function widgetPageName(v){return (v===2?'第三页':(v===1?'第二页':'第一页'))}
+function widgetPageLabel(k){return widgetPageName(widgetPageOf(k))}
 function widgetGridInner(wdo,wds,wk,d,page){
-  page=page?1:0;
+  page=widgetPageClamp(page);
   var keys=[],i;
   for(i=0;i<wdo.length;i++){
     var k=wdo[i];
@@ -4636,10 +4679,43 @@ function renderChat(){
     ta.addEventListener('input',function(){ta.style.height='auto';ta.style.height=Math.min(96,ta.scrollHeight)+'px'});
     ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
   }
+  try{chatPinTop()}catch(e){}
   /* ★ 聊天区已经把它们显示出来了 → 标记为"已露面"，以后不再重排（防吞消息） */
   try{markShownIn(c?c.id:null)}catch(e){}
   inputRestore(_inSnap);      /* ★ 把焦点和正在输入的内容还给用户 */
 }
+/** ★ 聊天室里"整页"一动都不该动（滚动只发生在 #chatList 里面）。
+    iOS 上滑到头继续拖（橡皮筋）、或者键盘弹起再收起，会把整页顶上去不回来 ——
+    底部输入框就停在半空、下面露出一大片空白（用户截图里画圈那处）。
+    这里一发现整页被顶了就立刻弹回；和 CSS 里的 overscroll-behavior:contain 一起用。 */
+function chatPinTop(){
+  try{
+    if(!inChatView())return;
+    /* 键盘开着的时候别抢：Safari 正要把光标顶到键盘上方，抢了会打架 */
+    var ae=document.activeElement;
+    if(ae&&ae.id==='chatText')return;
+    var y=window.pageYOffset||0,de=document.documentElement,bd=document.body;
+    if(!y&&de)y=de.scrollTop||0;
+    if(!y&&bd)y=bd.scrollTop||0;
+    if(y>0){
+      try{window.scrollTo(0,0)}catch(e0){}
+      if(de)de.scrollTop=0;
+      if(bd)bd.scrollTop=0;
+    }
+  }catch(e){}
+}
+(function(){
+  try{
+    window.addEventListener('scroll',chatPinTop,{passive:true});
+    document.addEventListener('scroll',chatPinTop,{passive:true,capture:true});
+    /* 手指在动的时候也顺手查一次：iOS 橡皮筋/键盘期间 scroll 事件不一定按时派发 */
+    document.addEventListener('touchmove',chatPinTop,{passive:true});
+    document.addEventListener('touchend',chatPinTop,{passive:true});
+    document.addEventListener('focusout',function(){setTimeout(chatPinTop,120)},{passive:true});
+    if(window.visualViewport&&window.visualViewport.addEventListener)
+      window.visualViewport.addEventListener('resize',function(){setTimeout(chatPinTop,60)});
+  }catch(e){}
+})();
 function cAvatar(c){
   /* ★ 以前图还在异步取 / 或图已失效时，这里渲染出 <img src=""> → 通知条上就是一个空圆圈。
      现在取不到就先显示"颜色+首字"，等图回来了再换（媒体加载完会重绘）。 */
@@ -5175,6 +5251,24 @@ function letterReplyOf(l){
   for(i=0;i<all.length;i++){x=all[i];if(x&&x.dir==='in'&&!x.reId&&x.title===t)return x}
   return null;
 }
+/** 反过来问：这封收件箱里的信，是不是回我某封信的？
+    ★ 只认"确实是对我某封信的回信"：有链接(reId)就认；老存档没有链接时，
+      用标题「Re：XXX」去存档里找那封"我发的 XXX"，找得到才算。
+      找不到的（比如他自己寄来的「晚风来信」）一律**不算回信**。 */
+function mailRepliedTo(l){
+  if(!l||l.dir!=='in')return null;
+  var all=state.letters||[],i,x;
+  if(l.reId){ var o=byId(all,l.reId); if(o&&o.dir==='out')return o }
+  var t=String(l.title||'');
+  if(/^Re[：:]/.test(t)){
+    var base=t.replace(/^Re[：:]/,'');
+    for(i=0;i<all.length;i++){
+      x=all[i];
+      if(x&&x.dir==='out'&&String(x.title||'')===base)return x;
+    }
+  }
+  return null;
+}
 /** 浅绿小块的 HTML：他的回信（「已发送」下面直接展开） */
 function mailReplyHtml(rp){
   if(!rp)return '';
@@ -5205,7 +5299,10 @@ function renderMail(){
     var l=show[i],lc=l.contactId?contact(l.contactId):null;
     var nm=lc?lc.name:meNm;
     var av=lc?avatarHtml(lc,40):avatarHtml({name:meNm,color:meCl},40);
-    html+='<div class="mail-item'+(l.unread?' unread':'')+'" data-act="mail-read" data-id="'+l.id+'">'+av+'<div class="m-body"><div class="m-top"><b>'+esc(nm)+'</b><span class="m-time">'+fmtTime(l.ts)+'</span></div><div class="m-title">'+esc(l.title||'（无题）')+(l.unread?'<i class="m-dot"></i>':'')+'</div><div class="m-sum">'+esc(trunc(l.body,42))+'</div>'+( _mailTab==='out'?'<div class="m-st">'+(l.answered?'已回复':'等待回复')+'</div>':'')+'</div></div>';
+    /* ★ 收件箱里"是回信"的那封，标一个小绿标「回信」，并写清是回给哪封的
+       —— 这样就能一眼分清"他回我的"和"他主动写给我的"。 */
+    var _rt=(_mailTab==='in')?mailRepliedTo(l):null;
+    html+='<div class="mail-item'+(l.unread?' unread':'')+'" data-act="mail-read" data-id="'+l.id+'">'+av+'<div class="m-body"><div class="m-top"><b>'+esc(nm)+'</b><span class="m-time">'+fmtTime(l.ts)+'</span></div><div class="m-title">'+(_rt?'<span class="m-re-tag">回信</span>':'')+esc(l.title||'（无题）')+(l.unread?'<i class="m-dot"></i>':'')+'</div><div class="m-sum">'+esc(trunc(l.body,42))+'</div>'+(_rt?'<div class="m-re-to">回给你写的《'+esc(_rt.title||'（无题）')+'》</div>':'')+( _mailTab==='out'?'<div class="m-st">'+(l.answered?'已回复':'等待回复')+'</div>':'')+'</div></div>';
     /* ★「已发送」：收到回信的那封，下面直接展开他的回信（浅绿小块 + 已收到回信）。
        收件箱里那封「Re: XXX」照样保留，两边都能看。 */
     if(_mailTab==='out')html+=mailReplyHtml(letterReplyOf(l));
@@ -5229,11 +5326,14 @@ function mailRead(id){
   var html='<div class="page-top"><button class="back" data-act="mail-back">'+ICON_BACK+'</button><span class="pt">邮件</span></div>';
   html+='<div class="screen"><div class="card mail-detail"><div class="md-av">'+av+'</div><div class="md-title">'+esc(l.title||'（无题）')+'</div><div class="md-meta">'+esc(nm)+' · '+fmtTime(l.ts)+'</div><div class="md-body">'+esc(l.body)+'</div>';
   if(l.dir==='in'){
+    var _rto=mailRepliedTo(l);
+    /* ★ 是回信就说清楚是回给哪封的，和他主动写来的信区分开 */
+    if(_rto)html+='<div class="m-re-to" style="margin-top:12px">这是回给你写的《'+esc(_rto.title||'（无题）')+'》的信</div>';
     html+='<div style="display:flex;gap:10px;margin-top:14px"><button class="btn" style="flex:1" data-act="mail-reply" data-id="'+l.id+'">回复</button></div>';
   }else{
     var _rp=letterReplyOf(l);
     /* ★ 收到回信了：这一页也把回信摊开看，不用再翻回收件箱 */
-    html+='<div class="meta" style="margin-top:12px">'+(l.answered?( _rp?'已收到回信':'他已经在回信了，去收件箱看吧'):'等待他的回信…')+'</div>';
+    html+='<div class="meta" style="margin-top:12px">'+(l.answered?( _rp?'已收到回信':'这封的回信不在这份存档里（多半是导入备份时没带过来）'):'等待他的回信…')+'</div>';
     if(_rp)html+=mailReplyHtml(_rp);
   }
   html+='</div></div>';
@@ -8145,7 +8245,7 @@ document.addEventListener('click',function(e){
   var v=e.target.closest('[data-view]');
   if(v){
     var _pg=v.getAttribute('data-page');
-    if(_pg!==null&&_pg!==undefined&&_pg!=='')_wdTargetPage=parseInt(_pg,10)===1?1:0;
+    if(_pg!==null&&_pg!==undefined&&_pg!=='')_wdTargetPage=widgetPageClamp(_pg);
     goView(v.getAttribute('data-view'));
     return;
   }
@@ -8265,13 +8365,13 @@ document.addEventListener('click',function(e){
     else if(act==='wd-img-clear'){wdImgClear()}
     else if(act==='wd-pos-reset'){widgetLayoutReset()}
     else if(act==='wdlib-toggle')wdlibToggle(btn.getAttribute('data-k'))
-    else if(act==='wdlib-page'){_wdTargetPage=parseInt(btn.getAttribute('data-p'),10)===1?1:0;renderWidgetLib()}
+    else if(act==='wdlib-page'){_wdTargetPage=widgetPageClamp(btn.getAttribute('data-p'));renderWidgetLib()}
         else if(act==='wdlib-content-save')wdlibContentSave()
     else if(act==='wd-photo')wdPickPhoto()
     else if(act==='wd-sheet-img'){closeSheet();wdlibPickImg(btn.getAttribute('data-k'))}
     else if(act==='wd-sheet-photo'){closeSheet();wdPickPhoto()}
     else if(act==='wd-sheet-content'){closeSheet();goView('widgets')}
-    else if(act==='wd-sheet-move')widgetMovePage(btn.getAttribute('data-k'))
+    else if(act==='wd-sheet-move')widgetMovePage(btn.getAttribute('data-k'),btn.getAttribute('data-p'))
     else if(act==='wd-size'||act==='wd-sheet-size')widgetSetSize(btn.getAttribute('data-k'),btn.getAttribute('data-s'))
         else if(act==='wd-sheet-resetone')widgetResetOne(btn.getAttribute('data-k'))
     else if(act==='wd-sheet-del')widgetRemove(btn.getAttribute('data-k'))
@@ -9056,14 +9156,15 @@ function renderWidgetLib(){
   widgetEnsureOrder();
   var defs=widgetDefs(),on=0,i;
   for(i=0;i<defs.length;i++)if(widgetOn(defs[i].k))on++;
-  var tgt=_wdTargetPage===1?1:0;
+  var tgt=widgetPageClamp(_wdTargetPage);
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">组件库</span><span class="pr"><button class="back" data-act="wdlib-close" title="完成">完成</button></span></div>';
   html+='<div class="screen">';
   html+='<div class="cat-tabs" style="margin-bottom:10px">'
     +'<button data-act="wdlib-page" data-p="0"'+(tgt===0?' class="on"':'')+'>加到第一页</button>'
     +'<button data-act="wdlib-page" data-p="1"'+(tgt===1?' class="on"':'')+'>加到第二页</button>'
+    +'<button data-act="wdlib-page" data-p="2"'+(tgt===2?' class="on"':'')+'>加到第三页</button>'
     +'</div>';
-  html+='<div class="note" style="margin-bottom:12px">已添加 <b>'+on+'</b> / '+defs.length+' 个。当前会加到 <b>'+(tgt?'第二页':'第一页')+'</b>；桌面上长按组件可拖动换位，长按不放可以移除。</div>';
+  html+='<div class="note" style="margin-bottom:12px">已添加 <b>'+on+'</b> / '+defs.length+' 个。当前会加到 <b>'+widgetPageName(tgt)+'</b>；桌面上长按组件可拖动换位，长按不放可以移除。</div>';
   html+='<div class="wdlib-list">';
   for(i=0;i<defs.length;i++){
     var w=defs[i],isOn=widgetOn(w.k);
@@ -9128,24 +9229,25 @@ function wdlibToggle(k){
   }else{
     state.widgets[k]=true;
     /* 动态固定在第一页 */
-    state.widgetPage[k]=(k==='feed')?0:(_wdTargetPage===1?1:0);
+    state.widgetPage[k]=(k==='feed')?0:_wdTargetPage;
     if(state.widgetPos)delete state.widgetPos[k];
   }
   save();renderWidgetLib();
   var d=null,defs=widgetDefs();
   for(var i=0;i<defs.length;i++)if(defs[i].k===k)d=defs[i];
-  toast((isOn?'已移除 ':'已添加到'+(state.widgetPage[k]===1?'第二页 ':'第一页 '))+(d?d.n:'组件'));
+  toast((isOn?'已移除 ':'已添加到'+widgetPageLabel(k)+' ')+(d?d.n:'组件'));
 }
-/** 把某个组件在 第一页 / 第二页 之间搬家 */
-function widgetMovePage(k){
+/** 把某个组件在 第一页/第二页/第三页 之间搬家（to 省略时按老行为在第一/第二页之间切） */
+function widgetMovePage(k,to){
   state.widgets=state.widgets||{};
   state.widgetPage=state.widgetPage||{};
   if(k==='feed'){toast('陆沉动态固定在第一页');return}
-  state.widgetPage[k]=widgetPageOf(k)===1?0:1;
+  if(to===undefined||to===null||to==='')to=(widgetPageOf(k)===1?0:1);
+  state.widgetPage[k]=widgetPageClamp(to);
   if(state.widgetPos)delete state.widgetPos[k];
   state.widgets[k]=true;
   save();closeSheet();renderHome();
-  toast('已移到'+(state.widgetPage[k]===1?'第二页':'第一页'));
+  toast('已移到'+widgetPageLabel(k));
 }
 function wdlibPickImg(k){
   _wdImgKey=k;
@@ -9165,8 +9267,13 @@ function sheetWidget(k){
     +'<button class="menu-item" data-act="wd-sheet-content">编辑组件内容…</button>'
 
     +'<div class="menu-sizes"><span>尺寸</span><button data-act="wd-sheet-size" data-k="'+k+'" data-s="s"'+(widgetSizeOf(k)==='s'?' class="on"':'')+'>小方块</button><button data-act="wd-sheet-size" data-k="'+k+'" data-s="m"'+(widgetSizeOf(k)==='m'?' class="on"':'')+'>宽条</button><button data-act="wd-sheet-size" data-k="'+k+'" data-s="l"'+(widgetSizeOf(k)==='l'?' class="on"':'')+'>大方块</button></div>'
-    +'<button class="menu-item" data-act="wd-sheet-move" data-k="'+k+'">移到'+(widgetPageOf(k)===1?'第一页':'第二页')+'</button>'
-        +'<button class="menu-item" data-act="wd-sheet-resetone" data-k="'+k+'">这张回到默认位置</button>'
+    /* ★ 移到哪一页：第一/第二/第三页都列出来（当前这页不列）。陆沉动态固定第一页，不给搬。 */
+    +(k==='feed'?'':'<div class="menu-sizes"><span>移到</span>'
+        +[0,1,2].filter(function(p){return p!==widgetPageOf(k)}).map(function(p){
+            return '<button data-act="wd-sheet-move" data-k="'+k+'" data-p="'+p+'">'+widgetPageName(p)+'</button>';
+          }).join('')
+        +'</div>')
+    +'<button class="menu-item" data-act="wd-sheet-resetone" data-k="'+k+'">这张回到默认位置</button>'
     +'<button class="menu-item danger" data-act="wd-sheet-del" data-k="'+k+'">从桌面移除</button>'
     +'<div class="actions"><button class="cancel" data-act="sheet-close">取消</button></div>');
 }
@@ -9835,13 +9942,87 @@ function musSpaceHtml(){
    +  '<button class="lsn-bgbtn" data-mus="bg-sheet">换壁纸</button>'
    +'</div>';
 }
-/** 壁纸直接铺在这块空间上：不压暗、不改色（渐变走 background，图片走 background-image+cover） */
+/** 壁纸直接铺在这块空间上：不压暗、不改色（渐变走 background，图片走 background-image+cover）
+    ★ 上传的壁纸是 zika-media:// 短引用，要异步换成 blob: 地址。
+      以前这里第一次取到的是空串 → 写成 url('') → 浏览器忽略 → **整块空间变成透明**，
+      于是聊天室直接透出来（用户截图里"一起听跑到聊天室里去了"就是这个）。
+      现在：取不到就先铺一层兜底渐变，绝不留透明；每次重画都会再试一次，图好了立刻换上。 */
 function musSpaceBgApply(el){
   if(!el||!el.style)return;
   try{
+    var m=musState();
     var v=String(musSessBgStyle());
-    if(v.indexOf('url(')===0){el.style.backgroundImage=v;el.style.backgroundSize='cover';el.style.backgroundPosition='center'}
-    else el.style.background=v;
+    var isImg=(v.indexOf('url(')===0);
+    if(isImg){
+      /* ★ 别写成 /^['"]|['"]$/ 这种正则：引号混在正则里会把括号配平检查的词法器带偏 */
+      var inner=v.slice(4,-1);
+      if(inner.charAt(0)==='"'||inner.charAt(0)==="'")inner=inner.slice(1,-1);
+      /* 图没解析好、或者图已经彻底没了（iOS 清过数据）→ 都退回兜底渐变，
+         绝不留透明背景，也绝不把那张 1×1 透明像素当成壁纸。 */
+      var _dead=false;
+      try{ _dead=(typeof mediaDead==='function')&&mediaDead(m.bg) }catch(e0){}
+      if(!inner||_dead||inner===TINY_PX){          /* 图还没好：先用兜底渐变顶上 */
+        el.style.backgroundImage='';
+        el.style.background=MUS_BGS.mb1;
+        return;
+      }
+      el.style.background='';
+      el.style.backgroundImage=v;el.style.backgroundSize='cover';el.style.backgroundPosition='center';
+    }else{
+      el.style.backgroundImage='';
+      el.style.background=v;
+    }
+    musSpaceTone(el);
+  }catch(e){}
+}
+/* ---------- 壁纸明暗 → 文字深浅（浅色壁纸自动翻深色，深色壁纸完全不动） ---------- */
+var _lsnTone={};                                  /* 壁纸 key → 1 浅色 / 0 深色 */
+function lsnIsLightLum(lum){ return (typeof lum==='number'&&lum>0.6) }
+function lsnApplyTone(light){
+  try{
+    if(!_lsnEl||!_lsnEl.classList)return;
+    if(light)_lsnEl.classList.add('lsn-light');else _lsnEl.classList.remove('lsn-light');
+  }catch(e){}
+}
+function musSpaceTone(el){
+  try{
+    var m=musState(),key=String(m.bg||'mb1');
+    var t=_lsnTone[key];
+    if(t===undefined||t===null){
+      if(!m.bg||MUS_BGS[m.bg]){ _lsnTone[key]=0;t=0 }      /* 四个预设壁纸都是深色 */
+      else { _lsnTone[key]=null;musSpaceSampleBg(key);t=null }   /* 上传的图：去量一下亮度 */
+    }
+    if(t===null)t=0;                                   /* 还没量出来：先按深色（白字） */
+    lsnApplyTone(t===1);
+  }catch(e){}
+}
+/** 把上传的壁纸画到一块 24×24 画布上量平均亮度（取卡片所在的那块区域） */
+function musSpaceSampleBg(key){
+  try{
+    if(typeof Image==='undefined')return;
+    var m=musState();
+    var url=mediaUrlSync(m.bg);
+    if(!url)return;                                    /* 地址还没解析好，下一次重画再量 */
+    var img=new Image();
+    img.onload=function(){
+      var lum=0.5;
+      try{
+        var cv=document.createElement('canvas');cv.width=24;cv.height=24;
+        var ctx=cv.getContext&&cv.getContext('2d');
+        if(ctx){
+          var sw=Math.max(1,Math.round((img.width||24)*0.6)),sh=Math.max(1,Math.round((img.height||24)*0.5));
+          var sx=Math.max(0,Math.round((img.width||24)*0.2)),sy=Math.max(0,Math.round((img.height||24)*0.12));
+          ctx.drawImage(img,sx,sy,sw,sh,0,0,24,24);
+          var d=ctx.getImageData(0,0,24,24).data,i,n=0,s=0;
+          for(i=0;i<d.length;i+=4){s+=0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2];n++}
+          lum=n?s/n/255:0.5;
+        }
+      }catch(e){ lum=0.5 }
+      _lsnTone[key]=lsnIsLightLum(lum)?1:0;
+      try{if(_lsnEl)musSpacePaint(true)}catch(e){}
+    };
+    img.onerror=function(){ _lsnTone[key]=0 };
+    img.src=url;
   }catch(e){}
 }
 function musSpaceOpen(){
@@ -9865,6 +10046,9 @@ function musSpaceClose(){
 function musSpacePaint(force){
   if(!_lsnEl)return;
   try{
+    /* ★ 每次都重铺一次背景：壁纸地址是异步解析的，图好了最迟一秒内就能自己换上，
+       不用"退出一起听再进来"。同时也会重新判定明暗（浅底→深字）。 */
+    musSpaceBgApply(_lsnEl);
     var m=musState(),sg=musCur(),pr=musProgress();
     var sig=String(m.cur)+'|'+(sg?String(sg.id||sg.name||''):'')+'|'+musSessSaid().length+'|'+String(m.bg||'');
     if(force||sig!==_lsnSig||!_lsnEl.innerHTML){
