@@ -166,7 +166,6 @@ background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
 }
 /* 拖拽模式下的图标不要参与滚动，交给 JS 处理 */
 .app-grid.editing .app-item{touch-action:none}
-.widgets.editfree .widget.wfree{touch-action:none}
 /* App 图标层永远压在组件的上面：就算组件因为内容变高溢出一点点，
    也不会挡住图标的点击（点不开/拖不动就是这么来的） */
 .app-grid{position:relative;z-index:3}
@@ -575,7 +574,6 @@ background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
 .widget.w-note span{font-size:calc(12.5px*var(--fs));color:var(--sub)}
 .widget.w-note b{font-size:calc(15.5px*var(--fs));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .widget.w-music{display:flex!important;align-items:center;gap:10px;min-height:66px}
-.widget.w-music .wm-ic,.wfree .wm-ic{width:36px;height:36px;border-radius:13px;background:linear-gradient(150deg,#F9AEC2,#EE7BA4);flex-shrink:0;box-shadow:0 4px 12px rgba(242,143,176,.3)}
 .widget.w-music .wm-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.28}
 .widget.w-music .wm-tx b{font-size:calc(14px*var(--fs));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .widget.w-music .wm-tx span{font-size:calc(11px*var(--fs));color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1170,22 +1168,10 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
    这样长按拖动后可以停在任意位置（也自动适配不同屏幕宽度） */
 .widgets{position:relative}
 /* 组件尺寸：m 宽条(整行) / s 小方块(半宽) / l 大方块(整行加高) */
-.widgets .widget.wfree{position:absolute;margin:0;left:0;width:100%;box-sizing:border-box;cursor:grab;touch-action:none}
-.widgets .widget.wfree.wsz-s{width:46%;padding:11px 12px}
-.widgets .widget.wfree.wsz-s .w-big{font-size:calc(26px*var(--fs))}
-.widgets .widget.wfree.wsz-s .widget-inline{font-size:calc(12px*var(--fs))}
-.widgets .widget.wfree.wsz-l{width:100%;min-height:150px;padding:16px 16px 14px}
-.widgets .widget.wfree.wsz-l .w-big{font-size:calc(42px*var(--fs))}
-.widgets .widget.wfree.wsz-s .w-sub,.widgets .widget.wfree.wsz-s .widget-note-txt{display:none}
 
-.widgets.editfree .widget.wfree{animation:appjig .42s ease-in-out infinite}
 /* 小组件单列排布：宽度跟随容器，绝不影响聊天气泡等其它元素 */
-.widgets .widget.wfree{width:100%}
 /* 容器改成块级定位上下文：grid 会把撑高用的占位块塞进某一列，导致右侧留白、高度算错 */
 .widgets{display:block;padding-top:0}
-.widgets .wfree-spacer{display:block;width:100%;height:0}
-.widgets .wfree .widget-grip{position:absolute;right:7px;top:6px;width:14px;height:14px;opacity:.0;pointer-events:none;background:radial-gradient(currentColor 1.2px,transparent 1.3px);background-size:5px 5px;color:var(--sub)}
-.widgets.editfree .wfree .widget-grip{opacity:.55}
 #callOverlay.show.mini{inset:auto;top:calc(10px + env(safe-area-inset-top));left:10px;right:10px;height:auto;background:none;box-shadow:none;pointer-events:none}
 #callOverlay.show.mini .call-mini{pointer-events:auto;position:relative;background:linear-gradient(150deg,rgba(255,255,255,.9),rgba(255,238,244,.82));backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.95);box-shadow:0 10px 30px rgba(255,140,180,.3),inset 0 1px 0 rgba(255,255,255,.85);border-radius:20px;display:flex;flex-direction:row;align-items:center;gap:5px;padding:5px 8px;touch-action:none;cursor:grab;width:auto;max-width:calc(100vw - 20px);height:auto}
 #callOverlay.show.mini .call-mini .cm-av{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:var(--serif);font-size:calc(11px*var(--fs));font-weight:700;color:#fff;box-shadow:0 2px 8px rgba(80,60,40,.18)}
@@ -1938,7 +1924,9 @@ body.wlt-mode #view{background:#F2F2F3}
 #dropPh .drop-ph-item .widget{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;height:auto!important;padding:0!important}
 #dragGhost.app-ghost{opacity:1;filter:drop-shadow(0 18px 26px rgba(120,70,90,.34))}
 .app-item.app-land,.hg-widget.app-land{animation:appland .34s cubic-bezier(.34,1.4,.6,1)}
-</style>
+/* fill the page: the blank area under the icons becomes droppable cells */
+.home-page{display:flex;flex-direction:column}
+.home-grid{flex:1 1 auto}</style>
 </head>
 <body>
 <div id="app">
@@ -3915,7 +3903,7 @@ function homeCellHtml(p,r,c,v){
    · 行高统一 GRID_ROW_H；页面行数按内容自然增长 */
 function gridPitchY(){return GRID_ROW_H+GRID_GAP_Y}
 function gridSpanOf(k){
-  if(k==='feed'||k==='photo')return {w:4,h:2};
+  if(k==='feed'||k==='photo'||k==='music')return {w:4,h:2};
   var sz=(state.widgetSize&&state.widgetSize[k])||'m';
   if(sz==='s')return {w:2,h:1};
   if(sz==='l')return {w:4,h:2};
@@ -4043,10 +4031,10 @@ function gridOccupied(lay,p,r,c,w,h,ignore){
   }
   return false;
 }
-function gridCanPlace(lay,p,r,c,w,h,ignore){
+function gridCanPlace(lay,p,r,c,w,h,ignore,maxRows){
   if(!lay||r<0||c<0||c+w>GRID_COLS)return false;
-  var maxRows=Math.max(GRID_MIN_ROWS,lay.rows[p]||0);
-  if(r+h>maxRows+1)return false;
+  var mr=maxRows||Math.max(GRID_MIN_ROWS,lay.rows[p]||0);
+  if(r+h>mr+1)return false;
   return !gridOccupied(lay,p,r,c,w,h,ignore);
 }
 function gridCellStyle(c,r,w,h){return 'grid-column:'+(c+1)+'/span '+w+';grid-row:'+(r+1)+'/span '+h}
@@ -4242,16 +4230,7 @@ function appItemHtml(a,extra){
 /* ===== 小组件：自由摆放 ===== */
 var WIDGET_MINH={clock:62,days:62,weather:74,photo:150,count:70,progress:96,music:66,note:62,feed:186};
 /* 手动摆过的位置：x 是百分比、y 是像素，两个都保留 */
-function widgetPos(wv,idx){
-  var p=(state.widgetPos||{})[wv];
-  if(p&&typeof p.y==='number')return {x:(typeof p.x==='number'?p.x:0),y:Math.max(0,p.y)};
-  return null;
-}
 /* 这个组件是不是被手动摆过 */
-function widgetHasPos(k){
-  var p=(state.widgetPos||{})[k];
-  return !!(p&&typeof p.y==='number');
-}
 /* 手动摆过的组件最远伸到哪（用来撑容器高度） */
 function widgetManualBottom(keys){
   var m=0;
@@ -4286,23 +4265,6 @@ function widgetAreaSetSig(keys){
   var a=[];
   for(var i=0;i<keys.length;i++)a.push(keys[i]+':'+widgetSizeOf(keys[i]));
   return a.join(',');
-}
-function widgetAreaHeight(keys,measure){
-  var sig=widgetAreaSetSig(keys);
-  if(state.widgetAreaSig!==sig){
-    state.widgetAreaSig=sig;
-    state.widgetAreaH=0;                 /* 组件集合变了 → 允许重新算 */
-  }
-  var pure=0;
-  try{
-    _ignoreManualRects=true;
-    pure=Math.max(0,Math.round(widgetWalk(keys,measure||widgetEstH).height));
-  }catch(e){ pure=0 }
-  finally{ _ignoreManualRects=false; }
-  var stored=Number(state.widgetAreaH)||0;
-  var h=Math.max(stored,pure);
-  if(h!==stored)state.widgetAreaH=h;
-  return h;
 }
 /* 算"组件区应该多高"的时候，必须忽略手动摆放的位置：
    否则自动排布会去避开你手动挪下去的组件，把其他组件往下挤，
@@ -4483,45 +4445,8 @@ function widgetPageOf(k){
 }
 function widgetPageName(v){return (v===2?'第三页':(v===1?'第二页':'第一页'))}
 function widgetPageLabel(k){return widgetPageName(widgetPageOf(k))}
-function widgetGridInner(wdo,wds,wk,d,page){
-  page=widgetPageClamp(page);
-  var keys=[],i;
-  for(i=0;i<wdo.length;i++){
-    var k=wdo[i];
-    if(widgetPageOf(k)!==page)continue;
-    if(wds[k]===false)continue;
-    if(k==='feed'&&page!==0)continue;
-    keys.push(k);
-  }
-  if(page===0&&wds.feed!==false&&keys.indexOf('feed')<0)keys.push('feed');
-  var walk=widgetWalk(keys,widgetEstH);
-  var out='';
-  for(i=0;i<keys.length;i++){
-    var wv=keys[i];
-    var p=widgetPos(wv,i)||walk.pos[wv]||{x:0,y:0};
-    var attr=(wv==='feed'?'':'data-wkey="'+wv+'" ');
-    var sz=widgetSizeOf(wv);
-    var st='left:'+p.x+'%;top:'+p.y+'px;';
-    var _hasWbg=!!(state.widgetImgs&&state.widgetImgs[wv])&&!mediaDead(state.widgetImgs[wv]);   /* ★ 底图失效就不用它 */
-    /* 底图通过 CSS 变量交给样式表（样式表那边是 !important，直接写 background-image 会被压掉） */
-    if(_hasWbg)st+="--wbg:url('"+mediaUrlSync(state.widgetImgs[wv])+"');";
-    out+='<div class="widget wfree w-'+wv+' wsz-'+sz+(_hasWbg?' haswbg':'')+'" '+attr+'style="'+st+'"><span class="widget-grip"></span>'+widgetInnerHtml(wv,wk,d)+'</div>';
-  }
-  /* 高度直接写进去，不等 rAF —— 否则刚打开的一瞬间容器是 0 高，组件会压到 App 图标上 */
-  /* 首屏高度同样只按"纯自动排布"算，别把手动位置算进来（否则一进首页就偏长） */
-  var _hTotal=widgetAreaHeight(keys,widgetEstH);
-  out+='<div class="wfree-spacer" style="height:'+_hTotal+'px"></div>';
-  return out;
-}
 /** 组件是绝对定位的，渲染后按实际高度重新码放，确保谁也不压谁 */
 var _fitRaf=null;
-function fitWidgetGrid(){
-  if(_fitRaf)return;
-  _fitRaf=requestAnimationFrame(function(){
-    _fitRaf=null;
-    fitWidgetGridNow();
-  });
-}
 /** ★ 所有"能摆组件"的页面容器 id。
     以前这里（排版 fit、尺寸监听、拖拽绑定）都写死成 widgetGrid0 / widgetGrid1，
     于是**第三页的组件完全没绑上拖拽** —— 长按没反应就是这个原因（用户报的）。
@@ -4530,85 +4455,6 @@ function widgetGridIds(){
   var n=(typeof WIDGET_PAGE_MAX==='number')?WIDGET_PAGE_MAX:2,out=[];
   for(var i=0;i<=n;i++)out.push('widgetGrid'+i);
   return out;
-}
-function fitWidgetGridNow(){ if(true)return; /* merged grid: no reflow pass */
-  var ids=widgetGridIds();
-  for(var g=0;g<ids.length;g++){
-    var grid=document.getElementById(ids[g]);
-    if(!grid)continue;
-    var els=grid.querySelectorAll('.widget');
-    var sp=grid.querySelector('.wfree-spacer');
-    if(!els.length){ if(sp&&sp.style.height!=='0px')sp.style.height='0px'; continue; }
-    /* 先量真实高度（量不到就用估计值） */
-    var keys=[],real={},i;
-    for(i=0;i<els.length;i++){
-      var el=els[i];
-      var k=wKeyOf(el);
-      keys.push(k);
-      var h=el.offsetHeight;
-      real[k]=(h&&h>=20)?h:widgetEstH(k);
-    }
-    var walk=widgetWalk(keys,function(k){return real[k]||widgetEstH(k)});
-    /* 只自动摆"没被手动放过的"，手动放过的保持原地 */
-    for(i=0;i<els.length;i++){
-      var el2=els[i];
-      var k2=wKeyOf(el2);
-      if(widgetHasPos(k2))continue;
-      var p=walk.pos[k2];
-      if(!p)continue;
-      var top=p.y+'px';
-      if(el2.style.top!==top)el2.style.top=top;
-      var left=p.x+'%';
-      if(el2.style.left!==left)el2.style.left=left;
-    }
-    /* ===== 页面长度固定 =====
-       容器高度**只由自动排布决定**（walk.height），完全不看手动摆到哪儿。
-       以前这里是"所有组件含手动摆的的最下沿"，所以你每往下挪一次组件，
-       容器就被撑高一次，整个首页跟着变长。
-       现在手动摆放的组件一律被夹在这个固定区域内，挪多少次长度都不变；
-       只有"增删组件/换尺寸"这种真正改变内容的事才会让它变。 */
-    /* ★ 区域高度只按"纯自动排布"算，完全不看手动位置。
-       自动摆放那些没手动放过的组件时，仍然会避开你手动放的，
-       但那是"摆的位置"，不该影响"区域有多高"。 */
-    var areaH=widgetAreaHeight(keys,function(k){return real[k]||widgetEstH(k)});
-    var gr=grid.getBoundingClientRect();
-    /* 把手动摆放的组件夹回区域内（超出下边缘就顶回去），并把夹过的位置记下来 */
-    var clamped=false;
-    for(i=0;i<els.length;i++){
-      var el3=els[i];
-      var k3=wKeyOf(el3);
-      if(!widgetHasPos(k3))continue;
-      var h3=el3.offsetHeight||0;
-      if(!h3||h3<20)h3=widgetEstH(k3);
-      var y3=parseFloat(el3.style.top)||0;
-      var maxY3=Math.max(0,areaH-h3);
-      if(y3>maxY3){
-        el3.style.top=maxY3+'px';
-        if(state.widgetPos&&state.widgetPos[k3]){
-          state.widgetPos[k3].y=Math.round(maxY3);
-          clamped=true;
-        }
-      }
-      /* 横向也保证不出界 */
-      var w3=el3.offsetWidth||0;
-      if(gr.width&&el3.offsetWidth>gr.width)el3.style.left='0%';
-    }
-    if(clamped)try{save()}catch(e){}
-    var want=areaH+'px';
-    if(sp&&sp.style.height!==want)sp.style.height=want;
-  }
-}
-function wKeyOf(el){
-  if(!el)return null;
-  var k=el.getAttribute&&el.getAttribute('data-wkey');
-  if(k)return k;
-  var cls=(el.className||'')+'';
-  if(cls.indexOf('w-music')>-1)return 'music';
-  if(cls.indexOf('w-note')>-1)return 'note';
-  if(cls.indexOf('w-days')>-1)return 'days';
-  if(cls.indexOf('w-time')>-1||cls.indexOf('w-clock')>-1)return 'clock';
-  if(cls.indexOf('w-feed')>-1)return 'feed';
-  return null;
 }
 
 
@@ -10462,155 +10308,7 @@ function widgetResetOne(k){
 /* 组件高度会变（动态条数、图片/字体加载完），用 ResizeObserver 盯着，
    一变就重新算容器高度 —— 这样容器永远盖得住组件，不会压到下面的 App 图标 */
 var _wdRO=null;
-function widgetObserve(){
-  if(typeof ResizeObserver==='undefined')return;
-  if(_wdRO){try{_wdRO.disconnect()}catch(e){}}
-  try{
-    _wdRO=new ResizeObserver(function(){fitWidgetGrid()});
-  }catch(e){return}
-  var ids=widgetGridIds();
-  for(var g=0;g<ids.length;g++){
-    var grid=document.getElementById(ids[g]);
-    if(!grid)continue;
-    var ws=grid.querySelectorAll('.widget');
-    for(var i=0;i<ws.length;i++)try{_wdRO.observe(ws[i])}catch(e){}
-  }
-}
 function initWidgetDrag(){ /* merged grid: widget drag is handled by initDrag() */ }
-function initOneWidgetDrag(grid){
-  if(!grid)return;
-  var drag=null,timer=null,ghost=null,startX=0,startY=0,offX=0,offY=0,manageTimer=null,movedFlag=0;
-  var lastX=null,lastY=null,pendingX=null,pendingY=null;
-  function findW(t){var el=t;while(el&&el!==grid&&!el.classList.contains('widget'))el=el.parentNode;return el===grid?null:el}
-  function clampN(v,a,b){return Math.max(a,Math.min(b,v))}
-  function begin(x,y,target){
-    var el=findW(target);
-    if(!el||!el.classList.contains('wfree'))return;
-    if(target&&target.closest&&target.closest('.wm-btn'))return;
-    startX=x;startY=y;
-    pendingX=null;pendingY=null;lastX=null;lastY=null;movedFlag=0;
-    timer=setTimeout(function(){
-      if(!el.parentNode)return;
-      drag=el;
-      var r=el.getBoundingClientRect();
-      /* 真人往往是"按下就走"，长按这 350ms 里手指已经移动过了。
-         所以要拿"手指现在的位置"当抓取点，否则幽灵会先跳一下，
-         而且 movedFlag / 落点都还是空的，松手就只能读回组件原位。 */
-      /* 抓取点必须用"手指最初按下的位置"，这样落点才等于 原始位置 + 手指位移。
-         （如果改成用手指当前位置当抓取点，落点会正好抵消回原位 —— 别那么写） */
-      offX=x-r.left;offY=y-r.top;
-      var ax=(pendingX!=null?pendingX:x), ay=(pendingY!=null?pendingY:y);
-      if(Math.abs(ax-startX)+Math.abs(ay-startY)>10){movedFlag=1;lastX=ax;lastY=ay}
-      el.classList.add('dragging');
-      grid.classList.add('editfree');
-      ghost=el.cloneNode(true);
-      ghost.id='dragGhost';
-      ghost.className='widget';
-      ghost.style.width=r.width+'px';
-      ghost.style.height=r.height+'px';
-      ghost.style.left='0';ghost.style.top='0';
-      ghost.style.transform='translate3d('+r.left+'px,'+r.top+'px,0)';
-      document.body.appendChild(ghost);
-      if(pendingX!=null)ghost.style.transform='translate3d('+(pendingX-offX)+'px,'+(pendingY-offY)+'px,0)';
-      try{if(navigator.vibrate)navigator.vibrate(12)}catch(e){}
-      /* 继续按住不放（不移动）= 打开这张组件的管理面板 */
-      manageTimer=setTimeout(function(){
-        if(drag&&!movedFlag){cancelDrag();var kk=wKeyOf(el);if(kk)sheetWidget(kk)}
-      },900);
-    },350);
-  }
-  var rafW=null;
-  function cancelDrag(){
-    if(manageTimer){clearTimeout(manageTimer);manageTimer=null}
-    if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
-    ghost=null;
-    if(drag)drag.classList.remove('dragging');
-    var g=document.getElementById('widgetGrid0')||document.getElementById('widgetGrid1');
-    if(g)g.classList.remove('editfree');
-    drag=null;
-  }
-  function move(x,y){
-    /* 先无条件记住手指位置：长按可能还没生效，
-       但这段位移必须留着，不然长按一生效就丢了 */
-    pendingX=x;pendingY=y;
-    if(!drag)return;
-    if(Math.abs(x-startX)+Math.abs(y-startY)>10)movedFlag=1;
-    lastX=x;lastY=y;                 /* 记住最后落点 —— 真实元素全程不动，只有 ghost 跟手 */
-    if(rafW)return;
-    rafW=requestAnimationFrame(function(){
-      rafW=null;
-      if(ghost)ghost.style.transform='translate3d('+(x-offX)+'px,'+(y-offY)+'px,0)';
-    });
-  }
-  function end(){
-    if(timer){clearTimeout(timer);timer=null}
-    if(manageTimer){clearTimeout(manageTimer);manageTimer=null}
-    var didMove=movedFlag;      /* 先留住，清零要放到后面用完之后 */
-    movedFlag=0;
-    if(!drag)return;
-    var el=drag;
-    el.classList.remove('dragging');
-    grid.classList.remove('editfree');
-    if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
-    ghost=null;
-    var k=wKeyOf(el);
-    if(k){
-      var gr=grid.getBoundingClientRect();
-      var r=el.getBoundingClientRect();
-      var w=el.offsetWidth||1;
-      var h=el.offsetHeight||1;
-      var maxX=Math.max(0,gr.width-w);
-      /* 关键：纵向也限制在"当前组件区"里面。
-         不限制的话，把组件往下拖会把容器撑高，下面的 App 图标整片被挤到屏幕外，
-         看起来就像"图标点不开了"。 */
-      var maxY=Math.max(0,gr.height-h);
-      /* 真正落下的是 ghost 的位置：ghost 左上角 = (手指 - 抓取偏移)。
-         以前这里读的是元素自身的 rect —— 而元素全程没动过，
-         所以无论拖到哪都会算回原位（"拖完又弹回去"就是这个原因）。 */
-      var dropL,dropT;
-      if(lastX!=null&&lastY!=null){
-        dropL=lastX-offX;
-        dropT=lastY-offY;
-      }else{
-        dropL=r.left;dropT=r.top;
-      }
-      /* 吸附到 8px 网格，落点整齐（参考站 DESKTOP_GRID_SIZE=8） */
-      var GRID=8;
-      var snapN=function(v){return Math.round(v/GRID)*GRID};
-      var px=clampN(snapN(dropL-gr.left),0,maxX);
-      var py=clampN(snapN(dropT-gr.top),0,maxY);
-      el.style.left=(gr.width?(px/gr.width*100):0)+'%';
-      el.style.top=py+'px';
-      state.widgetPos=state.widgetPos||{};
-      state.widgetPos[k]={x:Math.round(gr.width?(px/gr.width*1000):0)/10,y:Math.round(py)};
-      save();
-      fitWidgetGrid();
-    }
-    drag=null;
-    lastX=null;lastY=null;pendingX=null;pendingY=null;
-  }
-  grid.addEventListener('touchstart',function(e){var t=e.touches[0];if(t)begin(t.clientX,t.clientY,e.target)},{passive:true});
-  grid.addEventListener('touchmove',function(e){
-    var t=e.touches[0];
-    if(t){
-      /* ★ 长按还没生效就滑动了 → 判定为"误触/滑动"，取消长按，组件不许移位。
-         用户要的是"长按才拖拽"：手指按住不动够久才进入拖拽，
-         碰到就走、轻轻一划都不能把组件挪走。 */
-      if(timer&&(Math.abs(t.clientX-startX)+Math.abs(t.clientY-startY)>10)){
-        clearTimeout(timer);timer=null;
-      }
-      move(t.clientX,t.clientY);
-    }
-    if(drag)e.preventDefault();
-  },{passive:false});
-  grid.addEventListener('touchend',function(){end()});
-  grid.addEventListener('touchcancel',function(){end()});
-  grid.addEventListener('mousedown',function(e){begin(e.clientX,e.clientY,e.target);e.preventDefault()});
-  document.addEventListener('mousemove',function(e){if(drag){move(e.clientX,e.clientY);e.preventDefault()}});
-  document.addEventListener('mouseup',function(){end()});
-  var _rzT=null;
-  window.addEventListener('resize',function(){if(_rzT)clearTimeout(_rzT);_rzT=setTimeout(fitWidgetGrid,180)});
-}
 (function(){
   document.addEventListener('change',function(e){
     var t=e.target;
@@ -11950,7 +11648,8 @@ function gridTargetFromPoint(lay,x,y,w,h,ignore){
   var c=Math.floor(rx/pitchX),r=Math.floor(ry/pitchY);
   if(c<0)c=0; if(r<0)r=0;
   if(c+w>GRID_COLS)c=GRID_COLS-w;
-  var ok=gridCanPlace(lay,p,r,c,w,h,ignore);
+  var rowsInView=Math.max(GRID_MIN_ROWS,Math.floor((rect.height+GRID_GAP_Y)/(GRID_ROW_H+GRID_GAP_Y)));
+  var ok=gridCanPlace(lay,p,r,c,w,h,ignore,rowsInView);
   return {p:p,r:r,c:c,w:w,h:h,ok:ok,
     l:rect.left+c*pitchX,t:rect.top+r*pitchY,
     cw:w*cellW+(w-1)*GRID_GAP_X,ch:h*GRID_ROW_H+(h-1)*GRID_GAP_Y};
