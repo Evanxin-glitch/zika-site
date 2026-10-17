@@ -4292,14 +4292,14 @@ function renderRead() {
 
 /* ================= 阅读数据：单独导出 / 导入 =================
    阅读器（iframe）自己的存储：localStorage['draft-reading-state-v1'] 存进度/批注/书摘，
-   IndexedDB['draft-reading-v1'].books 存书本体。这里直接读写这两处（同源，不用进 iframe），
+   IndexedDB['zika-read-books'].books 存书本体。这里直接读写这两处（同源，不用进 iframe），
    所以"换手机"只要导出这一个 json。 */
-function rdStateKey(){ return 'draft-reading-state-v1' }
+function rdStateKey(){ return 'zika-read-state-v1' }
 function rdReadState() { try { return JSON.parse(localStorage.getItem(rdStateKey()) || 'null') } catch (e) { return null } }
 function rdOpenDB() {
   return new Promise(function (res) {
     var r;
-    try { r = indexedDB.open('draft-reading-v1', 1) } catch (e) { return res(null) }
+    try { r = indexedDB.open('zika-read-books', 1) } catch (e) { return res(null) }
     r.onupgradeneeded = function () { var d = r.result; if (!d.objectStoreNames.contains('books')) d.createObjectStore('books', { keyPath: 'id' }) };
     r.onsuccess = function () { res(r.result) };
     r.onerror = function () { res(null) };
