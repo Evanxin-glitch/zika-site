@@ -1878,6 +1878,26 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .wlt-note{font-size:11.5px;color:#8A8A8E;text-align:center;margin-top:12px;line-height:1.7}
 /* ★ iOS 长按图标会弹"文本选择/放大镜"菜单，把手势抢走 → 桌面图标和组件上禁掉 */
 .app-item,.widget,.wd-add{-webkit-touch-callout:none!important;-webkit-user-select:none!important;user-select:none!important}
+/* ============================================================
+   ★ 适配兜底（公布后别人的手机五花八门，这三块是已知会退化的地方）
+   ============================================================ */
+/* ① 不支持 :has() 的浏览器：用 body 上的 class 顶上去（等价规则） */
+body.chat-mode #view{display:flex;flex-direction:column;height:100dvh;max-height:100dvh;overflow:hidden;
+  overscroll-behavior:none;padding-bottom:0!important}
+body.wlt-mode #view{background:#F2F2F3}
+/* ② 不支持 dvh 的老浏览器：退回 vh，至少不会塌成一条 */
+@supports not (height:100dvh){
+  #app,#view{min-height:100vh}
+  body.chat-mode #view{height:100vh;max-height:100vh}
+  .sheet{max-height:88vh}
+}
+/* ③ 不支持毛玻璃（老安卓、部分微信内核）：玻璃变实色，别糊成一片看不清 */
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  .card,.sheet,.gift-c,.wdlib-item,.wlt-row,.chat-input,.page-top .ic,.back{
+    background:rgba(255,253,251,.96)!important;
+    backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .lsn-space .card2{background:rgba(56,38,58,.74)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+}
 .tp-quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .tp-quick .tp-q{min-height:34px!important;padding:0 14px!important;border-radius:11px!important;font-size:13px!important}
 </style>
@@ -3598,6 +3618,13 @@ function goView(v,force){
 function render(v){
   var _inSnap=inputSnapshot();   /* ★ 其它页面同理：重绘不打断正在输入的内容 */
   v=v||location.hash.replace('#','')||'home';
+  /* ★ 适配：老浏览器（Safari<15.4、部分微信内核）不支持 CSS 的 :has()，
+     以前聊天页的高度/滚动、钱包的灰底都靠 :has() 撑着 → 那些机器上会退化。
+     这里在 body 上打个 class，样式表里有一份等价的 class 版本兜底。 */
+  try{
+    document.body.classList.toggle('chat-mode',v==='chat');
+    document.body.classList.toggle('wlt-mode',v==='wallet');
+  }catch(e){}
   if(v==='home')renderHome();
   else if(v==='profile')renderProfile();
   else if(v==='chat')renderChat();
@@ -9543,6 +9570,36 @@ function sheetStats(){
 /* 启动时应用字体缩放 */
 applyFontScale();
 
+/* ============================================================
+   ★ 全局出错兜底（公布给很多人之后，最怕"白屏 + 用户不知道怎么办"）
+   做法：任何未捕获的错误 → 底部弹一条能看懂的横幅，带「导出备份」按钮。
+   不吞错（控制台照样报），只是让用户有路可走。
+   ============================================================ */
+(function(){
+  var shown=false;
+  function banner(msg){
+    if(shown)return; shown=true;
+    try{
+      var b=document.createElement('div');
+      b.id='__errBar';
+      b.style.cssText='position:fixed;left:10px;right:10px;bottom:14px;z-index:99999;'+
+        'background:#3A2E33;color:#fff;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.6;'+
+        'box-shadow:0 10px 30px rgba(0,0,0,.35)';
+      b.innerHTML='<b>出错了</b>：'+String(msg||'未知问题').slice(0,120)+
+        '<div style="margin-top:8px;display:flex;gap:8px"><button id="__errBk" style="flex:1;min-height:34px;border-radius:10px;background:#fff;color:#3A2E33;font-weight:700">先导出备份</button>'+
+        '<button id="__errX" style="flex:0 0 auto;min-height:34px;padding:0 14px;border-radius:10px;background:rgba(255,255,255,.2);color:#fff">关掉</button></div>';
+      document.body.appendChild(b);
+      var bk=document.getElementById('__errBk'),xx=document.getElementById('__errX');
+      if(bk)bk.onclick=function(){ try{ if(typeof exportBackup==='function')exportBackup(); else location.reload() }catch(e){ location.reload() } };
+      if(xx)xx.onclick=function(){ try{b.remove()}catch(e){} shown=false };
+    }catch(e){}
+  }
+  try{ window.addEventListener('error',function(e){ banner((e&&e.message)||'脚本错误') }); }catch(e){}
+  try{ window.addEventListener('unhandledrejection',function(e){
+    var r=e&&e.reason; banner((r&&(r.message||r))||'异步错误');
+  }); }catch(e){}
+})();
+
 /* ===== 潮汐系统 ===== */
 function tideInfo(){
   var t=state.tide||{};
@@ -11367,7 +11424,10 @@ function initDrag(){
 function bindAppDrag(grid,allGrids){
   var drag=null,timer=null,ghost=null,startX=0,startY=0;
   var edgeDir=0,edgeSince=0;
-  var EDGE_PX=42,HOLD_MS=280;
+  /* ★ 跨页拖拽：把图标拖到屏幕左/右边缘停住一会儿就自动翻页搬过去。
+     以前热区只有 42px —— 手机上很不好对准，iOS 左侧还有"返回手势"会抢；
+     现在热区按屏宽算（约 18%，至少 64px），停留时间也缩短一点，好操作很多。 */
+  var EDGE_PX=Math.max(64,Math.round((window.innerWidth||360)*0.18)),HOLD_MS=260;
   function findApp(t){var el=t;while(el&&el!==grid&&!el.classList.contains('app-item'))el=el.parentNode;return el===grid?null:el}
   function pageOf(g){return parseInt(g.getAttribute('data-page'),10)||0}
   function scrollToPage(n){
@@ -11406,9 +11466,30 @@ function bindAppDrag(grid,allGrids){
       ghost.style.height=el.offsetHeight+'px';
       ghost.style.transform='translate3d('+(x-el.offsetWidth/2)+'px,'+(y-el.offsetHeight/2)+'px,0)';
       document.body.appendChild(ghost);
+      /* ★ 拖起来之后自己跑一个定时器查"是否停在边缘" —— 不依赖手指继续移动 */
+      lastX=x;lastY=y;
+      if(edgeLoop)clearInterval(edgeLoop);
+      edgeLoop=setInterval(checkEdge,90);
     },380);
   }
-  var rafT=null;
+  var rafT=null,lastX=0,lastY=0,edgeLoop=null;
+  /* ★ 跨页搬运的"边缘停留"检查必须**自己跑**，不能只靠 touchmove。
+     以前这段写在 requestAnimationFrame 里、只有在 move() 被调用时才续帧 —— 
+     你手指停住不动 → 不再触发 touchmove → 检查停了 → 永远翻不了页（用户报的"跨页拖不过去"）。
+     现在拖起来之后起一个 90ms 的定时器，只看最后一次位置。 */
+  function checkEdge(){
+    if(!drag||!ghost)return;
+    var cur=pageOf(grid),dir=0;
+    if(lastX<=EDGE_PX&&cur>0)dir=-1;
+    else if(lastX>=(window.innerWidth-EDGE_PX)&&cur<allGrids.length-1)dir=1;
+    if(dir===0){edgeDir=0;edgeSince=0;return}
+    var nowT=Date.now();
+    if(dir!==edgeDir){edgeDir=dir;edgeSince=nowT;return}
+    if(nowT-edgeSince>=HOLD_MS){
+      var tgt=allGrids[cur+dir];
+      if(tgt){detachTo(tgt);edgeDir=0;edgeSince=0}
+    }
+  }
   /** 换位：必须"立刻"做。以前放在 requestAnimationFrame 里，
       手指松得比下一帧快时这一帧还没跑，换位就丢了 ——
       表现就是"能拖动，但放不到新位置"。 */
@@ -11432,29 +11513,18 @@ function bindAppDrag(grid,allGrids){
     /* ★ 长按判定放宽：以前手指抖 12px 就取消长按，在第三页（手刚滑过去还在动）更容易误判 */
     if(timer&&Math.abs(x-startX)+Math.abs(y-startY)>20){clearTimeout(timer);timer=null}
     if(!drag)return;
+    lastX=x;lastY=y;                   /* 记下最后位置，边缘停留的检查（checkEdge）要用 */
     reorder(x,y);                     /* 同步换位，不等下一帧 */
     if(rafT)return;
     rafT=requestAnimationFrame(function(){
       rafT=null;
       if(ghost)ghost.style.transform='translate3d('+(x-ghost.offsetWidth/2)+'px,'+(y-ghost.offsetHeight/2)+'px,0)';
-      /* 拖到屏幕左右边缘停留一会儿 => 翻页搬运 */
-      var cur=pageOf(grid);
-      var dir=0;
-      if(x<=EDGE_PX&&cur>0)dir=-1;
-      else if(x>=(window.innerWidth-EDGE_PX)&&cur<allGrids.length-1)dir=1;
-      if(dir===0){edgeDir=0;edgeSince=0}
-      else{
-        var nowT=Date.now();
-        if(dir!==edgeDir){edgeDir=dir;edgeSince=nowT}
-        else if(nowT-edgeSince>=HOLD_MS){
-          var tgt=allGrids[cur+dir];
-          if(tgt){detachTo(tgt);edgeSince=nowT}
-        }
-      }
+      /* 边缘翻页的判断挪到 checkEdge()（自己跑的定时器），不再依赖这里 —— 手指停住也能翻 */
     });
   }
   function end(){
     if(timer){clearTimeout(timer);timer=null}
+    if(edgeLoop){clearInterval(edgeLoop);edgeLoop=null}
     edgeDir=0;edgeSince=0;
     if(!drag)return;
     drag.classList.remove('dragging');
