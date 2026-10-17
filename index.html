@@ -565,7 +565,7 @@ background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
 }
 .widget.w-time b{letter-spacing:.5px}
 /* 组件内部排版压紧：每一类都排成一行高度，避免占两层 */
-.widget.w-time,.widget.w-clock{display:flex!important;flex-direction:row!important;align-items:baseline;gap:9px;min-height:62px;grid-column:auto!important}
+.widget.w-time,.widget.w-clock{display:flex!important;flex-direction:row!important;align-items:baseline;gap:9px;min-height:0}
 .widget.w-time b,.widget.w-clock b{font-size:calc(30px*var(--fs));line-height:1.1;font-variant-numeric:tabular-nums}
 .widget.w-time span,.widget.w-clock span{font-size:calc(12.5px*var(--fs));color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .widget.w-days{display:flex!important;flex-direction:row!important;align-items:baseline;gap:8px;min-height:62px}
@@ -1921,6 +1921,23 @@ body.wlt-mode #view{background:#F2F2F3}
 /* 松手一小下"落位"回弹 */
 @keyframes appland{0%{transform:scale(1.16)}55%{transform:scale(.955)}100%{transform:scale(1)}}
 .app-item.app-land{animation:appland .34s cubic-bezier(.34,1.4,.6,1)}
+/* ===== 合并网格（图标 + 组件共用一张 4 列网格）===== */
+.home-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:96px;column-gap:8px;row-gap:12px;position:relative;margin-top:6px}
+.home-grid>.app-item{height:100%;justify-content:center;padding:4px 4px 2px;gap:6px}
+.home-grid>.hg-widget{height:100%;min-height:0;box-sizing:border-box;padding:12px 14px;overflow:hidden;display:flex;flex-direction:column;justify-content:center}
+.home-grid>.hg-widget.wsz-s{padding:10px 11px}
+.home-grid>.hg-widget .widget-grip{display:none}
+.home-grid>.hg-card{height:100%;min-height:0!important;box-sizing:border-box}
+.home-grid>.hg-card .sc-avwrap{top:46px;width:58px;height:58px}
+.home-grid>.hg-card .sc-body{padding:112px 16px 14px!important}
+.home-pages.home-dragging{scroll-snap-type:none!important}
+#dropPh{position:fixed;left:0;top:0;z-index:998;pointer-events:none;transition:none;will-change:transform}
+#dropPh .drop-ph-item{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;border-radius:22px;border:1.6px dashed rgba(236,132,168,.9);background:rgba(255,255,255,.28);opacity:.6}
+#dropPh.bad .drop-ph-item{border-color:rgba(198,150,150,.8);opacity:.32;background:rgba(255,240,240,.25)}
+#dropPh .drop-ph-item .app-icon{opacity:.5}
+#dropPh .drop-ph-item .widget{background:none!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;height:auto!important;padding:0!important}
+#dragGhost.app-ghost{opacity:1;filter:drop-shadow(0 18px 26px rgba(120,70,90,.34))}
+.app-item.app-land,.hg-widget.app-land{animation:appland .34s cubic-bezier(.34,1.4,.6,1)}
 </style>
 </head>
 <body>
@@ -2099,6 +2116,7 @@ function defaultState(){
    load() 在脚本还没跑到后面的代码时就会调 migrate，那时候更靠后的 var 还是 undefined
    （老代码里有一条注释也踩过同样的坑）。 */
 var HOME_COLS=4,HOME_ROWS=5,HOME_CELLS=20,HOME_LEGACY_PER=6;
+var GRID_COLS=4,GRID_ROW_H=96,GRID_GAP_X=8,GRID_GAP_Y=12,GRID_MIN_ROWS=5;
 function migrate(s){
   if(!Array.isArray(s.surveys))s.surveys=[];   /* 问卷 */
   try{ if(typeof syncAppOrder==='function')syncAppOrder() }catch(e){}   /* ★ 补齐新加的 App 图标 */
@@ -2114,18 +2132,31 @@ function migrate(s){
      来源很现实：别人乱改、导入别人的备份、写入被截断、老版本字段类型不同。
      这里统一处理：数组只留对象元素，对象类字段不是对象就换成干净对象。 */
   var _ARR=['messages','cards','bearCards','letters','transfers','surveys','pollLog','stickers','statusCards',
-            'moodCards','patCards','diaryCards','writerCards','checkinPresets','savedMsgs','dailyPosts',
+            'moodCards','patCards','diaryCards','writerCards','savedMsgs','dailyPosts',
             'mySaves','posts','polls','songs','tarotLog','letters2'];
   for(var _ai=0;_ai<_ARR.length;_ai++){
     var _ak=_ARR[_ai];
     if(!Array.isArray(s[_ak])){ if(s[_ak]!==undefined)s[_ak]=[]; continue }
     s[_ak]=s[_ak].filter(function(x){return x&&typeof x==='object'});
   }
+  /* ★ checkinPresets 是"字符串数组"，以前被混在"只留对象元素"的清洗名单里 →
+     每次开机都被洗空：于是「主动消息带查岗概率」永远不生效（他从不主动查岗），
+     你自己在设置里加的预设也会刷新后消失。现在单独按字符串清洗。 */
+  if(!Array.isArray(s.checkinPresets))s.checkinPresets=[];
+  else s.checkinPresets=s.checkinPresets.filter(function(x){return typeof x==='string'&&x.trim()})
+    .map(function(x){return x.trim()}).slice(0,50);
   function _obj(k,def){ if(!s[k]||typeof s[k]!=='object'||Array.isArray(s[k]))s[k]=def }
   _obj('wallet',{balance:888,log:[]});      if(!Array.isArray(s.wallet.log))s.wallet.log=[];
   _obj('shop',{items:[],orders:[],day:'',cat:'all'});
   if(!Array.isArray(s.shop.items))s.shop.items=[]; if(!Array.isArray(s.shop.orders))s.shop.orders=[];
   _obj('settings',{}); _obj('me',{name:'我',avatarType:'char',avatarImg:'',color:'#D98E5F'});
+  /* ★ 已经被上一版洗空的查岗预设：补一次默认值（只补一次，之后你自己删光也不会再被塞回来） */
+  try{
+    if(s.settings&&!s.settings._ckPresetFix&&(!Array.isArray(s.checkinPresets)||!s.checkinPresets.length)){
+      s.settings._ckPresetFix=1;
+      s.checkinPresets=['在干嘛','吃饭了吗','想我了吗','在哪'];
+    }
+  }catch(e){}
   /* ★ 小熊语录：老存档没有这个字段就补上（只补一次，之后用户删了不会被重新塞回来） */
   if(!Array.isArray(s.bearCards))s.bearCards=defaultState().bearCards;
   _obj('companion',defaultState().companion); _obj('widgets',{}); _obj('appIcons',{});
@@ -2160,6 +2191,7 @@ function migrate(s){
   if(!s.widgetImgs||typeof s.widgetImgs!=='object')s.widgetImgs={};
   if(!s.widgetPos||typeof s.widgetPos!=='object')s.widgetPos={};
   if(!s.appPos||typeof s.appPos!=='object'||Array.isArray(s.appPos))s.appPos={};
+
   if(!s.widgetSize||typeof s.widgetSize!=='object')s.widgetSize={};
   if(!s.widgetPage||typeof s.widgetPage!=='object')s.widgetPage={};
   if(!s.widgets||typeof s.widgets!=='object')s.widgets={};
@@ -2426,6 +2458,9 @@ function migrate(s){
      那时候 appOrder 里还缺新加的 App，算出来的位置会和升级前不一样。
      真正的推导放在开机流程里（homeBootPos，syncAppOrder 之后）。 */
   if(!s.appPos||typeof s.appPos!=='object'||Array.isArray(s.appPos))s.appPos={};
+
+  /* merged grid: one-time migration (widgets join the same integer grid) */
+  try{ migrateMergedGrid(s) }catch(e){}
   s.version=7;
   if(s.appPage===undefined)s.appPage=0;
   if(s.contacts)for(var _ci=0;_ci<s.contacts.length;_ci++){var _cn=s.contacts[_ci];if(_cn&&_cn.name===('梦'+'角哥'))_cn.name='陆沉'}
@@ -3817,14 +3852,13 @@ function homePlaceAll(s,legacy,write){
 }
 function homeLayout(){return homePlaceAll(state,false,false)}
 function homeRebuildPos(s,legacy){return homePlaceAll(s||state,!!legacy,true)}
-function homeEnsurePos(){return homeRebuildPos(state,false)}
+function homeEnsurePos(){return gridEnsureAll()}
 /* 开机 / 导入之后跑一次：坐标表还是空的（老存档、全新安装）就按"老版本每页 6 个"排一遍。
    ★ 必须等 syncAppOrder 把新加的 App 补进 appOrder 之后再跑，否则位置和升级前对不上。 */
 function homeBootPos(){
   try{
     if(!state||!Array.isArray(state.appOrder))return;
-    if(state.appPos&&typeof state.appPos==='object'&&Object.keys(state.appPos).length)return;
-    homeRebuildPos(state,true);
+    gridEnsureAll();
     try{save()}catch(e){}
   }catch(e){}
 }
@@ -3874,72 +3908,287 @@ function homeCellHtml(p,r,c,v){
   if(!a)return '<div class="app-slot"'+at+'></div>';
   return appItemHtml(a,at);
 }
+/* ===================== 合并网格：图标 + 组件共用一张 4 列网格 =====================
+   · 每项一个矩形：图标 {p,r,c,1,1}；组件 {p,r,c,w,h}（2×1 / 4×1 / 4×2）；状态卡固定 4×2
+   · 坐标全是整数格，没有 %/px，也不再"渲染后重排"
+   · 碰撞策略：回弹（目标矩形被占就不接收，弹回原位）
+   · 行高统一 GRID_ROW_H；页面行数按内容自然增长 */
+function gridPitchY(){return GRID_ROW_H+GRID_GAP_Y}
+function gridSpanOf(k){
+  if(k==='feed'||k==='photo')return {w:4,h:2};
+  var sz=(state.widgetSize&&state.widgetSize[k])||'m';
+  if(sz==='s')return {w:2,h:1};
+  if(sz==='l')return {w:4,h:2};
+  return {w:4,h:1};
+}
+function gridWidgetPage(k){
+  if(k==='feed')return 0;
+  var q=(state.widgetPos||{})[k];
+  if(q&&typeof q.p==='number')return Math.max(0,q.p);
+  try{return widgetPageOf(k)}catch(e){return 0}
+}
+function gridWidgetKeys(){
+  var order=[],i;
+  /* 开机早期 WD_ORDER 还没初始化（widgetEnsureOrder 会抛），这里要能退化 */
+  try{order=widgetEnsureOrder()}catch(e){}
+  if(!order||!order.length)order=(state.widgetOrder&&state.widgetOrder.length)?state.widgetOrder.slice():['clock','days','music','note','feed'];
+  var out=[];
+  for(i=0;i<order.length;i++){
+    var k=order[i];
+    try{ if(!widgetOn(k))continue }catch(e){}
+    out.push(k);
+  }
+  return out;
+}
+function gridCellRead(q){
+  if(!q||typeof q!=='object')return null;
+  if(typeof q.r!=='number'||typeof q.c!=='number')return null;
+  return {p:Math.max(0,q.p||0),r:Math.max(0,Math.round(q.r)),c:Math.max(0,Math.min(GRID_COLS-1,Math.round(q.c)))};
+}
+function gridAppOrderList(){
+  /* 开机早期 APPS 还没初始化（load -> migrate 比 var APPS 早），这时不能调 appByKey */
+  var known=(typeof APPS!=='undefined'&&APPS&&APPS.length)?APPS:null;
+  var order=Array.isArray(state.appOrder)?state.appOrder:[],out=[],i;
+  for(i=0;i<order.length;i++){
+    var v=order[i];
+    if(typeof v!=='string'||!v||out.indexOf(v)>=0)continue;
+    if(known&&!appByKey(v))continue;
+    out.push(v);
+  }
+  return out;
+}
+/* 一次算出所有页的摆放。write=true 时把补位后的坐标写回存档。 */
+function gridBuild(write){
+  var pages={},rows={},placed={};
+  function om(){return null}
+  var itemsCache={};
+  function items(p){ if(!itemsCache[p])itemsCache[p]=[]; return itemsCache[p] }
+  function fits(p,r,c,w,h){
+    if(c<0||c+w>GRID_COLS||r<0)return false;
+    var arr=items(p);
+    for(var i=0;i<arr.length;i++){
+      var it=arr[i];
+      if(r<it.r+it.h&&it.r<r+h&&c<it.c+it.w&&it.c<c+w)return false;
+    }
+    return true;
+  }
+  function put(p,r,c,w,h,it){
+    items(p).push(it);
+    if((rows[p]||0)<r+h)rows[p]=r+h;
+  }
+  function freeRect(p,w,h){
+    for(var r=0;;r++)for(var c=0;c+w<=GRID_COLS;c++)if(fits(p,r,c,w,h))return {p:p,r:r,c:c};
+  }
+  var i,k;
+  /* ① 组件（有坐标的先放） */
+  var wk=gridWidgetKeys(),pendingW=[];
+  for(i=0;i<wk.length;i++){
+    k=wk[i];
+    var sp=gridSpanOf(k),q=gridCellRead((state.widgetPos||{})[k]);
+    var p=k==='feed'?0:(q?q.p:gridWidgetPage(k));
+    if(q&&fits(p,q.r,q.c,sp.w,sp.h)){
+      put(p,q.r,q.c,sp.w,sp.h,{kind:'widget',key:k,r:q.r,c:q.c,w:sp.w,h:sp.h});
+    }else pendingW.push(k);
+  }
+  for(i=0;i<pendingW.length;i++){
+    k=pendingW[i];
+    var sp2=gridSpanOf(k),p2=gridWidgetPage(k),cell=freeRect(p2,sp2.w,sp2.h);
+    put(p2,cell.r,cell.c,sp2.w,sp2.h,{kind:'widget',key:k,r:cell.r,c:cell.c,w:sp2.w,h:sp2.h});
+  }
+  /* ② 状态卡（固定 4×2，不参与拖动） */
+  var cp=state.cardPos,cardR=0;
+  if(cp&&typeof cp.r==='number')cardR=Math.max(0,cp.r);
+  else{ var fr=freeRect(0,4,2); cardR=fr.r }
+  if(!fits(0,cardR,0,4,2))cardR=freeRect(0,4,2).r;
+  cp={p:0,r:cardR,c:0,w:4,h:2};
+  put(0,cardR,0,4,2,{kind:'card',key:'__card__',r:cardR,c:0,w:4,h:2});
+  /* ③ 图标（有坐标的先放，放不下的补下面的空格） */
+  var order=gridAppOrderList(),pendingA=[];
+  for(i=0;i<order.length;i++){
+    var v=order[i],aq=gridCellRead((state.appPos||{})[v]);
+    if(aq&&fits(aq.p,aq.r,aq.c,1,1))put(aq.p,aq.r,aq.c,1,1,{kind:'app',key:v,r:aq.r,c:aq.c,w:1,h:1});
+    else pendingA.push(v);
+  }
+  for(i=0;i<pendingA.length;i++){
+    var v2=pendingA[i],cell2=freeRect(0,1,1);
+    put(0,cell2.r,cell2.c,1,1,{kind:'app',key:v2,r:cell2.r,c:cell2.c,w:1,h:1});
+  }
+  if(write){
+    var np={};
+    for(var pp in itemsCache){
+      var arr=itemsCache[pp];
+      for(i=0;i<arr.length;i++){
+        var it=arr[i];
+        if(it.kind==='app')np[it.key]={p:+pp,r:it.r,c:it.c};
+        else if(it.kind==='widget'){
+          state.widgetPos=state.widgetPos||{};
+          state.widgetPos[it.key]={p:+pp,r:it.r,c:it.c,w:it.w,h:it.h};
+        }
+      }
+    }
+    state.appPos=np;
+    state.cardPos=cp;
+  }
+  var maxP=0;
+  for(var kk in itemsCache)if(+kk>maxP)maxP=+kk;
+  if(cp.p>maxP)maxP=cp.p;
+  return {pages:itemsCache,rows:rows,count:maxP+1,card:cp};
+}
+function gridOccupied(lay,p,r,c,w,h,ignore){
+  var arr=(lay.pages[p]||[]);
+  for(var i=0;i<arr.length;i++){
+    var it=arr[i];
+    if(ignore&&it.key===ignore)continue;
+    if(r<it.r+it.h&&it.r<r+h&&c<it.c+it.w&&it.c<c+w)return true;
+  }
+  return false;
+}
+function gridCanPlace(lay,p,r,c,w,h,ignore){
+  if(!lay||r<0||c<0||c+w>GRID_COLS)return false;
+  var maxRows=Math.max(GRID_MIN_ROWS,lay.rows[p]||0);
+  if(r+h>maxRows+1)return false;
+  return !gridOccupied(lay,p,r,c,w,h,ignore);
+}
+function gridCellStyle(c,r,w,h){return 'grid-column:'+(c+1)+'/span '+w+';grid-row:'+(r+1)+'/span '+h}
+/* 把坐标写进存档（成功返回 true；和原来一样返回 false） */
+function gridCommit(kind,key,p,r,c){
+  if(kind==='app'){
+    if(!appByKey(key))return false;
+    var from=gridCellRead((state.appPos||{})[key]);
+    if(from&&from.p===p&&from.r===r&&from.c===c)return false;
+    state.appPos=state.appPos||{};
+    state.appPos[key]={p:p,r:r,c:c};
+    return true;
+  }
+  if(kind==='widget'){
+    if(key==='feed'&&p!==0)return false;
+    var sp=gridSpanOf(key);
+    var wq=gridCellRead((state.widgetPos||{})[key]);
+    if(wq&&wq.p===p&&wq.r===r&&wq.c===c)return false;
+    state.widgetPos=state.widgetPos||{};
+    state.widgetPos[key]={p:p,r:r,c:c,w:sp.w,h:sp.h};
+    return true;
+  }
+  return false;
+}
+/* 长按/拖拽开始前把所有坐标补齐落盘，落点判定才准 */
+function gridEnsureAll(){
+  try{ return gridBuild(true) }catch(e){ return null }
+}
+
+/* ===================== 合并网格：一次性迁移 =====================
+   老数据：组件是 {x:%, y:px} + 尺寸 s/m/l；图标是 5 行内的 {p,r,c}
+   新数据：组件 {p,r,c,w,h}；图标行号整体下移到"组件区 + 状态卡"之后
+   ★ 屏幕上"组件在上、状态卡居中、图标在下"的顺序完全不变，只是坐标换了形。 */
+function migrateMergedGrid(s){
+  try{
+    if(!s||!s.settings)return;
+    if(s.settings._mergedGrid)return;
+    s.settings._mergedGrid=1;
+    var pitch=GRID_ROW_H+GRID_GAP_Y;
+    var old=(s.widgetPos&&typeof s.widgetPos==='object')?s.widgetPos:{};
+    var orderW=(Array.isArray(s.widgetOrder)&&s.widgetOrder.length)?s.widgetOrder.slice():['clock','days','music','note','feed','weather','photo','count','progress'];
+    var np={},pageRows={},i;
+    for(i=0;i<orderW.length;i++){
+      var k=orderW[i];
+      if(s.widgets&&s.widgets[k]===false)continue;
+      var q=old[k]||{};
+      var p=0;
+      if(k!=='feed'&&s.widgetPage&&typeof s.widgetPage[k]==='number')p=Math.max(0,Math.round(s.widgetPage[k]));
+      var sz=(s.widgetSize&&s.widgetSize[k])||'m';
+      var w=(k==='feed'||k==='photo')?GRID_COLS:(sz==='s'?2:GRID_COLS);
+      var h=(k==='feed'||k==='photo'||sz==='l')?2:1;
+      var r=0,c=0;
+      if(typeof q.y==='number'&&q.y>0)r=Math.max(0,Math.round(q.y/pitch));
+      if(typeof q.x==='number'&&q.x>0)c=Math.max(0,Math.min(GRID_COLS-w,Math.round((q.x/100)*GRID_COLS)));
+      np[k]={p:p,r:r,c:c,w:w,h:h};
+      pageRows[p]=Math.max(pageRows[p]||0,r+h);
+    }
+    s.widgetPos=np;
+    /* 状态卡：固定接在组件区下面，4 列 × 2 行 */
+    s.cardPos={p:0,r:(pageRows[0]||0),c:0,w:4,h:2};
+    /* 图标：整体下移，相对位置不变 */
+    var ap=s.appPos||{};
+    for(var v in ap){
+      var a=ap[v];
+      if(!a||typeof a.r!=='number')continue;
+      var p2=Math.max(0,Math.round(a.p||0));
+      var sh=(pageRows[p2]||0)+(p2===0?2:0);
+      a.r=Math.round(a.r)+sh;
+    }
+  }catch(e){}
+}
+
+var HOME_LAYOUT=null;
+function gridHtmlOf(pg,lay,wk,d,c){
+  var items=lay.pages[pg]||[];
+  var rows=Math.max(GRID_MIN_ROWS,lay.rows[pg]||0);
+  var minH=rows*GRID_ROW_H+(rows-1)*GRID_GAP_Y;
+  var h='<div class="home-grid" id="homeGrid_'+pg+'" data-page="'+pg+'" style="min-height:'+minH+'px">';
+  for(var i=0;i<items.length;i++){
+    var it=items[i],st=gridCellStyle(it.c,it.r,it.w,it.h);
+    if(it.kind==='app')h+=gridAppItemHtml(it.key,pg,it,st);
+    else if(it.kind==='widget')h+=gridWidgetItemHtml(it.key,pg,it,st,wk,d);
+    else h+=gridCardHtml(pg,it,st,c);
+  }
+  return h+'</div>';
+}
+function gridAppItemHtml(v,pg,it,st){
+  var a=appByKey(v);
+  if(!a)return '';
+  return appItemHtml(a,' data-p="'+pg+'" data-r="'+it.r+'" data-c="'+it.c+'" data-kind="app"',st);
+}
+function gridWidgetItemHtml(k,pg,it,st,wk,d){
+  var hasBg=!!(state.widgetImgs&&state.widgetImgs[k])&&!mediaDead(state.widgetImgs[k]);
+  var sz=(state.widgetSize&&state.widgetSize[k])||'m';
+  var extra=hasBg?("--wbg:url('"+mediaUrlSync(state.widgetImgs[k])+"');"):'';
+  return '<div class="widget hg-widget w-'+k+' wsz-'+sz+(hasBg?' haswbg':'')+'" data-wkey="'+k+'" data-kind="widget"'
+    +' data-p="'+pg+'" data-r="'+it.r+'" data-c="'+it.c+'" style="'+st+';'+extra+'">'
+    +'<span class="widget-grip"></span>'+widgetInnerHtml(k,wk,d)+'</div>';
+}
+function gridCardHtml(pg,it,st,c){
+  var _cov=state.settings&&state.settings.coverImg?mediaUrlSync(state.settings.coverImg):'';
+  return '<div class="status-card hg-card" data-kind="card" data-view="chat"'
+    +' data-p="'+pg+'" data-r="'+it.r+'" data-c="'+it.c+'" style="'+st+'">'
+    +'<span class="sc-cover"'+(_cov?' style="background-image:url(\''+_cov+'\')"':'')+'></span>'
+    +'<span class="sc-avwrap">'+avatarHtml(c)+'</span>'
+    +'<div class="sc-body"><div class="sc-name">'+esc(c.name)+'</div><div class="sc-chips"><span class="chip b-soft">'+esc(state.currentStatus.text)+'</span><span class="chip">'+esc(state.currentMood.text)+'</span></div></div>'
+    +'</div>';
+}
 function renderHome(){
   var _inSnap=inputSnapshot();
   var c=activeContact();
   var d=new Date(),hour=d.getHours();
   var greet=hour<6?'夜深了，还在等我吗':hour<9?'早上好':hour<12?'上午好':hour<14?'中午好':hour<18?'下午好':'晚上好';
   var wk=['日','一','二','三','四','五','六'];
+  /* ★ 图标和组件现在共用一张 4 列网格（整数格） */
+  var lay=gridBuild(false);
+  HOME_LAYOUT=lay;
   var html='<div id="home" class="cbg" style="'+homeBgStyle()+'">';
   html+='<div class="home-pages" id="homePages">';
-
-  var wds=state.widgets||{clock:true,days:true,music:true,note:true};
-  var wdo=widgetEnsureOrder();
-  /* ★ App 摆放：4 列 × 5 行 = 20 格/页。有 appPos 的按坐标放，没摆过的按 appOrder 补空格。
-     只画到"最后一行有图标"的那一行，所以空着的行不占高度 —— 升级后的布局和以前一致。 */
-  var lay=homeLayout();
-  var _wMax=0,_wk3;
-  for(_wk3 in (state.widgetPage||{})){
-    if(state.widgets&&state.widgets[_wk3]===false)continue;
-    var _wv3=widgetPageOf(_wk3);
-    if(_wv3>_wMax)_wMax=_wv3;
-  }
-  /* 页数 = 摆到的最大页 / 组件所在的最深页 / 至少 1 页 */
-  var _pageCount=Math.max(1,lay.count||1,_wMax+1);
+  var _pageCount=Math.max(1,lay.count);
   var apg=Math.min(Math.max(0,state.appPage||0),_pageCount-1);
-
-  for(var _pg=0;_pg<_pageCount;_pg++){
-    html+='<div class="home-page" data-page="'+_pg+'">';
-    if(_pg===0){
-      /* ===== 第一页：问候 + 组件 + 状态卡 ===== */
+  for(var pg=0;pg<_pageCount;pg++){
+    html+='<div class="home-page" data-page="'+pg+'">';
+    if(pg===0){
       html+='<div class="home-greet">'+greet+' · '+(d.getMonth()+1)+'月'+d.getDate()+'日</div>';
       html+='<div class="home-title">'+esc(siteName())+'</div>';
       html+='<button class="wd-add" data-view="widgets" data-page="0" title="添加组件">＋</button>';
-      html+='<div class="widgets" id="widgetGrid0">'+widgetGridInner(wdo,wds,wk,d,0)+'</div>';
-      var _cov=state.settings&&state.settings.coverImg?mediaUrlSync(state.settings.coverImg):'';
-      html+='<div class="status-card" data-view="chat">'
-        +'<span class="sc-cover"'+(_cov?' style="background-image:url(\''+_cov+'\')"':'')+'></span>'
-        +'<span class="sc-avwrap">'+avatarHtml(c)+'</span>'
-        +'<div class="sc-body"><div class="sc-name">'+esc(c.name)+'</div><div class="sc-chips"><span class="chip b-soft">'+esc(state.currentStatus.text)+'</span><span class="chip">'+esc(state.currentMood.text)+'</span></div></div>'
-        +'</div>';
     }else{
-      /* ===== 其余页面：标题 + 组件区（前三页都能摆组件） ===== */
       html+='<div class="home-title home-title-2">'+esc(siteName())+'</div>';
-      html+='<button class="wd-add" data-view="widgets" data-page="'+_pg+'" title="添加组件">＋</button>';
-      html+='<div class="widgets" id="widgetGrid'+_pg+'">'+(_pg<=WIDGET_PAGE_MAX?widgetGridInner(wdo,wds,wk,d,_pg):'')+'</div>';
+      html+='<button class="wd-add" data-view="widgets" data-page="'+pg+'" title="添加组件">＋</button>';
     }
-    /* App 网格：这一页的 20 个格子按坐标摆 */
-    html+=homeGridHtml(_pg,lay.pages[_pg]);
+    html+=gridHtmlOf(pg,lay,wk,d,c);
     html+='</div>';
   }
-
   html+='</div>';
   html+='<div class="page-dots">';
-  for(var pg=0;pg<_pageCount;pg++)html+='<span class="dot'+(pg===apg?' on':'')+'" data-act="home-page" data-p="'+pg+'"></span>';
+  for(var dpg=0;dpg<_pageCount;dpg++)html+='<span class="dot'+(dpg===apg?' on':'')+'" data-act="home-page" data-p="'+dpg+'"></span>';
   html+='</div>';
-  /* ★ 页面滚动监听：必须在 $('#view').innerHTML=html **之后**再绑！
-     以前这段写在这里（元素还没进 DOM）→ getElementById 拿到 null → 监听从没绑上
-     → state.appPage 永远是 0 → 从第二/三页的 App 退出来就回第一页（用户报的 bug 的真正原因）。 */
+  /* 滚动监听必须在 innerHTML 之后绑（以前绑早了拿不到元素） */
   html+='<div class="home-foot">长按图标或小组件即可拖动换位 · 数据保存在本机浏览器<br>换手机记得在 设置 → 备份 里导出</div>';
   html+='</div>';
   $('#view').innerHTML=html;
-  /* ★ 空槽的高度要跟真图标一格对齐（不然中间夹着的空行会比真行矮，落点会偏）。
-     量不到就用 CSS 里的 96px 兜底。 */
-  try{
-    var _hp0=document.getElementById('homePages');
-    var _it0=document.querySelector('#homePages .app-item');
-    if(_hp0&&_hp0.style&&_it0&&_it0.offsetHeight)_hp0.style.setProperty('--app-cell-h',_it0.offsetHeight+'px');
-  }catch(e){}
   /* ★ 现在 #homePages 才真正在 DOM 里 → 这时候绑滚动监听才绑得上 */
   (function(){
     var asc=document.getElementById('homePages');
@@ -3948,14 +4197,14 @@ function renderHome(){
     asc._ascBound=true;
     asc.addEventListener('scroll',function(){
       var p=Math.round(this.scrollLeft/(this.clientWidth||1));
-      if(p!==state.appPage){state.appPage=p;try{save()}catch(e){}
+      if(p!==state.appPage){
+        state.appPage=p;
+        try{save()}catch(e){}
         var ds=document.querySelectorAll('.page-dots .dot');
         for(var i=0;i<ds.length;i++)ds[i].classList.toggle('on',i===p);
       }
     },{passive:true});
   })();
-  /* ★ 回到桌面要停在你原来那一页（用户报的：点第二/三页的 App，退出就回第一页了）。
-     页码本来就存在 state.appPage 里，只是重绘后滚动位置归零了 —— 这里把它滚回去。 */
   (function(){
     var want=Math.min(state.appPage||0,Math.max(0,_pageCount-1));
     function back(){
@@ -3970,14 +4219,10 @@ function renderHome(){
     setTimeout(back,60); setTimeout(back,240);
   })();
   initDrag();
-  initWidgetDrag();
-  /* 字体/图片/动态内容可能在首帧之后才撑开，补几次校正 */
-  setTimeout(fitWidgetGridNow,60);
-  setTimeout(fitWidgetGridNow,260);
-  setTimeout(fitWidgetGridNow,700);
   applySiteName();
   inputRestore(_inSnap);
 }
+
 /* 按 key 找 App 定义（两页共用） */
 function appByKey(v){
   for(var i=0;i<APPS.length;i++)if(APPS[i].v===v)return APPS[i];
@@ -4286,7 +4531,7 @@ function widgetGridIds(){
   for(var i=0;i<=n;i++)out.push('widgetGrid'+i);
   return out;
 }
-function fitWidgetGridNow(){
+function fitWidgetGridNow(){ if(true)return; /* merged grid: no reflow pass */
   var ids=widgetGridIds();
   for(var g=0;g<ids.length;g++){
     var grid=document.getElementById(ids[g]);
@@ -4578,10 +4823,36 @@ function tarotDailyToday(){
   }
   return state.tarotDaily;
 }
+/* ★ 陆沉每天的塔罗。
+   以前只有你点「邀请TA抽今日运牌」他才会抽，设置里那个「塔罗每日他抽牌概率 %」
+   其实一直是死代码（读了没用）—— 表现就是"他从来不抽塔罗"。
+   现在每天按这个概率给他抽一次（当天只摇一次），并记一条陆沉动态，塔罗页打开就能看到。
+   把概率设成 0 就等于关掉这个行为。 */
+function tarotMaybeHisDaily(){
+  try{
+    if(!state.settings)state.settings={};
+    var pct=(state.settings.tarotDailyPct!=null?state.settings.tarotDailyPct:40);
+    if(!(pct>0))return;
+    var td=tarotDailyToday();                 /* 顺便切到今天的记录 */
+    if(td.hisIdx>=0)return;                   /* 今天已经抽过（自动抽/你邀请他，都算） */
+    if(td.hisPct==null){                      /* 每天只摇一次 "他今天想不想抽" */
+      td.hisPct=(Math.random()*100<pct)?1:0;
+      try{save()}catch(e){}
+    }
+    if(td.hisPct!==1)return;
+    tarotDailyDraw('his');
+    try{
+      var c=activeContact(),cd=tarotCardAt(td.hisIdx);
+      feedEvent((c?c.name:'他')+' 抽了今日塔罗：'+(cd?cd.name:''),'tarot');
+    }catch(e){}
+    if(location.hash==='#tarot'){try{renderTarot()}catch(e){}}
+  }catch(e){}
+}
 function tarotDailyDraw(who){
   var td=tarotDailyToday();
   var rp4=((state.settings&&state.settings.tarotRevPct)!=null?state.settings.tarotRevPct:50);
-  var dp4=((state.settings&&state.settings.tarotDailyPct)!=null?state.settings.tarotDailyPct:40);
+  /* 注：「每日他抽牌概率」不在这里判 —— 那个门槛在 tarotMaybeHisDaily() 里每天摇一次；
+     你手动点"邀请TA抽今日运牌"时一定给他出牌（见下面的注释）。 */
   if(who==='me'&&td.myIdx<0){
     td.myIdx=Math.floor(Math.random()*TAROT_DECK);
     td.myRev=Math.random()*100<rp4?1:0;
@@ -4887,6 +5158,23 @@ var _blpBound=false,_cldBound=false;
 var _chatAtBottom=true;
 var _schedSpin=0,_schedSpinAt=0;
 var _replyTimer=null;
+/* ★ 朋友圈访客：设置里写的是"哥会来逛并留字卡留言"，
+   但以前访客到点只做了 visitorCount++ ，一句留言也没留（用户看着就是"访客数在涨、人没来过"）。
+   现在他逛完会在我最新一条动态下面留一张字卡（那条动态没被刷爆时）。 */
+function visitLeaveCard(){
+  try{
+    var c=activeContact();
+    if(!c)return;
+    var p=null,ps=state.posts||[];
+    for(var i=ps.length-1;i>=0;i--){ if(ps[i]&&ps[i].contactId===null){p=ps[i];break} }
+    if(!p)return;
+    p.comments=p.comments||[];
+    if(p.comments.length>=8)return;          /* 别把一条动态刷成流水账 */
+    if(Math.random()*100>=60)return;         /* 来 3 次大概留 2 次 */
+    p.comments.push({id:uid(),contactId:c.id,text:pickCardText(),ts:now()});
+    feedEvent(c.name+' 来逛了你的朋友圈，留了一张字卡','moments');
+  }catch(e){}
+}
 function schedule(){
   if(_timer){clearTimeout(_timer);_timer=null}
   var items=[],t=now();
@@ -4922,7 +5210,7 @@ function schedule(){
   if(ac2&&state.nextPostDue&&state.nextPostDue[ac2.id])items.push({ts:state.nextPostDue[ac2.id],fn:(function(cc){return function(){maybePost(cc,now());state.nextPostDue[cc.id]=now()+rnd((state.settings.momMin||180)*60000,(state.settings.momMax||720)*60000);save();schedule()}})(ac2)});
   if(state.settings&&state.settings.visitorOn){
     if(!state.nextVisitDue)state.nextVisitDue=t+rnd((state.settings.visitorMin||180)*60000,(state.settings.visitorMax||720)*60000);
-    items.push({ts:state.nextVisitDue,fn:function(){state.lastVisit=now();state.visitorCount=(state.visitorCount||0)+1;state.nextVisitDue=now()+rnd((state.settings.visitorMin||180)*60000,(state.settings.visitorMax||720)*60000);save();renderAll()}});
+    items.push({ts:state.nextVisitDue,fn:function(){state.lastVisit=now();state.visitorCount=(state.visitorCount||0)+1;state.nextVisitDue=now()+rnd((state.settings.visitorMin||180)*60000,(state.settings.visitorMax||720)*60000);try{visitLeaveCard()}catch(e){}save();renderAll()}});
   }
   }
   var acX=activeContact();
@@ -4950,11 +5238,28 @@ function schedule(){
     if(!state.nextLetterDue)state.nextLetterDue=t+rnd(lmn,lmx)*60000;
     items.push({ts:state.nextLetterDue,fn:(function(cc){return function(){var n=clamp(((state.settings&&state.settings.letterCount)||2),1,8);state.letters.push({id:uid(),contactId:cc.id,dir:'in',title:pick(['晚风来信','今日小笺','随手写给你','想你了']),body:drawCards(n).join('\n\n'),ts:now(),unread:true});feedEvent(cc.name+' 给你寄来一封信','mail');state.nextLetterDue=now()+rnd(lmn,lmx)*60000;save();renderAll();schedule()}})(acX)});
   }
-  var ddq=state.diaryDue||[];
+  /* ★ 日记互动（他回你写的日记 / 回你在他日记下的评论）。
+     这里原来写的是 de.due>t —— 只给"还没到点"的排队。于是：你写完日记 8~20 秒内
+     锁屏、切出去、关掉页面再打开，这条回复就**永远不会再发生**，而且它会一直躺在
+     state.diaryDue 里烂掉。用户报的"好几天陆沉都不回我日记评论"就是它。
+     现在：过期的照样补上（错开几秒、一次最多补 5 条），超过 7 天的直接丢掉。 */
+  var ddq=state.diaryDue||[],_ddKeep=[],_lateN=0;
   for(var di=0;di<ddq.length;di++){
     var de=ddq[di];
-    if(de&&de.due&&de.due>t)items.push({ts:de.due,fn:(function(ee){return function(){diaryDueFire(ee)}})(de)});
+    if(!de||!de.due)continue;
+    if(de.due>t){
+      _ddKeep.push(de);
+      items.push({ts:de.due,fn:(function(ee){return function(){diaryDueFire(ee)}})(de)});
+      continue;
+    }
+    if(de.due<t-7*86400000)continue;              /* 一周前的就不补了，直接丢掉 */
+    _ddKeep.push(de);
+    if(_lateN<5){
+      _lateN++;
+      items.push({ts:t+1200+_lateN*900,fn:(function(ee){return function(){diaryDueFire(ee)}})(de)});
+    }
   }
+  if(_ddKeep.length!==ddq.length)state.diaryDue=_ddKeep;
   /* ★ 这里原来是 for(var cid in state.nextInit) —— 坑很大：
      nextInit 一开始是空对象 {}，for...in 一次都不进，于是**他永远不会主动来找你**。
      （新用户还会撞上 syncCatchUp 开头的"离开不到 15 秒就 return"，也不会填 nextInit。）
@@ -4986,6 +5291,8 @@ function schedule(){
       items.push({ts:_sv.replyDue,fn:(function(x){return function(){try{svAutoFill(x)}catch(e){}}})(_sv)});
     }
   })();
+  /* 每天一次的陆沉塔罗（自己判断"今天还没抽"，一天只会真正抽一次） */
+  try{ tarotMaybeHisDaily() }catch(e){}
   if(!items.length)return;
   items.sort(function(a,b){return a.ts-b.ts});
   var nx=items[0];
@@ -6385,9 +6692,15 @@ function diaryCommentHis(ds){
     save();
   }
 }
+/* 把一条"待回"从队列里摘掉（到点执行完、或目标日记已经不在了，都要摘） */
+function diaryDueDrop(de){
+  state.diaryDue=(state.diaryDue||[]).filter(function(x){return !(x&&x.ds===de.ds&&x.target===de.target&&x.due===de.due)});
+}
 function diaryDueFire(de){
   var d=state.diary[de.ds];
-  if(!d)return;
+  /* ★ 那天的日记不在了（被清空 / 导入替换）：这条待回的任务也要一起清掉。
+     否则它会"到点但不做事"地一直留在队列里，被调度器反复排队。 */
+  if(!d){diaryDueDrop(de);save();return}
   if(de.target==='his'){
     d.hisComments=d.hisComments||[];
     d.hisComments.push({id:uid(),who:'mg',text:'回复：'+pickCardText(),ts:now()});
@@ -6395,7 +6708,7 @@ function diaryDueFire(de){
     d.myComments=d.myComments||[];
     d.myComments.push({id:uid(),who:'mg',text:pickCardText(),ts:now()});
   }
-  state.diaryDue=(state.diaryDue||[]).filter(function(x){return !(x.ds===de.ds&&x.target===de.target&&x.due===de.due)});
+  diaryDueDrop(de);
   save();
   if(location.hash==='#diary')renderDiary();
 }
@@ -7653,8 +7966,12 @@ function replyChat(m){
   if(m.kind==='checkin'){
     m.answered=true;
     /* ★ 查岗的回复不走聊天流，所以必须在这里把"输入中"收掉，
-       否则 markRead 打开的三点会永远转下去（用户报的"一直显示输入中"就是这个）。 */
-    _typing=null;state._pending=null;
+       否则 markRead 打开的三点会永远转下去（用户报的"一直显示输入中"就是这个）。
+       ★ 但**不能**顺手把 state._pending 清掉：如果这会儿正好有一条普通回复排着队，
+       它会被这个查岗回复一起清掉 —— 表现就是"他回了我查岗，却没回我上一条消息"。
+       现在只收起输入中，排着的回复继续发。 */
+    _typing=null;
+    if(state._pending)try{replyPump()}catch(e){}
     m.hisReply=ckAnswer(m.text);
     /* 混搭：贴题的短答 + 一句你字卡里的句子（没字卡时就只回短答） */
     m.hisCard=ckCardLine();
@@ -10159,12 +10476,7 @@ function widgetObserve(){
     for(var i=0;i<ws.length;i++)try{_wdRO.observe(ws[i])}catch(e){}
   }
 }
-function initWidgetDrag(){
-  fitWidgetGrid();
-  widgetObserve();
-  var _ids=widgetGridIds();
-  for(var _wi=0;_wi<_ids.length;_wi++)initOneWidgetDrag(document.getElementById(_ids[_wi]));
-}
+function initWidgetDrag(){ /* merged grid: widget drag is handled by initDrag() */ }
 function initOneWidgetDrag(grid){
   if(!grid)return;
   var drag=null,timer=null,ghost=null,startX=0,startY=0,offX=0,offY=0,manageTimer=null,movedFlag=0;
@@ -11586,85 +11898,19 @@ var ICON_REPEAT='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" str
 var ICON_LOOPONE='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9a4 4 0 0 1 4-4h9l-2.5-2.5M20 15a4 4 0 0 1-4 4H7l2.5 2.5"/><path d="M12 9.5v5M11 10.6l1-.9"/></svg>';
 var ICON_HEADSET='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.6" y="13.4" width="4.4" height="6.4" rx="2.2"/><rect x="17" y="13.4" width="4.4" height="6.4" rx="2.2"/></svg>';
 var ICON_EXPAND='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg>';
-/* ===================== App 拖拽：影子层 + 落点占位 + 跨页跟手滚动 =====================
-   上一版踩过的两个坑（这一次整块换掉）：
-   ① 每次 touchmove 都 insertBefore + 量所有图标 → 掉帧、抢手势。
-      现在长按之后只建一层"影子"（fixed + transform），拖动过程中只动影子 / 占位框，
-      松手时一次性写 state.appPos，然后只重绘一次。
-   ② 跨页靠"在边缘停住 0.26 秒"判定，手指一停就不再有 touchmove → 永远翻不过去。
-      现在按手指的 x 位置直接驱动 #homePages.scrollLeft（越靠边越快，带速度曲线），
-      页面跟着手指滚动，滚到哪一页就落在哪一页。 */
-var homeDragState=null;
-var homePressCancel=null;      /* 还没生效的长按（鼠标在别处松开时要能取消） */
-var _homeDragTap=0;            /* 拖完松手浏览器还会补一个 click：用它吃掉，避免误打开 App */
+/* ===================== 合并网格的拖拽（图标 + 组件共用一套） =====================
+   长按 → 影子跟手（微微倾斜）+ 目标矩形虚线占位 → 手指贴边驱动翻页 →
+   松手：落点空着才写坐标（碰撞策略=回弹），然后只重绘一次。 */
+var homeDragState=null,homePressCancel=null,_homeDragTap=0;
 var HOME_LONGPRESS=380,HOME_MOVE_TOL=20;
 var HOME_EDGE_RATIO=0.16,HOME_EDGE_MIN=48,HOME_SCROLL_MAX=1500;
 
-/* 手指 x 的位置 → 每秒横向滚多少像素（正数向右、负数向左，0 = 不滚）。越靠边越快。
-   纯函数，方便自测。 */
 function homeEdgeSpeed(x,w){
   w=w||window.innerWidth||360;
   var zone=Math.max(HOME_EDGE_MIN,Math.round(w*HOME_EDGE_RATIO));
   if(x<zone){var d=(zone-x)/zone;return -Math.max(0,Math.min(1,d))*HOME_SCROLL_MAX}
   if(x>w-zone){var d2=(x-(w-zone))/zone;return Math.max(0,Math.min(1,d2))*HOME_SCROLL_MAX}
   return 0;
-}
-/* 手指在网格内的相对坐标 → 最近的一格（格子等大，取距离最近的） */
-function homeCellAt(rx,ry,cells){
-  if(!cells||!cells.length)return null;
-  var best=null,bd=1e18;
-  for(var i=0;i<cells.length;i++){
-    var ce=cells[i];
-    if(rx>=ce.l&&rx<=ce.l+ce.w&&ry>=ce.t&&ry<=ce.t+ce.h)return ce;
-    var dx=rx-(ce.l+ce.w/2),dy=ry-(ce.t+ce.h/2),dd=dx*dx+dy*dy;
-    if(dd<bd){bd=dd;best=ce}
-  }
-  return best;
-}
-/* 缓存每一页格子的相对位置（拖动期间网格布局不变，只用 grid 的 rect 换算） */
-function homeDragGeo(){
-  var grids=document.querySelectorAll('.app-grid'),out={};
-  for(var i=0;i<grids.length;i++){
-    var g=grids[i];
-    if(!g)continue;
-    var p=parseInt(g.getAttribute('data-page'),10)||0;
-    var cells=[],ch=g.children||[];
-    for(var j=0;j<ch.length;j++){
-      var el=ch[j];
-      if(!el||!el.getAttribute)continue;
-      var rr=el.getAttribute('data-r'),cc=el.getAttribute('data-c');
-      if(rr===null||cc===null||rr===''||cc==='')continue;
-      cells.push({el:el,r:+rr,c:+cc,l:el.offsetLeft,t:el.offsetTop,w:el.offsetWidth,h:el.offsetHeight});
-    }
-    out[p]={grid:g,cells:cells};
-  }
-  return out;
-}
-/* 拖动时把每一页补满 20 格（平时只画到用得到的那一行，空行不占高度、不改变布局）。
-   补格子只往后 append，已有的图标一个都不动。 */
-function homeExpandGrids(){
-  var grids=document.querySelectorAll('.app-grid'),i,r,c;
-  try{
-    var sc0=document.getElementById('homePages');
-    var it=document.querySelector('#homePages .app-item');
-    if(sc0&&sc0.style&&it&&it.offsetHeight)sc0.style.setProperty('--app-cell-h',it.offsetHeight+'px');
-  }catch(e){}
-  for(i=0;i<grids.length;i++){
-    var grid=grids[i];
-    if(!grid)continue;
-    var p=parseInt(grid.getAttribute('data-page'),10)||0;
-    if(grid.classList)grid.classList.add('grid-ready');
-    var lastRow=-1,ch=grid.children||[];
-    for(var j=0;j<ch.length;j++){
-      var el=ch[j];
-      var rr=el&&el.getAttribute?el.getAttribute('data-r'):null;
-      if(rr===null||rr==='')continue;
-      if(+rr>lastRow)lastRow=+rr;
-    }
-    var add='';
-    for(r=lastRow+1;r<HOME_ROWS;r++)for(c=0;c<HOME_COLS;c++)add+='<div class="app-slot" data-p="'+p+'" data-r="'+r+'" data-c="'+c+'"></div>';
-    if(add&&grid.insertAdjacentHTML)grid.insertAdjacentHTML('beforeend',add);
-  }
 }
 function homePageIndex(sc){
   if(!sc||!sc.clientWidth)return 0;
@@ -11673,70 +11919,76 @@ function homePageIndex(sc){
 function homeDotSync(sc){
   try{
     var p=homePageIndex(sc),ds=document.querySelectorAll('.page-dots .dot');
-    /* ★ 拖拽是我们自己在改 scrollLeft，scroll 事件要等下一帧才来；
-       这里立刻把页码写进 state，松手重绘时才不会跳回第 1 页 */
     if(p!==state.appPage)state.appPage=p;
     for(var i=0;i<ds.length;i++)if(ds[i].classList)ds[i].classList.toggle('on',i===p);
   }catch(e){}
 }
-/* 手指现在落在哪一格（跟着滚动实时算） */
-function homeDragHit(d){
-  if(!d)return null;
-  var sc=document.getElementById('homePages');
-  if(!sc)return null;
-  var p=homePageIndex(sc),g=d.geo[p];
-  if(!g||!g.grid||!g.cells.length)return null;
-  var rect=g.grid.getBoundingClientRect();
-  var cw=g.cells[0].w||60,chh=g.cells[0].h||90;
-  var rx=d.x-rect.left,ry=d.y-rect.top;
-  /* 落在网格外面一点点也算（手指多半压在图标中心），太远就不算落点 */
-  if(rx<-cw*0.55||rx>rect.width+cw*0.55)return null;
-  if(ry<-chh*0.6||ry>rect.height+chh*0.6)return null;
-  var cell=homeCellAt(rx,ry,g.cells);
-  return cell?{p:p,r:cell.r,c:cell.c,cell:cell}:null;
+function gridElInfo(el){
+  if(!el||!el.getAttribute)return null;
+  var kind=el.getAttribute('data-kind');
+  if(!kind||kind==='card')return null;
+  var key=el.getAttribute('data-wkey')||el.getAttribute('data-view');
+  if(!key)return null;
+  if(kind==='app'&&!appByKey(key))return null;
+  return {kind:kind,key:key};
 }
-/* 画落点：目标格亮起来 + 半透明的"图标 + 名字"占位（方案 C「预留空槽」） */
+/* 手指位置 → 目标矩形（含占位框的像素位置） */
+function gridTargetFromPoint(lay,x,y,w,h,ignore){
+  var sc=document.getElementById('homePages');
+  if(!sc||!lay)return null;
+  var p=homePageIndex(sc);
+  if(p>lay.count-1)p=Math.max(0,lay.count-1);
+  var g=document.getElementById('homeGrid_'+p);
+  if(!g)return null;
+  var rect=g.getBoundingClientRect();
+  if(!rect.width)return null;
+  var cellW=(rect.width-(GRID_COLS-1)*GRID_GAP_X)/GRID_COLS;
+  var pitchX=cellW+GRID_GAP_X,pitchY=GRID_ROW_H+GRID_GAP_Y;
+  var rx=x-rect.left,ry=y-rect.top;
+  if(rx<-cellW*0.7||rx>rect.width+cellW*0.7)return null;
+  if(ry<-GRID_ROW_H*0.7||ry>rect.height+GRID_ROW_H*0.7)return null;
+  var c=Math.floor(rx/pitchX),r=Math.floor(ry/pitchY);
+  if(c<0)c=0; if(r<0)r=0;
+  if(c+w>GRID_COLS)c=GRID_COLS-w;
+  var ok=gridCanPlace(lay,p,r,c,w,h,ignore);
+  return {p:p,r:r,c:c,w:w,h:h,ok:ok,
+    l:rect.left+c*pitchX,t:rect.top+r*pitchY,
+    cw:w*cellW+(w-1)*GRID_GAP_X,ch:h*GRID_ROW_H+(h-1)*GRID_GAP_Y};
+}
 function homeDragPaint(d,hit){
   if(!d)return;
-  var k=hit?(hit.p+':'+hit.r+':'+hit.c):'';
-  if(d.painted&&d.paintedEl&&d.paintedKey!==k&&d.paintedEl.classList)d.paintedEl.classList.remove('drop-on');
-  d.paintedKey=k;d.paintedEl=hit?hit.cell.el:null;
-  if(!hit){
-    d.painted=false;d.hit=null;
-    if(d.ph)d.ph.style.display='none';
-    return;
-  }
-  d.painted=true;d.hit=hit;
-  if(hit.cell.el&&hit.cell.el.classList)hit.cell.el.classList.add('drop-on');
+  d.hit=hit;
   if(d.ph){
-    var gr=d.geo[hit.p].grid.getBoundingClientRect();
-    d.ph.style.display='block';
-    d.ph.style.width=(hit.cell.w||60)+'px';
-    d.ph.style.height=(hit.cell.h||90)+'px';
-    d.ph.style.transform='translate3d('+Math.round(gr.left+hit.cell.l)+'px,'+Math.round(gr.top+hit.cell.t)+'px,0)';
+    if(!hit)d.ph.style.display='none';
+    else{
+      d.ph.style.display='block';
+      d.ph.style.width=Math.round(hit.cw)+'px';
+      d.ph.style.height=Math.round(hit.ch)+'px';
+      d.ph.style.transform='translate3d('+Math.round(hit.l)+'px,'+Math.round(hit.t)+'px,0)';
+      if(d.ph.classList)d.ph.classList.toggle('bad',!hit.ok);
+    }
   }
+  try{ if(d.el&&d.el.classList)d.el.classList.toggle('drop-on',!!(hit&&hit.ok)) }catch(e){}
 }
-/* 一帧的活：①按手指位置滚页面 ②算落点 ③影子跟手。
-   单独拆出来是为了自测时能"手动喂帧"（不依赖 rAF 的时间片），行为和真机完全一样。 */
 function homeDragStep(d,dt){
   if(!d)return;
-  /* ① 手指位置驱动翻页：循环自己跑，所以手指停住也照样滚（上一版翻不了页的根因） */
   var sc=document.getElementById('homePages');
   if(sc){
     var want=homeEdgeSpeed(d.x);
-    d.vel+=(want-d.vel)*0.2;                 /* 速度曲线：起步缓，越靠边越快 */
+    d.vel+=(want-d.vel)*0.2;
     if(Math.abs(d.vel)<6)d.vel=0;
     if(d.vel){
       var before=sc.scrollLeft;
       sc.scrollLeft=before+d.vel*dt/1000;
-      if(sc.scrollLeft===before)d.vel=0;     /* 到最边上了 */
+      if(sc.scrollLeft===before)d.vel=0;
       else homeDotSync(sc);
     }
   }
-  /* ② 落点（页面滚动后会变，每帧重算） */
-  homeDragPaint(d,homeDragHit(d));
-  /* ③ 影子跟手：微微倾斜 + 大投影（投影在 CSS 里） */
-  if(d.ghost)d.ghost.style.transform='translate3d('+Math.round(d.x-d.w/2)+'px,'+Math.round(d.y-d.h/2)+'px,0) rotate(-3.2deg) scale(1.04)';
+  var sp=(d.kind==='widget')?gridSpanOf(d.key):{w:1,h:1};
+  homeDragPaint(d,gridTargetFromPoint(HOME_LAYOUT,d.x,d.y,sp.w,sp.h,d.key));
+  if(d.ghost){
+    d.ghost.style.transform='translate3d('+Math.round(d.x-d.gw/2)+'px,'+Math.round(d.y-d.gh/2)+'px,0) rotate(-3.2deg) scale(1.04)';
+  }
 }
 function homeDragFrame(t){
   var d=homeDragState;
@@ -11749,33 +12001,33 @@ function homeDragFrame(t){
 }
 function homeDragStart(el,x,y){
   if(homeDragState||!el)return false;
-  var key=el.getAttribute&&el.getAttribute('data-view');
-  if(!key||!appByKey(key))return false;
-  if(!el.closest||!el.closest('.app-grid'))return false;
-  homeEnsurePos();               /* 保证每个 App 都有坐标，落格时才能交换 */
-  homeExpandGrids();             /* 补满 20 格：空的地方也能落 */
-  var d={key:key,el:el,x:x,y:y,w:el.offsetWidth||64,h:el.offsetHeight||80,
-         ghost:null,ph:null,vel:0,lastT:0,raf:0,hit:null,painted:false,paintedKey:'',paintedEl:null,geo:null};
+  var info=gridElInfo(el);
+  if(!info)return false;
+  gridEnsureAll();
+  var lay=gridBuild(false);
+  HOME_LAYOUT=lay;
   var sc=document.getElementById('homePages');
-  if(sc&&sc.classList)sc.classList.add('home-dragging');  /* 取消 scroll-snap，否则脚本翻页会被吸回去 */
-  /* 影子：只动它，不碰真实 DOM */
+  if(sc&&sc.classList)sc.classList.add('home-dragging');
+  var r0=el.getBoundingClientRect();
+  var d={kind:info.kind,key:info.key,el:el,x:x,y:y,vel:0,lastT:0,raf:0,hit:null,
+         ghost:null,ph:null,gw:r0.width||60,gh:r0.height||60,moved:false,lay:lay};
   var ghost=el.cloneNode(true);
   ghost.id='dragGhost';
-  ghost.className='app-item app-ghost';
-  try{ ghost.removeAttribute('data-view') }catch(e){}
-  ghost.style.position='fixed';ghost.style.left='0';ghost.style.top='0';
-  ghost.style.width=d.w+'px';ghost.style.height=d.h+'px';
+  ghost.className=(info.kind==='widget'?'widget':'app-item')+' app-ghost';
+  try{
+    ghost.removeAttribute('data-kind');ghost.removeAttribute('data-wkey');ghost.removeAttribute('data-view');
+    ghost.removeAttribute('data-p');ghost.removeAttribute('data-r');ghost.removeAttribute('data-c');
+  }catch(e){}
+  ghost.style.position='fixed';ghost.style.left='0';ghost.style.top='0';ghost.style.margin='0';
+  ghost.style.width=d.gw+'px';ghost.style.height=d.gh+'px';
   document.body.appendChild(ghost);
   d.ghost=ghost;
-  /* 落点占位：半透明的"图标 + 名字" + 虚线框 */
   var ph=document.createElement('div');
   ph.id='dropPh';
   ph.innerHTML='<div class="drop-ph-item">'+ghost.innerHTML+'</div>';
   ph.style.display='none';
   document.body.appendChild(ph);
   d.ph=ph;
-  if(el.classList)el.classList.add('dragging');
-  d.geo=homeDragGeo();
   homeDragState=d;
   d.raf=requestAnimationFrame(homeDragFrame);
   return true;
@@ -11783,6 +12035,7 @@ function homeDragStart(el,x,y){
 function homeDragMove(x,y){
   var d=homeDragState;
   if(!d)return;
+  if(Math.abs(x-d.x)+Math.abs(y-d.y)>10)d.moved=true;
   d.x=x;d.y=y;
 }
 function homeDragCleanup(d){
@@ -11790,43 +12043,40 @@ function homeDragCleanup(d){
   if(d.raf)try{cancelAnimationFrame(d.raf)}catch(e){}
   try{ if(d.ghost&&d.ghost.parentNode)d.ghost.parentNode.removeChild(d.ghost) }catch(e){}
   try{ if(d.ph&&d.ph.parentNode)d.ph.parentNode.removeChild(d.ph) }catch(e){}
-  try{ if(d.el&&d.el.classList)d.el.classList.remove('dragging') }catch(e){}
+  try{ if(d.el&&d.el.classList){d.el.classList.remove('dragging');d.el.classList.remove('drop-on')} }catch(e){}
   try{ var sc=document.getElementById('homePages'); if(sc&&sc.classList)sc.classList.remove('home-dragging') }catch(e){}
-  try{ var gs=document.querySelectorAll('.app-grid.grid-ready'); for(var i=0;i<gs.length;i++)gs[i].classList.remove('grid-ready') }catch(e){}
-  try{ var ds=document.querySelectorAll('.drop-on'); for(var j=0;j<ds.length;j++)ds[j].classList.remove('drop-on') }catch(e){}
 }
-/* 松手：一次性提交 + 只重绘一次 */
 function homeDragEnd(){
   var d=homeDragState;
   if(!d)return false;
   homeDragState=null;
-  /* 落点用"松手这一刻"算，别用上一帧缓存的那个（手指最后一下可能已经挪开了） */
-  var hit=homeDragHit(d);
-  var key=d.key,moved=false;
+  var hit=d.hit,moved=false,kind=d.kind,key=d.key;
   homeDragCleanup(d);
-  if(hit){try{ moved=homeDropApp(key,hit.p,hit.r,hit.c) }catch(e){moved=false}}
+  if(hit&&hit.ok){
+    try{ moved=gridCommit(kind,key,hit.p,hit.r,hit.c) }catch(e){ moved=false }
+  }
   if(moved){
     state.appPage=Math.max(0,hit.p);
     try{save()}catch(e){}
   }
   try{ render() }catch(e){}
-  if(moved){
-    homeLandFlash(key);
-    try{ homeDotSync(document.getElementById('homePages')) }catch(e){}
+  if(moved)homeLandFlash(key,kind);
+  /* 长按组件但没拖动 = 打开这张组件的设置面板（和以前一样） */
+  if(!moved&&!d.moved&&kind==='widget'){
+    try{ if(typeof sheetWidget==='function')sheetWidget(key) }catch(e){}
   }
   return moved;
 }
-/* 中途取消（跳页 / 清现场）：不提交 */
 function homeDragAbort(){
   var d=homeDragState;
   if(!d)return;
   homeDragState=null;
   homeDragCleanup(d);
 }
-/* 落位回弹：刚放下的那个图标弹一小下 */
-function homeLandFlash(key){
+function homeLandFlash(key,kind){
   try{
-    var els=document.querySelectorAll('.app-item[data-view="'+key+'"]');
+    var sel=(kind==='widget')?('.widget[data-wkey="'+key+'"]'):('.app-item[data-view="'+key+'"]');
+    var els=document.querySelectorAll(sel);
     for(var i=0;i<els.length;i++){
       (function(el){
         if(!el||!el.classList)return;
@@ -11837,9 +12087,8 @@ function homeLandFlash(key){
   }catch(e){}
 }
 function initDrag(){
-  var grids=document.querySelectorAll('.app-grid');
-  for(var gi=0;gi<grids.length;gi++)bindAppDrag(grids[gi]);
-  /* ★ 鼠标的 move/up 只能在 document 上绑一次：以前每重绘一次就多挂一层（越用越多） */
+  var grids=document.querySelectorAll('.home-grid');
+  for(var i=0;i<grids.length;i++)bindGridDrag(grids[i]);
   if(!initDrag._docBound){
     initDrag._docBound=1;
     document.addEventListener('mousemove',function(e){
@@ -11853,35 +12102,24 @@ function initDrag(){
     });
   }
 }
-/* 每一页的图标区都绑一套：长按 → 影子跟手 → 松手落格 */
-function bindAppDrag(grid){
+function bindGridDrag(grid){
   var timer=null,started=false,sx=0,sy=0,lastX=0,lastY=0;
-  function itemOf(t){
-    var el=t&&t.closest?t.closest('.app-item'):null;
-    if(!el)return null;
-    var g=el.closest?el.closest('.app-grid'):null;
-    return g===grid?el:null;
-  }
-  function begin(x,y,target){
-    var el=itemOf(target);
-    if(!el)return;
+  function itemOf(t){ return (t&&t.closest)?t.closest('[data-kind]'):null }
+  function begin(x,y,t){
+    var el=itemOf(t);
+    if(!el||el.getAttribute('data-kind')==='card')return;
     sx=x;sy=y;lastX=x;lastY=y;started=false;
     if(timer)clearTimeout(timer);
     homePressCancel=function(){ if(timer){clearTimeout(timer);timer=null} };
     timer=setTimeout(function(){
       timer=null;
       started=homeDragStart(el,lastX,lastY);
-      if(started){
-        _homeDragTap=1;
-        /* 松手后浏览器补的那个 click 要吃掉；万一没补，也不能一直挂着影响下一次点击 */
-        setTimeout(function(){_homeDragTap=0},800);
-      }
+      if(started){_homeDragTap=1;setTimeout(function(){_homeDragTap=0},800)}
     },HOME_LONGPRESS);
   }
   function move(x,y){
     lastX=x;lastY=y;
     if(!started){
-      /* ★ 长按还没生效就滑走了 → 判定为"想滑动/翻页"，取消长按，不抢手势 */
       if(timer&&(Math.abs(x-sx)+Math.abs(y-sy)>HOME_MOVE_TOL)){clearTimeout(timer);timer=null}
       return;
     }
