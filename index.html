@@ -1876,6 +1876,8 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .wlt .wr-am.out{color:#B94A45}
 .wlt-empty{background:#fff;border:1px solid #E9E9EB;border-radius:18px;padding:22px 0;text-align:center;color:#8A8A8E;font-size:13px}
 .wlt-note{font-size:11.5px;color:#8A8A8E;text-align:center;margin-top:12px;line-height:1.7}
+/* ★ iOS 长按图标会弹"文本选择/放大镜"菜单，把手势抢走 → 桌面图标和组件上禁掉 */
+.app-item,.widget,.wd-add{-webkit-touch-callout:none!important;-webkit-user-select:none!important;user-select:none!important}
 .tp-quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .tp-quick .tp-q{min-height:34px!important;padding:0 14px!important;border-radius:11px!important;font-size:13px!important}
 </style>
@@ -3738,14 +3740,26 @@ function renderHome(){
   html+='<div class="page-dots">';
   for(var pg=0;pg<_pageCount;pg++)html+='<span class="dot'+(pg===apg?' on':'')+'" data-act="home-page" data-p="'+pg+'"></span>';
   html+='</div>';
-  var _asc=document.getElementById('homePages');
-  if(_asc&&!state._ascBound){state._ascBound=true;_asc.addEventListener('scroll',function(){
-    var _p=Math.round(this.scrollLeft/this.clientWidth);
-    if(_p!==state.appPage&&_p<_pageCount){state.appPage=_p;save();var _ds=document.querySelectorAll('.page-dots .dot');for(var _i=0;_i<_ds.length;_i++)_ds[_i].classList.toggle('on',_i===_p)}
-  });}
+  /* ★ 页面滚动监听：必须在 $('#view').innerHTML=html **之后**再绑！
+     以前这段写在这里（元素还没进 DOM）→ getElementById 拿到 null → 监听从没绑上
+     → state.appPage 永远是 0 → 从第二/三页的 App 退出来就回第一页（用户报的 bug 的真正原因）。 */
   html+='<div class="home-foot">长按图标或小组件即可拖动换位 · 数据保存在本机浏览器<br>换手机记得在 设置 → 备份 里导出</div>';
   html+='</div>';
   $('#view').innerHTML=html;
+  /* ★ 现在 #homePages 才真正在 DOM 里 → 这时候绑滚动监听才绑得上 */
+  (function(){
+    var asc=document.getElementById('homePages');
+    if(!asc)return;
+    if(asc._ascBound)return;
+    asc._ascBound=true;
+    asc.addEventListener('scroll',function(){
+      var p=Math.round(this.scrollLeft/(this.clientWidth||1));
+      if(p!==state.appPage){state.appPage=p;try{save()}catch(e){}
+        var ds=document.querySelectorAll('.page-dots .dot');
+        for(var i=0;i<ds.length;i++)ds[i].classList.toggle('on',i===p);
+      }
+    },{passive:true});
+  })();
   /* ★ 回到桌面要停在你原来那一页（用户报的：点第二/三页的 App，退出就回第一页了）。
      页码本来就存在 state.appPage 里，只是重绘后滚动位置归零了 —— 这里把它滚回去。 */
   (function(){
@@ -4068,8 +4082,17 @@ function fitWidgetGrid(){
     fitWidgetGridNow();
   });
 }
+/** ★ 所有"能摆组件"的页面容器 id。
+    以前这里（排版 fit、尺寸监听、拖拽绑定）都写死成 widgetGrid0 / widgetGrid1，
+    于是**第三页的组件完全没绑上拖拽** —— 长按没反应就是这个原因（用户报的）。
+    现在跟着 WIDGET_PAGE_MAX 走，加页也不会漏。 */
+function widgetGridIds(){
+  var n=(typeof WIDGET_PAGE_MAX==='number')?WIDGET_PAGE_MAX:2,out=[];
+  for(var i=0;i<=n;i++)out.push('widgetGrid'+i);
+  return out;
+}
 function fitWidgetGridNow(){
-  var ids=['widgetGrid0','widgetGrid1'];
+  var ids=widgetGridIds();
   for(var g=0;g<ids.length;g++){
     var grid=document.getElementById(ids[g]);
     if(!grid)continue;
@@ -9901,7 +9924,7 @@ function widgetObserve(){
   try{
     _wdRO=new ResizeObserver(function(){fitWidgetGrid()});
   }catch(e){return}
-  var ids=['widgetGrid0','widgetGrid1'];
+  var ids=widgetGridIds();
   for(var g=0;g<ids.length;g++){
     var grid=document.getElementById(ids[g]);
     if(!grid)continue;
@@ -9912,8 +9935,8 @@ function widgetObserve(){
 function initWidgetDrag(){
   fitWidgetGrid();
   widgetObserve();
-  var _wgs=[document.getElementById('widgetGrid0'),document.getElementById('widgetGrid1')];
-  for(var _wi=0;_wi<_wgs.length;_wi++)initOneWidgetDrag(_wgs[_wi]);
+  var _ids=widgetGridIds();
+  for(var _wi=0;_wi<_ids.length;_wi++)initOneWidgetDrag(document.getElementById(_ids[_wi]));
 }
 function initOneWidgetDrag(grid){
   if(!grid)return;
@@ -11406,7 +11429,8 @@ function bindAppDrag(grid,allGrids){
     }
   }
   function move(x,y){
-    if(timer&&Math.abs(x-startX)+Math.abs(y-startY)>12){clearTimeout(timer);timer=null}
+    /* ★ 长按判定放宽：以前手指抖 12px 就取消长按，在第三页（手刚滑过去还在动）更容易误判 */
+    if(timer&&Math.abs(x-startX)+Math.abs(y-startY)>20){clearTimeout(timer);timer=null}
     if(!drag)return;
     reorder(x,y);                     /* 同步换位，不等下一帧 */
     if(rafT)return;
