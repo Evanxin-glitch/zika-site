@@ -1900,6 +1900,27 @@ body.wlt-mode #view{background:#F2F2F3}
 }
 .tp-quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .tp-quick .tp-q{min-height:34px!important;padding:0 14px!important;border-radius:11px!important;font-size:13px!important}
+/* ===== App 自由摆放（4 列 × 5 行 = 20 格/页）===== */
+/* 空槽：平时完全看不见，但把位置占住 —— 这样"后面的空格"不会被前一个 App 顶掉，
+   拖动时也有格子可以落。高度跟真图标一格对齐（--app-cell-h 由脚本量出来）。 */
+.app-slot{min-height:var(--app-cell-h,96px);border-radius:22px;position:relative}
+/* 拖起来的时候取消 scroll-snap，否则脚本驱动 scrollLeft 会被"吸"回去，跨页翻不过去 */
+.home-pages.home-dragging{scroll-snap-type:none!important}
+/* 拖动中的影子：微微倾斜（角度写在脚本的 transform 里）+ 大投影 */
+#dragGhost.app-ghost{opacity:1;transform-origin:50% 50%;filter:drop-shadow(0 20px 28px rgba(120,70,90,.34)) drop-shadow(0 4px 10px rgba(120,70,90,.18))}
+/* 落点占位（方案 C「预留空槽」）：半透明的"图标 + 名字" + 虚线框，像 iOS */
+#dropPh{position:fixed;left:0;top:0;z-index:998;pointer-events:none;transition:none;will-change:transform}
+#dropPh .drop-ph-item{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;border-radius:22px;border:1.6px dashed rgba(236,132,168,.9);background:rgba(255,255,255,.3);opacity:.62}
+#dropPh .drop-ph-item .app-icon{opacity:.55}
+/* 拖动时其它格子是很淡的虚线；被选中的落点用亮一点的粉线 */
+.app-grid.grid-ready .app-slot{outline:1.4px dashed rgba(150,130,110,.2);outline-offset:-1px}
+.app-grid.grid-ready .app-item::after{content:'';position:absolute;inset:0;border-radius:22px;outline:1.4px dashed rgba(150,130,110,.14);pointer-events:none}
+.app-item.drop-on{opacity:.4}
+.app-item.drop-on::after{outline:1.8px dashed rgba(236,132,168,.95)}
+.app-slot.drop-on{outline:1.8px dashed rgba(236,132,168,.95);background:rgba(255,255,255,.22)}
+/* 松手一小下"落位"回弹 */
+@keyframes appland{0%{transform:scale(1.16)}55%{transform:scale(.955)}100%{transform:scale(1)}}
+.app-item.app-land{animation:appland .34s cubic-bezier(.34,1.4,.6,1)}
 </style>
 </head>
 <body>
@@ -2050,6 +2071,9 @@ function defaultState(){
     messages:[],posts:[],letters:[],transfers:[],stickers:[],
     wallet:{balance:888,log:[]},
     appPage:0,
+    /* ★ App 自由摆放的坐标表：{'chat':{p:页,r:行,c:列}}。空对象 = 还没摆过，
+       由 appOrder 顺序自动安排（老用户升级时就是这条路，见 migrate）。 */
+    appPos:{},
     appOrder:['profile','chat','moments','music','shop','mail','cards','diary','companion','tarot','tide','wallet','me'],
     widgetOrder:['clock','days','music','note','feed'],
     widgetImgs:{},
@@ -2071,11 +2095,18 @@ function defaultState(){
     receivedTotal:0,nextInit:{},lastActive:t,activeContact:'mj'
   };
 }
+/* ★ App 自由摆放的网格尺寸。**必须声明在 migrate/load 之前**：
+   load() 在脚本还没跑到后面的代码时就会调 migrate，那时候更靠后的 var 还是 undefined
+   （老代码里有一条注释也踩过同样的坑）。 */
+var HOME_COLS=4,HOME_ROWS=5,HOME_CELLS=20,HOME_LEGACY_PER=6;
 function migrate(s){
   if(!Array.isArray(s.surveys))s.surveys=[];   /* 问卷 */
   try{ if(typeof syncAppOrder==='function')syncAppOrder() }catch(e){}   /* ★ 补齐新加的 App 图标 */
   /* 存储里存过什么奇怪东西都不能让读取失败：坏字段就地修好，绝不让整个存档报废 */
   if(!s||typeof s!=='object')return s;
+  /* ★ 记一下"进来的时候有没有 App 坐标"：没有 = 老存档，等会儿按老版本每页 6 个的排法还原，
+     保证升级后桌面一个图标都不挪。 */
+  var _hadAppPos=!!(s.appPos&&typeof s.appPos==='object'&&!Array.isArray(s.appPos)&&Object.keys(s.appPos).length);
   /* ★★ 公布级别的防呆：存档里任何"不是对象"的垃圾都要清掉。
      恶劣环境体检抓到的真 bug：
        · messages 里混一个 null → 每个页面都读 m.dir/m.contactId → **16 个页面全白屏**；
@@ -2128,6 +2159,7 @@ function migrate(s){
   if(typeof s.unread!=='number')s.unread=0;
   if(!s.widgetImgs||typeof s.widgetImgs!=='object')s.widgetImgs={};
   if(!s.widgetPos||typeof s.widgetPos!=='object')s.widgetPos={};
+  if(!s.appPos||typeof s.appPos!=='object'||Array.isArray(s.appPos))s.appPos={};
   if(!s.widgetSize||typeof s.widgetSize!=='object')s.widgetSize={};
   if(!s.widgetPage||typeof s.widgetPage!=='object')s.widgetPage={};
   if(!s.widgets||typeof s.widgets!=='object')s.widgets={};
@@ -2388,6 +2420,12 @@ function migrate(s){
     var _need=['music','shop'];
     for(var _ni=0;_ni<_need.length;_ni++)if(s.appOrder.indexOf(_need[_ni])<0)s.appOrder.push(_need[_ni]);
   }
+  /* ★ App 自由摆放：坐标表补全。老存档（没有 appPos）按"老版本每页 6 个、行优先 4 列"
+     还原坐标 → 升级后桌面和以前逐像素一致；新加的 App 只补空格，不动别人。
+     ⚠ 这里**不能**真的去算坐标：load() 会在 syncAppOrder 之前就调一次 migrate，
+     那时候 appOrder 里还缺新加的 App，算出来的位置会和升级前不一样。
+     真正的推导放在开机流程里（homeBootPos，syncAppOrder 之后）。 */
+  if(!s.appPos||typeof s.appPos!=='object'||Array.isArray(s.appPos))s.appPos={};
   s.version=7;
   if(s.appPage===undefined)s.appPage=0;
   if(s.contacts)for(var _ci=0;_ci<s.contacts.length;_ci++){var _cn=s.contacts[_ci];if(_cn&&_cn.name===('梦'+'角哥'))_cn.name='陆沉'}
@@ -2629,6 +2667,9 @@ var state=load()||defaultState();
 window.__loadWasDbonly=(window.__loadStatus==='dbonly');
 /* 全新安装也要跑一次迁移：否则本版本新增的设置项会缺失（保存时又不会补） */
 try{state=migrate(state)}catch(e){}
+/* ★ App 自由摆放：到这里 appOrder 才是最终版（migrate 里的 syncAppOrder 已经把新加的
+   App 补进去了）→ 这时候再把老存档的图标坐标推导出来并落盘，位置才和升级前一模一样。 */
+try{ homeBootPos() }catch(e){}
 if(window.__restoreCandidate){var _rc=window.__restoreCandidate;window.__restoreCandidate=null;restoreFull(_rc,state)}
 /* 启动后比一比：IndexedDB 里的整份存档可能比 localStorage 那份更全
    （localStorage 写不下时会被裁掉旧的聊天记录）。
@@ -2652,6 +2693,7 @@ function preferRicherFromIdb(){
       if(a>b||ac>bc){
         var what=(a>b)?(a+' 条消息'):(ac+' 张字卡');
         state=normalizeBig(migrate(t));
+        try{ homeBootPos() }catch(e){}
         try{window.__loadStatus='';window.__loadNote=''}catch(e){}
         try{save()}catch(e){}
         try{renderAll()}catch(e){}
@@ -3595,6 +3637,8 @@ function router(){
    这样即使上一次拖拽留下了什么东西，点图标也一定能打开。 */
 function clearTransients(){
   try{ closeSheet() }catch(e){}
+  /* 正在拖 App 的话先整个中止（不然影子层和 rAF 循环会留在现场） */
+  try{ if(typeof homeDragAbort==='function')homeDragAbort() }catch(e){}
   try{
     var gs=document.querySelectorAll('#dragGhost');
     for(var q=0;q<gs.length;q++)if(gs[q].parentNode)gs[q].parentNode.removeChild(gs[q]);
@@ -3699,6 +3743,137 @@ function appListDefs(){
     {v:'widgets',n:'组件库',c:'#8E9BB3',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2"/></svg>'},  ];
 }
 var APPS=appListDefs();
+/* ===================== 桌面 App 网格：4 列 × 5 行 = 20 格/页 =====================
+   数据：state.appPos = { 'chat':{p:页, r:行, c:列} }（都从 0 开始）
+   · state.appOrder 保留，只用来给"还没被摆过"的 App 找空格；
+   · 空格保留：位置是显式写下来的，后面的 App 不会自动前移；
+   · 拖到已经有 App 的格子 → 两个交换（homeDropApp 里做）。
+   ★ 升级迁移按老版本"每页 6 个、行优先 4 列"还原坐标，所以老用户看到的桌面一模一样。 */
+/* 网格尺寸 HOME_COLS / HOME_ROWS / HOME_CELLS 声明在 migrate 之前（load 会提前调 migrate） */
+function homePosValid(q){
+  return !!q&&typeof q==='object'&&!Array.isArray(q)
+    &&typeof q.p==='number'&&typeof q.r==='number'&&typeof q.c==='number'
+    &&q.p>=0&&q.p%1===0&&q.r>=0&&q.r<HOME_ROWS&&q.c>=0&&q.c<HOME_COLS
+    &&q.r%1===0&&q.c%1===0;
+}
+/* 老版本里第 i 个 App 摆在哪一格（每页 6 个、行优先） */
+function homeLegacyCell(i){
+  var p=Math.floor(i/HOME_LEGACY_PER),k=i%HOME_LEGACY_PER;
+  return {p:p,r:Math.floor(k/HOME_COLS),c:k%HOME_COLS};
+}
+function homePosTable(){
+  if(!state.appPos||typeof state.appPos!=='object'||Array.isArray(state.appPos))state.appPos={};
+  return state.appPos;
+}
+/* 这个 App 现在在哪一格（没摆过就返回 null） */
+function homePosOf(v){
+  var q=homePosTable()[v];
+  return homePosValid(q)?{p:q.p,r:q.r,c:q.c}:null;
+}
+/* 把 appOrder 里的 App 排进每页 20 格。
+   write=true 时写回 s.appPos；legacy=true 时"没坐标的"按老版本排法还原（迁移用）。
+   返回 {pages:[每页 20 个格子], count:页数, pos:坐标表} */
+function homePlaceAll(s,legacy,write){
+  s=s||state;
+  var order=(s&&Array.isArray(s.appOrder))?s.appOrder:[];
+  var old=(s&&s.appPos&&typeof s.appPos==='object'&&!Array.isArray(s.appPos))?s.appPos:{};
+  var pages=[],pos={},pending=[],i;
+  function ensure(p){ while(pages.length<=p)pages.push(new Array(HOME_CELLS)) }
+  function freeCell(){
+    for(var fp=0;;fp++){
+      ensure(fp);
+      for(var fr=0;fr<HOME_ROWS;fr++)for(var fc=0;fc<HOME_COLS;fc++)if(!pages[fp][fr*HOME_COLS+fc])return {p:fp,r:fr,c:fc};
+    }
+  }
+  /* ① 先按存档里的坐标摆（越界 / 重复占格的留到下一步补）。这里不校验 App 是否存在：
+     开机时这几行比 APPS 初始化还早，而且 appOrder 本身已经被 syncAppOrder 过滤过了。 */
+  for(i=0;i<order.length;i++){
+    var v=order[i];
+    if(typeof v!=='string'||!v||pos[v])continue;
+    var q=old[v];
+    if(!q||!homePosValid(q)){pending.push({v:v,i:i});continue}
+    ensure(q.p);
+    var idx=q.r*HOME_COLS+q.c;
+    if(pages[q.p][idx]){pending.push({v:v,i:i});continue}
+    pages[q.p][idx]=v;pos[v]={p:q.p,r:q.r,c:q.c};
+  }
+  /* ② 没坐标的：一个坐标都没有（老存档 / 全新安装）→ 整页按老版本排法还原；
+     已经有坐标的存档 → 只补第一个空格（后面的 App 不会往前挤）。 */
+  var useLegacy=!!legacy||!Object.keys(pos).length;
+  for(i=0;i<pending.length;i++){
+    var it=pending[i],cell=null;
+    if(useLegacy){
+      var lc=homeLegacyCell(it.i);
+      ensure(lc.p);
+      if(!pages[lc.p][lc.r*HOME_COLS+lc.c])cell=lc;
+    }
+    if(!cell)cell=freeCell();
+    ensure(cell.p);
+    pages[cell.p][cell.r*HOME_COLS+cell.c]=it.v;
+    pos[it.v]={p:cell.p,r:cell.r,c:cell.c};
+  }
+  if(write)s.appPos=pos;
+  return {pages:pages,count:pages.length,pos:pos};
+}
+function homeLayout(){return homePlaceAll(state,false,false)}
+function homeRebuildPos(s,legacy){return homePlaceAll(s||state,!!legacy,true)}
+function homeEnsurePos(){return homeRebuildPos(state,false)}
+/* 开机 / 导入之后跑一次：坐标表还是空的（老存档、全新安装）就按"老版本每页 6 个"排一遍。
+   ★ 必须等 syncAppOrder 把新加的 App 补进 appOrder 之后再跑，否则位置和升级前对不上。 */
+function homeBootPos(){
+  try{
+    if(!state||!Array.isArray(state.appOrder))return;
+    if(state.appPos&&typeof state.appPos==='object'&&Object.keys(state.appPos).length)return;
+    homeRebuildPos(state,true);
+    try{save()}catch(e){}
+  }catch(e){}
+}
+/* 这一格现在是谁 */
+function homeAppAt(p,r,c){
+  var pos=homePosTable();
+  for(var k in pos){var q=pos[k];if(homePosValid(q)&&q.p===p&&q.r===r&&q.c===c)return k}
+  return null;
+}
+/* 松手落格：写进 state.appPos。目标格已经有别的 App → 两个交换。
+   返回 true 表示真的动了（调用方负责 save + 重绘）。 */
+function homeDropApp(v,p,r,c){
+  if(!appByKey(v))return false;
+  if(!(typeof p==='number'&&typeof r==='number'&&typeof c==='number'))return false;
+  if(p<0||p%1!==0||r<0||r>=HOME_ROWS||r%1!==0||c<0||c>=HOME_COLS||c%1!==0)return false;
+  homeEnsurePos();
+  var pos=homePosTable();
+  var from=homePosValid(pos[v])?{p:pos[v].p,r:pos[v].r,c:pos[v].c}:null;
+  if(from&&from.p===p&&from.r===r&&from.c===c)return false;
+  var other=homeAppAt(p,r,c);
+  if(other===v)return false;
+  if(other){
+    if(from)pos[other]={p:from.p,r:from.r,c:from.c};
+    else delete pos[other];           /* 异常存档（自己都没坐标）：让对方重新找空格 */
+  }
+  pos[v]={p:p,r:r,c:c};
+  return true;
+}
+/* 一页的网格 HTML：只画到"最后一行有 App"的那一行 —— 空着的行不占高度，
+   所以升级后的布局跟以前逐像素一致；拖动时再临时补满 20 格（homeExpandGrids）。 */
+function homeGridHtml(p,cells){
+  cells=cells||[];
+  var lastRow=-1,i;
+  for(i=0;i<cells.length;i++)if(cells[i]){
+    var rr=Math.floor(i/HOME_COLS);
+    if(rr>lastRow)lastRow=rr;
+  }
+  var html='<div class="app-grid" id="appGrid_'+p+'" data-page="'+p+'">';
+  for(var r=0;r<=lastRow;r++){
+    for(var c=0;c<HOME_COLS;c++)html+=homeCellHtml(p,r,c,cells[r*HOME_COLS+c]);
+  }
+  return html+'</div>';
+}
+function homeCellHtml(p,r,c,v){
+  var at=' data-p="'+p+'" data-r="'+r+'" data-c="'+c+'"';
+  var a=v?appByKey(v):null;
+  if(!a)return '<div class="app-slot"'+at+'></div>';
+  return appItemHtml(a,at);
+}
 function renderHome(){
   var _inSnap=inputSnapshot();
   var c=activeContact();
@@ -3708,58 +3883,43 @@ function renderHome(){
   var html='<div id="home" class="cbg" style="'+homeBgStyle()+'">';
   html+='<div class="home-pages" id="homePages">';
 
-  /* ===== 第一页：组件 + 状态卡 + 应用 ===== */
-  html+='<div class="home-page" data-page="0">';
-  html+='<div class="home-greet">'+greet+' · '+(d.getMonth()+1)+'月'+d.getDate()+'日</div>';
-  html+='<div class="home-title">'+esc(siteName())+'</div>';
   var wds=state.widgets||{clock:true,days:true,music:true,note:true};
-  var order=state.appOrder&&state.appOrder.length?state.appOrder:APPS.map(function(x){return x.v});
   var wdo=widgetEnsureOrder();
-  html+='<button class="wd-add" data-view="widgets" data-page="0" title="添加组件">＋</button>';
-  html+='<div class="widgets" id="widgetGrid0">'+widgetGridInner(wdo,wds,wk,d,0)+'</div>';
-  var _cov=state.settings&&state.settings.coverImg?mediaUrlSync(state.settings.coverImg):'';
-  html+='<div class="status-card" data-view="chat">'
-    +'<span class="sc-cover"'+(_cov?' style="background-image:url(\''+_cov+'\')"':'')+'></span>'
-    +'<span class="sc-avwrap">'+avatarHtml(c)+'</span>'
-    +'<div class="sc-body"><div class="sc-name">'+esc(c.name)+'</div><div class="sc-chips"><span class="chip b-soft">'+esc(state.currentStatus.text)+'</span><span class="chip">'+esc(state.currentMood.text)+'</span></div></div>'
-    +'</div>';
-
-  var apps=APPS;
-  var PER=6,apg=state.appPage||0;
-  html+='<div class="app-grid" id="appGrid_0">';
-  for(var i=0;i<order.length&&i<6;i++){
-    var a=appByKey(order[i]);
-    if(!a)continue;
-    html+=appItemHtml(a);
-  }
-  html+='</div>';
-  html+='</div>';
-
-  /* ===== 其余页面：每页 6 个应用，放不下的自动开新页 =====
-     ★ 以前写死"第二页装下所有剩下的"，第二页被小组件占满时，
-       后面的 App 就被压住看不见了（用户报的"问卷被覆盖找不到了"）。
-     ★ 现在前三页都能摆小组件（用户只要求到第 3 页）。
-       页数还是按 App 数量自动算；只有"组件被放到了更后面的页"时才补足页数。 */
-  var _PER=6;
+  /* ★ App 摆放：4 列 × 5 行 = 20 格/页。有 appPos 的按坐标放，没摆过的按 appOrder 补空格。
+     只画到"最后一行有图标"的那一行，所以空着的行不占高度 —— 升级后的布局和以前一致。 */
+  var lay=homeLayout();
   var _wMax=0,_wk3;
   for(_wk3 in (state.widgetPage||{})){
     if(state.widgets&&state.widgets[_wk3]===false)continue;
     var _wv3=widgetPageOf(_wk3);
     if(_wv3>_wMax)_wMax=_wv3;
   }
-  var _pageCount=Math.max(1,Math.ceil(order.length/_PER),_wMax+1);
-  for(var _pg=1;_pg<_pageCount;_pg++){
+  /* 页数 = 摆到的最大页 / 组件所在的最深页 / 至少 1 页 */
+  var _pageCount=Math.max(1,lay.count||1,_wMax+1);
+  var apg=Math.min(Math.max(0,state.appPage||0),_pageCount-1);
+
+  for(var _pg=0;_pg<_pageCount;_pg++){
     html+='<div class="home-page" data-page="'+_pg+'">';
-    html+='<div class="home-title home-title-2">'+esc(siteName())+'</div>';
-    html+='<button class="wd-add" data-view="widgets" data-page="'+_pg+'" title="添加组件">＋</button>';
-    html+='<div class="widgets" id="widgetGrid'+_pg+'">'+(_pg<=WIDGET_PAGE_MAX?widgetGridInner(wdo,wds,wk,d,_pg):'')+'</div>';
-    html+='<div class="app-grid" id="appGrid_'+_pg+'">';
-    for(var _ai=_pg*_PER;_ai<order.length&&_ai<(_pg+1)*_PER;_ai++){
-      var _ap=appByKey(order[_ai]);
-      if(!_ap)continue;
-      html+=appItemHtml(_ap);
+    if(_pg===0){
+      /* ===== 第一页：问候 + 组件 + 状态卡 ===== */
+      html+='<div class="home-greet">'+greet+' · '+(d.getMonth()+1)+'月'+d.getDate()+'日</div>';
+      html+='<div class="home-title">'+esc(siteName())+'</div>';
+      html+='<button class="wd-add" data-view="widgets" data-page="0" title="添加组件">＋</button>';
+      html+='<div class="widgets" id="widgetGrid0">'+widgetGridInner(wdo,wds,wk,d,0)+'</div>';
+      var _cov=state.settings&&state.settings.coverImg?mediaUrlSync(state.settings.coverImg):'';
+      html+='<div class="status-card" data-view="chat">'
+        +'<span class="sc-cover"'+(_cov?' style="background-image:url(\''+_cov+'\')"':'')+'></span>'
+        +'<span class="sc-avwrap">'+avatarHtml(c)+'</span>'
+        +'<div class="sc-body"><div class="sc-name">'+esc(c.name)+'</div><div class="sc-chips"><span class="chip b-soft">'+esc(state.currentStatus.text)+'</span><span class="chip">'+esc(state.currentMood.text)+'</span></div></div>'
+        +'</div>';
+    }else{
+      /* ===== 其余页面：标题 + 组件区（前三页都能摆组件） ===== */
+      html+='<div class="home-title home-title-2">'+esc(siteName())+'</div>';
+      html+='<button class="wd-add" data-view="widgets" data-page="'+_pg+'" title="添加组件">＋</button>';
+      html+='<div class="widgets" id="widgetGrid'+_pg+'">'+(_pg<=WIDGET_PAGE_MAX?widgetGridInner(wdo,wds,wk,d,_pg):'')+'</div>';
     }
-    html+='</div>';
+    /* App 网格：这一页的 20 个格子按坐标摆 */
+    html+=homeGridHtml(_pg,lay.pages[_pg]);
     html+='</div>';
   }
 
@@ -3773,6 +3933,13 @@ function renderHome(){
   html+='<div class="home-foot">长按图标或小组件即可拖动换位 · 数据保存在本机浏览器<br>换手机记得在 设置 → 备份 里导出</div>';
   html+='</div>';
   $('#view').innerHTML=html;
+  /* ★ 空槽的高度要跟真图标一格对齐（不然中间夹着的空行会比真行矮，落点会偏）。
+     量不到就用 CSS 里的 96px 兜底。 */
+  try{
+    var _hp0=document.getElementById('homePages');
+    var _it0=document.querySelector('#homePages .app-item');
+    if(_hp0&&_hp0.style&&_it0&&_it0.offsetHeight)_hp0.style.setProperty('--app-cell-h',_it0.offsetHeight+'px');
+  }catch(e){}
   /* ★ 现在 #homePages 才真正在 DOM 里 → 这时候绑滚动监听才绑得上 */
   (function(){
     var asc=document.getElementById('homePages');
@@ -3816,14 +3983,15 @@ function appByKey(v){
   for(var i=0;i<APPS.length;i++)if(APPS[i].v===v)return APPS[i];
   return null;
 }
-/* 单个 App 图标（两页共用） */
-function appItemHtml(a){
+/* 单个 App 图标（两页共用）
+   extra：额外的属性串（桌面网格用 data-p / data-r / data-c 标出它占的是哪一格） */
+function appItemHtml(a,extra){
   if(!a)return '';
   state.appIcons=state.appIcons||{};        /* 兜底：宁可少一张自定义图标，也不能整屏白掉 */
   var ic=String(a.ic||'').replace(/stroke="#fff"/g,'stroke="'+a.c+'"').replace(/fill="#fff"/g,'fill="'+a.c+'"');
   var hasIcon=!!state.appIcons[a.v]&&!mediaDead(state.appIcons[a.v]);   /* ★ 图标图失效了就当没设过，回落默认图标 */
   if(hasIcon)ic='<img class="app-icon-img" src="'+mediaUrlSync(state.appIcons[a.v])+'" alt="">';
-  return '<div class="app-item" data-view="'+a.v+'"><div class="app-icon'+(hasIcon?' has-img':'')+'" style="background:'+(hasIcon?'#FFFFFF':'rgba(255,255,255,.34)')+'">'+ic+'</div>'
+  return '<div class="app-item" data-view="'+a.v+'"'+(extra||'')+'><div class="app-icon'+(hasIcon?' has-img':'')+'" style="background:'+(hasIcon?'#FFFFFF':'rgba(255,255,255,.34)')+'">'+ic+'</div>'
     +(a.v==='chat'&&state.unread?'<i class="app-badge">'+state.unread+'</i>':'')+'<span>'+a.n+'</span></div>';
 }
 /* ===== 小组件：自由摆放 ===== */
@@ -6994,7 +7162,7 @@ function contactDel(id){
 var BACKUP_CATS=[
  {k:'me',        n:'我的资料',          d:'昵称、头像、个人资料',        keys:['me']},
  {k:'contacts',  n:'梦角资料',          d:'角色、头像、回复节奏、概率',   keys:['contacts','activeContact']},
- {k:'desktop',   n:'全局设置与桌面',    d:'主题、壁纸、字体、各种开关',   keys:['settings','appIcons','appOrder','appPage']},
+ {k:'desktop',   n:'全局设置与桌面',    d:'主题、壁纸、字体、各种开关',   keys:['settings','appIcons','appOrder','appPos','appPage']},
  {k:'widgets',   n:'桌面小组件',        d:'组件内容、布局和媒体引用',     keys:['widgets','widgetsOn','widgetOrder','widgetSize','widgetPage','widgetPos','widgetImgs','widgetWeather','widgetCount','widgetProgress','widgetPhoto','widgetCalendar','widgetDaysLabel','widgetDaysUnit','widgetNote','widgetMusic','anniversaryDays']},
  {k:'chat',      n:'聊天记录',          d:'各联系人的文字和媒体消息',     keys:['messages','nextInit','nextCallDue','nextInviteDue']},
  {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet','mySaves','pollLog','surveys']},
@@ -7269,7 +7437,7 @@ function importBackup(input){
     /* ★ 导入的是"老备份"时，里面的图标顺序清单没有新加的 App（比如问卷），
      以前只有在"开机迁移"时才补 —— 所以导入后 App 会凭空消失，得刷新才回来。
      这里导入完立刻补一次。 */
-  try{ if(typeof syncAppOrder==='function')syncAppOrder(); save() }catch(e5){}
+  try{ if(typeof syncAppOrder==='function')syncAppOrder(); if(typeof homeRebuildPos==='function')homeRebuildPos(state,false); save() }catch(e5){}
   try{ closeSheet();renderAll();schedule() }catch(e4){
       painted=false;
       /* 把真实原因留下来（以前只吞掉，用户只看到"界面重画时出错"） */
@@ -8769,6 +8937,8 @@ fileInput.accept='.json,application/json,text/plain';
 document.body.appendChild(fileInput);
 document.addEventListener('click',function(e){
   if(e.target&&e.target.id==='sheet-mask'){closeSheet();return}
+  /* ★ 长按拖拽松手后浏览器还会补一个 click：不能让它被当成"点开这个 App" */
+  if(_homeDragTap){_homeDragTap=0;if(e.target.closest&&e.target.closest('.app-item'))return}
   var v=e.target.closest('[data-view]');
   if(v){
     var _pg=v.getAttribute('data-page');
@@ -11416,154 +11586,322 @@ var ICON_REPEAT='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" str
 var ICON_LOOPONE='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9a4 4 0 0 1 4-4h9l-2.5-2.5M20 15a4 4 0 0 1-4 4H7l2.5 2.5"/><path d="M12 9.5v5M11 10.6l1-.9"/></svg>';
 var ICON_HEADSET='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.6" y="13.4" width="4.4" height="6.4" rx="2.2"/><rect x="17" y="13.4" width="4.4" height="6.4" rx="2.2"/></svg>';
 var ICON_EXPAND='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg>';
+/* ===================== App 拖拽：影子层 + 落点占位 + 跨页跟手滚动 =====================
+   上一版踩过的两个坑（这一次整块换掉）：
+   ① 每次 touchmove 都 insertBefore + 量所有图标 → 掉帧、抢手势。
+      现在长按之后只建一层"影子"（fixed + transform），拖动过程中只动影子 / 占位框，
+      松手时一次性写 state.appPos，然后只重绘一次。
+   ② 跨页靠"在边缘停住 0.26 秒"判定，手指一停就不再有 touchmove → 永远翻不过去。
+      现在按手指的 x 位置直接驱动 #homePages.scrollLeft（越靠边越快，带速度曲线），
+      页面跟着手指滚动，滚到哪一页就落在哪一页。 */
+var homeDragState=null;
+var homePressCancel=null;      /* 还没生效的长按（鼠标在别处松开时要能取消） */
+var _homeDragTap=0;            /* 拖完松手浏览器还会补一个 click：用它吃掉，避免误打开 App */
+var HOME_LONGPRESS=380,HOME_MOVE_TOL=20;
+var HOME_EDGE_RATIO=0.16,HOME_EDGE_MIN=48,HOME_SCROLL_MAX=1500;
+
+/* 手指 x 的位置 → 每秒横向滚多少像素（正数向右、负数向左，0 = 不滚）。越靠边越快。
+   纯函数，方便自测。 */
+function homeEdgeSpeed(x,w){
+  w=w||window.innerWidth||360;
+  var zone=Math.max(HOME_EDGE_MIN,Math.round(w*HOME_EDGE_RATIO));
+  if(x<zone){var d=(zone-x)/zone;return -Math.max(0,Math.min(1,d))*HOME_SCROLL_MAX}
+  if(x>w-zone){var d2=(x-(w-zone))/zone;return Math.max(0,Math.min(1,d2))*HOME_SCROLL_MAX}
+  return 0;
+}
+/* 手指在网格内的相对坐标 → 最近的一格（格子等大，取距离最近的） */
+function homeCellAt(rx,ry,cells){
+  if(!cells||!cells.length)return null;
+  var best=null,bd=1e18;
+  for(var i=0;i<cells.length;i++){
+    var ce=cells[i];
+    if(rx>=ce.l&&rx<=ce.l+ce.w&&ry>=ce.t&&ry<=ce.t+ce.h)return ce;
+    var dx=rx-(ce.l+ce.w/2),dy=ry-(ce.t+ce.h/2),dd=dx*dx+dy*dy;
+    if(dd<bd){bd=dd;best=ce}
+  }
+  return best;
+}
+/* 缓存每一页格子的相对位置（拖动期间网格布局不变，只用 grid 的 rect 换算） */
+function homeDragGeo(){
+  var grids=document.querySelectorAll('.app-grid'),out={};
+  for(var i=0;i<grids.length;i++){
+    var g=grids[i];
+    if(!g)continue;
+    var p=parseInt(g.getAttribute('data-page'),10)||0;
+    var cells=[],ch=g.children||[];
+    for(var j=0;j<ch.length;j++){
+      var el=ch[j];
+      if(!el||!el.getAttribute)continue;
+      var rr=el.getAttribute('data-r'),cc=el.getAttribute('data-c');
+      if(rr===null||cc===null||rr===''||cc==='')continue;
+      cells.push({el:el,r:+rr,c:+cc,l:el.offsetLeft,t:el.offsetTop,w:el.offsetWidth,h:el.offsetHeight});
+    }
+    out[p]={grid:g,cells:cells};
+  }
+  return out;
+}
+/* 拖动时把每一页补满 20 格（平时只画到用得到的那一行，空行不占高度、不改变布局）。
+   补格子只往后 append，已有的图标一个都不动。 */
+function homeExpandGrids(){
+  var grids=document.querySelectorAll('.app-grid'),i,r,c;
+  try{
+    var sc0=document.getElementById('homePages');
+    var it=document.querySelector('#homePages .app-item');
+    if(sc0&&sc0.style&&it&&it.offsetHeight)sc0.style.setProperty('--app-cell-h',it.offsetHeight+'px');
+  }catch(e){}
+  for(i=0;i<grids.length;i++){
+    var grid=grids[i];
+    if(!grid)continue;
+    var p=parseInt(grid.getAttribute('data-page'),10)||0;
+    if(grid.classList)grid.classList.add('grid-ready');
+    var lastRow=-1,ch=grid.children||[];
+    for(var j=0;j<ch.length;j++){
+      var el=ch[j];
+      var rr=el&&el.getAttribute?el.getAttribute('data-r'):null;
+      if(rr===null||rr==='')continue;
+      if(+rr>lastRow)lastRow=+rr;
+    }
+    var add='';
+    for(r=lastRow+1;r<HOME_ROWS;r++)for(c=0;c<HOME_COLS;c++)add+='<div class="app-slot" data-p="'+p+'" data-r="'+r+'" data-c="'+c+'"></div>';
+    if(add&&grid.insertAdjacentHTML)grid.insertAdjacentHTML('beforeend',add);
+  }
+}
+function homePageIndex(sc){
+  if(!sc||!sc.clientWidth)return 0;
+  return Math.max(0,Math.round(sc.scrollLeft/sc.clientWidth));
+}
+function homeDotSync(sc){
+  try{
+    var p=homePageIndex(sc),ds=document.querySelectorAll('.page-dots .dot');
+    /* ★ 拖拽是我们自己在改 scrollLeft，scroll 事件要等下一帧才来；
+       这里立刻把页码写进 state，松手重绘时才不会跳回第 1 页 */
+    if(p!==state.appPage)state.appPage=p;
+    for(var i=0;i<ds.length;i++)if(ds[i].classList)ds[i].classList.toggle('on',i===p);
+  }catch(e){}
+}
+/* 手指现在落在哪一格（跟着滚动实时算） */
+function homeDragHit(d){
+  if(!d)return null;
+  var sc=document.getElementById('homePages');
+  if(!sc)return null;
+  var p=homePageIndex(sc),g=d.geo[p];
+  if(!g||!g.grid||!g.cells.length)return null;
+  var rect=g.grid.getBoundingClientRect();
+  var cw=g.cells[0].w||60,chh=g.cells[0].h||90;
+  var rx=d.x-rect.left,ry=d.y-rect.top;
+  /* 落在网格外面一点点也算（手指多半压在图标中心），太远就不算落点 */
+  if(rx<-cw*0.55||rx>rect.width+cw*0.55)return null;
+  if(ry<-chh*0.6||ry>rect.height+chh*0.6)return null;
+  var cell=homeCellAt(rx,ry,g.cells);
+  return cell?{p:p,r:cell.r,c:cell.c,cell:cell}:null;
+}
+/* 画落点：目标格亮起来 + 半透明的"图标 + 名字"占位（方案 C「预留空槽」） */
+function homeDragPaint(d,hit){
+  if(!d)return;
+  var k=hit?(hit.p+':'+hit.r+':'+hit.c):'';
+  if(d.painted&&d.paintedEl&&d.paintedKey!==k&&d.paintedEl.classList)d.paintedEl.classList.remove('drop-on');
+  d.paintedKey=k;d.paintedEl=hit?hit.cell.el:null;
+  if(!hit){
+    d.painted=false;d.hit=null;
+    if(d.ph)d.ph.style.display='none';
+    return;
+  }
+  d.painted=true;d.hit=hit;
+  if(hit.cell.el&&hit.cell.el.classList)hit.cell.el.classList.add('drop-on');
+  if(d.ph){
+    var gr=d.geo[hit.p].grid.getBoundingClientRect();
+    d.ph.style.display='block';
+    d.ph.style.width=(hit.cell.w||60)+'px';
+    d.ph.style.height=(hit.cell.h||90)+'px';
+    d.ph.style.transform='translate3d('+Math.round(gr.left+hit.cell.l)+'px,'+Math.round(gr.top+hit.cell.t)+'px,0)';
+  }
+}
+/* 一帧的活：①按手指位置滚页面 ②算落点 ③影子跟手。
+   单独拆出来是为了自测时能"手动喂帧"（不依赖 rAF 的时间片），行为和真机完全一样。 */
+function homeDragStep(d,dt){
+  if(!d)return;
+  /* ① 手指位置驱动翻页：循环自己跑，所以手指停住也照样滚（上一版翻不了页的根因） */
+  var sc=document.getElementById('homePages');
+  if(sc){
+    var want=homeEdgeSpeed(d.x);
+    d.vel+=(want-d.vel)*0.2;                 /* 速度曲线：起步缓，越靠边越快 */
+    if(Math.abs(d.vel)<6)d.vel=0;
+    if(d.vel){
+      var before=sc.scrollLeft;
+      sc.scrollLeft=before+d.vel*dt/1000;
+      if(sc.scrollLeft===before)d.vel=0;     /* 到最边上了 */
+      else homeDotSync(sc);
+    }
+  }
+  /* ② 落点（页面滚动后会变，每帧重算） */
+  homeDragPaint(d,homeDragHit(d));
+  /* ③ 影子跟手：微微倾斜 + 大投影（投影在 CSS 里） */
+  if(d.ghost)d.ghost.style.transform='translate3d('+Math.round(d.x-d.w/2)+'px,'+Math.round(d.y-d.h/2)+'px,0) rotate(-3.2deg) scale(1.04)';
+}
+function homeDragFrame(t){
+  var d=homeDragState;
+  if(!d)return;
+  var now=t||0;
+  var dt=d.lastT?Math.min(64,Math.max(0,now-d.lastT)):16;
+  d.lastT=now;
+  homeDragStep(d,dt);
+  d.raf=requestAnimationFrame(homeDragFrame);
+}
+function homeDragStart(el,x,y){
+  if(homeDragState||!el)return false;
+  var key=el.getAttribute&&el.getAttribute('data-view');
+  if(!key||!appByKey(key))return false;
+  if(!el.closest||!el.closest('.app-grid'))return false;
+  homeEnsurePos();               /* 保证每个 App 都有坐标，落格时才能交换 */
+  homeExpandGrids();             /* 补满 20 格：空的地方也能落 */
+  var d={key:key,el:el,x:x,y:y,w:el.offsetWidth||64,h:el.offsetHeight||80,
+         ghost:null,ph:null,vel:0,lastT:0,raf:0,hit:null,painted:false,paintedKey:'',paintedEl:null,geo:null};
+  var sc=document.getElementById('homePages');
+  if(sc&&sc.classList)sc.classList.add('home-dragging');  /* 取消 scroll-snap，否则脚本翻页会被吸回去 */
+  /* 影子：只动它，不碰真实 DOM */
+  var ghost=el.cloneNode(true);
+  ghost.id='dragGhost';
+  ghost.className='app-item app-ghost';
+  try{ ghost.removeAttribute('data-view') }catch(e){}
+  ghost.style.position='fixed';ghost.style.left='0';ghost.style.top='0';
+  ghost.style.width=d.w+'px';ghost.style.height=d.h+'px';
+  document.body.appendChild(ghost);
+  d.ghost=ghost;
+  /* 落点占位：半透明的"图标 + 名字" + 虚线框 */
+  var ph=document.createElement('div');
+  ph.id='dropPh';
+  ph.innerHTML='<div class="drop-ph-item">'+ghost.innerHTML+'</div>';
+  ph.style.display='none';
+  document.body.appendChild(ph);
+  d.ph=ph;
+  if(el.classList)el.classList.add('dragging');
+  d.geo=homeDragGeo();
+  homeDragState=d;
+  d.raf=requestAnimationFrame(homeDragFrame);
+  return true;
+}
+function homeDragMove(x,y){
+  var d=homeDragState;
+  if(!d)return;
+  d.x=x;d.y=y;
+}
+function homeDragCleanup(d){
+  if(!d)return;
+  if(d.raf)try{cancelAnimationFrame(d.raf)}catch(e){}
+  try{ if(d.ghost&&d.ghost.parentNode)d.ghost.parentNode.removeChild(d.ghost) }catch(e){}
+  try{ if(d.ph&&d.ph.parentNode)d.ph.parentNode.removeChild(d.ph) }catch(e){}
+  try{ if(d.el&&d.el.classList)d.el.classList.remove('dragging') }catch(e){}
+  try{ var sc=document.getElementById('homePages'); if(sc&&sc.classList)sc.classList.remove('home-dragging') }catch(e){}
+  try{ var gs=document.querySelectorAll('.app-grid.grid-ready'); for(var i=0;i<gs.length;i++)gs[i].classList.remove('grid-ready') }catch(e){}
+  try{ var ds=document.querySelectorAll('.drop-on'); for(var j=0;j<ds.length;j++)ds[j].classList.remove('drop-on') }catch(e){}
+}
+/* 松手：一次性提交 + 只重绘一次 */
+function homeDragEnd(){
+  var d=homeDragState;
+  if(!d)return false;
+  homeDragState=null;
+  /* 落点用"松手这一刻"算，别用上一帧缓存的那个（手指最后一下可能已经挪开了） */
+  var hit=homeDragHit(d);
+  var key=d.key,moved=false;
+  homeDragCleanup(d);
+  if(hit){try{ moved=homeDropApp(key,hit.p,hit.r,hit.c) }catch(e){moved=false}}
+  if(moved){
+    state.appPage=Math.max(0,hit.p);
+    try{save()}catch(e){}
+  }
+  try{ render() }catch(e){}
+  if(moved){
+    homeLandFlash(key);
+    try{ homeDotSync(document.getElementById('homePages')) }catch(e){}
+  }
+  return moved;
+}
+/* 中途取消（跳页 / 清现场）：不提交 */
+function homeDragAbort(){
+  var d=homeDragState;
+  if(!d)return;
+  homeDragState=null;
+  homeDragCleanup(d);
+}
+/* 落位回弹：刚放下的那个图标弹一小下 */
+function homeLandFlash(key){
+  try{
+    var els=document.querySelectorAll('.app-item[data-view="'+key+'"]');
+    for(var i=0;i<els.length;i++){
+      (function(el){
+        if(!el||!el.classList)return;
+        el.classList.add('app-land');
+        setTimeout(function(){try{el.classList.remove('app-land')}catch(e){}},380);
+      })(els[i]);
+    }
+  }catch(e){}
+}
 function initDrag(){
   var grids=document.querySelectorAll('.app-grid');
-  for(var gi=0;gi<grids.length;gi++)bindAppDrag(grids[gi],grids);
-}
-/* 图标拖拽：同一页内换位 + 拖到屏幕边缘自动翻页（跨页搬运） */
-function bindAppDrag(grid,allGrids){
-  var drag=null,timer=null,ghost=null,startX=0,startY=0;
-  var edgeDir=0,edgeSince=0;
-  /* ★ 跨页拖拽：把图标拖到屏幕左/右边缘停住一会儿就自动翻页搬过去。
-     以前热区只有 42px —— 手机上很不好对准，iOS 左侧还有"返回手势"会抢；
-     现在热区按屏宽算（约 18%，至少 64px），停留时间也缩短一点，好操作很多。 */
-  var EDGE_PX=Math.max(64,Math.round((window.innerWidth||360)*0.18)),HOLD_MS=260;
-  function findApp(t){var el=t;while(el&&el!==grid&&!el.classList.contains('app-item'))el=el.parentNode;return el===grid?null:el}
-  function pageOf(g){return parseInt(g.getAttribute('data-page'),10)||0}
-  function scrollToPage(n){
-    var sc=document.getElementById('homePages');
-    if(!sc)return;
-    var g=allGrids[n];
-    if(!g)return;
-    var pg=g.closest?g.closest('.home-page'):null;
-    var left=pg?pg.offsetLeft:0;
-    sc.scrollTo({left:Math.max(0,left),behavior:'auto'});
+  for(var gi=0;gi<grids.length;gi++)bindAppDrag(grids[gi]);
+  /* ★ 鼠标的 move/up 只能在 document 上绑一次：以前每重绘一次就多挂一层（越用越多） */
+  if(!initDrag._docBound){
+    initDrag._docBound=1;
+    document.addEventListener('mousemove',function(e){
+      if(!homeDragState)return;
+      homeDragMove(e.clientX,e.clientY);
+      if(e.preventDefault)e.preventDefault();
+    });
+    document.addEventListener('mouseup',function(){
+      if(homePressCancel){try{homePressCancel()}catch(e){}homePressCancel=null}
+      if(homeDragState)homeDragEnd();
+    });
   }
-  function detachTo(target){
-    if(!drag||!target||drag.parentNode===target)return;
-    var g0=document.querySelector('.app-grid.editing');
-    if(g0&&g0!==grid)g0.classList.remove('editing');
-    if(drag.parentNode)drag.parentNode.removeChild(drag);
-    target.appendChild(drag);
-    grid=target;
-    grid.classList.add('editing');
-    scrollToPage(pageOf(target));
+}
+/* 每一页的图标区都绑一套：长按 → 影子跟手 → 松手落格 */
+function bindAppDrag(grid){
+  var timer=null,started=false,sx=0,sy=0,lastX=0,lastY=0;
+  function itemOf(t){
+    var el=t&&t.closest?t.closest('.app-item'):null;
+    if(!el)return null;
+    var g=el.closest?el.closest('.app-grid'):null;
+    return g===grid?el:null;
   }
   function begin(x,y,target){
-    var el=findApp(target);if(!el)return;
-    startX=x;startY=y;
-    edgeDir=0;edgeSince=0;
+    var el=itemOf(target);
+    if(!el)return;
+    sx=x;sy=y;lastX=x;lastY=y;started=false;
+    if(timer)clearTimeout(timer);
+    homePressCancel=function(){ if(timer){clearTimeout(timer);timer=null} };
     timer=setTimeout(function(){
-      if(!el.parentNode)return;
-      drag=el;
-      el.classList.add('dragging');
-      var g0=document.querySelector('.app-grid.editing');
-      if(g0&&g0!==grid)g0.classList.remove('editing');
-      grid.classList.add('editing');
-      ghost=el.cloneNode(true);
-      ghost.id='dragGhost';
-      ghost.style.width=el.offsetWidth+'px';
-      ghost.style.height=el.offsetHeight+'px';
-      ghost.style.transform='translate3d('+(x-el.offsetWidth/2)+'px,'+(y-el.offsetHeight/2)+'px,0)';
-      document.body.appendChild(ghost);
-      /* ★ 拖起来之后自己跑一个定时器查"是否停在边缘" —— 不依赖手指继续移动 */
-      lastX=x;lastY=y;
-      if(edgeLoop)clearInterval(edgeLoop);
-      edgeLoop=setInterval(checkEdge,90);
-    },380);
-  }
-  var rafT=null,lastX=0,lastY=0,edgeLoop=null;
-  /* ★ 跨页搬运的"边缘停留"检查必须**自己跑**，不能只靠 touchmove。
-     以前这段写在 requestAnimationFrame 里、只有在 move() 被调用时才续帧 —— 
-     你手指停住不动 → 不再触发 touchmove → 检查停了 → 永远翻不了页（用户报的"跨页拖不过去"）。
-     现在拖起来之后起一个 90ms 的定时器，只看最后一次位置。 */
-  function checkEdge(){
-    if(!drag||!ghost)return;
-    var cur=pageOf(grid),dir=0;
-    if(lastX<=EDGE_PX&&cur>0)dir=-1;
-    else if(lastX>=(window.innerWidth-EDGE_PX)&&cur<allGrids.length-1)dir=1;
-    if(dir===0){edgeDir=0;edgeSince=0;return}
-    var nowT=Date.now();
-    if(dir!==edgeDir){edgeDir=dir;edgeSince=nowT;return}
-    if(nowT-edgeSince>=HOLD_MS){
-      var tgt=allGrids[cur+dir];
-      if(tgt){detachTo(tgt);edgeDir=0;edgeSince=0}
-    }
-  }
-  /** 换位：必须"立刻"做。以前放在 requestAnimationFrame 里，
-      手指松得比下一帧快时这一帧还没跑，换位就丢了 ——
-      表现就是"能拖动，但放不到新位置"。 */
-  function reorder(x,y){
-    if(!drag)return;
-    var items=grid.querySelectorAll('.app-item');
-    for(var i=0;i<items.length;i++){
-      var it=items[i];
-      if(it===drag||it.classList.contains('dragging'))continue;
-      var r=it.getBoundingClientRect();
-      if(x>r.left-6&&x<r.right+6&&y>r.top-6&&y<r.bottom+6){
-        var a=drag,b=it;
-        var ar=a.getBoundingClientRect(),br=b.getBoundingClientRect();
-        if(br.top<(ar.top+ar.height/2))grid.insertBefore(a,b);
-        else grid.insertBefore(a,b.nextSibling);
-        break;
+      timer=null;
+      started=homeDragStart(el,lastX,lastY);
+      if(started){
+        _homeDragTap=1;
+        /* 松手后浏览器补的那个 click 要吃掉；万一没补，也不能一直挂着影响下一次点击 */
+        setTimeout(function(){_homeDragTap=0},800);
       }
-    }
+    },HOME_LONGPRESS);
   }
   function move(x,y){
-    /* ★ 长按判定放宽：以前手指抖 12px 就取消长按，在第三页（手刚滑过去还在动）更容易误判 */
-    if(timer&&Math.abs(x-startX)+Math.abs(y-startY)>20){clearTimeout(timer);timer=null}
-    if(!drag)return;
-    lastX=x;lastY=y;                   /* 记下最后位置，边缘停留的检查（checkEdge）要用 */
-    reorder(x,y);                     /* 同步换位，不等下一帧 */
-    if(rafT)return;
-    rafT=requestAnimationFrame(function(){
-      rafT=null;
-      if(ghost)ghost.style.transform='translate3d('+(x-ghost.offsetWidth/2)+'px,'+(y-ghost.offsetHeight/2)+'px,0)';
-      /* 边缘翻页的判断挪到 checkEdge()（自己跑的定时器），不再依赖这里 —— 手指停住也能翻 */
-    });
+    lastX=x;lastY=y;
+    if(!started){
+      /* ★ 长按还没生效就滑走了 → 判定为"想滑动/翻页"，取消长按，不抢手势 */
+      if(timer&&(Math.abs(x-sx)+Math.abs(y-sy)>HOME_MOVE_TOL)){clearTimeout(timer);timer=null}
+      return;
+    }
+    homeDragMove(x,y);
   }
   function end(){
     if(timer){clearTimeout(timer);timer=null}
-    if(edgeLoop){clearInterval(edgeLoop);edgeLoop=null}
-    edgeDir=0;edgeSince=0;
-    if(!drag)return;
-    drag.classList.remove('dragging');
-    for(var e2=0;e2<allGrids.length;e2++)allGrids[e2].classList.remove('editing');
-    if(ghost&&ghost.parentNode)ghost.parentNode.removeChild(ghost);
-    ghost=null;
-    var all=[];
-    for(var pg2=0;pg2<allGrids.length;pg2++){
-      var its=allGrids[pg2].querySelectorAll('.app-item');
-      for(var i2=0;i2<its.length;i2++){
-        var v=its[i2].getAttribute('data-view');
-        if(v&&all.indexOf(v)<0)all.push(v);
-      }
-    }
-    var prev=state.appOrder||[];
-    for(var p2=0;p2<prev.length;p2++){
-      var pv=prev[p2];
-      if(pv&&typeof pv==='object'&&pv.items){          /* 老存档里的文件夹 → 摊平 */
-        for(var q2=0;q2<pv.items.length;q2++)if(all.indexOf(pv.items[q2])<0)all.push(pv.items[q2]);
-        continue;
-      }
-      if(all.indexOf(pv)<0)all.push(pv);
-    }
-    state.appOrder=all;
-    save();
-    drag=null;
+    homePressCancel=null;
+    if(started){started=false;homeDragEnd()}
   }
-  grid.addEventListener('touchstart',function(e){var t=e.touches[0];begin(t.clientX,t.clientY,e.target)},{passive:true});
+  grid.addEventListener('touchstart',function(e){var t=e.touches&&e.touches[0];if(!t)return;begin(t.clientX,t.clientY,e.target)},{passive:true});
   grid.addEventListener('touchmove',function(e){
-    var t=e.touches[0];
-    if(!drag){if(timer)move(t.clientX,t.clientY);return}
+    var t=e.touches&&e.touches[0];
+    if(!t)return;
     move(t.clientX,t.clientY);
-    if(e.cancelable)e.preventDefault();
+    if(started&&e.cancelable)e.preventDefault();
   },{passive:false});
   grid.addEventListener('touchend',function(){end()});
   grid.addEventListener('touchcancel',function(){end()});
-  grid.addEventListener('mousedown',function(e){begin(e.clientX,e.clientY,e.target);e.preventDefault()});
-  document.addEventListener('mousemove',function(e){if(drag){move(e.clientX,e.clientY);e.preventDefault()}});
-  document.addEventListener('mouseup',function(){end()});
+  grid.addEventListener('mousedown',function(e){begin(e.clientX,e.clientY,e.target);if(e.preventDefault)e.preventDefault()});
 }
 
 (function(){
