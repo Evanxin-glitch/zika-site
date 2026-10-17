@@ -1965,6 +1965,38 @@ function defaultState(){
       {id:uid(),text:'吵架可以，不许偷偷掉眼泪。',tag:'吵架',created:t},
       {id:uid(),text:'等你忙完，我们好好说说话。',tag:'日常',created:t}
     ],
+    /* ★ 小熊语录（用户给的 29 条，去掉序号）：跟"聊天字卡"一样参与抽卡 */
+    bearCards:[
+      {id:'bear1',text:'有你在身边，午后的阳光更加温暖'},
+      {id:'bear2',text:'不好好吃饭，不好好睡个觉，不听话，也不长记性'},
+      {id:'bear3',text:'不必担心，我相信我的小姑娘想做的，一定能够做到'},
+      {id:'bear4',text:'丝线的两端连接着你和我，这从来不是束缚，而是命定的归属'},
+      {id:'bear5',text:'你会有很广袤的未来，我会站在你身边，和你迎接所有的未知与浪漫'},
+      {id:'bear6',text:'小兔子的索求，一向没办法拒绝'},
+      {id:'bear7',text:'今晚要一直睁着眼和黑暗抗争吗'},
+      {id:'bear8',text:'谢谢你的陪伴，我现在的确很放松'},
+      {id:'bear9',text:'我的小兔子，现在开心吗'},
+      {id:'bear10',text:'我很爱你，想要照顾你，想要和你总是待在一起，让你快乐'},
+      {id:'bear11',text:'今天的所有安排，都由兔子小姐决定'},
+      {id:'bear12',text:'我可以提前预约小姑娘工作后的时间吗'},
+      {id:'bear13',text:'小熊和小兔子都是小猪变的'},
+      {id:'bear14',text:'你的难过不分大小'},
+      {id:'bear15',text:'爱分很多种，我想给你的，始终是无条件的，不计回报的偏爱'},
+      {id:'bear16',text:'对你，我似乎总是不知餍足'},
+      {id:'bear17',text:'你的一切，我都觉得可爱极了'},
+      {id:'bear18',text:'想让时间停下来，停在只有你和我的时候'},
+      {id:'bear19',text:'你不像任何人，因为我爱你'},
+      {id:'bear20',text:'熬夜，生病，满脸浮肿。那个时候我最想吻你'},
+      {id:'bear21',text:'我有一个让今天变得特别的方法，我爱你，我是说，我爱你。'},
+      {id:'bear22',text:'你是我永不枯萎的欲望，是我最深的堕落与沉迷'},
+      {id:'bear23',text:'Jude向女孩索取了爱，应该还给她点什么的'},
+      {id:'bear24',text:'世事变幻无常，我们始终如一'},
+      {id:'bear25',text:'当你伴着星辰入睡，我会在梦境与你相遇。'},
+      {id:'bear26',text:'有兔子小姐在身边，所有的瞬间都会变成值得期待的样子。'},
+      {id:'bear27',text:'与你相遇，是迄今为止最美好的意外。'},
+      {id:'bear28',text:'要一起喝杯咖啡吗？'},
+      {id:'bear29',text:'对一只坏小熊来说，自我辩白确实是一种能快速获得小姑娘原谅的方法。'}
+    ],
     statusCards:[
       {id:uid(),text:'在喝咖啡'},{id:uid(),text:'在开会'},{id:uid(),text:'在加班'},
       {id:uid(),text:'在散步'},{id:uid(),text:'刚睡醒'},{id:uid(),text:'在看你的消息'},
@@ -2022,6 +2054,34 @@ function migrate(s){
   try{ if(typeof syncAppOrder==='function')syncAppOrder() }catch(e){}   /* ★ 补齐新加的 App 图标 */
   /* 存储里存过什么奇怪东西都不能让读取失败：坏字段就地修好，绝不让整个存档报废 */
   if(!s||typeof s!=='object')return s;
+  /* ★★ 公布级别的防呆：存档里任何"不是对象"的垃圾都要清掉。
+     恶劣环境体检抓到的真 bug：
+       · messages 里混一个 null → 每个页面都读 m.dir/m.contactId → **16 个页面全白屏**；
+       · wallet 被写成字符串 'bad' → 往里塞 .log 直接抛错。
+     来源很现实：别人乱改、导入别人的备份、写入被截断、老版本字段类型不同。
+     这里统一处理：数组只留对象元素，对象类字段不是对象就换成干净对象。 */
+  var _ARR=['messages','cards','bearCards','letters','transfers','surveys','pollLog','stickers','statusCards',
+            'moodCards','patCards','diaryCards','writerCards','checkinPresets','savedMsgs','dailyPosts',
+            'mySaves','posts','polls','songs','tarotLog','letters2'];
+  for(var _ai=0;_ai<_ARR.length;_ai++){
+    var _ak=_ARR[_ai];
+    if(!Array.isArray(s[_ak])){ if(s[_ak]!==undefined)s[_ak]=[]; continue }
+    s[_ak]=s[_ak].filter(function(x){return x&&typeof x==='object'});
+  }
+  function _obj(k,def){ if(!s[k]||typeof s[k]!=='object'||Array.isArray(s[k]))s[k]=def }
+  _obj('wallet',{balance:888,log:[]});      if(!Array.isArray(s.wallet.log))s.wallet.log=[];
+  _obj('shop',{items:[],orders:[],day:'',cat:'all'});
+  if(!Array.isArray(s.shop.items))s.shop.items=[]; if(!Array.isArray(s.shop.orders))s.shop.orders=[];
+  _obj('settings',{}); _obj('me',{name:'我',avatarType:'char',avatarImg:'',color:'#D98E5F'});
+  /* ★ 小熊语录：老存档没有这个字段就补上（只补一次，之后用户删了不会被重新塞回来） */
+  if(!Array.isArray(s.bearCards))s.bearCards=defaultState().bearCards;
+  _obj('companion',defaultState().companion); _obj('widgets',{}); _obj('appIcons',{});
+  _obj('music',{songs:[],cur:0,vol:1,loop:'list',shuffle:false,bg:'mb1'});
+  if(!Array.isArray(s.music.songs))s.music.songs=[];
+  _obj('tide',{}); _obj('diary',{}); _obj('currentStatus',{text:'在喝咖啡',ts:now()});
+  _obj('currentMood',{text:'心情不错',ts:now()}); _obj('widgetPage',{});
+  if(!Array.isArray(s.appOrder)||!s.appOrder.length)s.appOrder=defaultState().appOrder;
+  try{ if(typeof syncAppOrder==='function')syncAppOrder() }catch(e){}
   if(!Array.isArray(s.contacts)||!s.contacts.length){
     if(s.contacts&&typeof s.contacts==='object'){
       var _cs=[];for(var _ck in s.contacts){var _cc=s.contacts[_ck];if(_cc&&typeof _cc==='object')_cs.push(_cc)}
@@ -3686,6 +3746,21 @@ function renderHome(){
   html+='<div class="home-foot">长按图标或小组件即可拖动换位 · 数据保存在本机浏览器<br>换手机记得在 设置 → 备份 里导出</div>';
   html+='</div>';
   $('#view').innerHTML=html;
+  /* ★ 回到桌面要停在你原来那一页（用户报的：点第二/三页的 App，退出就回第一页了）。
+     页码本来就存在 state.appPage 里，只是重绘后滚动位置归零了 —— 这里把它滚回去。 */
+  (function(){
+    var want=Math.min(state.appPage||0,Math.max(0,_pageCount-1));
+    function back(){
+      try{
+        var el=document.getElementById('homePages');
+        if(!el||!el.clientWidth)return;
+        var L=want*el.clientWidth;
+        if(Math.abs(el.scrollLeft-L)>4)el.scrollLeft=L;
+      }catch(e){}
+    }
+    try{ if(window.requestAnimationFrame)requestAnimationFrame(back); }catch(e){}
+    setTimeout(back,60); setTimeout(back,240);
+  })();
   initDrag();
   initWidgetDrag();
   /* 字体/图片/动态内容可能在首帧之后才撑开，补几次校正 */
@@ -4338,7 +4413,7 @@ function statusChip(){
 
 /* ================= 字卡抽取 ================= */
 function drawCards(n,poolArr){
-  var pool=(poolArr||state.cards).slice();
+  var pool=(poolArr||state.cards.concat(state.bearCards||[])).slice();
   var out=[],k=0;
   while(pool.length&&out.length<n&&k<100){
     var i=Math.floor(Math.random()*pool.length);
@@ -4349,15 +4424,17 @@ function drawCards(n,poolArr){
 var FALLBACK=['收到，我在。','嗯，我在听。','记下了。','好，就这么说定了。'];
 function drawCardText(){var d=drawCards(1);return d.length?d[0]:pick(FALLBACK)}
 function pickCardText(used){
-  if(!state.cards.length)return drawCardText();
+  /* ★ 小熊语录和用户自己的字卡一起参与（用户要求：跟"自己添加的字卡"一样） */
+  var _allC=state.cards.concat(state.bearCards||[]);
+  if(!_allC.length)return drawCardText();
   /* 按分类分组并缓存（字卡库变了自动失效） */
-  var sig=state.cards.length+':'+(state.cards[state.cards.length-1].id||'');
+  var sig=_allC.length+':'+(_allC[_allC.length-1].id||'');
   if(_cardGroups&&_cardSig!==sig){_cardGroups=null;_cardKeys=null}
   _cardSig=sig;
   var groups=_cardGroups;
   if(!groups){
     groups={};
-    for(var i=0;i<state.cards.length;i++){var tg=state.cards[i].tag||'';(groups[tg]=groups[tg]||[]).push(state.cards[i])}
+    for(var i=0;i<_allC.length;i++){var tg=_allC[i].tag||'';(groups[tg]=groups[tg]||[]).push(_allC[i])}
     _cardGroups=groups;
     _cardKeys=null;
   }
@@ -5260,7 +5337,7 @@ function renderMoments(){
       }
       html+='</div>';
     }
-    if(p.contactId)html+='<span class="tag">来自字卡</span>';
+    /* ★「来自字卡」标签删掉了（用户要求：朋友圈里不用标这个） */
     /* ★ 仿微信：谁赞了 + 评论 放在同一块浅灰底里，中间一条细线隔开（评论默认就是收起的）。
        顺序按草稿：正文 → 评论块 → 底部那行(时间/赞/评论)，这样有没有评论都不影响骨架高度。 */
     var likes=[];
@@ -5703,7 +5780,7 @@ function renderCards(){
   var _inSnap=inputSnapshot();
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">字卡库</span></div>';
   html+='<div class="screen">';
-  var libs=[['cards','聊天字卡'],['status','状态'],['mood','心情'],['pat','拍一拍'],['diary','日记']];
+  var libs=[['cards','聊天字卡'],['bear','小熊语录'],['status','状态'],['mood','心情'],['pat','拍一拍'],['diary','日记']];
   var total=state.cards.length+state.statusCards.length+state.moodCards.length+state.patCards.length+state.diaryCards.length;
   html+='<div class="cat-tabs">';
   for(var L=0;L<libs.length;L++)html+='<button data-act="lib" data-lib="'+libs[L][0]+'"'+(libs[L][0]===_lib?' class="on"':'')+'>'+libs[L][1]+'</button>';
@@ -5739,7 +5816,8 @@ function renderCards(){
     html+='<div class="lib-search"><input id="cardSearch" placeholder="搜索'+nm+'字卡…" value="'+esc(_cardQ)+'"><button class="btn small'+( _cardQ?'':' ghost')+'" data-act="card-search">'+( _cardQ?'清除':'搜索')+'</button></div>';
     html+='<div class="lib-count">共 <b>'+total+'</b> 张字卡 · '+nm+'字卡 <b>'+kindTotal+'</b> 张'+( _cardQ?(' · 搜索到 <b>'+kindShown.length+'</b> 张'):'')+'</div>';
     var noteTxt;
-    if(kind==='pat')noteTxt='拍一拍字卡用于陆沉回拍你时的话，不进入聊天回复，也不参与聊天字卡分类。';
+    if(kind==='bear')noteTxt='小熊语录和「聊天字卡」一起抽，会出现在陆沉的聊天回复里；你也可以在这加自己的、批量导入，跟普通字卡一样。';
+    else if(kind==='pat')noteTxt='拍一拍字卡用于陆沉回拍你时的话，不进入聊天回复，也不参与聊天字卡分类。';
     else if(kind==='diary')noteTxt='陆沉写日记时从这里抽，也会从你添加的字卡里抽。日记字卡不参与聊天回复。';
     else if(kind==='writer')noteTxt='陆沉写信、回信时从你分过类的字卡里随机抽。';
     else noteTxt=nm+'字卡用于陆沉聊天顶部的'+nm+'框，会随机抽取；它不参与聊天字卡分类。';
@@ -5958,8 +6036,8 @@ function smBatchSave(kind){
 }
 /* 写信固定字卡已按用户要求移除：kind==='writer' 不再返回任何库（它的标签页也删了）。
    他写信/回信改成从"你分过类的字卡"里随机抽，见 lettersPool()。 */
-function libOf(kind){return kind==='status'?state.statusCards:kind==='mood'?state.moodCards:kind==='pat'?state.patCards:kind==='diary'?state.diaryCards:null}
-function libName(kind){return kind==='status'?'状态':kind==='mood'?'心情':kind==='pat'?'拍一拍':kind==='diary'?'日记':'写信'}
+function libOf(kind){return kind==='bear'?state.bearCards:kind==='status'?state.statusCards:kind==='mood'?state.moodCards:kind==='pat'?state.patCards:kind==='diary'?state.diaryCards:null}
+function libName(kind){return kind==='bear'?'小熊语录':kind==='status'?'状态':kind==='mood'?'心情':kind==='pat'?'拍一拍':kind==='diary'?'日记':'写信'}
 function sheetStatusCard(kind){
   var nm=libName(kind);
   var ph=kind==='status'?'在喝咖啡 / 在开会':kind==='mood'?'心情不错 / 有点想你':kind==='pat'?'拍了拍你的头，乖。':'见字如面，今天也在想你。';
@@ -6161,6 +6239,8 @@ function inviteAccept(id){
   state.messages.push({id:uid(),contactId:m.contactId,dir:'out',readDue:now()+4000,text:'好，一起「'+(m.modeName||'专注')+'」'+(m.mins||25)+'分钟',ts:now()});
   save();toast('已接受，去「陪伴」开始计时');
   goView('companion');
+  /* ★ 用户要求：点「好，一起」就直接开始计时，不用再点一下开始 */
+  setTimeout(function(){ try{ _curMode=mode.id; _left=(m.mins||25)*60; timerStart(); }catch(e){} },80);
 }
 function inviteDecline(id){
   var m=byId(state.messages,id);if(!m)return;
@@ -7622,6 +7702,30 @@ function svMySubmit(svId){
   try{renderAll()}catch(e){}
   schedule();
 }
+/** ★ 问卷详情（用户报的：点"已经填完的问卷"直接跳到聊天室，看不到内容）。
+    现在点开是只读详情：题目 + 选项 + 谁选了哪些。
+    （他发来、你还没填的，底下给「去填写」，才跳聊天室。） */
+function sheetSurveyView(id){
+  var list=state.surveys||[],sv=byId(list,id);
+  if(!sv){toast('这份问卷找不到了');return}
+  var c=activeContact()||{name:'他'};
+  var ans=(sv.dir==='out')?(sv.answers||[]):(sv.myAns||[]);
+  var filler=(sv.dir==='out')?c.name:'你';
+  var h='<h2>'+esc(sv.title||'问卷')+'</h2>';
+  h+='<div class="meta" style="margin:-4px 0 8px">'+((sv.qs||[]).length)+' 题 · '+fmtAgo(sv.ts)
+    +(sv.answered?' · <b style="color:#5F8F7B">已填完</b>（'+filler+'）':' · <b style="color:#C9977B">还没填</b>')+'</div>';
+  for(var i=0;i<(sv.qs||[]).length;i++){
+    var q=sv.qs[i],sel=(ans[i]||[]);
+    h+='<div class="sv-qq" style="margin-top:12px">'+(i+1)+'. '+esc(q.t)+'</div>';
+    for(var k=0;k<(q.o||[]).length;k++){
+      var on=sel.indexOf(k)>=0;
+      h+='<div class="sv-o'+(on?' on':'')+'"'+(sv.answered?'':' style="opacity:.75"')+'>'+(on?'✓ ':'')+esc(q.o[k])+'</div>';
+    }
+  }
+  if(sv.dir==='in'&&!sv.answered)h+='<div class="actions"><button class="cancel" data-act="sheet-close">关闭</button><button class="ok" data-act="sv-goto">去填写</button></div>';
+  else h+='<div class="actions"><button class="cancel" data-act="sheet-close">关闭</button></div>';
+  openSheet(h);
+}
 /* ---- 聊天里的问卷卡 ---- */
 function surveyCardHtml(sv,isMine){
   if(!sv)return '<div class="sv-card">问卷已删除</div>';
@@ -8709,7 +8813,8 @@ document.addEventListener('click',function(e){
   else if(act==='sv-addq-m')svAddQ(true)
   else if(act==='sv-delq'){var _di=parseInt(btn.getAttribute('data-i'),10);_svMine.splice(_di,1);sheetSurveyNew()}
   else if(act==='sv-send')svSend()
-  else if(act==='sv-open'){try{goView('chat')}catch(e){};try{renderChat()}catch(e){}}
+  else if(act==='sv-open')sheetSurveyView(btn.getAttribute('data-id'))
+  else if(act==='sv-goto'){try{closeSheet()}catch(e){};try{goView('chat')}catch(e){};try{renderChat()}catch(e){}}
   else if(act==='sv-ans')svMyAnswer(btn.getAttribute('data-id'),parseInt(btn.getAttribute('data-q'),10),parseInt(btn.getAttribute('data-o'),10))
   else if(act==='sv-submit')svMySubmit(btn.getAttribute('data-id'))
   else if(act==='site-name-save'){
@@ -8746,6 +8851,7 @@ document.addEventListener('click',function(e){
     else if(act==='wdlib-page'){_wdTargetPage=widgetPageClamp(btn.getAttribute('data-p'));renderWidgetLib()}
         else if(act==='wdlib-content-save')wdlibContentSave()
     else if(act==='wd-photo')wdPickPhoto()
+    else if(act==='wx-auto')wxAutoGet()
     else if(act==='wd-sheet-img'){closeSheet();wdlibPickImg(btn.getAttribute('data-k'))}
     else if(act==='wd-sheet-photo'){closeSheet();wdPickPhoto()}
     else if(act==='wd-sheet-content'){closeSheet();goView('widgets')}
@@ -9486,6 +9592,50 @@ function tideDel(idx){
   t.history.splice(idx,1);
   save();renderTide();
 }
+/** ★ 天气组件自动获取（用户选 A：默认关闭，点按钮才请求）。
+    定位 → 免费接口 Open-Meteo（不要 key、允许跨域）→ 存进组件；失败就让你手动填。 */
+function wxCodeText(c){
+  c=Number(c); if(isNaN(c))return '晴';
+  if(c===0)return '晴';
+  if(c===1||c===2)return '多云';
+  if(c===3)return '多云';
+  if(c===45||c===48)return '雾';
+  if(c>=51&&c<=57)return '毛毛雨';
+  if(c>=61&&c<=67)return '雨';
+  if(c>=71&&c<=77)return '雪';
+  if(c>=80&&c<=82)return '阵雨';
+  if(c===85||c===86)return '阵雪';
+  if(c>=95)return '雷雨';
+  return '晴';
+}
+function wxAutoGet(){
+  function say(m){var t=document.getElementById('wxAutoTip');if(t)t.textContent=m}
+  if(!navigator.geolocation){say('这个浏览器不支持定位，手动填吧');toast('浏览器不支持定位');return}
+  say('正在定位…');
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var la=pos.coords.latitude.toFixed(4),lo=pos.coords.longitude.toFixed(4);
+    say('定位到了，正在取天气…');
+    var url='https://api.open-meteo.com/v1/forecast?latitude='+la+'&longitude='+lo+'&current=temperature_2m,weather_code&timezone=auto';
+    fetch(url).then(function(r){return r.json()}).then(function(j){
+      var cur=(j&&j.current)||{};
+      if(cur.temperature_2m==null)throw new Error('no-data');
+      var tm=Math.round(cur.temperature_2m),tx=wxCodeText(cur.weather_code);
+      state.widgetWeather={city:'当前定位',temp:tm,text:tx,auto:true,ts:now()};
+      state.widgets=state.widgets||{}; if(state.widgets.weather===false)state.widgets.weather=true;
+      save();
+      try{renderWidgetLib()}catch(e){}
+      try{renderHome()}catch(e){}
+      say('已更新：'+tx+' '+tm+'°');
+      toast('天气已更新：'+tx+' '+tm+'°');
+    }).catch(function(){
+      say('取天气失败（没网？），先手动填');
+      toast('取天气失败，先手动填');
+    });
+  },function(){
+    say('没拿到定位权限，手动填就好');
+    toast('没拿到定位权限');
+  },{timeout:10000,maximumAge:600000});
+}
 /* ===== 小组件背景上传 / 拖拽 ===== */
 /** 组件底图的文件选择框。
     以前这个 <input id="wdImgFile"> 只在"组件库"那一页才渲染，
@@ -9619,6 +9769,12 @@ function renderWidgetLib(){
   html+='<div class="inl"><label>天气 · 城市</label><input id="wdCity" value="'+esc(wp.city||'')+'" placeholder="如：上海"></div>';
   html+='<div class="inl"><label>温度 ℃</label><input id="wdTemp" type="number" value="'+(wp.temp==null?'':wp.temp)+'" placeholder="26"></div>';
   html+='<div class="inl"><label>天气状况</label><input id="wdText" value="'+esc(wp.text||'')+'" placeholder="晴 / 多云 / 小雨"></div>';
+  /* ★ 天气自动获取（用户选的方案 A：默认关闭，点一下才请求定位 + 免费接口） */
+  html+='<div class="inl" style="grid-column:1/-1"><label>天气 · 自动获取（默认关闭）</label>'
+    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+    +'<button class="btn small" data-act="wx-auto">自动获取我这里的天气</button>'
+    +'<span class="meta" id="wxAutoTip">'+(state.widgetWeather&&state.widgetWeather.auto?('已开启 · 上次更新 '+fmtAgo(state.widgetWeather.ts||0)):'点一下会请求定位（位置只发给你本机去查的那个免费天气接口）')+'</span>'
+    +'</div></div>';
   var cnt=state.widgetCount||{};
   html+='<div class="inl"><label>倒数日 · 标题</label><input id="wdCntTitle" value="'+esc(cnt.title||'')+'" placeholder="纪念日"></div>';
   html+='<div class="inl"><label>倒数日 · 日期</label><input id="wdCntDate" type="date" value="'+esc(cnt.date||'')+'"></div>';
@@ -9654,7 +9810,14 @@ function wdlibContentSave(){
 function val(sel){var el=document.querySelector(sel);return el?String(el.value||'').trim():''}
 function wdlibImgClear(){state.widgetImgs={};save();renderWidgetLib();toast('已清除组件底图')}
 /* 相册封面：走同一个隐藏 input，用 _wdImgKey='photo' 区分 */
-function wdPickPhoto(){_wdImgKey='__photo';var f=document.getElementById('wdImgFile');if(f)f.click()}
+function wdPickPhoto(){
+  _wdImgKey='__photo';
+  /* ★ 用户报的"相册组件连选图界面都不弹"：桌面/首页没有 <input id="wdImgFile">，
+     以前这里只 getElementById，拿不到就什么都不做。现在先按需创建一个再点。 */
+  try{ ensureWdImgFile() }catch(e){}
+  var f=document.getElementById('wdImgFile');
+  if(f)try{ f.click() }catch(e){}
+}
 var _wdImgKey=null;
 function wdlibToggle(k){
   state.widgets=state.widgets||{};
@@ -10229,17 +10392,11 @@ function musSessAskSong(){
   while(n===i&&g++<30)n=Math.floor(Math.random()*songs.length);
   if(n===i)return false;
   var sg=songs[n]; if(!sg)return false;
+  /* ★ 用户定的：他"点一首"只**发一条消息**，不要自己去切歌。
+     以前这里说完话还会 setTimeout 调 musLoad(n,true) 真的跳过去 ——
+     结果用户那边正在放的歌被打断、跳过去之后还播不出来。
+     现在只留这句话，切不切、放哪首，由用户自己决定。 */
   musSessSay('我想听你那首《'+(sg.name||'未命名')+'》，放这个吧');
-  /* 说完再跳，别一句话没看到就换歌了 */
-  setTimeout(function(){
-    try{ var m2=musState(); if(!m2||!m2.sess)return;
-      var s2=(m2.songs||[])[n];
-      /* 歌单可能在这几秒里被改过：按 id 重新找一遍，找不到就不跳 */
-      if(s2&&sg.id){ for(var k=0;k<m2.songs.length;k++)if(m2.songs[k].id===sg.id){n=k;break} }
-      if(n>=m2.songs.length)return;
-      musLoad(n,true);
-    }catch(e){}
-  }, rnd(1500,3000));
   return true;
 }
 /** 一首歌开始时调用：决定他这一次说不说、说几句 */
