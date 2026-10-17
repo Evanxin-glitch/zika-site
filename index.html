@@ -4238,7 +4238,7 @@ function openGame(kind){
   var fr=document.createElement('iframe');
   fr.setAttribute('title',(GAME_META[kind]||{}).t||'game');
   fr.setAttribute('scrolling','no');
-  curGame=kind;bindGameScore();fr.srcdoc=String(b64utf8(GAME_SRC[kind])).replace('</body>',GAME_BRIDGE+'</body>');
+  curGame=kind;bindGameScore();var _gh=String(b64utf8(GAME_SRC[kind])).replace('</body>',GAME_BRIDGE+'</body>');try{ var _blob=new Blob([_gh],{type:'text/html'}); var _u=URL.createObjectURL(_blob); fr.removeAttribute('srcdoc'); if(fr.__u)try{URL.revokeObjectURL(fr.__u)}catch(e){} fr.__u=_u; fr.src=_u; }catch(e){ fr.srcdoc=_gh }
   body.appendChild(fr);
   s.querySelector('#gsTt').textContent=(GAME_META[kind]||{}).t||'';
   s.classList.add('on');
