@@ -9735,6 +9735,7 @@ document.addEventListener('click',function(e){
     else if(act==='image-send'){ensureImgInput().click()}
     else if(act==='emoji-add')emojiAdd()
     else if(act==='emoji-reset')emojiReset()
+    else if(act==='card-reset'){closeSheet();resetCardPos()}
     else if(act==='invite-save')inviteSave()
     else if(act==='invite-test'){beginInviteForce();}
     else if(act==='invite-accept')inviteAccept(id)
@@ -12252,7 +12253,10 @@ function homeDragStep(d,dt){
     }
   }
   var sp=(d.kind==='widget')?gridSpanOf(d.key):(d.kind==='card'?{w:4,h:2}:{w:1,h:1});
-  homeDragPaint(d,gridTargetFromPoint(gridBuild(false),d.x,d.y,sp.w,sp.h,d.key,d.kind==="app"));
+  /* 落点按"影子中心"算：手指常在图标下半部，按手指会落到下一格 → 同页换位看起来没反应 */
+  var _gx=d.x,_gy=d.y;
+  try{ if(d.ghost){ var _gr=d.ghost.getBoundingClientRect(); if(_gr.width){ _gx=_gr.left+_gr.width/2; _gy=_gr.top+_gr.height/2 } } }catch(e){}
+  homeDragPaint(d,gridTargetFromPoint(gridBuild(false),_gx,_gy,sp.w,sp.h,d.key,d.kind==="app"));
   if(d.ghost){
     d.ghost.style.transform='translate3d('+Math.round(d.x-d.gw/2)+'px,'+Math.round(d.y-d.gh/2)+'px,0) rotate(-3.2deg) scale(1.04)';
   }
@@ -12430,6 +12434,31 @@ function bindGridDrag(grid){
 })();
 
 
+
+/* ===== 状态卡：回到组件下面（拖动过之后想复原就点这里） ===== */
+function resetCardPos(){
+  try{ state.cardPos=null }catch(e){}
+  try{ save() }catch(e){}
+  try{ render() }catch(e){}
+  try{ toast('卡片已回到组件下面') }catch(e){}
+}
+function sheetHomeCard(){
+  var html='<h2>状态卡</h2>';
+  html+='<p class="meta">这张卡默认紧贴在你最后一个组件下面。拖动过之后位置会固定，想复原就点下面。</p>';
+  html+='<div class="actions"><button class="cancel" data-act="sheet-close">取消</button>'
+      + '<button class="ok" data-act="card-reset">回到组件下面</button></div>';
+  openSheet(html);
+}
+(function bindCardTap(){
+  if(window.__cardTapBound)return; window.__cardTapBound=1;
+  document.addEventListener('click',function(e){
+    var c=e.target.closest?e.target.closest('.hg-card'):null;
+    if(!c)return;
+    if(window._homeDragTap)return;          /* 刚拖过就不弹 */
+    e.preventDefault(); e.stopPropagation();
+    try{ sheetHomeCard() }catch(err){}
+  },true);
+})();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
