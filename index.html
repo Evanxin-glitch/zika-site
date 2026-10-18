@@ -1978,6 +1978,16 @@ body.wlt-mode #view{background:#F2F2F3}
 .gd-body table{width:100%;border-collapse:collapse;font-size:13.5px;margin:6px 0 12px}
 .gd-body th,.gd-body td{border:1px solid rgba(0,0,0,.12);padding:6px 8px;text-align:left}
 .gd-body th{background:#f7f7f7}
+
+/* ===== 桌面编辑模式 ===== */
+@keyframes editwig{0%{transform:rotate(-1.2deg)}100%{transform:rotate(1.2deg)}}
+.home-editing .home-grid>[data-kind]{animation:editwig .28s infinite alternate;transform-origin:50% 60%}
+.home-editing .home-grid>[data-kind].edsel{outline:2.5px solid #e0447a;outline-offset:3px;border-radius:16px;animation:none;background:rgba(224,68,122,.08)}
+.edit-bar{display:flex;align-items:center;gap:10px;position:fixed;left:10px;right:10px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:60;background:rgba(24,20,18,.92);color:#fff;
+  border-radius:14px;padding:11px 14px;font-size:12.5px;line-height:1.5;text-align:center;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+
+.edit-bar .tx{flex:1;font-size:12.5px;line-height:1.5;text-align:left}
+.edit-bar #editDone{border:0;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;background:#fff;color:#241d19}
 </style>
 </head>
 <body>
@@ -4313,6 +4323,21 @@ function gridCellOccupant(lay,p,r,c){
     if(it.r<=r&&r<it.r+it.h&&it.c<=c&&c<it.c+it.w)return it;
   }
   return null;
+}
+/* 跨页：落到该页最近的空格，不动别人 */
+function gridPlaceAppNear(key,p,r,c){
+  if(!appByKey(key))return false;
+  var lay=gridBuild(false);
+  if(!gridCellOccupant(lay,p,r,c)) return gridCommit('app',key,p,r,c);
+  for(var dr=0;dr<60;dr++){
+    for(var dc=0;dc<4;dc++){
+      var rr=r+dr, cc=(dc===0?c:dc-1);
+      if(cc<0||cc>GRID_COLS-1)continue;
+      if(rr===r&&cc===c)continue;
+      if(!gridCellOccupant(lay,p,rr,cc)&&gridCanPlace(lay,p,rr,cc,1,1,key)) return gridCommit('app',key,p,rr,cc);
+    }
+  }
+  return false;
 }
 function gridDropApp(key,p,r,c){
   if(!appByKey(key))return false;
@@ -12325,7 +12350,11 @@ function homeDragEnd(){
   homeDragCleanup(d);
   if(hit&&hit.ok){
     try{
-      if(kind==='app'){ moved=gridDropApp(key,hit.p,hit.r,hit.c) }   /* 图标：空格落、被占交换 */
+      if(kind==='app'){
+        var _src=gridCellRead((state.appPos||{})[key])||{p:hit.p};
+        moved=(_src.p!==hit.p)?gridPlaceAppNear(key,hit.p,hit.r,hit.c)   /* 跨页：搬到空位，不换走别人 */
+                              :gridDropApp(key,hit.p,hit.r,hit.c);       /* 同页：交换 */
+      }
       else{ moved=gridCommit(kind,key,hit.p,hit.r,hit.c) }
     }catch(e){ moved=false }
   }
@@ -12387,7 +12416,7 @@ function bindGridDrag(grid){
     homePressCancel=function(){ if(timer){CLK.clear(timer);timer=null} };
     timer=CLK.set(function(){
       timer=null;
-      started=homeDragStart(el,lastX,lastY);
+      started=false;   /* 拖拽已停用：改用「长按空白进编辑模式」 */
       if(started){_homeDragTap=1;CLK.set(function(){_homeDragTap=0},800)}
     },HOME_LONGPRESS);
   }
@@ -12458,6 +12487,143 @@ function sheetHomeCard(){
     e.preventDefault(); e.stopPropagation();
     try{ sheetHomeCard() }catch(err){}
   },true);
+})();
+
+/* ===== 桌面编辑模式（正式版） =====
+   长按桌面空白 0.8s 进入 → 点图标选中 → 点另一个图标=互换；点空白格=把选中的搬过去。
+   组件/状态卡：选中后点空白格，按左上角落位（状态卡只在第 1 页）。底部「完成」退出。 */
+var HEDIT = { on: false, sel: null, press: null };
+
+function heditInfo(el) { try { return gridElInfo(el) } catch (e) { return null } }
+function heditSpan(sel) {
+  if (!sel) return { w: 1, h: 1 };
+  if (sel.kind === 'widget') { try { return gridSpanOf(sel.key) } catch (e) { } }
+  if (sel.kind === 'card') return { w: 4, h: 2 };
+  return { w: 1, h: 1 };
+}
+function heditName(sel) {
+  try {
+    if (sel.kind === 'app') { var a = appByKey(sel.key); return a ? a.n : sel.key }
+    if (sel.kind === 'card') return '状态卡';
+    return ({ clock: '时钟', days: '在一起', weather: '天气', photo: '照片', note: '便签', music: '音乐', feed: '陆沉动态', count: '计数', progress: '进度' })[sel.key] || '组件';
+  } catch (e) { return '' }
+}
+function enterHomeEdit() {
+  if (HEDIT.on) return;
+  HEDIT.on = true; HEDIT.sel = null;
+  document.body.classList.add('home-editing');
+  heditPaint();
+}
+function exitHomeEdit() {
+  HEDIT.on = false; HEDIT.sel = null;
+  document.body.classList.remove('home-editing');
+  heditPaint();
+}
+function heditPaint() {
+  try {
+    var els = document.querySelectorAll('[data-kind]');
+    for (var i = 0; i < els.length; i++) {
+      var inf = heditInfo(els[i]);
+      var on = HEDIT.on && inf;
+      els[i].classList.toggle('editing', !!on);
+      els[i].classList.toggle('edsel', !!(on && HEDIT.sel && inf.kind === HEDIT.sel.kind && inf.key === HEDIT.sel.key));
+    }
+  } catch (e) { }
+  var bar = document.getElementById('editBar');
+  if (HEDIT.on) {
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'editBar';
+      bar.className = 'edit-bar';
+      bar.innerHTML = '<span class="tx" id="editTx"></span><button id="editDone">完成</button>';
+      document.body.appendChild(bar);
+      bar.querySelector('#editDone').onclick = function (e) { e.stopPropagation(); exitHomeEdit(); };
+    }
+    bar.style.display = 'flex';
+    var s = HEDIT.sel;
+    bar.querySelector('#editTx').textContent = s
+      ? ('已选中「' + heditName(s) + '」· 点另一个图标=互换 · 点空白格=搬过去')
+      : '编辑模式 · 点图标选中 · 点空白退出';
+  } else if (bar) { bar.style.display = 'none' }
+}
+/* 点到空白格：把选中的搬过去 */
+function heditPlaceAt(x, y) {
+  var sel = HEDIT.sel; if (!sel) return false;
+  var sp = heditSpan(sel);
+  var lay = gridBuild(false);
+  var hit = null;
+  try { hit = gridTargetFromPoint(lay, x, y, sp.w, sp.h, sel.kind === 'app' ? sel.key : (sel.kind === 'widget' ? sel.key : '__card__'), false) } catch (e) { }
+  if (!hit) { try { toast('这里放不下') } catch (e) { } ; return false }
+  if (!hit.ok) { try { toast('这里有东西，换一个空格') } catch (e) { } ; return false }
+  if (sel.kind === 'card' && hit.p !== 0) { try { toast('状态卡只能在第 1 页') } catch (e) { } ; return false }
+  var ok = false;
+  try {
+    if (sel.kind === 'app') ok = gridCommit('app', sel.key, hit.p, hit.r, hit.c);
+    else if (sel.kind === 'widget') ok = gridCommit('widget', sel.key, hit.p, hit.r, hit.c);
+    else if (sel.kind === 'card') ok = gridCommit('card', sel.key, hit.p, hit.r, hit.c);
+  } catch (e) { ok = false }
+  if (ok) { HEDIT.sel = null; try { save() } catch (e) { } ; render(); heditPaint(); try { toast('放好了') } catch (e) { } }
+  else { try { toast('放不下') } catch (e) { } }
+  return ok;
+}
+/* 点图标：选中 / 互换 */
+function heditTapItem(el) {
+  var inf = heditInfo(el); if (!inf) return;
+  if (!HEDIT.sel) { HEDIT.sel = { kind: inf.kind, key: inf.key }; heditPaint(); return }
+  if (HEDIT.sel.kind === inf.kind && HEDIT.sel.key === inf.key) { HEDIT.sel = null; heditPaint(); return }
+  var sel = HEDIT.sel;
+  if (sel.kind === 'app' && inf.kind === 'app') {
+    var A = gridCellRead((state.appPos || {})[sel.key]) || { p: 0, r: 0, c: 0 };
+    var B = gridCellRead((state.appPos || {})[inf.key]) || { p: 0, r: 0, c: 0 };
+    state.appPos = state.appPos || {};
+    state.appPos[sel.key] = { p: B.p, r: B.r, c: B.c };
+    state.appPos[inf.key] = { p: A.p, r: A.r, c: A.c };
+    HEDIT.sel = null; try { save() } catch (e) { } ; render(); heditPaint();
+    try { toast('换好了') } catch (e) { }
+    return;
+  }
+  try { toast('组件请选中后点空白格子放') } catch (e) { }
+}
+(function bindHomeEdit() {
+  if (window.__heditBound) return; window.__heditBound = 1;
+
+  /* 点：编辑模式下拦掉 App 打开 */
+  document.addEventListener('click', function (e) {
+    if (!HEDIT.on) return;
+    var t = e.target;
+    var it = t && t.closest ? t.closest('[data-kind]') : null;
+    if (it) { e.preventDefault(); e.stopPropagation(); heditTapItem(it); return }
+    var g = t && t.closest ? t.closest('.home-grid') : null;
+    if (g) { e.preventDefault(); e.stopPropagation(); heditPlaceAt(e.clientX, e.clientY); return }
+    if (HEDIT.sel) { HEDIT.sel = null; heditPaint() } else exitHomeEdit();
+  }, true);
+
+  /* 长按空白进入编辑 */
+  function startPress(e) {
+    if (HEDIT.on) return;
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (!t.closest('.home-grid')) return;      /* 必须是桌面网格里的空白 */
+    if (t.closest('[data-kind]')) return;      /* 压在图标上不算 */
+    var p = e.touches && e.touches[0] ? e.touches[0] : e;
+    var sx = p.clientX, sy = p.clientY;
+    HEDIT.press = CLK.set(function () {
+      HEDIT.press = null;
+      enterHomeEdit();
+    }, 800);
+    HEDIT._cancel = function (ev) {
+      if (!HEDIT.press) return;
+      var q = ev && ev.changedTouches && ev.changedTouches[0] ? ev.changedTouches[0] : ev;
+      if (q && (Math.abs((q.clientX || sx) - sx) > 12 || Math.abs((q.clientY || sy) - sy) > 12)) {
+        CLK.clear(HEDIT.press); HEDIT.press = null;
+      }
+    };
+  }
+  document.addEventListener('touchstart', startPress, { passive: true });
+  document.addEventListener('touchmove', function (e) { if (HEDIT._cancel) HEDIT._cancel(e) }, { passive: true });
+  document.addEventListener('touchend', function () { if (HEDIT.press) { CLK.clear(HEDIT.press); HEDIT.press = null } });
+  document.addEventListener('mousedown', startPress);
+  document.addEventListener('mouseup', function () { if (HEDIT.press) { CLK.clear(HEDIT.press); HEDIT.press = null } });
 })();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
