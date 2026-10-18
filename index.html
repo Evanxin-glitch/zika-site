@@ -4249,9 +4249,9 @@ function gridBuild(write){
     put(p2,cell.r,cell.c,sp2.w,sp2.h,{kind:'widget',key:k,r:cell.r,c:cell.c,w:sp2.w,h:sp2.h});
   }
   /* ② 状态卡（固定 4×2，不参与拖动） */
-  var cp=state.cardPos,cardR=0;
-  if(cp&&typeof cp.r==='number')cardR=Math.max(0,cp.r);
-  else{ var fr=freeRect(0,4,2); cardR=fr.r }
+  /* 卡片：拖动过就记住位置；没拖过就紧贴组件 */
+  var cp=state.cardPos,cardR=freeRect(0,4,2).r;
+  if(cp&&typeof cp.r==='number'&&cp.r>=0&&fits(0,cp.r,0,4,2))cardR=cp.r;
   if(!fits(0,cardR,0,4,2))cardR=freeRect(0,4,2).r;
   cp={p:0,r:cardR,c:0,w:4,h:2};
   put(0,cardR,0,4,2,{kind:'card',key:'__card__',r:cardR,c:0,w:4,h:2});
@@ -4304,6 +4304,28 @@ function gridCanPlace(lay,p,r,c,w,h,ignore,maxRows){
 }
 function gridCellStyle(c,r,w,h){return 'grid-column:'+(c+1)+'/span '+w+';grid-row:'+(r+1)+'/span '+h}
 /* 把坐标写进存档（成功返回 true；和原来一样返回 false） */
+
+/* 落子：空格直接落；被别的图标占着就互换（这就是"同页改顺序"） */
+function gridCellOccupant(lay,p,r,c){
+  var arr=(lay&&lay.pages&&lay.pages[p])||[];
+  for(var i=0;i<arr.length;i++){
+    var it=arr[i];
+    if(it.r<=r&&r<it.r+it.h&&it.c<=c&&c<it.c+it.w)return it;
+  }
+  return null;
+}
+function gridDropApp(key,p,r,c){
+  if(!appByKey(key))return false;
+  var lay=gridBuild(false);
+  var occ=gridCellOccupant(lay,p,r,c);
+  if(!occ){ return gridCommit('app',key,p,r,c) }
+  if(occ.kind!=='app'||occ.key===key)return false;      /* 组件/状态卡占着：回弹 */
+  var from=gridCellRead((state.appPos||{})[key])||{p:0,r:0,c:0};
+  state.appPos=state.appPos||{};
+  state.appPos[occ.key]={p:from.p,r:from.r,c:from.c};    /* 对方挪到我原来的位置 */
+  state.appPos[key]={p:p,r:r,c:c};
+  return true;
+}
 function gridCommit(kind,key,p,r,c){
   if(kind==='app'){
     if(!appByKey(key))return false;
@@ -4311,6 +4333,13 @@ function gridCommit(kind,key,p,r,c){
     if(from&&from.p===p&&from.r===r&&from.c===c)return false;
     state.appPos=state.appPos||{};
     state.appPos[key]={p:p,r:r,c:c};
+    return true;
+  }
+  if(kind==='card'){
+    if(p!==0)return false;                 /* 状态卡只在第 1 页 */
+    var from2=state.cardPos||{};
+    if(from2.p===0&&from2.r===r&&from2.c===c)return false;
+    state.cardPos={p:0,r:r,c:c,w:4,h:2};
     return true;
   }
   if(kind==='widget'){
@@ -9626,7 +9655,7 @@ document.body.appendChild(fileInput);
 document.addEventListener('click',function(e){
   if(e.target&&e.target.id==='sheet-mask'){closeSheet();return}
   /* ★ 长按拖拽松手后浏览器还会补一个 click：不能让它被当成"点开这个 App" */
-  if(_homeDragTap){_homeDragTap=0;if(e.target.closest&&e.target.closest('.app-item'))return}
+  if(_homeDragTap){_homeDragTap=0;if(e.target.closest&&e.target.closest('.app-item,.hg-card'))return}
   var v=e.target.closest('[data-view]');
   if(v){
     var _pg=v.getAttribute('data-page');
@@ -12148,6 +12177,7 @@ function homeDotSync(sc){
   }catch(e){}
 }
 function gridElInfo(el){
+  if(el&&el.classList&&el.classList.contains('hg-card'))return {kind:'card',key:'__card__'};
   if(!el||!el.getAttribute)return null;
   var kind=el.getAttribute('data-kind');
   if(!kind||kind==='card')return null;
@@ -12157,7 +12187,7 @@ function gridElInfo(el){
   return {kind:kind,key:key};
 }
 /* 手指位置 → 目标矩形（含占位框的像素位置） */
-function gridTargetFromPoint(lay,x,y,w,h,ignore){
+function gridTargetFromPoint(lay,x,y,w,h,ignore,allowSwap){
   var sc=document.getElementById('homePages');
   if(!sc||!lay)return null;
   /* 落点：先看手指落在哪一页的矩形里（比 scrollLeft 推算可靠，第三页拖不进去就是这里） */
@@ -12184,6 +12214,10 @@ function gridTargetFromPoint(lay,x,y,w,h,ignore){
   if(c+w>GRID_COLS)c=GRID_COLS-w;
   var rowsInView=Math.max(GRID_MIN_ROWS,Math.floor((rect.height+GRID_GAP_Y)/(GRID_ROW_H+GRID_GAP_Y)));
   var ok=gridCanPlace(lay,p,r,c,w,h,ignore,rowsInView);
+  if(!ok&&allowSwap){
+    var _occ=(typeof gridCellOccupant==="function")?gridCellOccupant(lay,p,r,c):null;
+    if(_occ&&_occ.kind==="app"&&_occ.key!==ignore)ok=true;   /* 换位 */
+  }
   return {p:p,r:r,c:c,w:w,h:h,ok:ok,
     l:rect.left+c*pitchX,t:rect.top+r*pitchY,
     cw:w*cellW+(w-1)*GRID_GAP_X,ch:h*GRID_ROW_H+(h-1)*GRID_GAP_Y};
@@ -12217,8 +12251,8 @@ function homeDragStep(d,dt){
       else homeDotSync(sc);
     }
   }
-  var sp=(d.kind==='widget')?gridSpanOf(d.key):{w:1,h:1};
-  homeDragPaint(d,gridTargetFromPoint(HOME_LAYOUT,d.x,d.y,sp.w,sp.h,d.key));
+  var sp=(d.kind==='widget')?gridSpanOf(d.key):(d.kind==='card'?{w:4,h:2}:{w:1,h:1});
+  homeDragPaint(d,gridTargetFromPoint(gridBuild(false),d.x,d.y,sp.w,sp.h,d.key,d.kind==="app"));
   if(d.ghost){
     d.ghost.style.transform='translate3d('+Math.round(d.x-d.gw/2)+'px,'+Math.round(d.y-d.gh/2)+'px,0) rotate(-3.2deg) scale(1.04)';
   }
@@ -12246,7 +12280,7 @@ function homeDragStart(el,x,y){
          ghost:null,ph:null,gw:r0.width||60,gh:r0.height||60,moved:false,lay:lay};
   var ghost=el.cloneNode(true);
   ghost.id='dragGhost';
-  ghost.className=(info.kind==='widget'?'widget':'app-item')+' app-ghost';
+  ghost.className=((info.kind==='widget')?'widget':(info.kind==='card'?'hg-card':'app-item'))+' app-ghost';
   try{
     ghost.removeAttribute('data-kind');ghost.removeAttribute('data-wkey');ghost.removeAttribute('data-view');
     ghost.removeAttribute('data-p');ghost.removeAttribute('data-r');ghost.removeAttribute('data-c');
@@ -12286,7 +12320,10 @@ function homeDragEnd(){
   var hit=d.hit,moved=false,kind=d.kind,key=d.key;
   homeDragCleanup(d);
   if(hit&&hit.ok){
-    try{ moved=gridCommit(kind,key,hit.p,hit.r,hit.c) }catch(e){ moved=false }
+    try{
+      if(kind==='app'){ moved=gridDropApp(key,hit.p,hit.r,hit.c) }   /* 图标：空格落、被占交换 */
+      else{ moved=gridCommit(kind,key,hit.p,hit.r,hit.c) }
+    }catch(e){ moved=false }
   }
   if(moved){
     state.appPage=Math.max(0,hit.p);
@@ -12340,7 +12377,7 @@ function bindGridDrag(grid){
   function itemOf(t){ return (t&&t.closest)?t.closest('[data-kind]'):null }
   function begin(x,y,t){
     var el=itemOf(t);
-    if(!el||el.getAttribute('data-kind')==='card')return;
+    if(!el)return;   /* 状态卡也允许长按拖动 */
     sx=x;sy=y;lastX=x;lastY=y;started=false;
     if(timer)CLK.clear(timer);
     homePressCancel=function(){ if(timer){CLK.clear(timer);timer=null} };
@@ -12378,7 +12415,7 @@ function bindGridDrag(grid){
 (function(){
   document.addEventListener('contextmenu',function(e){
     var t=e.target;
-    if(t&&t.closest&&(t.closest('.app-item')||t.closest('.widget'))){
+    if(t&&t.closest&&(t.closest('.app-item,.hg-card')||t.closest('.widget'))){
       e.preventDefault();return false;
     }
   });
