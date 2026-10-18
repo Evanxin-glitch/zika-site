@@ -1944,6 +1944,13 @@ body.wlt-mode #view{background:#F2F2F3}
 #gameStage .gs-bar .gs-tt{flex:1;text-align:center;font-size:15px;font-weight:600}
 #gameStage .gs-body{flex:1 1 auto;min-height:0;position:relative}
 #gameStage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#faf6f4}
+/* 每一页的网格至少撑满一屏：空白处也能拖进去（第 3 页那种只有一两个 App 的页） */
+
+
+#home{display:flex;flex-direction:column;height:100%;min-height:0}
+.home-pages{flex:1 1 auto;min-height:0}
+.home-page{display:flex;flex-direction:column;min-height:0}
+.home-grid{flex:1 1 auto;min-height:0}
 </style>
 </head>
 <body>
@@ -1956,6 +1963,8 @@ body.wlt-mode #view{background:#F2F2F3}
 <div id="toast"></div>
 
 <script>
+/* 时钟：默认系统时间；测试可注入假时钟（window.__CLK） */
+var CLK=(window.__CLK&&typeof window.__CLK.now==='function')?window.__CLK:{now:function(){return Date.now()},set:function(fn,ms){return setTimeout(fn,ms)},clear:function(id){clearTimeout(id)}};
 'use strict';
 /* ================= 基础 ================= */
 var KEY='zika_site_v3';
@@ -1966,7 +1975,7 @@ var KEY_MIRROR=KEY+'_mirror';
 var KEY_RAW=KEY+'_rawfail';
 var $=function(s){return document.querySelector(s)};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]})}
-function now(){return Date.now()}
+function now(){return CLK.now()}
 function uid(){return 'id'+Math.random().toString(36).slice(2,9)+now().toString(36)}
 function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
 function pick(arr){return arr.length?arr[Math.floor(Math.random()*arr.length)]:null}
@@ -2000,7 +2009,7 @@ function fmtDur(s){
 }
 function fmtCall(sec){return Math.floor(sec/60)+'分'+('0'+(sec%60)).slice(-2)+'秒'}
 function dateStr(ts){var d=new Date(ts);return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
-function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('show')},2200)}
+function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('show');CLK.clear(t._tm);t._tm=CLK.set(function(){t.classList.remove('show')},2200)}
 function avatarHtml(c,size){
   size=size||40;
   var st='width:'+size+'px;height:'+size+'px';
@@ -2771,13 +2780,13 @@ function mediaOpen(){
 /** 存入一张图，返回引用串；失败返回空串（调用方保留原值，绝不丢图） */
 function mediaPut(blob,name){
   if(!blob||!blob.size)return Promise.resolve('');
-  var id='m'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  var id='m'+CLK.now().toString(36)+Math.random().toString(36).slice(2,8);
   return mediaOpen().then(function(db){
     if(!db)return '';
     return new Promise(function(res){
       try{
         var tx=db.transaction(MEDIA_STORE,'readwrite');
-        tx.objectStore(MEDIA_STORE).put({id:id,blob:blob,name:name||'',type:blob.type||'',ts:Date.now(),size:blob.size});
+        tx.objectStore(MEDIA_STORE).put({id:id,blob:blob,name:name||'',type:blob.type||'',ts:CLK.now(),size:blob.size});
         tx.oncomplete=function(){_mediaBlobCache[id]=blob;res(MEDIA_REF+id)};
         tx.onerror=function(){res('')};
         tx.onabort=function(){res('')};
@@ -3127,14 +3136,14 @@ function migrateLegacyMedia(){
     }
     var path=jobs[idx++];
     var val=imgAt(state,path);
-    if(typeof val!=='string'||val.indexOf('data:')!==0){ setTimeout(step,8); return }
+    if(typeof val!=='string'||val.indexOf('data:')!==0){ CLK.set(step,8); return }
     mediaAdopt(val,'migrated').then(function(ref){
       if(ref&&isMediaRef(ref)){ try{imgSet(state,path,ref);moved++}catch(e){} }
-      setTimeout(step,8);
-    }).catch(function(){ setTimeout(step,8) });
+      CLK.set(step,8);
+    }).catch(function(){ CLK.set(step,8) });
   }
   /* 等界面先画完再开始搬，别抢首屏 */
-  setTimeout(step,1500);
+  CLK.set(step,1500);
 }
 function mediaSet(el,url,mode){
   if(!el||!url)return;
@@ -3165,24 +3174,17 @@ function mediaHydrate(root){
 }
 function scheduleMediaHydrate(){
   if(_mhTimer)return;
-  _mhTimer=setTimeout(function(){
+  _mhTimer=CLK.set(function(){
     _mhTimer=null;
     mediaHydrate();
     /* 异步读回图片后可能有新元素进来，再补一次 */
-    setTimeout(mediaHydrate,120);
+    CLK.set(mediaHydrate,120);
   },0);
 }
 /** 生成图片属性片段：引用与老 dataURL 都走同一条路（都靠补水贴上去） */
-function mediaAttr(v,mode){
-  if(!v)return '';
-  return ' data-media="'+esc(v)+'" data-media-mode="'+(mode==='bg'?'bg':'img')+'"';
-}
+
 /** 媒体库自检：拿不到大容量存储时明确告知，避免用户以为图丢了 */
-function mediaSelfCheck(){
-  mediaPut(new Blob(['1'],{type:'text/plain'}),'__probe').then(function(ref){
-    if(!ref)toast('提示：图片存储不可用，新上传的图片可能无法保存，请检查浏览器存储权限');
-  });
-}
+
 function idbOpen(){
   return new Promise(function(res,rej){
     try{
@@ -3244,15 +3246,15 @@ function scheduleFullWrite(json){
      不然这 1 秒里被系统杀掉进程，刚发的消息就没了。
      本机那份是完整的（没被裁）才允许合并等待。 */
   var _delay=window.__saveLocalLossy?80:900;
-  _fullTimer=setTimeout(function(){
+  _fullTimer=CLK.set(function(){
     _fullTimer=null;
     var j=_fullDirty;_fullDirty=null;
     if(!j)return;
     idbPutFullSafe(j).then(function(good){
       window.__saveDb=good;
-      if(good!=='fail'){_lastFullJson=j;window.__saveIdbAt=Date.now();return}
+      if(good!=='fail'){_lastFullJson=j;window.__saveIdbAt=CLK.now();return}
       /* 大容量存储没写进去：本机那份完整就没事，被裁过就必须报警 */
-      window.__saveErr={t:Date.now(),name:'IdbWriteFailed',msg:'大容量存储写入失败',bytes:(j||'').length};
+      window.__saveErr={t:CLK.now(),name:'IdbWriteFailed',msg:'大容量存储写入失败',bytes:(j||'').length};
       var _lossy=!!window.__saveLocalLossy||window.__saveStatus==='dbonly';
       if(_lossy)window.__saveStatus='failed';
       if(_lossy&&typeof toast==='function')toast('保存出问题了：本机缓存被裁、大容量存储又写不进去。请立刻到 设置→备份 导出备份');
@@ -3263,7 +3265,7 @@ function scheduleFullWrite(json){
 }
 /** 页面要关了：把还没落盘的那一版补上 */
 function flushFullWrite(){
-  if(_fullTimer){clearTimeout(_fullTimer);_fullTimer=null}
+  if(_fullTimer){CLK.clear(_fullTimer);_fullTimer=null}
   var j=_fullDirty;_fullDirty=null;
   if(j&&j!==_lastFullJson){ try{idbPutOK('full',j);_lastFullJson=j}catch(e){} }
   idbDumpNow();
@@ -3398,7 +3400,7 @@ function writeLocal(json){
       try{idbPut('spill_'+_spill[_si][0],_txt)}catch(e){}
       try{localStorage.removeItem(_spill[_si][1]);_freedAny=true;_freedBytes+=_txt.length}catch(e){}
     }
-    window.__saveDiag={json:json.length,freed:_freedBytes,at:Date.now()};
+    window.__saveDiag={json:json.length,freed:_freedBytes,at:CLK.now()};
     if(_freedAny){
       /* 先用完整 json 试 */
       try{
@@ -3478,10 +3480,10 @@ function idbDumpNow(){ try{idbDump()}catch(e){} }
 function finalizeWrite(){
   _bigDirty=true;
   if(_bigTimer)return;
-  _bigTimer=setTimeout(function(){_bigTimer=null;if(_bigDirty){_bigDirty=false;idbSync()}},400);
+  _bigTimer=CLK.set(function(){_bigTimer=null;if(_bigDirty){_bigDirty=false;idbSync()}},400);
 }
 function flushBig(){
-  if(_bigTimer){clearTimeout(_bigTimer);_bigTimer=null}
+  if(_bigTimer){CLK.clear(_bigTimer);_bigTimer=null}
   _bigDirty=false;
   idbSync();
 }
@@ -3571,7 +3573,7 @@ function save(){
          以前这里只留下一个光秃秃的 "failed"，设置→存储 那一行不显示任何原因
          （它读的是 __saveErr），用户既不知道发生了什么、也不知道该做什么。
          现在把原因和该做的事一起记下来，面板直接显示。 */
-      window.__saveErr={t:Date.now(),name:'StorageFull',
+      window.__saveErr={t:CLK.now(),name:'StorageFull',
         msg:'本机缓存和大容量存储都写不进去了：请立刻到「备份」导出一份存档',
         bytes:(window.__saveBytes||0)};
     }
@@ -3582,7 +3584,7 @@ function save(){
     /* 以前这里把**任何**异常都说成"浏览器存储异常"，害得排查方向全错。
        现在把真实错误记下来并显示出来。 */
     var _nm=(e&&e.name)||'',_ms=(e&&e.message)||String(e);
-    window.__saveErr={t:Date.now(),name:_nm,msg:_ms,bytes:(window.__saveBytes||0)};
+    window.__saveErr={t:CLK.now(),name:_nm,msg:_ms,bytes:(window.__saveBytes||0)};
     var _isQuota=(_nm==='QuotaExceededError'||_nm==='NS_ERROR_DOM_QUOTA_REACHED'||/quota|exceeded|空间/i.test(_ms));
     if(typeof toast==='function'){
       toast(_isQuota
@@ -3651,7 +3653,7 @@ function coverStyle(){
 }
 
 /* ================= 路由 ================= */
-var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey','game','read'];
+var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey','game','guide','read'];
 var _routedOnce=false;
 function router(){
   var h=location.hash.replace('#','');
@@ -3727,6 +3729,7 @@ function render(v){
   else if(v==='survey')renderSurvey();
   else if(v==='game')renderGame();
   else if(v==='read')renderRead();
+  else if(v==='guide')renderGuide();
   else renderMe();
   /* 一起听开着的时候：离开听歌界面自动缩成悬浮条，回到听歌界面自动收起 */
   try{if(typeof musBarToggle==='function')musBarToggle()}catch(e){}
@@ -3770,6 +3773,7 @@ function syncAppOrder(){
 function appListDefs(){
   return [
 
+    {v:'guide',n:'指南',c:'#8A7F6A',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M4 5h9a3 3 0 0 1 3 3v12H7a3 3 0 0 1-3-3z"/><path d="M16 8h4v12h-4"/></svg>'},
     {v:'read',n:'阅读',c:'#6B5B95',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22.5z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22.5z"/></svg>'},
 
     {v:'game',n:'游戏',c:'#6E7F5E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 10.5v4M6 12.5h4"/><circle cx="16" cy="11.5" r="1.1" fill="#fff"/><circle cx="18" cy="13.8" r="1.1" fill="#fff"/></svg>'},
@@ -3813,10 +3817,7 @@ function homePosTable(){
   return state.appPos;
 }
 /* 这个 App 现在在哪一格（没摆过就返回 null） */
-function homePosOf(v){
-  var q=homePosTable()[v];
-  return homePosValid(q)?{p:q.p,r:q.r,c:q.c}:null;
-}
+
 /* 把 appOrder 里的 App 排进每页 20 格。
    write=true 时写回 s.appPos；legacy=true 时"没坐标的"按老版本排法还原（迁移用）。
    返回 {pages:[每页 20 个格子], count:页数, pos:坐标表} */
@@ -3862,8 +3863,8 @@ function homePlaceAll(s,legacy,write){
   if(write)s.appPos=pos;
   return {pages:pages,count:pages.length,pos:pos};
 }
-function homeLayout(){return homePlaceAll(state,false,false)}
-function homeRebuildPos(s,legacy){return homePlaceAll(s||state,!!legacy,true)}
+
+
 function homeEnsurePos(){return gridEnsureAll()}
 /* 开机 / 导入之后跑一次：坐标表还是空的（老存档、全新安装）就按"老版本每页 6 个"排一遍。
    ★ 必须等 syncAppOrder 把新加的 App 补进 appOrder 之后再跑，否则位置和升级前对不上。 */
@@ -3901,19 +3902,7 @@ function homeDropApp(v,p,r,c){
 }
 /* 一页的网格 HTML：只画到"最后一行有 App"的那一行 —— 空着的行不占高度，
    所以升级后的布局跟以前逐像素一致；拖动时再临时补满 20 格（homeExpandGrids）。 */
-function homeGridHtml(p,cells){
-  cells=cells||[];
-  var lastRow=-1,i;
-  for(i=0;i<cells.length;i++)if(cells[i]){
-    var rr=Math.floor(i/HOME_COLS);
-    if(rr>lastRow)lastRow=rr;
-  }
-  var html='<div class="app-grid" id="appGrid_'+p+'" data-page="'+p+'">';
-  for(var r=0;r<=lastRow;r++){
-    for(var c=0;c<HOME_COLS;c++)html+=homeCellHtml(p,r,c,cells[r*HOME_COLS+c]);
-  }
-  return html+'</div>';
-}
+
 function homeCellHtml(p,r,c,v){
   var at=' data-p="'+p+'" data-r="'+r+'" data-c="'+c+'"';
   var a=v?appByKey(v):null;
@@ -3925,7 +3914,7 @@ function homeCellHtml(p,r,c,v){
    · 坐标全是整数格，没有 %/px，也不再"渲染后重排"
    · 碰撞策略：回弹（目标矩形被占就不接收，弹回原位）
    · 行高统一 GRID_ROW_H；页面行数按内容自然增长 */
-function gridPitchY(){return GRID_ROW_H+GRID_GAP_Y}
+
 function gridSpanOf(k){
   if(k==='feed'||k==='photo'||k==='music')return {w:4,h:2};
   var sz=(state.widgetSize&&state.widgetSize[k])||'m';
@@ -4279,6 +4268,27 @@ var READ_SRC='PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9InpoLUNOIj4KPGhlYWQ+CjxtZXRhIG
   GAME_SRC.read = READ_SRC;
   GAME_META.read = { t: '阅读' };
 })();
+
+/* ===== 使用指南（独立 guide.html，走同一个舞台） ===== */
+function openGuide(){
+  var s=gmStage();
+  var body=s.querySelector('#gsBody');
+  body.innerHTML='';
+  var fr=document.createElement('iframe');
+  fr.setAttribute('title','使用指南');
+  fr.setAttribute('scrolling','no');
+  fr.src='guide.html';
+  body.appendChild(fr);
+  s.querySelector('#gsTt').textContent='使用指南';
+  s.classList.add('on');
+}
+function renderGuide(){
+  var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">指南</span></div><div class="screen">';
+  html+='<p class="meta" style="margin:-4px 0 10px">每个功能怎么用 · 数据怎么备份</p>';
+  html+='<div class="gm-hub"><div class="gm-card" data-guide="1" style="grid-column:1/-1"><div class="gi">📘</div><b>打开使用指南</b><span>20 节功能说明 + 必读免责声明</span></div></div>';
+  html+='</div>';
+  $('#view').innerHTML=html;
+}
 function renderRead() {
   var html = '<div class="page-top"><button class="back" data-view="home">' + ICON_BACK + '</button><span class="pt">阅读</span></div><div class="screen">';
   html += '<p class="meta" style="margin:-4px 0 10px">和他的书架 · 只存本机，不上传</p>';
@@ -4342,7 +4352,7 @@ function exportReading() {
     a.href = URL.createObjectURL(blob);
     a.download = '阅读数据-' + new Date().toISOString().slice(0, 10) + '.json';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove() }, 3000);
+    CLK.set(function () { URL.revokeObjectURL(a.href); a.remove() }, 3000);
   });
 }
 function importReadingFile(file) {
@@ -4442,7 +4452,7 @@ function renderHome(){
       }catch(e){}
     }
     try{ if(window.requestAnimationFrame)requestAnimationFrame(back); }catch(e){}
-    setTimeout(back,60); setTimeout(back,240);
+    CLK.set(back,60); CLK.set(back,240);
   })();
   initDrag();
   applySiteName();
@@ -4499,14 +4509,13 @@ function widgetEstH(k){
       · 只在"组件集合变化"（增删组件、改尺寸）时重新计算
       · 平时（包括拖拽）一律沿用记住的值 —— 所以怎么挪都不会变长
     这样也避免了"首屏用估计值、第一次量到真实高度后又缩一下"的跳动。 */
-function widgetAreaSetSig(keys){
-  var a=[];
-  for(var i=0;i<keys.length;i++)a.push(keys[i]+':'+widgetSizeOf(keys[i]));
-  return a.join(',');
-}
+
 /* 算"组件区应该多高"的时候，必须忽略手动摆放的位置：
    否则自动排布会去避开你手动挪下去的组件，把其他组件往下挤，
    容器高度就跟着变大 —— 页面又变长了（这就是"固定长度"没生效的原因）。 */
+/* 指南入口 */
+(function bindGuide(){document.addEventListener('click',function(e){var c=e.target.closest?e.target.closest('[data-guide]'):null;if(!c)return;e.preventDefault();openGuide();});})();
+
 var _ignoreManualRects=false;
 function widgetManualRects(keys){
   if(_ignoreManualRects)return [];
@@ -4578,16 +4587,14 @@ function widgetWalk(keys,measure){
   }
   return {pos:out,height:Math.max(0,y-12)};
 }
-function widgetAutoPos(keys){
-  return widgetWalk(keys,widgetEstH).pos;
-}
+
 function widgetInnerHtml(wv,wk,d){
   var st=state.settings||{};
   if(wv==='clock')return '<b id="wClock">'+fmtClock()+'</b><span>星期'+wk[d.getDay()]+' · '+(d.getMonth()+1)+'月'+d.getDate()+'日</span>';
   if(wv==='days'){
     var wd=state.widgetCalendar&&state.widgetCalendar.date;
     var n=state.anniversaryDays;
-    if(wd){var dd=new Date(wd+'T00:00:00');n=Math.floor((Date.now()-dd.getTime())/86400000)}
+    if(wd){var dd=new Date(wd+'T00:00:00');n=Math.floor((CLK.now()-dd.getTime())/86400000)}
     var lbl=state.widgetDaysLabel||'在一起';
     return '<span class="d-lb">'+esc(lbl)+'</span><span class="d-num">'+n+'</span><span class="d-un">'+(state.widgetDaysUnit||'天')+'</span>';
   }
@@ -4689,11 +4696,7 @@ var _fitRaf=null;
     以前这里（排版 fit、尺寸监听、拖拽绑定）都写死成 widgetGrid0 / widgetGrid1，
     于是**第三页的组件完全没绑上拖拽** —— 长按没反应就是这个原因（用户报的）。
     现在跟着 WIDGET_PAGE_MAX 走，加页也不会漏。 */
-function widgetGridIds(){
-  var n=(typeof WIDGET_PAGE_MAX==='number')?WIDGET_PAGE_MAX:2,out=[];
-  for(var i=0;i<=n;i++)out.push('widgetGrid'+i);
-  return out;
-}
+
 
 
 /* ================= 动态通知 ================= */
@@ -4887,7 +4890,7 @@ function tarotLu(){
   var q=$('#tarotQ')?inpVal('tarotQ'):'';
   var btn=document.querySelector('[data-act="tarot-lu"]');
   if(btn){btn.disabled=true;btn.textContent=c.name+' 正在凝神…'}
-  setTimeout(function(){
+  CLK.set(function(){
     var cnt=1;
     for(var i=0;i<TAROT_SPREADS.length;i++)if(TAROT_SPREADS[i][0]===_tSpread)cnt=TAROT_SPREADS[i][2];
     var n2=tarotRandNums(cnt).join(' ');      /* 1–78，不再生成 79–99 的无效数字 */
@@ -5260,7 +5263,7 @@ function visitLeaveCard(){
   }catch(e){}
 }
 function schedule(){
-  if(_timer){clearTimeout(_timer);_timer=null}
+  if(_timer){CLK.clear(_timer);_timer=null}
   var items=[],t=now();
   for(var i=0;i<state.messages.length;i++){
     var m=state.messages[i];
@@ -5383,7 +5386,7 @@ function schedule(){
   var wait=nx.ts-now();
   if(wait>0){
     _schedSpin=0;
-    _timer=setTimeout(function(){nx.fn();schedule()},Math.min(wait,2147483000));
+    _timer=CLK.set(function(){nx.fn();schedule()},Math.min(wait,2147483000));
   }else{
     /* ★ 这里原来是 {nx.fn();schedule()} —— 当场执行、当场再调用自己。
        只要回调又造出一个"已到点"的任务（比如回复之后又产生新的待回消息），
@@ -5395,7 +5398,7 @@ function schedule(){
     if(_tn-_schedSpinAt>1000){_schedSpinAt=_tn;_schedSpin=0}
     _schedSpin++;
     var _sd=_schedSpin>40?300:0;
-    _timer=setTimeout(function(){nx.fn();schedule()},_sd);
+    _timer=CLK.set(function(){nx.fn();schedule()},_sd);
   }
 }
 function markRead(m){
@@ -5641,7 +5644,7 @@ function renderChat(){
 function chatPinBottomSoon(list){
   if(!list)return;
   var pin=function(){ try{ if(_chatAtBottom)list.scrollTop=list.scrollHeight }catch(e){} };
-  try{ setTimeout(pin,80);setTimeout(pin,260);setTimeout(pin,700);setTimeout(pin,1500); }catch(e){}
+  try{ CLK.set(pin,80);CLK.set(pin,260);CLK.set(pin,700);CLK.set(pin,1500); }catch(e){}
   try{
     var imgs=list.querySelectorAll('img');
     for(var i=0;i<imgs.length;i++){
@@ -5678,9 +5681,9 @@ function chatPinTop(){
     /* 手指在动的时候也顺手查一次：iOS 橡皮筋/键盘期间 scroll 事件不一定按时派发 */
     document.addEventListener('touchmove',chatPinTop,{passive:true});
     document.addEventListener('touchend',chatPinTop,{passive:true});
-    document.addEventListener('focusout',function(){setTimeout(chatPinTop,120)},{passive:true});
+    document.addEventListener('focusout',function(){CLK.set(chatPinTop,120)},{passive:true});
     if(window.visualViewport&&window.visualViewport.addEventListener)
-      window.visualViewport.addEventListener('resize',function(){setTimeout(chatPinTop,60)});
+      window.visualViewport.addEventListener('resize',function(){CLK.set(chatPinTop,60)});
   }catch(e){}
 })();
 function cAvatar(c){
@@ -5893,7 +5896,7 @@ function sendChat(){
   if((state.settings&&state.settings.savedOn!==false)&&Math.random()*100<((state.settings&&state.settings.savePct)!=null?state.settings.savePct:15)){
     state.savedMsgs.push({id:uid(),text:text,ts:now()});
     save();
-    setTimeout(function(){toast(esc(activeContact().name)+' 收藏了你这条消息')},1500);
+    CLK.set(function(){toast(esc(activeContact().name)+' 收藏了你这条消息')},1500);
   }
   _chatAtBottom=true;          /* 自己发消息时，理应看到最新那条 */
   _chatNeedsFullPaint=true;    /* 发完要把引用条收掉/清空输入 → 这一次必须整页重画 */
@@ -6565,7 +6568,7 @@ function cardExport(){
   var dt=new Date();
   a.download='字卡-'+dt.getFullYear()+('0'+(dt.getMonth()+1)).slice(-2)+('0'+dt.getDate()).slice(-2)+'.json';
   document.body.appendChild(a);a.click();
-  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href)},500);
+  CLK.set(function(){document.body.removeChild(a);URL.revokeObjectURL(a.href)},500);
   toast('字卡已导出为 JSON');
 }
 function importCards(file){
@@ -6855,7 +6858,7 @@ function inviteAccept(id){
   save();toast('已接受，去「陪伴」开始计时');
   goView('companion');
   /* ★ 用户要求：点「好，一起」就直接开始计时，不用再点一下开始 */
-  setTimeout(function(){ try{ _curMode=mode.id; _left=(m.mins||25)*60; timerStart(); }catch(e){} },80);
+  CLK.set(function(){ try{ _curMode=mode.id; _left=(m.mins||25)*60; timerStart(); }catch(e){} },80);
 }
 function inviteDecline(id){
   var m=byId(state.messages,id);if(!m)return;
@@ -6863,7 +6866,7 @@ function inviteDecline(id){
   var c=contact(m.contactId)||activeContact();
   state.messages.push({id:uid(),contactId:m.contactId,dir:'out',readDue:now()+4000,text:'这次先不了，下次陪你',ts:now()});
   save();
-  setTimeout(function(){
+  CLK.set(function(){
     state.messages.push({id:uid(),contactId:c.id,dir:'in',text:pick(['好，那我自己先开始，等你。','那我等你忙完。','没关系，我先把书翻开。']),ts:now()});
     save();if(inChatView())renderChat();
   },rnd(2500,6000));
@@ -6872,7 +6875,7 @@ function inviteDecline(id){
 }
 function renderCompanion(){
   var _inSnap=inputSnapshot();
-  clearTimeout(_tmrTick);_tmrTick=null;
+  CLK.clear(_tmrTick);_tmrTick=null;
   var cp=state.companion,modes=compModes();
   var bg=cp.bgImg?'background-image:url('+mediaUrlSync(cp.bgImg)+');background-size:cover;background-position:center':'background-image:'+(CB_PRESETS[cp.bgKey]||CB_PRESETS.cb1);
   var html='<div class="page-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pt">陪伴</span></div>';
@@ -6907,7 +6910,7 @@ function tick(){
   }
   el.textContent=fmtLeft();
   if(st&&_running)st.textContent='专注中…还剩 '+fmtLeft()+'';
-  if(_running)_tmrTick=setTimeout(tick,1000);
+  if(_running)_tmrTick=CLK.set(tick,1000);
 }
 function modePick(id){
   var mo=findMode(id);if(!mo)return;
@@ -6931,7 +6934,7 @@ function beep(init){
     o.frequency.value=880;g.gain.value=.28;
     o.connect(g);g.connect(_actx.destination);
     o.start();
-    setTimeout(function(){o.stop()},500);
+    CLK.set(function(){o.stop()},500);
   }catch(e){}
 }
 function sheetModeAdd(){
@@ -6980,7 +6983,7 @@ function meJumpTo(id){
   catch(e){ try{sc.scrollTop=top}catch(e2){} }
   /* 兜底：万一平滑滚动没生效（老浏览器/无动画帧），100ms 后再直接设一次 */
   try{
-    setTimeout(function(){
+    CLK.set(function(){
       try{
         if(Math.abs(el.getBoundingClientRect().top-58)>140)sc.scrollTop=top;
       }catch(e){}
@@ -6988,7 +6991,7 @@ function meJumpTo(id){
   }catch(e){}
   try{
     el.classList.add('me-flash');
-    setTimeout(function(){try{el.classList.remove('me-flash')}catch(e){}},1200);
+    CLK.set(function(){try{el.classList.remove('me-flash')}catch(e){}},1200);
   }catch(e){}
 }
 function pctSave(){
@@ -7207,7 +7210,7 @@ function renderMe(){
   html+='<div class="me-sec" id="sec-safe"><h3>存档安全</h3>'+storageHealthHtml()+'<p class="meta" style="margin-top:8px">iPhone 会在存储紧张或长期不打开时清理网页数据，这是系统行为、任何网页都躲不过。导出一份备份文件（可存到「文件」App 或发给自己），换机、清理后都能一键恢复。</p></div>';
   html+='</div>';
   $('#view').innerHTML=html;
-  setTimeout(fillStoragePanel,0);
+  CLK.set(fillStoragePanel,0);
   inputRestore(_inSnap);
 }
 /** 设置页里的存档状态卡片 */
@@ -7691,7 +7694,7 @@ function doBackupDownload(d,sel,withImages){
   var dt=new Date();
   a.download='字卡备份-'+dt.getFullYear()+('0'+(dt.getMonth()+1)).slice(-2)+('0'+dt.getDate()).slice(-2)+'.json';
   document.body.appendChild(a);a.click();
-  setTimeout(function(){try{document.body.removeChild(a)}catch(e){}URL.revokeObjectURL(a.href)},800);
+  CLK.set(function(){try{document.body.removeChild(a)}catch(e){}URL.revokeObjectURL(a.href)},800);
   var kb=Math.round(json.length/1024);
   var n=d.hasImages?Object.keys(d.images).length:0;
   toast('已导出 '+sel.length+' 类数据'+(withImages?('，含 '+n+' 张图片'):'')+'（约 '+(kb>1024?(kb/1024).toFixed(1)+' MB':kb+' KB')+'）');
@@ -7838,7 +7841,7 @@ function importBackup(input){
   try{ closeSheet();renderAll();schedule() }catch(e4){
       painted=false;
       /* 把真实原因留下来（以前只吞掉，用户只看到"界面重画时出错"） */
-      window.__paintErr={name:(e4&&e4.name)||'',msg:(e4&&e4.message)||String(e4),at:Date.now(),
+      window.__paintErr={name:(e4&&e4.name)||'',msg:(e4&&e4.message)||String(e4),at:CLK.now(),
         stack:String((e4&&e4.stack)||'').split('\n').slice(0,8).join(' <- ')};
     }
     if(painted)toast(mode==='replace'?'备份已导入（覆盖）':'备份已导入（合并）');
@@ -7921,7 +7924,7 @@ function replyPlan(c,texts,quote,emojiMode){
   replyPump();
 }
 function replyPump(){
-  clearTimeout(_replyTimer);
+  CLK.clear(_replyTimer);
   var plan=state._pending;
   if(!plan)return;
   var c=contact(plan.contactId)||activeContact();
@@ -7930,7 +7933,7 @@ function replyPump(){
   if(wait>0){
     if(state.settings&&state.settings.typingOn!==false)_typing={contactId:c.id,ts:now(),hold:true};
     renderChat();
-    _replyTimer=setTimeout(replyPump,Math.min(wait+30,3000));
+    _replyTimer=CLK.set(replyPump,Math.min(wait+30,3000));
     return;
   }
   var st=state.settings||{};
@@ -7965,9 +7968,9 @@ function replyPump(){
 /* 每次回到页面 / 从后台恢复：接着把没发完的回复补上 */
 (function(){
   function again(){try{resumePending();if(typeof syncCatchUp==='function')syncCatchUp()}catch(e){}}
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(again,120)});
-  window.addEventListener('pageshow',function(){setTimeout(again,120)});
-  window.addEventListener('focus',function(){setTimeout(again,120)});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)CLK.set(again,120)});
+  window.addEventListener('pageshow',function(){CLK.set(again,120)});
+  window.addEventListener('focus',function(){CLK.set(again,120)});
 })();
 function resumePending(){
   if(!state._pending)return;
@@ -8281,6 +8284,8 @@ function svAutoFill(sv){
 function svHisSend(c){
   if(!c)return;
   var flat=[];for(var g=0;g<SURVEY_BANK.length;g++)for(var q=0;q<SURVEY_BANK[g].qs.length;q++)flat.push(SURVEY_BANK[g].qs[q]);
+  /* 你出的题也进池子：他抽问卷时有机会抽到你自己加的那几道 */
+  try{ var _mine=state.svMine||[]; for(var _mi=0;_mi<_mine.length;_mi++){ var _mq=_mine[_mi]; if(_mq&&_mq.t&&_mq.o&&_mq.o.length>=2) flat.push({t:_mq.t,o:_mq.o.slice(0,7),m:!!_mq.m}) } }catch(e){}
   var n=3+Math.floor(Math.random()*3),sel=[],pool=flat.slice();
   for(var i=0;i<n&&pool.length;i++)sel.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
   var t=now();
@@ -8535,7 +8540,7 @@ function checkinReply(id,preset){
   toast('已报备');
   /* 他过一会儿在**卡片上**回一句（同样不进聊天流） */
   var mid=m.id;
-  setTimeout(function(){
+  CLK.set(function(){
     var mm=byId(state.messages,mid);
     if(!mm)return;
     /* ★ 原来这里是 push 一条普通消息，内容取自 pickChkReply 里写死的 6 句，
@@ -8607,10 +8612,13 @@ function sheetStickers(){
   }
   html+='<div class="stk-sec-title">Emoji 表情</div>';
   html+='<div class="stk-panel">';
-  for(var i=0;i<EMOJIS.length;i++)html+='<button class="stk-item stk-emoji" data-act="emoji-send" data-e="'+EMOJIS[i]+'">'+EMOJIS[i]+'</button>';
+  var _hid=state.emojiHidden||[];
+  var _list=EMOJIS.filter(function(e){ return _hid.indexOf(e)<0 }).concat(state.emojis||[]);
+  for(var i=0;i<_list.length;i++)html+='<button class="stk-item stk-emoji" data-act="emoji-send" data-e="'+_list[i]+'">'+_list[i]+'</button>';
+  if(!_list.length)html+='<p class="meta" style="padding:6px 0">emoji 都被你删掉了，点下面「恢复默认」可以找回</p>';
   html+='</div>';
   html+='<div class="stk-sec-title">添加 Emoji</div>';
-  html+='<div class="stk-add-emoji"><input id="stkEmojiIn" maxlength="6" placeholder="粘贴或输入一个 emoji"><button class="btn small" data-act="emoji-add">添加</button></div>';
+  html+='<div class="stk-add-emoji"><input id="stkEmojiIn" maxlength="6" placeholder="粘贴或输入一个 emoji"><button class="btn small" data-act="emoji-add">添加</button><button class="btn small ghost" data-act="emoji-reset" style="margin-left:6px">恢复默认</button></div>';
   html+='<div class="actions"><button class="cancel" data-act="sheet-close">完成</button><button class="ok" data-act="sticker-add">添加表情图片</button></div>';
   html+='<input type="file" id="stickerFile" accept="image/*" multiple style="display:none">';
   openSheet(html);
@@ -8621,11 +8629,18 @@ function bindStickerPress(){
   var panel=document.querySelector('#sheet-mask .stk-panel');
   if(!panel)return;
   function startAt(t){
-    var b=t&&t.closest?t.closest('[data-act="sticker-send"]'):null;
+    if(!t||!t.closest)return;
+    var em=t.closest('[data-act="emoji-send"]');
+    if(em){
+      var v=em.getAttribute('data-e');
+      _stkPress=CLK.set(function(){_stkPress=0;emojiDel(v)},650);
+      return;
+    }
+    var b=t.closest('[data-act="sticker-send"]');
     if(!b)return;
-    _stkPress=setTimeout(function(){_stkPress=0;stickerDel(b.getAttribute('data-id'))},650);
+    _stkPress=CLK.set(function(){_stkPress=0;stickerDel(b.getAttribute('data-id'))},650);
   }
-  function cancel(){if(_stkPress){clearTimeout(_stkPress);_stkPress=0}}
+  function cancel(){if(_stkPress){CLK.clear(_stkPress);_stkPress=0}}
   panel.addEventListener('touchstart',function(e){startAt(e.target)},{passive:true});
   panel.addEventListener('touchend',cancel);
   panel.addEventListener('touchmove',cancel);
@@ -8637,8 +8652,30 @@ function emojiAdd(){
   var el=document.querySelector('#stkEmojiIn');
   var v=el?String(el.value||'').trim():'';
   if(!v){toast('先输入一个 emoji');return}
-  if(EMOJIS.indexOf(v)<0)EMOJIS.push(v);
-  sheetStickers();toast('已添加 '+v);
+  state.emojis=state.emojis||[];
+  if(EMOJIS.indexOf(v)<0&&state.emojis.indexOf(v)<0)state.emojis.push(v);
+  var hid=state.emojiHidden||[];
+  var at=hid.indexOf(v); if(at>=0)hid.splice(at,1);
+  state.emojiHidden=hid;
+  save();sheetStickers();toast('已添加 '+v);
+}
+/* 长按 emoji = 删除（自带的进隐藏名单，添加的直接移除） */
+function emojiDel(v){
+  if(!v)return;
+  if(!confirm('删除这个 emoji？\n（删了可以点「恢复默认」找回来）'))return;
+  var mine=state.emojis||[];
+  var at=mine.indexOf(v);
+  if(at>=0){ mine.splice(at,1); state.emojis=mine; }
+  else{
+    var hid=state.emojiHidden||[];
+    if(hid.indexOf(v)<0)hid.push(v);
+    state.emojiHidden=hid;
+  }
+  save();sheetStickers();
+}
+function emojiReset(){
+  state.emojiHidden=[];
+  save();sheetStickers();toast('已恢复默认 emoji');
 }
 function sendEmoji(e){
   var c=activeContact();
@@ -8731,8 +8768,8 @@ var ICON_PHONE='<svg viewBox="0 0 24 24" width="26" height="26" fill="currentCol
 function rollLoginEvents(){
   var c=activeContact();
   if(!c)return;
-  if(Math.random()*100<(c.callPct==null?30:c.callPct))setTimeout(function(){beginCall('voice')},3500+rnd(0,4000));
-  if(Math.random()*100<(c.transferPct==null?15:c.transferPct))setTimeout(function(){showTransfer()},7000+rnd(0,6000));
+  if(Math.random()*100<(c.callPct==null?30:c.callPct))CLK.set(function(){beginCall('voice')},3500+rnd(0,4000));
+  if(Math.random()*100<(c.transferPct==null?15:c.transferPct))CLK.set(function(){showTransfer()},7000+rnd(0,6000));
 }
 
 
@@ -8776,7 +8813,7 @@ function pat(){
   state.messages.push({id:uid(),contactId:c.id,dir:'sys',text:'你拍了拍 '+c.name,ts:now()});
   if(Math.random()*100<((state.settings&&state.settings.patReplyPct)!=null?state.settings.patReplyPct:40)){
     var ptxt=state.patCards&&state.patCards.length?pick(state.patCards).text:'';
-    setTimeout(function(){
+    CLK.set(function(){
       state.messages.push({id:uid(),contactId:c.id,dir:'sys',text:c.name+' 拍了拍你'+(ptxt?'：'+ptxt:''),ts:now()});
       save();renderChat();schedule();
     },rnd(1500,3000));
@@ -8837,8 +8874,8 @@ function notifyIncoming(m){
   _ntfLast=m;
   bar.innerHTML='<span class="ntf-av">'+cAvatar(c)+'</span><div class="ntf-tx"><b>'+esc(c.name)+'</b><span>'+esc(trunc(body,34))+'</span></div><svg class="ntf-x" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   bar.style.display='flex';
-  if(_ntfTimer)clearTimeout(_ntfTimer);
-  _ntfTimer=setTimeout(function(){bar.style.display='none'},5000);
+  if(_ntfTimer)CLK.clear(_ntfTimer);
+  _ntfTimer=CLK.set(function(){bar.style.display='none'},5000);
 }
 function hideNtf(){var b=$('#ntfBar');if(b)b.style.display='none'}
 function ntfGo(){hideNtf();goView('chat')}
@@ -9059,8 +9096,8 @@ function ntfAggregate(m){
   _ntfAgg[k].n++;
   _ntfAgg[k].last=m.text||'';
   if(_ntfAgg[k].n===1){
-    if(_ntfTimer2)clearTimeout(_ntfTimer2);
-    _ntfTimer2=setTimeout(function(){_ntfTimer2=null;ntfPush()},900);
+    if(_ntfTimer2)CLK.clear(_ntfTimer2);
+    _ntfTimer2=CLK.set(function(){_ntfTimer2=null;ntfPush()},900);
   }
 }
 var _ntfTimer2=null;
@@ -9112,9 +9149,7 @@ function ntfPreviewPick(v){
   state.settings.ntfPreview=v;save();renderMe();
   toast(v==='full'?'完整预览：通知里显示消息内容':(v==='sender'?'只显示谁发的和条数':'完全隐藏：锁屏也不露内容'));
 }
-function ntfBgTest(){
-  toast(document.hidden?'当前在后台':'当前在前台');
-}
+
 /** 设置页里的通知面板 */
 function ntfPanelHtml(){
   var st=state.settings||{};
@@ -9418,6 +9453,7 @@ document.addEventListener('click',function(e){
     else if(act==='checkin-custom'){var ckIn=$('#checkinCustom');if(ckIn&&ckIn.value.trim())sendCheckin(ckIn.value.trim());else toast('写一句查岗的话')}
     else if(act==='image-send'){ensureImgInput().click()}
     else if(act==='emoji-add')emojiAdd()
+    else if(act==='emoji-reset')emojiReset()
     else if(act==='invite-save')inviteSave()
     else if(act==='invite-test'){beginInviteForce();}
     else if(act==='invite-accept')inviteAccept(id)
@@ -9810,7 +9846,7 @@ function showCall(mode){
 var _callWait=null;
 function callWait(){
   if(_callWait)return;
-  _callWait=setTimeout(function(){
+  _callWait=CLK.set(function(){
     _callWait=null;
     if(!_call&&inChatView())incomingCall('voice');
   },10000);
@@ -9859,8 +9895,8 @@ function outgoingCall(mode){
   var st=state.settings||{};
   var answerPct=(st.callAnswerPct!=null?st.callAnswerPct:75);
   var rejectPct=(st.callRejectPct!=null?st.callRejectPct:10);
-  if(_callTk)clearTimeout(_callTk);
-  _callTk=setTimeout(function(){
+  if(_callTk)CLK.clear(_callTk);
+  _callTk=CLK.set(function(){
     if(!_call||_call.stage!=='calling')return;
     var r=Math.random()*100;
     if(r<answerPct){callAccept()}
@@ -9894,11 +9930,11 @@ function incomingCall(mode){
     vs.innerHTML+='<span class="vs-label">对方画面</span>';
   }
   renderChat();
-  _callTk=setTimeout(callHangup,15000);
+  _callTk=CLK.set(callHangup,15000);
 }
 function callAccept(){
   if(!_call)return;
-  clearTimeout(_callTk);
+  CLK.clear(_callTk);
   _call.stage='talking';_call.sec=0;_call._spk=0;
   if(!inChatView())goView('chat');
   callMini();
@@ -9915,8 +9951,8 @@ function callAccept(){
   /* ★ 我打给他的时候，通话中他可能因为有事挂断（默认 12%，可在 设置 → 概率 里调） */
   if(_call.outgoing){
     var _dp=(state.settings&&state.settings.callDropPct!=null)?state.settings.callDropPct:12;
-    if(_callTk)clearTimeout(_callTk);
-    _callTk=setTimeout(function(){
+    if(_callTk)CLK.clear(_callTk);
+    _callTk=CLK.set(function(){
       if(!_call||_call.stage!=='talking')return;
       if(Math.random()*100<_dp){
         try{callHangup('he')}catch(e){}
@@ -9939,7 +9975,7 @@ function speakLoop(){
      现在：一句话之后间隔 30~70 秒，整通电话最多说 3 句，而且**不会自动挂断**
      （要结束只能你挂、或者按"通话中挂断概率"由他挂，并且会写明是谁挂的）。 */
   if(_call._spk>=3)return;
-  _call._spt=setTimeout(speakLoop,rnd(30000,70000));
+  _call._spt=CLK.set(speakLoop,rnd(30000,70000));
 }
 function callMini(){
   if(!_call)return;
@@ -10000,11 +10036,11 @@ function callHangup(who){
 }
 function endCall(){
   if(_callTimer){clearInterval(_callTimer);_callTimer=null}
-  if(_callTk){clearTimeout(_callTk);_callTk=null}
+  if(_callTk){CLK.clear(_callTk);_callTk=null}
   if(_callTimer)clearInterval(_callTimer);
-  if(_call&&_call._spt)clearTimeout(_call._spt);
-  if(_callWait){clearTimeout(_callWait);_callWait=null}
-  clearTimeout(_callTk);_callTk=null;
+  if(_call&&_call._spt)CLK.clear(_call._spt);
+  if(_callWait){CLK.clear(_callWait);_callWait=null}
+  CLK.clear(_callTk);_callTk=null;
   _call=null;_callTimer=null;
   var ov=$('#callOverlay');
   if(ov){ov.className='';ov.innerHTML='';ov.removeAttribute('style');try{ov.style.display=''}catch(e){}}
@@ -10030,7 +10066,7 @@ function sendTransfer(amt){
   var m={id:uid(),contactId:c.id,dir:'out',kind:'transfer',amount:amt,ts:now()};
   state.messages.push(m);
   save();closeSheet();renderChat();toast('已转账 ¥'+amt.toFixed(2));
-  setTimeout(function(){acceptTransfer(m.id)},rnd(2500,6000));
+  CLK.set(function(){acceptTransfer(m.id)},rnd(2500,6000));
 }
 function acceptTransfer(mid){
   var c=activeContact();
@@ -10546,7 +10582,7 @@ function widgetResetOne(k){
 /* 组件高度会变（动态条数、图片/字体加载完），用 ResizeObserver 盯着，
    一变就重新算容器高度 —— 这样容器永远盖得住组件，不会压到下面的 App 图标 */
 var _wdRO=null;
-function initWidgetDrag(){ /* merged grid: widget drag is handled by initDrag() */ }
+
 (function(){
   document.addEventListener('change',function(e){
     var t=e.target;
@@ -10726,7 +10762,7 @@ function musEnded(){musSetWidgetMusic();save();musNext(true)}
 /** 播放中每秒把"正在听"同步到小组件，并把状态存一下（不用每帧存） */
 function musWake(){
   musSetWidgetMusic();
-  if(!window.__musSaved||Date.now()-window.__musSaved>8000){window.__musSaved=Date.now();try{save()}catch(e){}}
+  if(!window.__musSaved||CLK.now()-window.__musSaved>8000){window.__musSaved=CLK.now();try{save()}catch(e){}}
   musPaint();
 }
 function musSetWidgetMusic(){
@@ -10829,10 +10865,10 @@ function musDelSong(id){
 function musPlayIdx(i){musLoad(i,true)}
 function musSetLoop(v){musState().loop=v;save();renderMusic()}
 function musToggleShuffle(){var m=musState();m.shuffle=!m.shuffle;save();renderMusic()}
-function musSetVol(v){var m=musState();m.vol=Math.max(0,Math.min(1,v));try{musAudio().volume=m.vol}catch(e){}save()}
+
 
 /* ---------- 一起听 ---------- */
-function musSess(){var m=musState();return m.sess}
+
 /** 这个"一起听"会话是不是早就该结束了（放太久 = 上次没退出，不是真在听）
     阈值写死在函数里，别用外部变量：migrate() 在脚本还没跑到下面那几行时就会被调用，
     那时候外部 var 还是 undefined，判断会静默失效。 */
@@ -10905,7 +10941,7 @@ function musSessSongStart(){
     (function(k){
       /* ★ 时机随机（不排时间表）：第一句落在 2~18 秒里任一刻，第二句紧跟 1~5 秒 */
       var d=(k===0)?rnd(2000,18000):rnd(1000,5000);
-      setTimeout(function(){
+      CLK.set(function(){
         try{
           var m2=musState(); if(!m2||!m2.sess)return;      /* 已经退出了就别说了 */
           musSessSay(musTalkLine());
@@ -10922,7 +10958,7 @@ function musSessSongStart(){
       musSessAskSong();
     }else if(r<0.22&&(playing-MUS_LAST_SKIP)>=2){
       MUS_LAST_SKIP=playing;
-      setTimeout(function(){
+      CLK.set(function(){
         try{ var m3=musState(); if(!m3||!m3.sess)return; musNext(false) }catch(e){}
       }, rnd(6000,15000));
     }
@@ -10936,13 +10972,13 @@ function musSessWatch(){
   if(!m||!m.sess){_musLastSongKey='';return}
   var sg=(m.songs||[])[m.cur||0];
   var key=sg?String(sg.id||sg.ref||m.cur):'';
-  if(key&&key!==_musLastSongKey){_musLastSongKey=key;setTimeout(function(){try{musSessSongStart()}catch(e){}},400)}
+  if(key&&key!==_musLastSongKey){_musLastSongKey=key;CLK.set(function(){try{musSessSongStart()}catch(e){}},400)}
 }
 function musListenStart(){
   var m=musState(),c=activeContact();
   /* ★ 记住"你原先在哪一页"：右上角 ✕ 退出时要回到那儿，而不是硬跳到音乐页 */
   var from=String(location.hash||'').replace('#','')||'home';
-  m.sess={byMe:true,contactId:c?c.id:'',startedAt:Date.now(),from:from,said:[]};
+  m.sess={byMe:true,contactId:c?c.id:'',startedAt:CLK.now(),from:from,said:[]};
   if(!m.songs.length)toast('先上传几首歌，再一起听');
   try{save()}catch(e){}
   _musLastSongKey='';
@@ -11710,9 +11746,9 @@ function bindBubbleLongpress(){
     if(el.querySelector('button'))return;
     var mid=el.getAttribute('data-id');
     if(!mid)return;
-    var tid=setTimeout(function(){_lpFired=1;sheetMsgMenu(mid)},480);
-    function gone(){clearTimeout(tid);document.removeEventListener('touchend',gone);document.removeEventListener('touchmove',moved)}
-    function moved(){clearTimeout(tid);document.removeEventListener('touchend',gone);document.removeEventListener('touchmove',moved)}
+    var tid=CLK.set(function(){_lpFired=1;sheetMsgMenu(mid)},480);
+    function gone(){CLK.clear(tid);document.removeEventListener('touchend',gone);document.removeEventListener('touchmove',moved)}
+    function moved(){CLK.clear(tid);document.removeEventListener('touchend',gone);document.removeEventListener('touchmove',moved)}
     document.addEventListener('touchend',gone);
     document.addEventListener('touchmove',moved);
   });
@@ -12018,7 +12054,7 @@ function homeLandFlash(key,kind){
       (function(el){
         if(!el||!el.classList)return;
         el.classList.add('app-land');
-        setTimeout(function(){try{el.classList.remove('app-land')}catch(e){}},380);
+        CLK.set(function(){try{el.classList.remove('app-land')}catch(e){}},380);
       })(els[i]);
     }
   }catch(e){}
@@ -12046,24 +12082,24 @@ function bindGridDrag(grid){
     var el=itemOf(t);
     if(!el||el.getAttribute('data-kind')==='card')return;
     sx=x;sy=y;lastX=x;lastY=y;started=false;
-    if(timer)clearTimeout(timer);
-    homePressCancel=function(){ if(timer){clearTimeout(timer);timer=null} };
-    timer=setTimeout(function(){
+    if(timer)CLK.clear(timer);
+    homePressCancel=function(){ if(timer){CLK.clear(timer);timer=null} };
+    timer=CLK.set(function(){
       timer=null;
       started=homeDragStart(el,lastX,lastY);
-      if(started){_homeDragTap=1;setTimeout(function(){_homeDragTap=0},800)}
+      if(started){_homeDragTap=1;CLK.set(function(){_homeDragTap=0},800)}
     },HOME_LONGPRESS);
   }
   function move(x,y){
     lastX=x;lastY=y;
     if(!started){
-      if(timer&&(Math.abs(x-sx)+Math.abs(y-sy)>HOME_MOVE_TOL)){clearTimeout(timer);timer=null}
+      if(timer&&(Math.abs(x-sx)+Math.abs(y-sy)>HOME_MOVE_TOL)){CLK.clear(timer);timer=null}
       return;
     }
     homeDragMove(x,y);
   }
   function end(){
-    if(timer){clearTimeout(timer);timer=null}
+    if(timer){CLK.clear(timer);timer=null}
     homePressCancel=null;
     if(started){started=false;homeDragEnd()}
   }

@@ -74,6 +74,8 @@ body{background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacS
 .seg button{flex:1;border:0;background:none;padding:7px 0;border-radius:8px;font-size:13px}
 .seg button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12);font-weight:600}
 #toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:99;background:rgba(20,20,20,.9);color:#fff;border-radius:12px;padding:10px 16px;font-size:13px;display:none;max-width:80vw;text-align:center;line-height:1.5}
+.gi{position:relative}
+.gi .del{position:absolute;right:0;top:0;width:22px;height:22px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:12px;line-height:22px;padding:0}
 </style>
 </head>
 <body>
@@ -160,7 +162,7 @@ function renderHome(){
   $('ring').innerHTML=Math.min(99,m)+'<i>分钟</i>';
 }
 function renderLib(){ $('gridLib').innerHTML=BOOKS.map(function(b){ var p=pctOf(b);
-  return '<div class="gi" data-open="'+b.id+'">'+cover(b)+'<div class="tt">'+esc(b.title)+'</div><div class="au">'+esc(b.author||'')+(p?' · '+p+'%':'')+'</div></div>' }).join('')||'<div class="empty">书库是空的</div>' }
+  return '<div class="gi" data-open="'+b.id+'">'+cover(b)+'<div class="tt">'+esc(b.title)+'</div><div class="au">'+esc(b.author||'')+(p?' · '+p+'%':'')+'</div><button class="del" data-del="'+b.id+'">删</button></div>' }).join('')||'<div class="empty">书库是空的</div>' }
 function renderSearch(){ var q=($('q').value||'').trim(); if(!q){ $('rowsSearch').innerHTML='<div class="empty">输入书名或作者</div>'; return }
   var r=BOOKS.filter(function(b){ return (b.title||'').indexOf(q)>=0 || (b.author||'').indexOf(q)>=0 });
   $('rowsSearch').innerHTML=r.length?r.map(function(b){ return '<div class="row" data-open="'+b.id+'">'+cover(b)+'<div><div class="tt">'+esc(b.title)+'</div><div class="au">'+esc(b.author||'')+'</div></div></div>' }).join(''):'<div class="empty">没找到</div>' }
@@ -290,6 +292,35 @@ function importRead(file){
   };
   fr.readAsText(file,'utf-8');
 }
+/* 删书 + 批注自检用到的小函数 */
+function dbDel(id){
+  return new Promise(function(res){
+    db().then(function(d){ if(!d)return res(false);
+      try{ var tx=d.transaction('books','readwrite'); tx.objectStore('books').delete(id);
+        tx.oncomplete=function(){res(true)}; tx.onerror=function(){res(false)} }catch(e){res(false)}
+    })
+  });
+}
+function delBook(id){
+  var b=BOOKS.filter(function(x){return x.id===id})[0];
+  if(!b)return;
+  if(!confirm('删除《'+b.title+'》？\n（只删这本，进度和批注也一起清掉）'))return;
+  dbDel(id);
+  BOOKS=BOOKS.filter(function(x){return x.id!==id});
+  try{ delete S.progress[id] }catch(e){}
+  try{ Object.keys(S.notes||{}).forEach(function(k){ if(k.indexOf(id+':')===0) delete S.notes[k] }) }catch(e){}
+  save(); renderHome(); renderLib();
+  toast('已删除《'+b.title+'》');
+}
+(function bindDel(){
+  document.addEventListener('click',function(e){
+    var d=e.target.closest?e.target.closest('[data-del]'):null;
+    if(!d)return;
+    e.preventDefault(); e.stopPropagation();
+    delBook(d.getAttribute('data-del'));
+  },true);
+})();
+
 /* ---- 事件 ---- */
 document.addEventListener('click',function(e){
   var o=e.target.closest?e.target.closest('[data-open]'):null; if(o){ openBook(o.getAttribute('data-open')); return }
