@@ -12573,8 +12573,18 @@ function heditTapItem(el) {
   if (HEDIT.sel.kind === inf.kind && HEDIT.sel.key === inf.key) { HEDIT.sel = null; heditPaint(); return }
   var sel = HEDIT.sel;
   if (sel.kind === 'app' && inf.kind === 'app') {
-    var A = gridCellRead((state.appPos || {})[sel.key]) || { p: 0, r: 0, c: 0 };
-    var B = gridCellRead((state.appPos || {})[inf.key]) || { p: 0, r: 0, c: 0 };
+    /* 用"画面上真实的格子"来换：有些图标存档里没坐标（是自动排的），按存档换会换空 */
+    var lay = gridBuild(false), A = null, B = null;
+    for (var pg = 0; pg < lay.count; pg++) {
+      var arr = (lay.pages && lay.pages[pg]) || [];
+      for (var i = 0; i < arr.length; i++) {
+        var it = arr[i];
+        if (it.kind !== 'app') continue;
+        if (it.key === sel.key) A = { p: pg, r: it.r, c: it.c };
+        if (it.key === inf.key) B = { p: pg, r: it.r, c: it.c };
+      }
+    }
+    if (!A || !B) { try { toast('这两个不在当前页面上') } catch (e) { } ; return }
     state.appPos = state.appPos || {};
     state.appPos[sel.key] = { p: B.p, r: B.r, c: B.c };
     state.appPos[inf.key] = { p: A.p, r: A.r, c: A.c };
