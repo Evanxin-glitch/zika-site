@@ -7505,25 +7505,6 @@ function renderMe(){
       +'</div>';
   }
   html+='</div><p class="meta" style="margin-top:6px">给桌面上的每个 App 换图标：点“换图”选一张图，图片会铺满整个圆角块。共 '+APPS.length+' 个 App 都能换。</p><input type="file" id="iconFile" accept="image/*" style="display:none"></div>';
-  html+='<div class="me-sec" id="sec-widgets"><h3>小组件</h3><div class="card">';
-  html+='<div class="sw-row"><div><b>时间日期</b><span>大时钟 + 星期</span></div><div class="switch'+(state.widgets.clock?' on':'')+'" data-act="wd-sw" data-key="clock"></div></div>';
-  html+='<div class="sw-row"><div><b>在一起天数</b><span>纪念日倒数</span></div><div class="switch'+(state.widgets.days?' on':'')+'" data-act="wd-sw" data-key="days"></div></div>';
-  html+='<div class="sw-row"><div><b>音乐播放</b><span>正在听的歌</span></div><div class="switch'+(state.widgets.music?' on':'')+'" data-act="wd-sw" data-key="music"></div></div>';
-  html+='<div class="sw-row"><div><b>便签</b><span>一句话贴纸</span></div><div class="switch'+(state.widgets.note?' on':'')+'" data-act="wd-sw" data-key="note"></div></div>';
-  html+='<div class="sw-row"><div><b>陆沉动态</b><span>日记/消息/朋友圈/塔罗通知</span></div><div class="switch'+(state.widgets.feed?' on':'')+'" data-act="wd-sw" data-key="feed"></div></div>';
-  /* ★ 每个组件的底图按钮（以前这里只有 时间/天数/音乐/便签 四个 <label for>，
-     倒数日/天气/相册/进度环 根本没有入口 —— 用户报的"倒数日底图换不了"就是这个）。
-     现在和"组件库"用同一套按钮（JS 驱动，不依赖 label 的 for，iOS 上更稳）。 */
-  var _wdBtns='<button class="preset-btn" data-act="wd-photo" data-k="photo">相册封面图</button>';
-  var _wdDefs=widgetDefs();
-  for(var _wbi=0;_wbi<_wdDefs.length;_wbi++)_wdBtns+='<button class="preset-btn" data-act="wdlib-img" data-k="'+_wdDefs[_wbi].k+'">'+_wdDefs[_wbi].n+'底图</button>';
-  html+='<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>在一起天数</label><input id="wdDays" type="number" min="0" value="'+state.anniversaryDays+'"></div><div class="inl"><label>天数标题</label><input id="wdDaysLabel" value="'+esc(state.widgetDaysLabel||'在一起')+'"></div><div class="inl"><label>天数单位</label><input id="wdDaysUnit" value="'+esc(state.widgetDaysUnit||'天')+'"></div><div class="inl" style="width:100%"><label>在一起 · 起始日期（填了就按日期每天自动 +1；留空用上面的天数）</label><input id="wdCalDate" type="date" value="'+esc((state.widgetCalendar||{}).date||'')+'"></div><div class="inl"><label>便签文字</label><input id="wdNote" value="'+esc(state.widgetNote||'')+'"></div><div class="inl"><label>歌曲名</label><input id="wdSong" value="'+esc(state.widgetMusic.song)+'"></div><div class="inl"><label>歌手</label><input id="wdArtist" value="'+esc(state.widgetMusic.artist)+'"></div></div><p class="meta" style="margin:8px 0 6px">小组件背景图（每个组件都能单独换；长按组件可拖动换位）</p><div class="wdlib-imgrow">'+_wdBtns+'</div><button class="btn ghost" style="width:100%;margin-top:6px" data-act="wd-img-clear">恢复默认背景</button><button class="btn ghost" style="width:100%;margin-top:6px" data-act="wd-pos-reset">小组件回到默认位置</button><input type="file" id="wdImgFile" accept="image/*" style="display:none">';
-  html+='<div class="sw-row"><div><b>天气</b><span>城市 / 温度 / 状况</span></div><div class="switch'+(state.widgets.weather?' on':'')+'" data-act="wd-sw" data-key="weather"></div></div>';
-  html+='<div class="sw-row"><div><b>相册</b><span>一张照片 + 配文</span></div><div class="switch'+(state.widgets.photo?' on':'')+'" data-act="wd-sw" data-key="photo"></div></div>';
-  html+='<div class="sw-row"><div><b>倒数日</b><span>距离某天还有多久</span></div><div class="switch'+(state.widgets.count?' on':'')+'" data-act="wd-sw" data-key="count"></div></div>';
-  html+='<div class="sw-row"><div><b>进度环</b><span>一个百分比</span></div><div class="switch'+(state.widgets.progress?' on':'')+'" data-act="wd-sw" data-key="progress"></div></div>';
-  html+='<p class="meta" style="margin:8px 0 0">更多设置（天气城市、相册配文、倒数日日期等）在 <b>组件库</b> 里改。</p>';
-  html+='<div style="margin-top:10px"><button class="btn" style="width:100%" data-act="wd-save">保存小组件</button></div></div></div>';
   html+='<div class="me-group-title">后台与保活</div>';
   html+='<div class="me-sec" id="sec-keep"><h3>后台保活</h3><div class="card">';
   html+='<div class="ka-row">';
