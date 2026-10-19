@@ -2013,6 +2013,45 @@ body.wlt-mode #view{background:#F2F2F3}
 
 /* 商城头部与商品卡片左边缘对齐（原来头部多出 14px 内边距） */
 .shop-screen .page-top{padding-left:0;padding-right:0}
+
+/* ===== 日程 App ===== */
+.sc-tabs{display:flex;gap:8px;margin:6px 0 12px}
+.sc-tab{flex:1;border:1px solid rgba(255,255,255,.55);border-radius:999px;padding:9px 14px;font-size:calc(13px*var(--fs));font-weight:600;color:#5A4632;
+  background:rgba(255,253,248,.42);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);
+  box-shadow:0 6px 18px rgba(70,58,40,.08),inset 0 0 0 1px rgba(255,255,255,.45);transition:background .18s,color .18s}
+.sc-tab.on{color:#8d3f5c;background:rgba(255,214,228,.55);border-color:rgba(255,255,255,.7);
+  box-shadow:0 8px 22px rgba(201,85,127,.16),inset 0 0 0 1px rgba(255,255,255,.6)}
+.sc-now{background:linear-gradient(160deg,#eef5ef,#fff);border:1px solid rgba(79,122,94,.16);border-radius:16px;padding:12px 14px;margin-bottom:12px}
+.sc-now .st{font-size:11.5px;color:#4f7a5e;letter-spacing:.03em}
+.sc-now .tx{font-size:19px;font-weight:700;margin:3px 0 1px;color:#241d19}
+.sc-now .mt{font-size:12.5px;color:#8a8078}
+.sc-day{display:flex;align-items:baseline;gap:8px;margin:4px 0 8px}
+.sc-day b{font-size:14.5px}
+.sc-day span{font-size:11.5px;color:#8a8078;margin-left:auto}
+.sc-card{background:#fff;border-radius:16px;padding:10px 14px;box-shadow:0 4px 14px rgba(120,90,80,.07)}
+.sc-tl{list-style:none;margin:0;padding:0}
+.sc-tl li{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed rgba(60,50,45,.10);font-size:14px;line-height:1.45}
+.sc-tl li:last-child{border-bottom:0}
+.sc-tl .t{width:50px;flex:0 0 auto;color:#8a8078;font-size:12.5px;padding-top:2px}
+.sc-tl .b{flex:1;min-width:0}
+.sc-tl .b small{display:block;color:#8a8078;font-size:11.5px;margin-top:2px}
+.sc-tl li.cur{color:#3d5f49;font-weight:700}
+.sc-tl .tag,.sc-mine .tag{display:inline-block;font-size:10.5px;border-radius:6px;padding:1px 6px;margin-left:6px;font-style:normal}
+.sc-mine{list-style:none;margin:0;padding:0}
+.sc-mine li{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed rgba(60,50,45,.10);font-size:14px}
+.sc-mine li:last-child{border-bottom:0}
+.sc-mine .t{width:48px;flex:0 0 auto;color:#6b635c;font-size:13px;padding-top:1px}
+.sc-mine .b{flex:1;min-width:0}
+.sc-mine .read{display:block;color:#4f7a5e;font-size:11px;margin-top:2px}
+.sc-mine .unread{display:block;color:#b8ada5;font-size:11px;margin-top:2px}
+.sc-mine .sc-del{border:0;background:#f6f2ee;color:#8a8078;border-radius:8px;font-size:11.5px;padding:4px 9px;flex:0 0 auto;height:26px}
+.sc-acts{display:flex;gap:8px;margin-top:10px}
+.sc-acts .btn{flex:1}
+.sc-time{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.sc-time select{border:1px solid rgba(60,50,45,.14);border-radius:10px;padding:9px 10px;font-size:15px;background:#fdfbfa}
+.sc-chips{display:flex;gap:8px;margin-bottom:6px}
+.sc-chip{border:1px solid rgba(60,50,45,.12);background:#fff;border-radius:999px;padding:7px 13px;font-size:12.5px}
+.sc-chip.on{background:#5b7f68;border-color:#5b7f68;color:#fff}
 </style>
 </head>
 <body>
@@ -2238,6 +2277,125 @@ var GUIDE_MUST={t:'必读 · 免责声明',b:`
 
 `};
 
+/* 日程：他的活动池（按日期随机取，同一天固定） */
+var SCHED_BLOCKS=[
+  {h:7, pool:[
+    ['在家 · 刚醒','醒得比闹钟早，先看有没有你的消息'],
+    ['晨跑回来','冲澡的时候还在想你昨晚那句'],
+    ['在马场','早上人少，先陪马走两圈','马场'],
+    ['想你','躺着没起，盯着天花板想了一会儿你'],
+    ['在读邮件','睡前堆的邮件，早上才回'],
+    ['在煮咖啡','只煮一杯，第二杯的习惯还留着'],
+    ['看天气','顺手查了你那边的天气'],
+    ['在拉伸','腰有点紧，昨天坐太久'],
+    ['在阳台','早上风凉，站了一会儿']
+  ]},
+  {h:8, pool:[
+    ['早餐','看到你会喜欢的点心，顺手拍了张照'],
+    ['在车上','翻文件，翻到一半停下来回你消息'],
+    ['在车上 · 给你发消息','问一句"醒了吗"，然后自己笑了一下'],
+    ['看早报','财经版扫两眼，娱乐版翻了很久'],
+    ['在打电话','和 SONDER 那边过一遍今天的排期'],
+    ['在挑领带','两条黑的，选了很久'],
+    ['在想你','想你会不会还在睡'],
+    ['在等你回消息','屏幕亮了三次都不是你']
+  ]},
+  {h:9, pool:[
+    ['到万甄','上午的会九点半，先过一遍日程','公司'],
+    ['在办公室','让助理把下午空出来一点','公司'],
+    ['在开会','董事会，他说话不多但没人敢走神','公司'],
+    ['想给你打电话','看了三次时间，还是没打（怕你在忙）'],
+    ['在签文件','一叠授权文件，签到最后一张才抬头','公司'],
+    ['在见人','对方带着方案来的，他听完只说了一句','公司'],
+    ['在回邮件','英文邮件，措辞比中文客气','公司'],
+    ['在想你','会议室的窗外，想起你说过的一句话']
+  ]},
+  {h:10, pool:[
+    ['在开会','项目会，中途看了一次手机','公司'],
+    ['见客户','对方话很多，他听得很有耐心','公司'],
+    ['在签文件','一叠文件，签到手酸','公司'],
+    ['在 SONDER','临时过去看玩具打样','玩具'],
+    ['想你','会议间隙在看你的照片'],
+    ['在开会 · 走神','在想晚上要不要去见你','公司'],
+    ['在听汇报','报表数字不对，他让人重做','公司'],
+    ['在楼下','下来拿个东西，顺便抽了半支烟'],
+    ['在打电话','和律师确认一份合同','公司']
+  ]},
+  {h:12, pool:[
+    ['午餐 · 公司','随便吃了点，问你吃了没'],
+    ['午餐 · 应酬','一桌人，他喝得不多','应酬'],
+    ['一个人吃饭','想起你上次说想吃的那家店'],
+    ['午餐 · 想见你','算了下时间，下午能不能抽半小时'],
+    ['在休息室','闭眼躺了十分钟','公司'],
+    ['在想你','把手机翻过来，怕错过你的消息'],
+    ['在吃你提过的东西','路过那家店，顺手买了一份'],
+    ['在回消息','一边吃一边打字，吃得很慢']
+  ]},
+  {h:14, pool:[
+    ['在万甄','下午的会刚开完','公司'],
+    ['在 SONDER','看玩具新品打样，捏了捏那只小熊','玩具'],
+    ['在高尔夫球场','陪客户打球，太阳不小','球场'],
+    ['在马场','今天是骑术课，马今天不太听话','马场'],
+    ['在工厂','SONDER 的生产线，看质检','玩具'],
+    ['想你','午休睡了十分钟，梦里是你'],
+    ['在球场上','风偏了，球差一点进洞','球场'],
+    ['在马厩','给马换了个新的马鞍垫','马场'],
+    ['在开会','投资方的电话会，他几乎没说话','公司'],
+    ['在想你','想问你下午忙不忙']
+  ]},
+  {h:16, pool:[
+    ['在开会','第二个会，比预想的长','公司'],
+    ['在 SONDER 开会','新品定价，他否了两个方案','玩具'],
+    ['在球场','球打得一般，心情不错','球场'],
+    ['在巡店','看 SONDER 的货架陈列','玩具'],
+    ['在给你发消息','拍了张窗外的天，说"今天天不错"'],
+    ['想你','在想要不要晚上直接去见你'],
+    ['在试新样','玩具的手感不对，他捏了两遍','玩具'],
+    ['在车上','去下一个地方，路上回了几条消息'],
+    ['在喝茶','难得空下来，让人泡了壶茶']
+  ]},
+  {h:18, pool:[
+    ['下班','路上有点堵'],
+    ['还在公司','临时多一件事','公司'],
+    ['在应酬','饭局刚开始，还早','应酬'],
+    ['在路上','拐去你提过的那家店'],
+    ['想见你','打电话问"晚上有空吗"'],
+    ['在车上 · 堵着','给你发了条语音，又删了'],
+    ['在回家路上','想着一会儿要不要给你打电话'],
+    ['在楼下','站着走了两圈，才上楼']
+  ]},
+  {h:19, pool:[
+    ['在吃饭','一个人，吃得很快'],
+    ['在应酬','喝了两杯，声音低了点','应酬'],
+    ['在健身房','练背，组间会想你','健身'],
+    ['在等你回消息','手机放在手边，隔一会儿看一眼'],
+    ['在想你','今天没怎么见到你，有点不习惯'],
+    ['在书房','文件摊开，看了两页就走神'],
+    ['在开一瓶酒','开了，但只倒了半杯'],
+    ['在给 SONDER 回电话','周末的事提前处理','玩具']
+  ]},
+  {h:21, pool:[
+    ['书房','看文件，或者看一本旧书'],
+    ['在给你打电话','今天想听你说话'],
+    ['在阳台','吹风，看楼下的灯'],
+    ['在想你','想明天要不要早点收工'],
+    ['在挑衣服','翻衣柜，想着见你穿哪件'],
+    ['在听唱片','老唱片，音量开得很小'],
+    ['在整理东西','把一个旧盒子翻出来看了很久'],
+    ['在洗澡','水有点烫']
+  ]},
+  {h:23, pool:[
+    ['还没睡','躺着刷手机，其实在等你'],
+    ['准备睡了','但灯还亮着'],
+    ['在想你','有点睡不着，想给你发句晚安又怕吵你'],
+    ['在写点东西','在备忘录里记了一句和你有关的话'],
+    ['在看你的消息记录','往回翻了几天的聊天'],
+    ['在关灯','关了一半又坐回去'],
+    ['在等一句话','想着你会不会说"晚安"']
+  ]}
+];
+
+
 
 /* 时钟：默认系统时间；测试可注入假时钟（window.__CLK） */
 var CLK=(window.__CLK&&typeof window.__CLK.now==='function')?window.__CLK:{now:function(){return Date.now()},set:function(fn,ms){return setTimeout(fn,ms)},clear:function(id){clearTimeout(id)}};
@@ -2431,7 +2589,7 @@ function migrate(s){
     s[_ak]=s[_ak].filter(function(x){return x&&typeof x==='object'});
   }
   /* ★ checkinPresets 是"字符串数组"，以前被混在"只留对象元素"的清洗名单里 →
-     每次开机都被洗空：于是「聊天室累计满 60 分钟查岗概率」永远不生效（他从不主动查岗），
+     每次开机都被洗空：于是「聊天室累计满 30 分钟查岗概率」永远不生效（他从不主动查岗），
      你自己在设置里加的预设也会刷新后消失。现在单独按字符串清洗。 */
   if(!Array.isArray(s.checkinPresets))s.checkinPresets=[];
   else s.checkinPresets=s.checkinPresets.filter(function(x){return typeof x==='string'&&x.trim()})
@@ -3929,7 +4087,7 @@ function coverStyle(){
 }
 
 /* ================= 路由 ================= */
-var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey','game','guide','read'];
+var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey','game','guide','read','schedule'];
 var _routedOnce=false;
 function router(){
   var h=location.hash.replace('#','');
@@ -4006,6 +4164,7 @@ function render(v){
   else if(v==='game')renderGame();
   else if(v==='read')renderRead();
   else if(v==='guide')renderGuide();
+  else if(v==='schedule')renderSchedule();
   else renderMe();
   /* 一起听开着的时候：离开听歌界面自动缩成悬浮条，回到听歌界面自动收起 */
   try{if(typeof musBarToggle==='function')musBarToggle()}catch(e){}
@@ -4049,6 +4208,7 @@ function syncAppOrder(){
 function appListDefs(){
   return [
 
+    {v:'schedule',n:'日程',c:'#5B7F68',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/></svg>'},
     {v:'guide',n:'指南',c:'#8A7F6A',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M4 5h9a3 3 0 0 1 3 3v12H7a3 3 0 0 1-3-3z"/><path d="M16 8h4v12h-4"/></svg>'},
     {v:'read',n:'阅读',c:'#6B5B95',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22.5z"/><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22.5z"/></svg>'},
 
@@ -7390,7 +7550,8 @@ function renderMe(){
     +'<div class="inl"><label>拍一拍回拍概率 %</label><input id="setPatPct" type="number" min="0" max="100" value="'+(state.settings.patReplyPct!=null?state.settings.patReplyPct:40)+'"></div>'
     +'</div>';
   html+='<div class="pct-sub">他主动来找你</div><div class="rhy-grid">'
-    +'<div class="inl"><label>在聊天室累计满 60 分钟后，他查岗的概率 %</label><input id="setCheckinPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)+'"></div>'
+    +'<div class="inl"><label>他查岗的概率 %</label><input id="setCheckinPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)+'"></div>'
+    +'<p class="meta" style="margin:2px 0 8px">查岗·在聊天室里待满 30 分钟后掷一次（每次进聊天室最多 1 次）</p>'
     +'<div class="inl"><label>顺手送礼物概率 %</label><input id="giftPct" type="number" min="0" max="100" value="'+(state.settings.giftPct!=null?state.settings.giftPct:13)+'"></div>'
     +'<div class="inl"><label>找你代买概率 %</label><input id="askPct" type="number" min="0" max="100" value="'+(state.settings.askPct!=null?state.settings.askPct:8)+'"></div>'
     +'<div class="inl"><label>主动消息后发朋友圈概率 %</label><input id="setPostPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.postPct)!=null?state.settings.postPct:50)+'"></div>'
@@ -12762,7 +12923,7 @@ function heditTapItem(el) {
 var PAT_IN_PCT = 20, PAT_HANG_PCT = 50, PAT_HANG_MS = 60 * 60 * 1000;
 var _patSession = false, _patWasInChat = false, _patTicker = 0;
 /* 查岗：在聊天室累计满 60 分钟掷一次（概率取设置里的 checkinPct，默认 25） */
-var CK_MS = 60 * 60 * 1000, _ckSession = false;
+var CK_MS = 30 * 60 * 1000   /* 查岗：聊天室累计满 30 分钟掷一次 */, _ckSession = false;
 
 function patLib() {
   try {
@@ -12837,6 +12998,181 @@ function ckTick(inChat) {
     }
   }
 }
+
+/* ===== 日程 App =====
+   两个 tab：他的日程（按日期随机生成，同一天固定）/ 我的日程（自己加，显示"陆沉已读"）
+   他的日程只做展示，不读取、不影响聊天节奏（用户明确要求）。 */
+function schedSeed(str) { var h = 2166136261; for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) } return h >>> 0 }
+function schedRng(s) { var a = s >>> 0; return function () { a += 0x6D2B79F5; var t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
+function schedPick(r, arr) { return arr[Math.floor(r() * arr.length)] }
+function schedKey(offset) { var d = new Date(); d.setDate(d.getDate() + (offset || 0)); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2) }
+function schedDayLabel(offset) {
+  var d = new Date(); d.setDate(d.getDate() + (offset || 0));
+  var wd = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+  return (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日 · 周' + wd;
+}
+function schedBuild(offset) {
+  var r = schedRng(schedSeed(schedKey(offset))), out = [];
+  for (var i = 0; i < SCHED_BLOCKS.length; i++) {
+    var b = SCHED_BLOCKS[i], p = schedPick(r, b.pool);
+    out.push({ h: b.h, act: p[0], note: p[1], tag: p[2] || '' });
+  }
+  return out;
+}
+function schedOrd(h) { return h < 6 ? h + 24 : h }
+function schedNow(list, hour) {
+  var cur = null, now = schedOrd(hour);
+  for (var i = 0; i < list.length; i++) { if (now >= schedOrd(list[i].h)) cur = list[i] }
+  return cur || list[0];
+}
+function schedPad(n) { return ('0' + n).slice(-2) }
+function schedTab() { return state.schedTab === 'mine' ? 'mine' : 'his' }
+function schedOffset() { return state.schedOffset || 0 }
+
+function schedMyList() {
+  var k = schedKey(0), out = [];
+  var arr = state.mySchedule || [];
+  for (var i = 0; i < arr.length; i++) if (arr[i] && arr[i].date === k) out.push(arr[i]);
+  out.sort(function (a, b) { return (a.h * 60 + a.m) - (b.h * 60 + b.m) });
+  return out;
+}
+function schedTagColor(t) {
+  return ({ '工作': '#7a8fa6', '约会': '#c9557f', '休息': '#5b7f68', '其他': '#8a8078' })[t] || '#8a8078';
+}
+
+function renderSchedule() {
+  var tab = schedTab();
+  var h = '<div class="page-top"><button class="back" data-view="home">' + ICON_BACK + '</button><span class="pt">日程</span></div>';
+  h += '<div class="screen">';
+  h += '<div class="sc-tabs">'
+    + '<button class="sc-tab' + (tab === 'his' ? ' on' : '') + '" data-sctab="his">他的日程</button>'
+    + '<button class="sc-tab' + (tab === 'mine' ? ' on' : '') + '" data-sctab="mine">我的日程</button>'
+    + '</div>';
+  if (tab === 'his') h += schedHisHtml();
+  else h += schedMineHtml();
+  h += '</div>';
+  $('#view').innerHTML = h;
+}
+function schedHisHtml() {
+  var off = schedOffset();
+  var list = schedBuild(off), nowH = new Date().getHours(), cur = schedNow(list, nowH);
+  var h = '';
+  h += '<div class="sc-now"><div class="st">' + (off === 0 ? '现在' : schedDayLabel(off)) + ' · ' + schedPad(nowH) + ':00</div>'
+    + '<div class="tx">' + esc(cur.act) + '</div><div class="mt">' + esc(cur.note) + '</div></div>';
+  h += '<div class="sc-day"><b>' + schedDayLabel(off) + '</b><span>' + list.length + ' 项安排</span></div>';
+  h += '<div class="card sc-card"><ul class="sc-tl">';
+  for (var i = 0; i < list.length; i++) {
+    var it = list[i], on = (it === cur);
+    h += '<li class="' + (on ? 'cur' : '') + '"><span class="t">' + schedPad(it.h) + ':00</span>'
+      + '<span class="b">' + esc(it.act)
+      + (it.tag ? '<i class="tag" style="background:' + schedTagColor(it.tag) + '22;color:' + schedTagColor(it.tag) + '">' + esc(it.tag) + '</i>' : '')
+      + '<small>' + esc(it.note) + '</small></span></li>';
+  }
+  h += '</ul></div>';
+  h += '<div class="sc-acts"><button class="btn ghost" data-scday="-1">前一天</button>'
+    + '<button class="btn ghost" data-scday="0"' + (off === 0 ? ' disabled' : '') + '>今天</button>'
+    + '<button class="btn ghost" data-scday="1">后一天</button></div>';
+  h += '<p class="meta" style="margin-top:10px">他的日程按天自动生成，同一天不会变；第二天换新的安排。</p>';
+  return h;
+}
+function schedMineHtml() {
+  var list = schedMyList(), next = null;
+  var nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  for (var i = 0; i < list.length; i++) { if (list[i].h * 60 + list[i].m >= nowMin) { next = list[i]; break } }
+  var h = '';
+  h += '<div class="sc-day"><b>' + schedDayLabel(0) + '</b><span>'
+    + (list.length ? ('今天 ' + list.length + ' 件事' + (next ? ' · 下一件 ' + schedPad(next.h) + ':' + schedPad(next.m) : '')) : '今天还没安排')
+    + '</span></div>';
+  if (!list.length) {
+    h += '<div class="card sc-card"><p class="meta" style="text-align:center;padding:18px 0;margin:0">还没有安排，点下面加一条。</p></div>';
+  } else {
+    h += '<div class="card sc-card"><ul class="sc-mine">';
+    for (var j = 0; j < list.length; j++) {
+      var it = list[j];
+      h += '<li><span class="t">' + schedPad(it.h) + ':' + schedPad(it.m) + '</span>'
+        + '<span class="b">' + esc(it.text)
+        + '<i class="tag" style="background:' + schedTagColor(it.tag) + '22;color:' + schedTagColor(it.tag) + '">' + esc(it.tag) + '</i>'
+        + (it.read ? '<small class="read">陆沉已读' + (it.readAt ? ' · ' + it.readAt : '') + '</small>' : '<small class="unread">陆沉还没看到</small>')
+        + '</span>'
+        + '<button class="sc-del" data-scdel="' + it.id + '">删</button></li>';
+    }
+    h += '</ul></div>';
+  }
+  h += '<div class="sc-acts"><button class="btn" data-scadd="1">＋ 加一条</button></div>';
+  h += '<p class="meta" style="margin-top:10px">他只会"看到"你的安排（显示已读），不会因此改变发消息的节奏。</p>';
+  return h;
+}
+
+/* 加一条：用原生 prompt 太糙，这里做一个简单弹层 */
+function schedAddSheet() {
+  var now = new Date();
+  var hh = now.getHours(), mm = Math.ceil(now.getMinutes() / 30) * 30;
+  if (mm >= 60) { mm = 0; hh = (hh + 1) % 24 }
+  var h = '<h2>加一条安排</h2>';
+  h += '<label>时间</label><div class="sc-time">'
+    + '<select id="scH">';
+  for (var a = 0; a < 24; a++) h += '<option value="' + a + '"' + (a === hh ? ' selected' : '') + '>' + schedPad(a) + '</option>';
+  h += '</select><span>:</span><select id="scM">';
+  for (var b = 0; b < 60; b += 5) h += '<option value="' + b + '"' + (b === mm ? ' selected' : '') + '>' + schedPad(b) + '</option>';
+  h += '</select></div>';
+  h += '<label>内容</label><input id="scText" maxlength="30" placeholder="例如：和同事开会">';
+  h += '<label>类型</label><div class="sc-chips" id="scChips">';
+  ['工作', '约会', '休息', '其他'].forEach(function (t) {
+    h += '<button class="sc-chip' + (t === '工作' ? ' on' : '') + '" data-scchip="' + t + '">' + t + '</button>';
+  });
+  h += '</div>';
+  h += '<div class="actions"><button class="cancel" data-act="sheet-close">取消</button>'
+    + '<button class="ok" data-act="sc-save">加上</button></div>';
+  openSheet(h);
+  window.__scTag = '工作';
+}
+function schedSave() {
+  var txt = String(inpVal('scText') || '').trim();
+  if (!txt) { toast('写一句吧'); return }
+  var hh = parseInt(inpVal('scH'), 10), mm = parseInt(inpVal('scM'), 10);
+  state.mySchedule = state.mySchedule || [];
+  var id = 'sc' + Date.now() + Math.floor(Math.random() * 1000);
+  state.mySchedule.push({ id: id, date: schedKey(0), h: hh, m: mm, text: txt, tag: window.__scTag || '工作', read: false, readAt: '' });
+  save(); closeSheet(); renderSchedule();
+  /* 几秒后"他看到了"（只是展示，不影响聊天） */
+  CLK.set(function () {
+    var arr = state.mySchedule || [];
+    for (var i = 0; i < arr.length; i++) if (arr[i].id === id) {
+      arr[i].read = true;
+      var d = new Date();
+      arr[i].readAt = schedPad(d.getHours()) + ':' + schedPad(d.getMinutes());
+      break;
+    }
+    save();
+    try { if (location.hash.replace('#', '') === 'schedule') renderSchedule() } catch (e) { }
+  }, 4000 + Math.random() * 4000);
+  toast('加好了');
+}
+(function bindSchedule() {
+  if (window.__schedBound) return; window.__schedBound = 1;
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var tab = t.closest('[data-sctab]');
+    if (tab) { state.schedTab = tab.getAttribute('data-sctab'); renderSchedule(); return }
+    var day = t.closest('[data-scday]');
+    if (day) { state.schedOffset = parseInt(day.getAttribute('data-scday'), 10) || 0; renderSchedule(); return }
+    if (t.closest('[data-scadd]')) { schedAddSheet(); return }
+    var chip = t.closest('[data-scchip]');
+    if (chip) {
+      window.__scTag = chip.getAttribute('data-scchip');
+      var all = document.querySelectorAll('[data-scchip]');
+      for (var i = 0; i < all.length; i++) all[i].classList.toggle('on', all[i] === chip);
+      return;
+    }
+    var del = t.closest('[data-scdel]');
+    if (del) {
+      var id = del.getAttribute('data-scdel');
+      var arr = (state.mySchedule || []).filter(function (x) { return x.id !== id });
+      state.mySchedule = arr; save(); renderSchedule(); toast('已删除'); return;
+    }
+  }, true);
+})();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
