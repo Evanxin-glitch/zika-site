@@ -2070,6 +2070,8 @@ html{background:var(--bg)}
 body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:var(--wall,linear-gradient(180deg,#F6F1E8,#EFE7D6));
   background-size:cover;background-position:center top;background-repeat:no-repeat}
+
+
 </style>
 </head>
 <body>
@@ -4700,6 +4702,7 @@ function renderGame(){
   html+='</div>';
   $('#view').innerHTML=html;
   try{ $('#view').classList.add('home-view') }catch(e){}
+  try{ if(typeof applyWallpaper==='function')applyWallpaper() }catch(e){}
 }
 /* 打开 / 关闭游戏（stage 只建一次） */
 function gmStage(){
@@ -6635,8 +6638,8 @@ function sheetHomeBg(){
   for(var k in HB_PRESETS)row+='<button style="'+HB_PRESETS[k]+'" data-act="pick-homebg" data-key="'+k+'"'+(st.homeBg===k&&!st.homeBgImg?' class="on"':'')+'></button>';
   openSheet('<h2>主页壁纸</h2><label>选择壁纸</label><div class="preset-row">'+row+'</div><label>或上传图片</label><button class="btn ghost" style="width:100%" data-act="upload-homebg">上传壁纸图</button><input type="file" id="homeBgFile" accept="image/*" style="display:none">'+((st.homeBgImg)?'<div style="margin-top:10px"><button class="cancel" style="width:100%;color:var(--danger)" data-act="clear-homebg">移除自定义壁纸</button></div>':'')+'<div class="actions"><button class="cancel" data-act="sheet-close">完成</button></div>');
 }
-function pickHomeBg(key){state.settings.homeBg=key;state.settings.homeBgImg='';save();closeSheet();renderHome();toast('主页壁纸已更换')}
-function clearHomeBg(){state.settings.homeBgImg='';save();closeSheet();renderHome();toast('已恢复默认')}
+function pickHomeBg(key){state.settings.homeBg=key;state.settings.homeBgImg='';save();closeSheet();renderHome();try{applyWallpaper()}catch(e){};toast('主页壁纸已更换')}
+function clearHomeBg(){state.settings.homeBgImg='';save();closeSheet();renderHome();try{applyWallpaper()}catch(e){};toast('已恢复默认')}
 /* ===== 图片选取：尽量不损失画质 =====
    以前壁纸会被压到最长边 1600 再用 JPEG 0.92 重编码，iPhone 截图（1179×2556）
    缩放后必然发糊。现在：壁纸/封面在安全范围内保持原分辨率，并且用无损 PNG，
@@ -6677,7 +6680,7 @@ function readUploadImg(input,kind){
   pickImageFile(input,function(img){
     var data=encodeImg(img,2560,{q:.95});
     mediaAdopt(data,'bg').then(function(ref){
-    if(kind==='home'){state.settings.homeBgImg=ref;save();closeSheet();renderHome();toast('主页壁纸已更新')}
+    if(kind==='home'){state.settings.homeBgImg=ref;save();closeSheet();renderHome();try{applyWallpaper()}catch(e){};toast('主页壁纸已更新')}
     else if(kind==='cb'){state.companion.bgImg=ref;save();closeSheet();renderCompanion();toast('陪伴背景已更新')}
     });
   });
