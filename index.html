@@ -5369,14 +5369,13 @@ function composeText(c,avoid){
   /* 拼字卡：开了之后每条消息都有概率把 1~3 张字卡拼成一条 */
   /* 只认设置里的总开关（以前每个联系人还各有一份，会互相打架） */
   var puzzleOn=(st.puzzle===true);
-  var puzzlePct=(st.puzzlePct!=null?st.puzzlePct:50);
-  var rollPuzzle=puzzleOn&&state.cards.length&&(Math.random()*100<puzzlePct);
-  if(rollPuzzle)text=drawBalancedCards(rnd(1,puzzleMax())).join('\n\n');
+  /* ★ 开关一开就是拼字卡模式：每条都拼，张数 1~N（N 在设置里），用空格连成一段 */
+  if(puzzleOn&&state.cards.length){ text=drawBalancedCards(rnd(1,puzzleMax())).join(' ') }
   else text=pickCardText();
   /* 连发时尽量不出现两条一模一样的内容 */
   if(avoid!=null&&text===avoid&&state.cards.length>1){
     for(var t=0;t<3;t++){
-      var alt=(puzzleOn&&state.cards.length&&Math.random()*100<puzzlePct)?drawBalancedCards(rnd(1,puzzleMax())).join('\n\n'):pickCardText();
+      var alt=(puzzleOn&&state.cards.length)?drawBalancedCards(rnd(1,puzzleMax())).join(' '):pickCardText();
       if(alt!==avoid){text=alt;break}
     }
   }
@@ -7383,8 +7382,7 @@ function renderMe(){
   html+='<div class="pct-sub">塔罗 / 字卡</div><div class="rhy-grid">'
     +'<div class="inl"><label>塔罗逆位概率 %</label><input id="setRevPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.tarotRevPct)!=null?state.settings.tarotRevPct:50)+'"></div>'
     +'<div class="inl"><label>塔罗每日他抽牌概率 %</label><input id="setDailyPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.tarotDailyPct)!=null?state.settings.tarotDailyPct:40)+'"></div>'
-    +'<div class="inl"><label>拼字卡概率 %</label><input id="setPuzzlePct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.puzzlePct)!=null?state.settings.puzzlePct:50)+'"></div>'
-    +'</div>';
+    +    +'</div>';
   html+='<div class="pct-sub">问卷</div><div class="rhy-grid">'
     +'<div class="inl"><label>他主动发问卷概率 %</label><input id="surveyPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.surveyPct)!=null?state.settings.surveyPct:8)+'"></div>'
     +'</div>';
@@ -7599,7 +7597,7 @@ function applyNumFields(){
   numField(s8,'patReplyPct','setPatPct',40,0,100);
   numField(s8,'stopTypingPct','setStopPct',15,0,100);
   numField(s8,'surveyPct','surveyPct',8,0,100);
-  numField(s8,'puzzlePct','setPuzzlePct',50,0,100);
+  
   numField(s8,'puzzleMax','setPuzzleMax',3,1,5);
   numField(s8,'momStickerPct','momStickerPct',35,0,100);
   numField(s8,'giftPct','giftPct',13,0,100);
@@ -8468,7 +8466,7 @@ function pushSys(cid,text,ts){ var m={id:uid(),contactId:cid,dir:'sys',text:text
 var SV_DUE=[[ '1 分钟',60000],['10 分钟',600000],['1 小时',3600000],['明天',86400000]];
 var _svSel={},_svTitle='',_svDue=600000,_svMine=[];
 function svFindBank(key){ for(var g=0;g<SURVEY_BANK.length;g++)for(var q=0;q<SURVEY_BANK[g].qs.length;q++){ var k=SURVEY_BANK[g].g+'#'+SURVEY_BANK[g].qs[q].t; if(k===key)return SURVEY_BANK[g].qs[q] } return null }
-function svPicked(){ var out=[]; for(var k in _svSel)if(_svSel[k]){ var q=svFindBank(k); if(q)out.push({g:k.split('#')[0],t:q.t,o:q.o.slice(),m:q.m}) } return out.concat(_svMine) }
+function svPicked(){ var out=[]; for(var k in _svSel)if(_svSel[k]){ var q=svFindBank(k); if(q)out.push({g:k.split('#')[0],t:q.t,o:q.o.slice(),m:q.m}) } return out.concat((_svMine||[]).filter(function(q){return !q.banks||q.banks.mine})) }
 function svDueLabel(ms){ for(var i=0;i<SV_DUE.length;i++)if(SV_DUE[i][1]===ms)return SV_DUE[i][0]; return '1 小时' }
 /* ---- 问卷 App 页面 ---- */
 function svListBlock(title,arr,dir){
@@ -8504,6 +8502,10 @@ function renderSurvey(){
 }
 /* ---- 新建问卷（弹层） ---- */
 function sheetSurveyNew(){
+  _svMine = (state.svMine || []).slice();   /* ★ 持久化：退出再进也在 */
+  return sheetSurveyNew2();
+}
+function sheetSurveyNew2(){
   var html='<h2>新建问卷</h2>';
   html+='<label>问卷标题</label><input id="svTitle" maxlength="20" placeholder="例如：今天想问你几件事" value="'+esc(_svTitle)+'">';
   html+='<div class="sv-t" style="margin-top:14px">题库 · 点一下选中</div>';
@@ -8541,8 +8543,15 @@ function svAddQ(multi){
   if(!raw){toast('先写题目');return}
   var parts=raw.split('/').map(function(x){return x.trim()}).filter(function(x){return x});
   if(parts.length<3){toast('格式：题目 / 选项1 / 选项2');return}
-  _svMine.push({g:'我出的',t:parts[0],o:parts.slice(1,7),m:!!multi});
-  sheetSurveyNew();toast('已加入');
+  /* 没勾选框时默认两边都放（勾选框以后再加也不影响） */
+  var _h=inpVal('svToHis'),_m=inpVal('svToMine');
+  var toHis=(_h===null&&_m===null)?true:!!_h, toMine=(_m===null)?true:!!_m;
+  if(!toHis&&!toMine){toast('至少选一个题库');return}
+  state.svMine=state.svMine||[];
+  state.svMine.push({g:'我出的',t:parts[0],o:parts.slice(1,7),m:!!multi,banks:{his:toHis,mine:toMine}});
+  save();
+  _svMine=state.svMine.slice();
+  sheetSurveyNew();toast('已加进题库');
 }
 function svSend(){
   var c=activeContact(),qs=svPicked();
@@ -8555,7 +8564,7 @@ function svSend(){
           ts:t,dueAt:t+86400000,replyDue:t+_svDue,answered:false,answers:null};
   state.surveys=state.surveys||[];state.surveys.push(sv);
   state.messages.push({id:uid(),contactId:c.id,dir:'out',kind:'survey',surveyId:sv.id,text:'问卷',readDue:t+4000,ts:t});
-  _svSel={};_svTitle='';_svMine=[];_svDue=600000;
+  _svSel={};_svTitle='';_svDue=600000;   /* 题库保留（state.svMine） */
   closeSheet();save();
   try{goView('chat')}catch(e){}
   try{renderChat()}catch(e){}
@@ -8589,7 +8598,7 @@ function svHisSend(c){
   if(!c)return;
   var flat=[];for(var g=0;g<SURVEY_BANK.length;g++)for(var q=0;q<SURVEY_BANK[g].qs.length;q++)flat.push(SURVEY_BANK[g].qs[q]);
   /* 你出的题也进池子：他抽问卷时有机会抽到你自己加的那几道 */
-  try{ var _mine=state.svMine||[]; for(var _mi=0;_mi<_mine.length;_mi++){ var _mq=_mine[_mi]; if(_mq&&_mq.t&&_mq.o&&_mq.o.length>=2) flat.push({t:_mq.t,o:_mq.o.slice(0,7),m:!!_mq.m}) } }catch(e){}
+  try{ var _mine=state.svMine||[]; for(var _mi=0;_mi<_mine.length;_mi++){ var _mq=_mine[_mi]; if(_mq&&_mq.t&&_mq.o&&_mq.o.length>=2&&(!_mq.banks||_mq.banks.his)) flat.push({t:_mq.t,o:_mq.o.slice(0,7),m:!!_mq.m}) } }catch(e){}
   var n=3+Math.floor(Math.random()*3),sel=[],pool=flat.slice();
   for(var i=0;i<n&&pool.length;i++)sel.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
   var t=now();
