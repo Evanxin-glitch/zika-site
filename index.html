@@ -1736,6 +1736,14 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-grad
 .sv-q .tx{flex:1;min-width:0}
 .sv-q .ty{font-size:11px;color:var(--sub);flex:0 0 auto}
 .sv-del{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--sub);line-height:1}
+/* 「他的题库 / 我的题库」分区：长列表自己滚 */
+.sv-scroll{max-height:230px;overflow-y:auto;-webkit-overflow-scrolling:touch;border-radius:14px}
+.sv-q .sv-cb{width:16px;height:16px;margin:0;flex:0 0 auto;accent-color:var(--green);vertical-align:middle}
+.sv-mtag{font-size:11px;padding:2px 8px;border-radius:9px;background:rgba(120,150,200,.14);color:#5B7AA6;flex:0 0 auto;white-space:nowrap}
+.sv-q .sv-del{width:auto;height:auto;border-radius:9px;padding:3px 10px;font-size:11.5px;color:var(--sub);background:rgba(0,0,0,.04);cursor:pointer}
+.sv-tobank{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:8px}
+.sheet label.sv-cbl,.sv-cbl{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--ink);line-height:1.4;margin:0}
+.sheet .sv-cbl input,.sv-cbl input{width:15px;height:15px;margin:0;flex:0 0 auto;accent-color:var(--green)}
 .sv-acts{display:flex;gap:8px;margin-top:8px}
 .sv-acts .btn{flex:1}
 .sv-chips{display:flex;gap:8px;flex-wrap:wrap}
@@ -1988,6 +1996,23 @@ body.wlt-mode #view{background:#F2F2F3}
 
 .edit-bar .tx{flex:1;font-size:12.5px;line-height:1.5;text-align:left}
 .edit-bar #editDone{border:0;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;background:#fff;color:#241d19}
+
+/* 拍一拍：居中系统条，不震动 */
+.pat-row{display:flex;justify-content:center;margin:10px 0}
+.pat-in{background:rgba(79,122,94,.10);color:#3d5f49;font-size:12.5px;padding:6px 12px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;animation:patpop .35s ease-out}
+.pat-in b{font-weight:600}
+@keyframes patpop{0%{transform:scale(.88);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* 商城：禁止横向溢出（返回键被裁掉就是页面被撑宽了） */
+.shop-screen{overflow-x:hidden}
+.shop-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.shop-grid>*{min-width:0}
+.shop-tabs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+.shop-tabs::-webkit-scrollbar{display:none}
+.shop-tab{flex:0 0 auto;white-space:nowrap}
+
+/* 商城头部与商品卡片左边缘对齐（原来头部多出 14px 内边距） */
+.shop-screen .page-top{padding-left:0;padding-right:0}
 </style>
 </head>
 <body>
@@ -6031,6 +6056,9 @@ function bubbleHtml(m,c){
     return '<div class="msg-row '+m.dir+'"><span class="bubble-av">'+(m.dir==='out'?meAvatar():cAvatar(c))+'</span>'
       +'<div class="bubble bubble-survey">'+surveyCardHtml(findSurvey(m.surveyId),m.dir==='out')+'</div></div>';
   }
+  if(m.kind==='pat'){
+    return '<div class="pat-row"><span class="pat-in"><span class="pat-ic">👋</span><b>'+esc(c?c.name:'他')+'</b> 拍了拍你 · '+esc(m.text||'')+'</span></div>';
+  }
   if(m.recalled)return '<div class="msg-row '+m.dir+'"><span class="bubble-av">'+(m.dir==='out'?meAvatar():cAvatar(c))+'</span><div class="bubble recalled">'+(m.dir==='out'?'你撤回了一条消息':'对方撤回了一条消息')+'</div></div>';
   if(m.kind==='poll'){
     var isInP=(m.dir==='in');
@@ -8464,9 +8492,108 @@ function findSurvey(id){ var a=state.surveys||[]; for(var i=0;i<a.length;i++)if(
 function surveySig(qs){ return qs.map(function(q){return q.t}).join('|') }
 function pushSys(cid,text,ts){ var m={id:uid(),contactId:cid,dir:'sys',text:text,ts:ts||now()}; state.messages.push(m); return m }
 var SV_DUE=[[ '1 分钟',60000],['10 分钟',600000],['1 小时',3600000],['明天',86400000]];
-var _svSel={},_svTitle='',_svDue=600000,_svMine=[];
+var _svSel={},_svTitle='',_svDue=600000,_svMine=[],_svToHis=true,_svToMine=true;
+/* 旧格式的查找（组名#题目），只给别处可能残留的调用兜底用 */
 function svFindBank(key){ for(var g=0;g<SURVEY_BANK.length;g++)for(var q=0;q<SURVEY_BANK[g].qs.length;q++){ var k=SURVEY_BANK[g].g+'#'+SURVEY_BANK[g].qs[q].t; if(k===key)return SURVEY_BANK[g].qs[q] } return null }
-function svPicked(){ var out=[]; for(var k in _svSel)if(_svSel[k]){ var q=svFindBank(k); if(q)out.push({g:k.split('#')[0],t:q.t,o:q.o.slice(),m:q.m}) } return out.concat((_svMine||[]).filter(function(q){return !q.banks||q.banks.mine})) }
+
+/* ---- 两个题库：h=他的题库，m=我的题库。勾选 key 分别是 h|题目 / m|题目，
+        两边完全独立，勾一边不会连带另一边。 ---- */
+function svMineList(){ return (state.svMine||[]).filter(function(q){return q&&q.t}) }
+function svInBank(q,bank){
+  var b=q&&q.banks;
+  if(!b)return true;                                  /* 老数据没有归属：两边都放 */
+  return bank==='h'?(b.his!==false):(b.mine!==false);
+}
+function svBankMine(bank){ return svMineList().filter(function(q){return svInBank(q,bank)}) }
+function svBankTotal(bank){
+  var n=0;
+  for(var g=0;g<SURVEY_BANK.length;g++)n+=SURVEY_BANK[g].qs.length;
+  return n+svBankMine(bank).length;
+}
+function svQByText(t){
+  for(var g=0;g<SURVEY_BANK.length;g++)for(var q=0;q<SURVEY_BANK[g].qs.length;q++)if(SURVEY_BANK[g].qs[q].t===t)return SURVEY_BANK[g].qs[q];
+  var ms=svMineList();
+  for(var i=0;i<ms.length;i++)if(ms[i].t===t)return ms[i];
+  return null;
+}
+/* 读勾选框：元素不存在时按 def 走（老版本没有这两个框也不至于加不了题） */
+function svChkOn(id,def){
+  var e=null;
+  try{ if(typeof $==='function')e=$('#'+id) }catch(err){}
+  if(!e){ try{ e=document.getElementById(id) }catch(err){} }
+  if(!e)return def;
+  return !!e.checked;
+}
+function svBankRow(bank,q){
+  var key=bank+'|'+q.t,on=!!_svSel[key];
+  return '<div class="sv-q'+(on?' on':'')+'" data-act="sv-pick" data-k="'+esc(key)+'">'
+    +'<input type="checkbox" class="sv-cb"'+(on?' checked':'')+' tabindex="-1">'
+    +'<span class="tx">'+esc(q.t)+'</span><span class="ty">'+(q.m?'多选':'单选')+'</span></div>';
+}
+/* 一个题库分区：标题 + 统计 + 可滚动的题目列表（内置题两边都出现，自建题按归属出现） */
+function svBankBlock(bank,title){
+  var mine=svBankMine(bank);
+  var h='<div class="sv-t">'+title+'<span class="n">共 '+svBankTotal(bank)+' 题</span></div>';
+  h+='<div class="sv-scroll" style="max-height:230px;overflow-y:auto">';
+  for(var g=0;g<SURVEY_BANK.length;g++){
+    var grp=SURVEY_BANK[g],cnt=0;
+    for(var q=0;q<grp.qs.length;q++)if(_svSel[bank+'|'+grp.qs[q].t])cnt++;
+    h+='<div class="sv-grp"><div class="sv-gt">'+esc(grp.g)+'<span class="n">已选 '+cnt+'/'+grp.qs.length+'</span></div>';
+    for(var q2=0;q2<grp.qs.length;q2++)h+=svBankRow(bank,grp.qs[q2]);
+    h+='</div>';
+  }
+  if(mine.length){
+    var mc=0;
+    for(var i=0;i<mine.length;i++)if(_svSel[bank+'|'+mine[i].t])mc++;
+    h+='<div class="sv-grp"><div class="sv-gt">我出的题<span class="n">已选 '+mc+'/'+mine.length+'</span></div>';
+    for(var j=0;j<mine.length;j++)h+=svBankRow(bank,mine[j]);
+    h+='</div>';
+  }
+  return h+'</div>';
+}
+/* 取选中的题：h| 和 m| 两种 key 都算，按题目文本去重 */
+function svPicked(){
+  var out=[],seen={},banks=['h','m'];
+  for(var bi=0;bi<banks.length;bi++){
+    var b=banks[bi];
+    for(var g=0;g<SURVEY_BANK.length;g++){
+      var qs=SURVEY_BANK[g].qs;
+      for(var q=0;q<qs.length;q++){
+        var it=qs[q];
+        if(_svSel[b+'|'+it.t]&&!seen[it.t]){seen[it.t]=1;out.push({g:SURVEY_BANK[g].g,t:it.t,o:it.o.slice(),m:!!it.m})}
+      }
+    }
+    var ms=svBankMine(b);
+    for(var i=0;i<ms.length;i++){
+      var mq=ms[i];
+      if(_svSel[b+'|'+mq.t]&&!seen[mq.t]){seen[mq.t]=1;out.push({g:'我出的',t:mq.t,o:(mq.o||[]).slice(),m:!!mq.m})}
+    }
+  }
+  return out;
+}
+/* 删掉一道自己出的题：state 和面板副本一起改，然后存盘、重绘 */
+function svDelQ(i,text){
+  var arr=state.svMine||[],idx=parseInt(i,10);
+  if(!(idx>=0&&idx<arr.length&&(!text||arr[idx].t===text))){
+    idx=-1;
+    for(var k=0;k<arr.length;k++)if(arr[k]&&arr[k].t===text){idx=k;break}
+  }
+  if(idx<0){toast('这道题已经不在了');return}
+  var t=arr[idx].t;
+  arr.splice(idx,1);
+  state.svMine=arr;
+  _svMine=arr.slice();
+  delete _svSel['h|'+t];delete _svSel['m|'+t];
+  save();
+  sheetSurveyNew();
+  toast('已删除');
+}
+/* 加题那两个勾选框的状态要跨重绘记住 */
+document.addEventListener('change',function(e){
+  var t=e.target;if(!t||!t.id)return;
+  if(t.id==='svToHis')_svToHis=!!t.checked;
+  else if(t.id==='svToMine')_svToMine=!!t.checked;
+});
 function svDueLabel(ms){ for(var i=0;i<SV_DUE.length;i++)if(SV_DUE[i][1]===ms)return SV_DUE[i][0]; return '1 小时' }
 /* ---- 问卷 App 页面 ---- */
 function svListBlock(title,arr,dir){
@@ -8508,26 +8635,27 @@ function sheetSurveyNew(){
 function sheetSurveyNew2(){
   var html='<h2>新建问卷</h2>';
   html+='<label>问卷标题</label><input id="svTitle" maxlength="20" placeholder="例如：今天想问你几件事" value="'+esc(_svTitle)+'">';
-  html+='<div class="sv-t" style="margin-top:14px">题库 · 点一下选中</div>';
-  for(var g=0;g<SURVEY_BANK.length;g++){
-    var grp=SURVEY_BANK[g],cnt=0;
-    for(var q=0;q<grp.qs.length;q++)if(_svSel[grp.g+'#'+grp.qs[q].t])cnt++;
-    html+='<div class="sv-grp"><div class="sv-gt">'+esc(grp.g)+'<span class="n">已选 '+cnt+'/'+grp.qs.length+'</span></div>';
-    for(var q2=0;q2<grp.qs.length;q2++){
-      var qq=grp.qs[q2],key=grp.g+'#'+qq.t,on=!!_svSel[key];
-      html+='<div class="sv-q'+(on?' on':'')+'" data-act="sv-pick" data-k="'+esc(key)+'"><span class="bx'+(qq.m?' sq':'')+'"></span>'
-        +'<span class="tx">'+esc(qq.t)+'</span><span class="ty">'+(qq.m?'多选':'单选')+'</span></div>';
+  /* 两个题库分区：他的题库 / 我的题库（内置题两边都有，自建题按归属出现） */
+  html+=svBankBlock('h','他的题库');
+  html+=svBankBlock('m','我的题库');
+  /* 我出的题：归属标签 + 删除 */
+  var mineAll=svMineList();
+  if(mineAll.length){
+    html+='<div class="sv-t">我出的题<span class="n">'+mineAll.length+' 道</span></div>';
+    for(var mi=0;mi<mineAll.length;mi++){
+      var mq=mineAll[mi],mHis=svInBank(mq,'h'),mMine=svInBank(mq,'m');
+      var mTag=(mHis&&mMine)?'他的+我的':(mHis?'他的':'我的');
+      html+='<div class="sv-q"><span class="tx">'+esc(mq.t)+'</span>'
+        +'<span class="sv-mtag">'+mTag+'</span>'
+        +'<button class="sv-del" data-act="sv-delq" data-i="'+mi+'" data-t="'+esc(mq.t)+'">删</button></div>';
     }
-    html+='</div>';
-  }
-  if(_svMine.length){
-    html+='<div class="sv-grp"><div class="sv-gt">我出的题<span class="n">'+_svMine.length+' 道</span></div>';
-    for(var mi=0;mi<_svMine.length;mi++)html+='<div class="sv-q on"><span class="bx'+( _svMine[mi].m?' sq':'')+'"></span><span class="tx">'+esc(_svMine[mi].t)+'</span>'
-      +'<button class="sv-del" data-act="sv-delq" data-i="'+mi+'">×</button></div>';
-    html+='</div>';
   }
   html+='<div class="sv-t">自己加一道题<span class="n">格式：题目 / 选项1 / 选项2</span></div>';
   html+='<input id="svMyQ" placeholder="例子：今天想吃什么？/ 火锅 / 日料 / 家常菜">';
+  html+='<div class="sv-tobank">'
+    +'<label class="sv-cbl"><input type="checkbox" id="svToHis"'+(_svToHis?' checked':'')+'> 放进他的题库</label>'
+    +'<label class="sv-cbl"><input type="checkbox" id="svToMine"'+(_svToMine?' checked':'')+'> 放进我的题库</label>'
+    +'</div>';
   html+='<div class="sv-acts"><button class="btn ghost" data-act="sv-addq">＋ 加这道题</button>'
     +'<button class="btn ghost" data-act="sv-addq-m">＋ 多选题</button></div>';
   html+='<div class="sv-t">回复时间</div><div class="sv-chips">';
@@ -8543,9 +8671,10 @@ function svAddQ(multi){
   if(!raw){toast('先写题目');return}
   var parts=raw.split('/').map(function(x){return x.trim()}).filter(function(x){return x});
   if(parts.length<3){toast('格式：题目 / 选项1 / 选项2');return}
-  /* 没勾选框时默认两边都放（勾选框以后再加也不影响） */
-  var _h=inpVal('svToHis'),_m=inpVal('svToMine');
-  var toHis=(_h===null&&_m===null)?true:!!_h, toMine=(_m===null)?true:!!_m;
+  /* 两个勾选框决定这道题进哪个题库；框没渲染时默认两边都放 */
+  var toHis=svChkOn('svToHis',true),toMine=svChkOn('svToMine',true);
+  if(document.getElementById('svToHis'))_svToHis=toHis;
+  if(document.getElementById('svToMine'))_svToMine=toMine;
   if(!toHis&&!toMine){toast('至少选一个题库');return}
   state.svMine=state.svMine||[];
   state.svMine.push({g:'我出的',t:parts[0],o:parts.slice(1,7),m:!!multi,banks:{his:toHis,mine:toMine}});
@@ -9784,7 +9913,7 @@ document.addEventListener('click',function(e){
   else if(act==='sv-due'){_svDue=parseInt(btn.getAttribute('data-v'),10)||600000;sheetSurveyNew()}
   else if(act==='sv-addq')svAddQ(false)
   else if(act==='sv-addq-m')svAddQ(true)
-  else if(act==='sv-delq'){var _di=parseInt(btn.getAttribute('data-i'),10);_svMine.splice(_di,1);sheetSurveyNew()}
+  else if(act==='sv-delq'){svDelQ(parseInt(btn.getAttribute('data-i'),10),btn.getAttribute('data-t'))}
   else if(act==='sv-send')svSend()
   else if(act==='sv-open')sheetSurveyView(btn.getAttribute('data-id'))
   else if(act==='sv-goto'){try{closeSheet()}catch(e){};try{goView('chat')}catch(e){};try{renderChat()}catch(e){}}
@@ -12643,6 +12772,64 @@ function heditTapItem(el) {
   document.addEventListener('touchend', function () { if (HEDIT.press) { CLK.clear(HEDIT.press); HEDIT.press = null } });
   document.addEventListener('mousedown', startPress);
   document.addEventListener('mouseup', function () { if (HEDIT.press) { CLK.clear(HEDIT.press); HEDIT.press = null } });
+})();
+
+/* 拍一拍（他主动拍你）：概率写死在代码里
+   - 打开聊天室：20%
+   - 在聊天室累计满 60 分钟：50%，每次进聊天室最多 1 次
+   - 表现：居中的系统条「陆沉 拍了拍你 · 字卡」，无震动 */
+var PAT_IN_PCT = 20, PAT_HANG_PCT = 50, PAT_HANG_MS = 60 * 60 * 1000;
+var _patSession = false, _patWasInChat = false, _patTicker = 0;
+
+function patLib() {
+  try {
+    var lib = state.pat || state.patCards || [];
+    var out = [];
+    for (var i = 0; i < lib.length; i++) {
+      var c = lib[i];
+      var t = (c && (c.text || c.t)) || '';
+      if (t) out.push(t);
+    }
+    return out;
+  } catch (e) { return [] }
+}
+function patInChat() {
+  try { return (location.hash || '').replace('#', '').indexOf('chat') === 0 } catch (e) { return false }
+}
+function patNow() {
+  var lib = patLib();
+  var txt = lib.length ? lib[Math.floor(Math.random() * lib.length)] : '拍了拍你的头，乖。';
+  var c = null;
+  try { c = activeContact() } catch (e) { }
+  if (!c) return false;
+  var t = (typeof now === 'function') ? now() : Date.now();
+  state.messages.push({ id: uid(), contactId: c.id, dir: 'in', kind: 'pat', text: txt, ts: t });
+  try { save() } catch (e) { }
+  try { if (patInChat()) renderChat() } catch (e) { }
+  return true;
+}
+function patTick() {
+  var inChat = patInChat();
+  if (inChat && !_patWasInChat) {
+    _patSession = false;                       /* 新一次进入聊天室 */
+    if (Math.random() * 100 < PAT_IN_PCT) patNow();
+  }
+  _patWasInChat = inChat;
+  if (!inChat) { state.patAcc = state.patAcc || 0; return }
+  var last = _patTicker || 0;
+  var delta = last ? Math.min(60000, Date.now() - last) : 0;   /* 最多计 1 分钟，切后台不算 */
+  _patTicker = Date.now();
+  state.patAcc = (state.patAcc || 0) + delta;
+  if (state.patAcc >= PAT_HANG_MS && !_patSession) {
+    state.patAcc = 0;
+    if (Math.random() * 100 < PAT_HANG_PCT) { _patSession = true; patNow() }
+  }
+}
+(function patBoot() {
+  if (window.__patBound) return; window.__patBound = 1;
+  _patTicker = Date.now();
+  setInterval(function () { try { patTick() } catch (e) { } }, 20000);
+  document.addEventListener('visibilitychange', function () { _patTicker = Date.now() });
 })();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
