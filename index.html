@@ -10125,6 +10125,7 @@ document.addEventListener('click',function(e){
     else if(act==='qk-now')qkNow()
     else if(act==='qk-batch')qkBatch()
     else if(act==='qk-batch-send')qkBatchSend()
+    else if(act==='sc-save')schedSave()
     else if(act==='msg-copy'){msgCopy(id)}
     else if(act==='msg-del'){msgDel(id)}
     else if(act==='msg-multi')msgMultiEnter(id);
@@ -13126,7 +13127,6 @@ function schedMineHtml() {
     h += '</ul></div>';
   }
   h += '<div class="sc-acts"><button class="btn" data-scadd="1">＋ 加一条</button></div>';
-  h += '<p class="meta" style="margin-top:10px">他只会"看到"你的安排（显示已读），不会因此改变发消息的节奏。</p>';
   return h;
 }
 
