@@ -2055,6 +2055,21 @@ body.wlt-mode #view{background:#F2F2F3}
 
 .sc-tl li.todo{color:#b8ada5}
 .sc-tl .masked{display:inline-block;background:rgba(0,0,0,.05);border-radius:6px;color:#b8ada5;font-size:11.5px;padding:2px 8px;letter-spacing:.06em}
+
+/* 主页背景铺满：内容不满一屏时也不会露出底色（上下滑"漏底"） */
+#home{min-height:100dvh;background-size:cover;background-position:center top;background-repeat:no-repeat}
+html,body{background-color:var(--bg)}
+.home-pages{min-height:calc(100dvh - 120px)}
+
+/* 首页：壁纸一直铺到屏幕最底，上下滑都不露底色 */
+#view.home-view{padding-bottom:0}
+#view.home-view #home{min-height:100dvh;padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+
+/* 全局壁纸层 */
+html{background:var(--bg)}
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:var(--wall,linear-gradient(180deg,#F6F1E8,#EFE7D6));
+  background-size:cover;background-position:center top;background-repeat:no-repeat}
 </style>
 </head>
 <body>
@@ -4083,6 +4098,15 @@ function homeBgStyle(){
   if(st.homeBgImg)return 'background-image:url('+mediaUrlSync(st.homeBgImg)+')';
   return 'background-image:'+(HB_PRESETS[st.homeBg]||HB_PRESETS.hb1);
 }
+/* 全局壁纸层（body::before）—— 各页面共用，避免"漏底"色块 */
+function homeBgValue(){
+  var st=state.settings||{};
+  if(st.homeBgImg)return "url('"+mediaUrlSync(st.homeBgImg)+"')";
+  return (HB_PRESETS[st.homeBg]||HB_PRESETS.hb1);
+}
+function applyWallpaper(){
+  try{ document.documentElement.style.setProperty('--wall', homeBgValue()) }catch(e){}
+}
 function coverStyle(){
   var st=state.settings;
   if(st.coverImg)return 'background-image:url('+mediaUrlSync(st.coverImg)+');background-size:cover;background-position:center 22%';
@@ -4140,6 +4164,8 @@ function goView(v,force){
   if(force!==false)render(v);
 }
 function render(v){
+  try{ setTimeout(function(){ try{ if(typeof applyWallpaper==='function')applyWallpaper(); }catch(e){}; try{ var _x=document.getElementById('view'); if(_x){ if((location.hash.replace('#','')||'home')==='home')_x.classList.add('home-view'); else if((location.hash.replace('#','')||'home')!=='home')_x.classList.remove('home-view') } }catch(e){} },0) }catch(e){}
+  try{ var _vv=document.getElementById('view'); if(_vv&&v!=='home')_vv.classList.remove('home-view') }catch(e){}
   var _inSnap=inputSnapshot();   /* ★ 其它页面同理：重绘不打断正在输入的内容 */
   v=v||location.hash.replace('#','')||'home';
   /* ★ 适配：老浏览器（Safari<15.4、部分微信内核）不支持 CSS 的 :has()，
@@ -4673,6 +4699,7 @@ function renderGame(){
   html+='<p class="meta" style="margin-top:14px">翻牌最好：'+(best?best+' 步':'—')+' · 五子棋：'+gw+' 胜 '+gl+' 负<br>成绩只存本机，不上传。</p>';
   html+='</div>';
   $('#view').innerHTML=html;
+  try{ $('#view').classList.add('home-view') }catch(e){}
 }
 /* 打开 / 关闭游戏（stage 只建一次） */
 function gmStage(){
@@ -7681,7 +7708,7 @@ function renderMe(){
   html+='<div class="me-sec" id="sec-keep2"><h3>后台保活说明</h3><div class="note">手机浏览器切到后台时网页会被系统暂停，这是 iOS 的正常机制。每次回到页面时会自动补发离线期间的消息、朋友圈评论、回信和缺失的日记，不会断档。</div></div>';
   html+='<div class="me-group-title">备份</div>';
   html+='<div class="me-sec" id="sec-backup"><h3>备份</h3>'+backupPanelHtml()+'</div>';
-  html+='<div class="me-sec" id="sec-store"><h3>存储</h3><div class="card" id="stgBox"><div class="stg-row"><span>统计中…</span><b></b></div></div></div>';
+  html+='<div class="me-sec" id="sec-store"><h3>存储</h3><div class="card" id="stgBox"><div class="stg-row"><span>统计中…</span><b></b></div></div>' + '<div class="card" id="auditCard" style="margin-top:10px"><div class="row" style="justify-content:space-between"><b>稳定性自检</b><button class="btn small" data-act="audit-run">开始自检</button></div><div id="auditBox"></div></div></div>';
   html+='<div class="me-sec" id="sec-safe"><h3>存档安全</h3>'+storageHealthHtml()+'<p class="meta" style="margin-top:8px">iPhone 会在存储紧张或长期不打开时清理网页数据，这是系统行为、任何网页都躲不过。导出一份备份文件（可存到「文件」App 或发给自己），换机、清理后都能一键恢复。</p></div>';
   html+='</div>';
   $('#view').innerHTML=html;
@@ -13286,6 +13313,169 @@ function qkBatchSend() {
   });
   toast('发送中…');
 }
+
+/* ===== 稳定性：①存储自检 ②崩溃兜底 ===== */
+
+/* ---------- ② 崩溃兜底 ---------- */
+function resLogErr(name, msg, stack) {
+  try {
+    state.__errs = state.__errs || [];
+    state.__errs.push({ t: Date.now(), name: String(name || ''), msg: String(msg || ''), stack: String(stack || '').split('\n').slice(0, 4).join(' <- ') });
+    if (state.__errs.length > 12) state.__errs = state.__errs.slice(-12);
+  } catch (e) { }
+}
+function resCrashScreen(err) {
+  try {
+    var v = document.getElementById('view');
+    if (!v) return;
+    var msg = (err && (err.message || err.msg)) || '未知错误';
+    v.innerHTML = '<div class="page-top"><span class="pt">出错了</span></div>'
+      + '<div class="screen"><div class="card" style="padding:16px">'
+      + '<b style="font-size:15px">页面渲染出了点问题</b>'
+      + '<p class="meta" style="margin:8px 0 0;line-height:1.7">' + esc(String(msg).slice(0, 120)) + '</p>'
+      + '<p class="meta" style="margin:6px 0 12px">数据通常还在。先回首页；如果反复出错，去 设置 → 备份 导出一份再告诉我。</p>'
+      + '<div style="display:flex;gap:10px;margin-top:14px">'
+      + '<button class="btn" style="flex:1" data-act="res-home">回首页</button>'
+      + '<button class="btn" style="flex:1;background:#5F8F7B;color:#fff;border-color:#5F8F7B" data-act="res-reload">重新加载</button></div>'
+      + '</div></div>';
+  } catch (e) { }
+}
+(function bindResilience() {
+  if (window.__resBound) return; window.__resBound = 1;
+  window.addEventListener('error', function (e) {
+    try {
+      var m = e && (e.message || (e.error && e.error.message)) || '';
+      if (!m) return;
+      resLogErr((e.error && e.error.name) || 'Error', m, (e.error && e.error.stack) || '');
+      var f = e.filename || '', ln = e.lineno || 0;
+      /* 只把"看起来是渲染炸了"的情况显示兜底页，避免噪音 */
+      var fatal = /render|renderAll|renderChat|innerHTML|Cannot read|undefined is not|is not a function|of null|of undefined|TypeError|ReferenceError|SyntaxError|渲染/.test(m);
+      var nm2 = (e.error && e.error.name) || '';
+      if (/^(TypeError|ReferenceError|SyntaxError)$/.test(nm2)) fatal = true;
+      /* 5 秒内连续 3 次错误也兜底 */
+      window.__errTimes = (window.__errTimes || []).filter(function (t) { return Date.now() - t < 5000 });
+      window.__errTimes.push(Date.now());
+      if (fatal || window.__errTimes.length >= 3) resCrashScreen({ message: m + ' @' + ln });
+    } catch (x) { }
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    try {
+      var r = e && e.reason;
+      resLogErr((r && r.name) || 'Promise', (r && (r.message || r)) || '', (r && r.stack) || '');
+    } catch (x) { }
+  });
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    if (t.closest('[data-act="res-home"]')) { try { goView('home'); renderAll() } catch (e2) { location.reload() } return }
+    if (t.closest('[data-act="res-reload"]')) { location.reload(); return }
+  }, true);
+  /* 包一层 render：炸了就画兜底页，而不是白屏 */
+  if (typeof window.render === 'function' && !window.render.__resWrapped) {
+    var orig = window.render;
+    var wrapped = function () {
+      try { return orig.apply(this, arguments) }
+      catch (e) { resLogErr(e && e.name, e && e.message, e && e.stack); resCrashScreen(e); }
+    };
+    wrapped.__resWrapped = 1;
+    wrapped.__orig = orig;   /* 原函数挂在这，便于调试和测试读源码 */
+    window.render = wrapped;
+    try { if (typeof render === 'function') render = wrapped } catch (e) { }
+  }
+})();
+
+/* ---------- ① 存储自检 ---------- */
+function resLocalBytes() {
+  var n = 0;
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (!k || k.indexOf('zika') < 0) continue;
+      var v = localStorage.getItem(k) || '';
+      n += k.length + v.length;
+    }
+  } catch (e) { }
+  return n;
+}
+function resCollectRefs() {
+  var out = [];
+  try {
+    var json = JSON.stringify(state || {});
+    var m = json.match(/zika-media:\/\/[A-Za-z0-9_-]+/g) || [];
+    var seen = {};
+    for (var i = 0; i < m.length; i++) if (!seen[m[i]]) { seen[m[i]] = 1; out.push(m[i]) }
+  } catch (e) { }
+  return out;
+}
+function resAuditRun() {
+  var box = document.getElementById('auditBox');
+  if (box) box.innerHTML = '<div class="stg-row"><span>自检中…</span><b></b></div>';
+  var bytes = resLocalBytes();
+  var refs = resCollectRefs();
+  var idbOk = true;
+  var testIdb = new Promise(function (res) {
+    try {
+      if (!window.indexedDB) { idbOk = false; return res(false) }
+      var req = indexedDB.open('zika-read-books', 1);
+      req.onsuccess = function () { try { req.result.close() } catch (e) { } res(true) };
+      req.onerror = function () { idbOk = false; res(false) };
+      setTimeout(function () { res(idbOk) }, 2500);
+    } catch (e) { idbOk = false; res(false) }
+  });
+  var jobs = refs.slice(0, 300).map(function (ref) {
+    return (typeof mediaGetBlob === 'function')
+      ? mediaGetBlob(ref).then(function (b) { return b ? null : ref }).catch(function () { return ref })
+      : Promise.resolve(null);
+  });
+  Promise.all([testIdb].concat(jobs)).then(function (arr) {
+    var broken = arr.slice(1).filter(Boolean);
+    var h = '';
+    var mb = (bytes / 1048576).toFixed(2);
+    var warn = bytes > 4 * 1048576;
+    h += '<div class="stg-row"><span>本机存档占用</span><b style="' + (warn ? 'color:var(--danger)' : '') + '">' + mb + ' MB' + (warn ? '（偏大）' : '') + '</b></div>';
+    h += '<div class="stg-row"><span>图片引用</span><b>' + refs.length + ' 个</b></div>';
+    h += '<div class="stg-row"><span>失效图片</span><b style="' + (broken.length ? 'color:var(--danger)' : '') + '">'
+      + (broken.length ? broken.length + ' 个' : '无') + '</b></div>';
+    h += '<div class="stg-row"><span>图片库（IndexedDB）</span><b>' + (idbOk ? '可用' : '不可用') + '</b></div>';
+    if (broken.length) {
+      h += '<p class="meta" style="margin:8px 0 6px">失效的图会把组件底图/头像显示成空白。可以清理这些引用（不会删你的文字数据）。</p>';
+      h += '<button class="btn ghost" style="width:100%" data-act="audit-fix">清理 ' + broken.length + ' 个失效引用</button>';
+      window.__brokenRefs = broken;
+    }
+    if (state.__errs && state.__errs.length) {
+      h += '<p class="meta" style="margin:10px 0 4px"><b>最近的错误</b>（' + state.__errs.length + ' 条）</p>';
+      state.__errs.slice(-3).reverse().forEach(function (e) {
+        h += '<div class="meta" style="font-size:11px;line-height:1.6;opacity:.85">' + new Date(e.t).toLocaleString() + ' · ' + esc(e.msg).slice(0, 80) + '</div>';
+      });
+    }
+    if (box) box.innerHTML = h;
+  });
+}
+function resAuditClearBroken() {
+  var broken = window.__brokenRefs || [];
+  if (!broken.length) return;
+  var removed = 0;
+  function walk(o, path) {
+    if (!o || typeof o !== 'object') return;
+    Object.keys(o).forEach(function (k) {
+      var v = o[k];
+      if (typeof v === 'string' && broken.indexOf(v) >= 0) { delete o[k]; removed++; return }
+      if (v && typeof v === 'object') walk(v, path + '.' + k);
+    });
+  }
+  try { walk(state, ''); } catch (e) { }
+  try { save() } catch (e) { }
+  toast('已清理 ' + removed + ' 处失效引用');
+  window.__brokenRefs = [];
+  try { renderAll() } catch (e) { }
+}
+(function bindAudit() {
+  if (window.__auditBound) return; window.__auditBound = 1;
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    if (t.closest('[data-act="audit-run"]')) { resAuditRun(); return }
+    if (t.closest('[data-act="audit-fix"]')) { resAuditClearBroken(); return }
+  }, true);
+})();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
