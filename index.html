@@ -2431,7 +2431,7 @@ function migrate(s){
     s[_ak]=s[_ak].filter(function(x){return x&&typeof x==='object'});
   }
   /* ★ checkinPresets 是"字符串数组"，以前被混在"只留对象元素"的清洗名单里 →
-     每次开机都被洗空：于是「主动消息带查岗概率」永远不生效（他从不主动查岗），
+     每次开机都被洗空：于是「聊天室累计满 60 分钟查岗概率」永远不生效（他从不主动查岗），
      你自己在设置里加的预设也会刷新后消失。现在单独按字符串清洗。 */
   if(!Array.isArray(s.checkinPresets))s.checkinPresets=[];
   else s.checkinPresets=s.checkinPresets.filter(function(x){return typeof x==='string'&&x.trim()})
@@ -5742,7 +5742,7 @@ function markRead(m){
 function initiate(c){
   refreshMood();
   /* ★ 他主动来找你：只发 1 条（以前是按权重连发，最多 5 条 → 一登录就一堆消息） */
-  if(hisQuota(c.id)>0&&state.checkinPresets&&state.checkinPresets.length&&Math.random()*100<((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)){state.messages.push({id:uid(),contactId:c.id,dir:'in',kind:'checkin',text:'查岗：'+pick(state.checkinPresets),ts:now()});save();renderChat()}
+  /* ★ 查岗改成"在聊天室累计满 60 分钟掷一次"，不再跟着主动消息走（见 27-pat.js 的 patTick） */
   pushBurst(c,now(),1);
   /* 偶尔顺手买个小礼物送过来，或者让你帮他代买一件 */
   /* 主动消息偶尔顺手带一份礼物 / 让你帮他代买一件（概率可在 设置 里调） */
@@ -7390,7 +7390,7 @@ function renderMe(){
     +'<div class="inl"><label>拍一拍回拍概率 %</label><input id="setPatPct" type="number" min="0" max="100" value="'+(state.settings.patReplyPct!=null?state.settings.patReplyPct:40)+'"></div>'
     +'</div>';
   html+='<div class="pct-sub">他主动来找你</div><div class="rhy-grid">'
-    +'<div class="inl"><label>主动消息带查岗概率 %</label><input id="setCheckinPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)+'"></div>'
+    +'<div class="inl"><label>在聊天室累计满 60 分钟后，他查岗的概率 %</label><input id="setCheckinPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.checkinPct)!=null?state.settings.checkinPct:25)+'"></div>'
     +'<div class="inl"><label>顺手送礼物概率 %</label><input id="giftPct" type="number" min="0" max="100" value="'+(state.settings.giftPct!=null?state.settings.giftPct:13)+'"></div>'
     +'<div class="inl"><label>找你代买概率 %</label><input id="askPct" type="number" min="0" max="100" value="'+(state.settings.askPct!=null?state.settings.askPct:8)+'"></div>'
     +'<div class="inl"><label>主动消息后发朋友圈概率 %</label><input id="setPostPct" type="number" min="0" max="100" value="'+((state.settings&&state.settings.postPct)!=null?state.settings.postPct:50)+'"></div>'
@@ -12761,6 +12761,8 @@ function heditTapItem(el) {
    - 表现：居中的系统条「陆沉 拍了拍你 · 字卡」，无震动 */
 var PAT_IN_PCT = 20, PAT_HANG_PCT = 50, PAT_HANG_MS = 60 * 60 * 1000;
 var _patSession = false, _patWasInChat = false, _patTicker = 0;
+/* 查岗：在聊天室累计满 60 分钟掷一次（概率取设置里的 checkinPct，默认 25） */
+var CK_MS = 60 * 60 * 1000, _ckSession = false;
 
 function patLib() {
   try {
@@ -12792,15 +12794,17 @@ function patNow() {
 function patTick() {
   var inChat = patInChat();
   if (inChat && !_patWasInChat) {
-    _patSession = false;                       /* 新一次进入聊天室 */
+    _patSession = false; _ckSession = false;    /* 新一次进入聊天室 */
     if (Math.random() * 100 < PAT_IN_PCT) patNow();
   }
   _patWasInChat = inChat;
-  if (!inChat) { state.patAcc = state.patAcc || 0; return }
+  if (!inChat) { state.patAcc = state.patAcc || 0; state.ckAcc = state.ckAcc || 0; return }
   var last = _patTicker || 0;
   var delta = last ? Math.min(60000, Date.now() - last) : 0;   /* 最多计 1 分钟，切后台不算 */
   _patTicker = Date.now();
   state.patAcc = (state.patAcc || 0) + delta;
+  state.ckAcc = (state.ckAcc || 0) + delta;
+  try { ckTick(inChat) } catch (e) { }
   if (state.patAcc >= PAT_HANG_MS && !_patSession) {
     state.patAcc = 0;
     if (Math.random() * 100 < PAT_HANG_PCT) { _patSession = true; patNow() }
@@ -12812,6 +12816,27 @@ function patTick() {
   setInterval(function () { try { patTick() } catch (e) { } }, 20000);
   document.addEventListener('visibilitychange', function () { _patTicker = Date.now() });
 })();
+
+function ckTick(inChat) {
+  if (!inChat) return;
+  if (state.ckAcc >= CK_MS && !_ckSession) {
+    state.ckAcc = 0;
+    var pct = (state.settings && state.settings.checkinPct != null) ? state.settings.checkinPct : 25;
+    if (Math.random() * 100 < pct) {
+      _ckSession = true;
+      var pre = state.checkinPresets || [];
+      if (pre.length) {
+        var c = null; try { c = activeContact() } catch (e) { }
+        if (c) {
+          var txt = pre[Math.floor(Math.random() * pre.length)];
+          state.messages.push({ id: uid(), contactId: c.id, dir: 'in', kind: 'checkin', text: '查岗：' + txt, ts: (typeof now === 'function') ? now() : Date.now() });
+          try { save() } catch (e) { }
+          try { if (patInChat()) renderChat() } catch (e) { }
+        }
+      }
+    }
+  }
+}
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
