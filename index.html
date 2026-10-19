@@ -338,7 +338,7 @@ background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
 .preset-btn{border-radius:12px;padding:8px 10px;background:rgba(255,255,255,.55);border:1px solid var(--line);font-size:calc(13px*var(--fs));min-height:40px}
 .preset-btn.on{background:var(--green);border-color:transparent;color:#fff}
 /* 气泡预设 */
-#view .bubble{border-radius:calc(var(--bub-r,22px)*1px);opacity:calc(var(--bub-o,100)*1%)}
+#view .bubble{border-radius:var(--bub-r,22px);opacity:calc(var(--bub-o,100)*1%)}
 #view.bs-wechat .bubble.in{background:#fff;border:1px solid #E4E4E4;color:#333;border-bottom-left-radius:6px}
 #view.bs-wechat .bubble.out{background:#95EC69;color:#333;border-bottom-right-radius:6px}
 #view.bs-wechat .bubble.out .t{color:rgba(0,0,0,.5)}
@@ -2052,6 +2052,9 @@ body.wlt-mode #view{background:#F2F2F3}
 .sc-chips{display:flex;gap:8px;margin-bottom:6px}
 .sc-chip{border:1px solid rgba(60,50,45,.12);background:#fff;border-radius:999px;padding:7px 13px;font-size:12.5px}
 .sc-chip.on{background:#5b7f68;border-color:#5b7f68;color:#fff}
+
+.sc-tl li.todo{color:#b8ada5}
+.sc-tl .masked{display:inline-block;background:rgba(0,0,0,.05);border-radius:6px;color:#b8ada5;font-size:11.5px;padding:2px 8px;letter-spacing:.06em}
 </style>
 </head>
 <body>
@@ -6050,7 +6053,7 @@ function renderChat(){
     body+='<div class="quote-bar"><span class="txt">回复：'+esc(trunc(msgText(_quoteId),26))+'</span><button data-act="quote-cancel">取消</button></div>';
   }
   body+=multiBarHtml();
-  body+='<div class="chat-input"><button class="tool-btn" data-act="tools">'+ICON_PLUS+'</button><textarea id="chatText" rows="1" placeholder="说点什么…"></textarea><button class="tool-btn" data-act="emoji">'+ICON_EMOJI+'</button><button data-act="send-chat">发送</button></div></div>';
+  body+='<div class="chat-input"><button class="tool-btn" data-act="qk-menu" title="快捷">⚡</button><button class="tool-btn" data-act="tools">'+ICON_PLUS+'</button><textarea id="chatText" rows="1" placeholder="说点什么…"></textarea><button class="tool-btn" data-act="emoji">'+ICON_EMOJI+'</button><button data-act="send-chat">发送</button></div></div>';
   /* ★ 重绘前先记住"离底部多少像素"。
      以前重绘后不做任何恢复：列表重建 → scrollTop 回到 0 → 你正翻着旧消息（比如在填问卷），
      点一下选项就被甩到很久以前那批消息上（用户报的）。
@@ -7918,7 +7921,7 @@ function sheetContact(id){
   html+='<div class="rhy-grid" style="margin-top:8px"><div class="inl"><label>已读不回概率 %</label><input id="cReadNRPct" type="number" min="0" max="100" value="'+(c?c.readNRPct:20)+'"></div><div class="inl"><label>朋友圈回复概率 %</label><input id="cReplyPct" type="number" min="0" max="100" value="'+(c?c.replyPct:100)+'"></div></div>';
   html+='<div class="rhy-grid"><div class="inl"><label>每次打开页面来电概率 %</label><input id="cCallPct" type="number" min="0" max="100" value="'+(c?c.callPct:30)+'"></div><div class="inl"><label>每次打开页面转账概率 %</label><input id="cTransferPct" type="number" min="0" max="100" value="'+(c?c.transferPct:15)+'"></div></div>';
   html+='<div class="actions"><button class="cancel" data-act="sheet-close">取消</button><button class="ok" data-act="contact-save" data-id="'+(id||'')+'">保存</button></div>';
-  if(id)html+='<div style="margin-top:10px"><button class="cancel" style="width:100%;color:var(--danger)" data-act="contact-del" data-id="'+id+'">删除此联系人</button></div>';
+  if(id&&!qkIsPrimary(id))html+='<div style="margin-top:10px"><button class="cancel" style="width:100%;color:var(--danger)" data-act="contact-del" data-id="'+id+'">删除此联系人</button></div>';
   openSheet(html);
   /* ★ 这里原来是 _avImg=mediaUrlSync(c.avatarImg) —— 存进去的是**解析后的 blob: 地址**。
      保存时 c.avatarImg=_avImg 就把 blob: 地址写进了存档，而 blob: 地址重启必然失效，
@@ -8016,6 +8019,7 @@ function contactSave(){
 }
 function contactDel(id){
   if(!contact(id))return;
+  if(qkIsPrimary(id)){toast('陆沉是初始联系人，不能删除');return}
   if(!confirm('确定删除 '+contact(id).name+' 吗？相关消息、信件、朋友圈会一起删除。'))return;
   var nm=contact(id).name;
   state.contacts=state.contacts.filter(function(c){return c.id!==id});
@@ -10117,6 +10121,10 @@ document.addEventListener('click',function(e){
     else if(act==='diary-comment-his')diaryCommentHis(btn.getAttribute('data-ds'));
     else if(act==='mom-save'){momSave()}
     else if(act==='msg-menu'){sheetMsgMenu(id)}
+    else if(act==='qk-menu')qkMenu()
+    else if(act==='qk-now')qkNow()
+    else if(act==='qk-batch')qkBatch()
+    else if(act==='qk-batch-send')qkBatchSend()
     else if(act==='msg-copy'){msgCopy(id)}
     else if(act==='msg-del'){msgDel(id)}
     else if(act==='msg-multi')msgMultiEnter(id);
@@ -13055,24 +13063,43 @@ function renderSchedule() {
 }
 function schedHisHtml() {
   var off = schedOffset();
-  var list = schedBuild(off), nowH = new Date().getHours(), cur = schedNow(list, nowH);
+  var list = schedBuild(off), nowH = new Date().getHours(), nowM = new Date().getMinutes();
+  var isToday = (off === 0), isFuture = (off > 0);
+  var past = [], cur = null;
+  for (var i = 0; i < list.length; i++) {
+    var it = list[i];
+    if (isFuture) break;                       /* 未来那天：一条都不露 */
+    if (it.h < nowH || (it.h === nowH)) { past.push(it); cur = it }
+  }
+  if (isFuture) cur = null;
   var h = '';
-  h += '<div class="sc-now"><div class="st">' + (off === 0 ? '现在' : schedDayLabel(off)) + ' · ' + schedPad(nowH) + ':00</div>'
-    + '<div class="tx">' + esc(cur.act) + '</div><div class="mt">' + esc(cur.note) + '</div></div>';
+  if (isFuture) {
+    h += '<div class="sc-now"><div class="st">' + schedDayLabel(off) + '</div>'
+      + '<div class="tx">还没到那天</div><div class="mt">到了那天，会一条一条出现。</div></div>';
+  } else {
+    h += '<div class="sc-now"><div class="st">现在 · ' + schedPad(nowH) + ':' + schedPad(nowM) + '</div>'
+      + '<div class="tx">' + esc(cur ? cur.act : list[0].act) + '</div>'
+      + '<div class="mt">' + esc(cur ? cur.note : list[0].note) + '</div></div>';
+  }
   h += '<div class="sc-day"><b>' + schedDayLabel(off) + '</b><span>' + list.length + ' 项安排</span></div>';
   h += '<div class="card sc-card"><ul class="sc-tl">';
-  for (var i = 0; i < list.length; i++) {
-    var it = list[i], on = (it === cur);
-    h += '<li class="' + (on ? 'cur' : '') + '"><span class="t">' + schedPad(it.h) + ':00</span>'
-      + '<span class="b">' + esc(it.act)
-      + (it.tag ? '<i class="tag" style="background:' + schedTagColor(it.tag) + '22;color:' + schedTagColor(it.tag) + '">' + esc(it.tag) + '</i>' : '')
-      + '<small>' + esc(it.note) + '</small></span></li>';
+  for (var j = 0; j < list.length; j++) {
+    var it = list[j], on = (it === cur);
+    var future = isFuture || (isToday && it.h > nowH);
+    if (future) {
+      h += '<li class="todo"><span class="t">' + schedPad(it.h) + ':00</span>'
+        + '<span class="b"><span class="masked">还没到</span></span></li>';
+    } else {
+      h += '<li class="' + (on ? 'cur' : '') + '"><span class="t">' + schedPad(it.h) + ':00</span>'
+        + '<span class="b">' + esc(it.act)
+        + (it.tag ? '<i class="tag" style="background:' + schedTagColor(it.tag) + '22;color:' + schedTagColor(it.tag) + '">' + esc(it.tag) + '</i>' : '')
+        + '<small>' + esc(it.note) + '</small></span></li>';
+    }
   }
   h += '</ul></div>';
   h += '<div class="sc-acts"><button class="btn ghost" data-scday="-1">前一天</button>'
-    + '<button class="btn ghost" data-scday="0"' + (off === 0 ? ' disabled' : '') + '>今天</button>'
-    + '<button class="btn ghost" data-scday="1">后一天</button></div>';
-  h += '<p class="meta" style="margin-top:10px">他的日程按天自动生成，同一天不会变；第二天换新的安排。</p>';
+    + '<button class="btn ghost" data-scday="0"' + (off === 0 ? ' disabled' : '') + '>今天</button></div>';
+  h += '<p class="meta" style="margin-top:10px">他的日程会随当天时间一条条出现；没到的时段看不到内容。</p>';
   return h;
 }
 function schedMineHtml() {
@@ -13156,7 +13183,7 @@ function schedSave() {
     var tab = t.closest('[data-sctab]');
     if (tab) { state.schedTab = tab.getAttribute('data-sctab'); renderSchedule(); return }
     var day = t.closest('[data-scday]');
-    if (day) { state.schedOffset = parseInt(day.getAttribute('data-scday'), 10) || 0; renderSchedule(); return }
+    if (day) { var dv = parseInt(day.getAttribute('data-scday'), 10) || 0; if (dv > 0) dv = 0; state.schedOffset = dv; renderSchedule(); return }
     if (t.closest('[data-scadd]')) { schedAddSheet(); return }
     var chip = t.closest('[data-scchip]');
     if (chip) {
@@ -13173,6 +13200,92 @@ function schedSave() {
     }
   }, true);
 })();
+
+/* ===== 快捷：让他现在发一条 + 批量发送 ===== */
+function qkIsPrimary(id) {
+  try { var c = state.contacts && state.contacts[0]; return !!(c && c.id === id) } catch (e) { return false }
+}
+function qkPrimaryContact() {
+  try { return state.contacts && state.contacts[0] } catch (e) { return null }
+}
+function qkMenu() {
+  var h = '<h2>快捷</h2>';
+  h += '<p class="meta" style="margin:0 0 10px">不用等节奏，直接让他有反应。</p>';
+  h += '<button class="btn" style="width:100%;margin-bottom:10px" data-act="qk-now">⚡ 让他现在发一条</button>';
+  h += '<button class="btn" style="width:100%" data-act="qk-batch">≡ 批量发送（一次发多条）</button>';
+  h += '<div class="actions" style="margin-top:12px"><button class="cancel" data-act="sheet-close">关闭</button></div>';
+  openSheet(h);
+}
+/* 让他立刻发一条 */
+function qkNow() {
+  var c = activeContact(); if (!c) { closeSheet(); return }
+  closeSheet();
+  var txt = '';
+  try { txt = composeText(c, null) } catch (e) { txt = '' }
+  if (!txt) txt = '嗯，我在。';
+  try { toast('他正在输入…') } catch (e) { }
+  var t = now();
+  CLK.set(function () {
+    pushIn(c.id, txt, now());
+    try { save() } catch (e) { }
+    try { renderChat() } catch (e) { }
+    try { schedule() } catch (e) { }
+  }, 900 + Math.random() * 900);
+}
+/* 批量发送 */
+function qkBatch() {
+  var h = '<h2>批量发送</h2>';
+  h += '<p class="meta" style="margin:0 0 8px">一行一条 · 每条间隔 0.5 秒 · 他会随机引用其中一条</p>';
+  h += '<textarea id="qkLines" rows="6" style="width:100%;border:1px solid rgba(60,50,45,.14);border-radius:12px;padding:10px 12px;font-size:15px;line-height:1.6" placeholder="第一条消息\n第二条消息\n第三条消息"></textarea>';
+  h += '<p class="meta" id="qkCount" style="margin:6px 0 0">0 条 · 每条间隔 0.5 秒</p>';
+  h += '<div class="actions" style="margin-top:12px"><button class="cancel" data-act="sheet-close">取消</button>'
+    + '<button class="ok" data-act="qk-batch-send">逐条发送</button></div>';
+  openSheet(h);
+  CLK.set(function () {
+    var ta = document.getElementById('qkLines'), cnt = document.getElementById('qkCount');
+    if (!ta || !cnt) return;
+    var upd = function () {
+      var n = String(ta.value || '').split('\n').filter(function (x) { return x.trim() }).length;
+      cnt.textContent = n + ' 条 · 每条间隔 0.5 秒';
+    };
+    ta.addEventListener('input', upd); upd();
+  }, 60);
+}
+function qkBatchSend() {
+  var ta = document.getElementById('qkLines');
+  var lines = String((ta && ta.value) || '').split('\n').map(function (x) { return x.trim() }).filter(function (x) { return x });
+  if (!lines.length) { toast('先写几条'); return }
+  if (lines.length > 20) lines = lines.slice(0, 20);
+  var c = activeContact(); if (!c) { closeSheet(); return }
+  closeSheet();
+  var sent = [];
+  lines.forEach(function (txt, i) {
+    CLK.set(function () {
+      var m = { id: uid(), contactId: c.id, dir: 'out', text: txt, ts: now() };
+      state.messages.push(m);
+      sent.push(m.id);
+      try { save() } catch (e) { }
+      try { renderChat() } catch (e) { }
+      if (i === lines.length - 1) {
+        /* 最后一条发完后，他随机引用其中一条回一句 */
+        CLK.set(function () {
+          var pickId = sent[Math.floor(Math.random() * sent.length)];
+          var src = null;
+          for (var k = 0; k < state.messages.length; k++) if (state.messages[k].id === pickId) src = state.messages[k];
+          var reply = '';
+          try { reply = composeText(c, src ? src.text : null) } catch (e) { reply = '' }
+          if (!reply) reply = '嗯，我看到了。';
+          var useQuote=(state.settings&&state.settings.quoteOn!==false);
+          pushIn(c.id, reply, now(), useQuote?pickId:null);
+          try { save() } catch (e) { }
+          try { renderChat() } catch (e) { }
+          try { schedule() } catch (e) { }
+        }, 1400 + Math.random() * 800);
+      }
+    }, i * 500);
+  });
+  toast('发送中…');
+}
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
