@@ -2220,6 +2220,68 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 
 /* 卡片默认底色：白（用户底图 --wbg 仍会显示在最上层） */
 .widget,.hg-widget,.hg-card,.status-card{background-image:var(--wbg,none) !important;background-color:#FFFFFF !important}
+
+/* ===== 月经记录 ===== */
+.pg-wrap{padding:2px 16px 0;color:#111214}
+.pg-act{display:flex;align-items:center;gap:8px;margin-top:4px}
+.pg-btn{flex:0 0 auto;border:1px solid #111214;background:#111214;color:#fff;border-radius:12px;padding:11px 14px;font-size:13.5px;font-weight:600}
+.pg-btn.ghost{background:#fff;color:#111214}
+.pg-state{margin-left:auto;font-size:11.5px;color:#6B6D72}
+.pg-say{display:flex;align-items:center;gap:9px;border:1px solid rgba(17,18,20,.12);border-radius:14px;padding:10px 12px;margin-top:10px;font-size:13px;color:#2A2B2F;background:#FAFAFA}
+.pg-say .av{width:20px;height:20px;border-radius:50%;background:#111214;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.pg-hero{border:1px solid rgba(17,18,20,.12);border-radius:18px;padding:16px;display:flex;gap:14px;align-items:center;margin-top:10px}
+.pg-hero .l{flex:1;min-width:0}
+.pg-hero .k{font-size:11px;letter-spacing:.14em;color:#6B6D72}
+.pg-hero .big{font-size:34px;font-weight:600;line-height:1.1;margin-top:6px;font-variant-numeric:tabular-nums}
+.pg-hero .big small{font-size:13px;color:#6B6D72;font-weight:400;margin-left:4px}
+.pg-hero .note{font-size:12px;color:#6B6D72;margin-top:6px}
+.pg-hero .r{display:flex;flex-direction:column;align-items:center;gap:6px;flex:0 0 auto;width:64px}
+.pg-stack{width:26px;height:86px;border:1px solid rgba(17,18,20,.12);border-radius:99px;position:relative;overflow:hidden;background:#fff}
+.pg-stack i{position:absolute;left:0;right:0;bottom:0;background:#111214;border-radius:99px}
+.pg-stack.over{border-style:dashed}
+.pg-stack.over i{background:#B9B9B9}
+.pg-pct{font-size:11px;color:#6B6D72;font-variant-numeric:tabular-nums}
+.pg-pct.over{color:#111214;font-weight:600}
+.pg-late{display:flex;align-items:center;gap:8px;background:#111214;color:#fff;border-radius:14px;padding:11px 14px;margin-top:10px;font-size:12.5px}
+.pg-late span{opacity:.75}
+.pg-card{border:1px solid rgba(17,18,20,.12);border-radius:16px;padding:13px 14px;margin-top:10px}
+.pg-h{display:flex;align-items:baseline;font-size:12px;color:#6B6D72}
+.pg-h b{color:#111214;font-size:13px;margin-right:6px}
+.pg-h.week{align-items:center;justify-content:space-between}
+.pg-h.week button{border:1px solid rgba(17,18,20,.12);background:#fff;border-radius:50%;width:26px;height:26px;font-size:12px;color:#111214}
+.pg-ops{display:flex;gap:8px;margin-top:10px}
+.pg-op{flex:1;border:1px solid rgba(17,18,20,.12);border-radius:12px;padding:10px 0 8px;font-size:12.5px;color:#3A3B3F;background:#fff;display:flex;flex-direction:column;align-items:center;gap:5px}
+.pg-op i{width:100%;height:4px;border-radius:99px;background:#DCDCDC}
+.pg-op i.l1{background:#C9C9C9}.pg-op i.l2{background:#9A9A9A}.pg-op i.l3{background:#5A5A5A}.pg-op i.l4{background:#111214}
+.pg-op.on{border-color:#111214;background:#111214;color:#fff}
+.pg-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:96px;margin-top:8px}
+.pg-bar{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;padding-bottom:2px;border-radius:8px}
+.pg-bar .col{width:60%;max-width:22px;border-radius:6px;background:#EFEFEF}
+.pg-bar .col.l1{background:#C9C9C9}.pg-bar .col.l2{background:#9A9A9A}.pg-bar .col.l3{background:#5A5A5A}.pg-bar .col.l4{background:#111214}
+.pg-bar .col.pred{background:#fff;border:1px dashed #6B6D72}
+.pg-bar .d{font-size:10px;color:#6B6D72}
+.pg-bar.today .d{color:#111214;font-weight:600}
+.pg-bar.today{outline:1px dashed rgba(17,18,20,.12);outline-offset:-2px}
+.pg-list{border:1px solid rgba(17,18,20,.12);border-radius:16px;margin-top:10px;overflow:hidden}
+.pg-list .li{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(17,18,20,.06);font-size:13px}
+.pg-list .li:last-child{border-bottom:0}
+.pg-list .d{flex:1;font-variant-numeric:tabular-nums}
+.pg-list .tag{font-size:11px;color:#6B6D72}
+.pg-list .ln{width:26px;height:4px;border-radius:99px;background:#111214}
+.pg-set{border:1px solid rgba(17,18,20,.12);border-radius:16px;margin-top:10px;overflow:hidden}
+.pg-set .sr{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(17,18,20,.06);font-size:13.5px}
+.pg-set .sr:last-child{border-bottom:0}
+.pg-set .l{flex:1}
+.pg-set .pill{border:1px solid rgba(17,18,20,.12);border-radius:10px;padding:6px 12px;font-size:13.5px;font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+.pg-set .u{font-size:11px;color:#6B6D72}
+.pg-set .sw{width:42px;height:25px;border-radius:99px;background:#E2E2E2;position:relative}
+.pg-set .sw.on{background:#111214}
+.pg-set .sw i{position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;transition:.18s}
+.pg-set .sw.on i{left:20px}
+.pg-disc{font-size:11px;color:#6B6D72;text-align:center;margin-top:12px;line-height:1.6}
+.pg-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#111214;border:1.5px solid #fff}
+
+.app-item .ic{position:relative}
 </style>
 </head>
 <body>
@@ -3034,6 +3096,7 @@ function migrate(s){
   if(s.settings.checkinPct===undefined)s.settings.checkinPct=25;
   if(s.settings.postPct===undefined)s.settings.postPct=50;
   if(!Array.isArray(s.memos))s.memos=[];
+  if(!s.period||typeof s.period!=='object')s.period={cycle:28,per:5,last:'',end:'',rec:{},on:true,seenLast:''};
   if(s.settings.callMin===undefined)s.settings.callMin=15;
   if(s.settings.callMax===undefined)s.settings.callMax=60;
   if(s.settings.letterInitMin===undefined)s.settings.letterInitMin=180;
@@ -4271,7 +4334,7 @@ function coverStyle(){
 }
 
 /* ================= 路由 ================= */
-var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey','game','guide','read','schedule','memo'];
+var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey','game','guide','read','schedule','memo','period'];
 var _routedOnce=false;
 function router(){
   var h=location.hash.replace('#','');
@@ -4352,6 +4415,7 @@ function render(v){
   else if(v==='guide')renderGuide();
   else if(v==='schedule')renderSchedule();
   else if(v==='memo')renderMemo();
+  else if(v==='period')renderPeriod();
   else renderMe();
   /* 一起听开着的时候：离开听歌界面自动缩成悬浮条，回到听歌界面自动收起 */
   try{if(typeof musBarToggle==='function')musBarToggle()}catch(e){}
@@ -4395,6 +4459,7 @@ function syncAppOrder(){
 function appListDefs(){
   return [
 
+    {v:'period',n:'月经',c:'#2B2B2E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M12 3.5c3.6 3 6 6 6 9.2a6 6 0 0 1-12 0c0-3.2 2.4-6.2 6-9.2z"/><path d="M12 11v5"/></svg>'},
     {v:'memo',n:'备忘录',c:'#2B2B2E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></svg>'},
     {v:'schedule',n:'日程',c:'#5B7F68',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/></svg>'},
     {v:'guide',n:'指南',c:'#8A7F6A',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M4 5h9a3 3 0 0 1 3 3v12H7a3 3 0 0 1-3-3z"/><path d="M16 8h4v12h-4"/></svg>'},
@@ -8219,7 +8284,7 @@ var BACKUP_CATS=[
  {k:'me',        n:'我的资料',          d:'昵称、头像、个人资料',        keys:['me']},
  {k:'contacts',  n:'梦角资料',          d:'角色、头像、回复节奏、概率',   keys:['contacts','activeContact']},
  {k:'desktop',   n:'全局设置与桌面',    d:'主题、壁纸、字体、各种开关',   keys:['settings','appIcons','appOrder','appPos','appPage']},
- {k:'widgets',   n:'桌面小组件',        d:'组件内容、布局和媒体引用',     keys:['memos','widgets','widgetsOn','widgetOrder','widgetSize','widgetPage','widgetPos','widgetImgs','widgetWeather','widgetCount','widgetProgress','widgetPhoto','widgetCalendar','widgetDaysLabel','widgetDaysUnit','widgetNote','widgetMusic','anniversaryDays']},
+ {k:'widgets',   n:'桌面小组件',        d:'组件内容、布局和媒体引用',     keys:['period','memos','widgets','widgetsOn','widgetOrder','widgetSize','widgetPage','widgetPos','widgetImgs','widgetWeather','widgetCount','widgetProgress','widgetPhoto','widgetCalendar','widgetDaysLabel','widgetDaysUnit','widgetNote','widgetMusic','anniversaryDays']},
  {k:'chat',      n:'聊天记录',          d:'各联系人的文字和媒体消息',     keys:['messages','nextInit','nextCallDue','nextInviteDue']},
  {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet','mySaves','pollLog','surveys']},
  {k:'cards',     n:'字卡库',            d:'分组、字卡、固定字卡',         keys:['cards','cardCats','statusCards','moodCards','patCards','diaryCards','writerCards','_smDeleted','currentStatus','currentMood']},
@@ -13870,6 +13935,198 @@ function memoGate() {
     else { state.memoAccAt = CLK.now(); }
   });
 })();
+
+/* ===== 月经记录（周条 + 来了/结束了 + 站内提醒，不进聊天） =====
+   数据：state.period = {cycle:28, per:5, last:'2026-10-18', end:'', rec:{'2026-10-18':1}, on:true, seenLast:''} */
+function pgPad(n) { return ('0' + n).slice(-2) }
+function pgKey(d) { return d.getFullYear() + '-' + pgPad(d.getMonth() + 1) + '-' + pgPad(d.getDate()) }
+function pgParse(k) {
+  if (!k) return null;
+  var p = String(k).split('-');
+  if (p.length !== 3) return null;
+  var d = new Date(+p[0], +p[1] - 1, +p[2]);
+  return isNaN(d.getTime()) ? null : d;
+}
+function pgToday() { var t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()) }
+function pgDays(a, b) { return Math.round((a - b) / 86400000) }
+function pgState() {
+  if (!state.period) state.period = {};
+  var P = state.period;
+  if (!P.cycle) P.cycle = 28;
+  if (!P.per) P.per = 5;
+  if (P.on === undefined) P.on = true;
+  if (!P.rec) P.rec = {};
+  if (!P.last) P.last = pgKey(pgToday());
+  return P;
+}
+function pgNextDue() { var P = pgState(), d = pgParse(P.last) || pgToday(); return new Date(d.getTime() + P.cycle * 86400000) }
+function pgLate() { return pgDays(pgToday(), pgNextDue()) }      /* >0 逾期 */
+function pgDayIndex() { var P = pgState(), d = pgParse(P.last) || pgToday(); return pgDays(pgToday(), d) + 1 }
+function pgIsSame(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate() }
+function pgFmt(d) { return (d.getMonth() + 1) + '/' + d.getDate() }
+
+var PG_SAY = {
+  pre: ['这几天凉的先别碰，好不好？', '记着日子呢。这两天多休息一点，别勉强自己。', '要是不舒服，随时跟我说。我在。', '最近是不是有点累？早点睡，我有点担心。', '到时候我陪你，别一个人硬撑。'],
+  late: ['晚几天也正常，别紧张。有我在。', '要是哪里不舒服，跟我说，我们去看?', '别自己吓自己。先告诉我你现在怎么样。'],
+  start: ['来了？那这两天别碰凉的。', '好，我记下了。别硬撑。']
+};
+function pgPick(a) { return a[Math.floor(Math.random() * a.length)] }
+/* 提醒窗口：距预计 <=3 天 或 已逾期；看过本周期就不再强调（用 seenLast 记录） */
+function pgInWindow() {
+  var P = pgState(); if (!P.on) return false;
+  var late = pgLate();
+  return late > 0 || (-late) <= 3;
+}
+function pgSay() {
+  var P = pgState(), late = pgLate();
+  if (P.end === pgKey(pgToday())) return PG_SAY.start[1];
+  if (P.last === pgKey(pgToday())) return PG_SAY.start[0];
+  if (late > 0) return pgPick(PG_SAY.late);
+  if ((-late) <= 3) return pgPick(PG_SAY.pre);
+  return '这两天还好吗？有事就跟我说。';
+}
+function pgSetLevel(d, lv) {
+  var P = pgState(), k = pgKey(d);
+  if (lv) P.rec[k] = lv; else delete P.rec[k];
+  save();
+}
+function pgLevel(d) { var P = pgState(); return P.rec[pgKey(d)] || 0 }
+
+/* ---------- 界面 ---------- */
+var _pgWeek = 0;
+function renderPeriod() {
+  var P = pgState(), late = pgLate(), dayIdx = pgDayIndex();
+  var pct = Math.max(0, Math.min(100, Math.round(dayIdx / P.cycle * 100)));
+  var h = '<div class="page-top"><button class="back" data-view="home">' + ICON_BACK + '</button><span class="pt">月经记录</span></div>';
+  h += '<div class="pg-wrap">';
+
+  /* 顶部操作 */
+  h += '<div class="pg-act">'
+    + '<button class="pg-btn" data-act="pg-start">今天来了</button>'
+    + '<button class="pg-btn ghost" data-act="pg-end">今天结束了</button>'
+    + '<span class="pg-state">' + (P.last === pgKey(pgToday()) ? '经期第 1 天' : ('本周期第 ' + dayIdx + ' 天')) + '</span>'
+    + '</div>';
+
+  /* 他说一句 */
+  h += '<div class="pg-say"><span class="av">陆</span><span>' + esc(pgSay()) + '</span></div>';
+
+  /* 主卡 */
+  h += '<div class="pg-hero">'
+    + '<div class="l"><div class="k">本周期第</div>'
+    + '<div class="big">' + dayIdx + '<small>天</small></div>'
+    + '<div class="note">预计 ' + pgFmt(pgNextDue()) + ' 来 · ' + (late > 0 ? ('已晚 ' + late + ' 天') : ('还有 ' + (-late) + ' 天')) + '</div></div>'
+    + '<div class="r"><div class="pg-stack' + (late > 0 ? ' over' : '') + '"><i style="height:' + pct + '%"></i></div>'
+    + '<div class="pg-pct' + (late > 0 ? ' over' : '') + '">' + (late > 0 ? ('+' + late + ' 天') : (pct + '%')) + '</div></div>'
+    + '</div>';
+
+  if (late > 0) h += '<div class="pg-late"><b>已逾期 ' + late + ' 天</b><span>｜晚于预计不一定是异常，但连续几个月都不准就该去看看</span></div>';
+
+  /* 今日记录 */
+  var cur = pgLevel(pgToday());
+  var ops = ['', '点滴', '少量', '中等', '较多'];
+  h += '<div class="pg-card"><div class="pg-h"><b>今天</b><span>' + (cur ? ops[cur] : '还没记录') + '</span></div><div class="pg-ops">';
+  for (var i = 1; i <= 4; i++) h += '<button class="pg-op' + (cur === i ? ' on' : '') + '" data-act="pg-lv" data-lv="' + i + '"><i class="l' + i + '"></i>' + ops[i] + '</button>';
+  h += '</div></div>';
+
+  /* 周条 */
+  var t = pgToday(); var w = (t.getDay() + 6) % 7;
+  var ws = new Date(t); ws.setDate(t.getDate() - w + _pgWeek * 7);
+  var we = new Date(ws); we.setDate(ws.getDate() + 6);
+  h += '<div class="pg-card"><div class="pg-h week"><button data-act="pg-prev">‹</button><span>' + pgFmt(ws) + ' – ' + pgFmt(we) + '</span><button data-act="pg-next">›</button></div><div class="pg-bars">';
+  for (var d = 0; d < 7; d++) {
+    var dd = new Date(ws); dd.setDate(ws.getDate() + d);
+    var lv = pgLevel(dd), isToday = pgIsSame(dd, t), isPred = pgIsSame(dd, pgNextDue());
+    var hh = lv ? (18 + lv * 16) : (isPred ? 26 : 8);
+    var cls = lv ? ('col l' + lv) : (isPred ? 'col pred' : 'col');
+    h += '<div class="pg-bar' + (isToday ? ' today' : '') + '" data-act="pg-bar" data-k="' + pgKey(dd) + '">'
+      + '<div class="' + cls + '" style="height:' + hh + 'px"></div><div class="d">' + dd.getDate() + '</div></div>';
+  }
+  h += '</div></div>';
+
+  /* 最近记录 */
+  var keys = Object.keys(P.rec).sort(function (a, b) { return (pgParse(b) || 0) - (pgParse(a) || 0) }).slice(0, 5);
+  h += '<div class="pg-list">';
+  keys.forEach(function (k) {
+    var d = pgParse(k); if (!d) return;
+    h += '<div class="li"><span class="d">' + pgFmt(d) + '</span><span class="tag">' + ops[P.rec[k]] + '</span><span class="ln"></span></div>';
+  });
+  h += '<div class="li"><span class="d" style="color:#6B6D72">上次经期开始</span><span class="tag">' + pgFmt(pgParse(P.last) || pgToday()) + '</span></div>';
+  h += '</div>';
+
+  /* 设置 */
+  h += '<div class="pg-set">'
+    + '<div class="sr"><span class="l">周期长度</span><span class="pill" data-act="pg-cycle">' + P.cycle + '</span><span class="u">天</span></div>'
+    + '<div class="sr"><span class="l">经期天数</span><span class="pill" data-act="pg-per">' + P.per + '</span><span class="u">天</span></div>'
+    + '<div class="sr"><span class="l">提前提醒</span><span class="u">3 天</span><span class="sw' + (P.on ? ' on' : '') + '" data-act="pg-on"><i></i></span></div>'
+    + '</div>';
+
+  h += '<div class="pg-disc">仅供自己看和提醒用，不能用于避孕，也不能当医学判断。</div>';
+  h += '<div style="height:30px"></div></div>';
+  $('#view').innerHTML = h;
+  P.seenLast = P.last; save();
+}
+
+/* ---------- 交互 ---------- */
+function pgStart() {
+  var P = pgState(), t = pgToday();
+  P.last = pgKey(t); P.end = '';
+  if (!P.rec[P.last]) P.rec[P.last] = 1;
+  save(); renderPeriod(); toast('已记录：今天来了');
+}
+function pgEnd() {
+  var P = pgState(), t = pgToday();
+  P.end = pgKey(t);
+  save(); renderPeriod(); toast('已记录：今天结束了');
+}
+function pgBind() {
+  if (window.__pgBound) return; window.__pgBound = 1;
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    var a = t.closest('[data-act]'); if (!a) return;
+    var act = a.getAttribute('data-act');
+    if (act.indexOf('pg-') !== 0) return;
+    var P = pgState();
+    if (act === 'pg-start') { e.preventDefault(); pgStart(); return }
+    if (act === 'pg-end') { e.preventDefault(); pgEnd(); return }
+    if (act === 'pg-lv') {
+      e.preventDefault();
+      var lv = +a.getAttribute('data-lv'), now = pgLevel(pgToday());
+      pgSetLevel(pgToday(), now === lv ? 0 : lv);
+      renderPeriod(); return;
+    }
+    if (act === 'pg-bar') {
+      e.preventDefault();
+      var d = pgParse(a.getAttribute('data-k')); if (!d) return;
+      var c = pgLevel(d); c = (c + 1) % 5; pgSetLevel(d, c); renderPeriod(); return;
+    }
+    if (act === 'pg-prev') { e.preventDefault(); _pgWeek--; renderPeriod(); return }
+    if (act === 'pg-next') { e.preventDefault(); _pgWeek++; renderPeriod(); return }
+    if (act === 'pg-on') { e.preventDefault(); P.on = !P.on; save(); renderPeriod(); return }
+    if (act === 'pg-cycle') { e.preventDefault(); P.cycle = (P.cycle >= 40 ? 21 : P.cycle + 1); save(); renderPeriod(); return }
+    if (act === 'pg-per') { e.preventDefault(); P.per = (P.per >= 10 ? 3 : P.per + 1); save(); renderPeriod(); return }
+  }, true);
+}
+pgBind();
+
+/* 桌面小点：提醒窗口期，月经图标右上角一个黑点（点开就消失） */
+function pgDotTick() {
+  try {
+    var need = pgInWindow() && pgState().seenLast !== pgState().last;
+    var items = document.querySelectorAll('#home .app-item');
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var nm = (it.innerText || '').trim();
+      if (nm !== '月经') continue;
+      var dot = it.querySelector('.pg-dot');
+      if (need && !dot) {
+        dot = document.createElement('i'); dot.className = 'pg-dot';
+        var ic = it.querySelector('.ic') || it;
+        ic.appendChild(dot);
+      } else if (!need && dot) { dot.remove() }
+    }
+  } catch (e) { }
+}
+setInterval(function () { try { pgDotTick() } catch (e) { } }, 2000);
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
