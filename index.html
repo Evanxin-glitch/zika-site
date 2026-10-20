@@ -2158,7 +2158,7 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 #view,.app-item,.widget,.hg-card{filter:none !important}
 
 /* 真黑白补丁：残留的粉色文字/圆形头像/强调 */
-.sc-cover{background-image:linear-gradient(120deg,#EFEFEF,#F7F7F7) !important}
+.sc-cover:not([style*="background-image"]){background-image:linear-gradient(120deg,#EFEFEF,#F7F7F7)}
 .hg-widget .wf-t,.widget .wf-t,.widget .wf-title{color:#111214 !important}
 .chip.b-soft,.chip.b-pink,.chip.b-green{background:#F2F2F2 !important;color:#3A3B3F !important;border-color:rgba(17,18,20,.08) !important}
 .sc-av,.sc-avatar,.bubble-av,.chat-avatar,.avatar{
@@ -4827,7 +4827,8 @@ function gridWidgetItemHtml(k,pg,it,st,wk,d){
     +'<span class="widget-grip"></span>'+widgetInnerHtml(k,wk,d)+'</div>';
 }
 function gridCardHtml(pg,it,st,c){
-  var _cov=state.settings&&state.settings.coverImg?mediaUrlSync(state.settings.coverImg):'';
+  var _cardImg=(state.widgetImgs&&state.widgetImgs.card)?state.widgetImgs.card:'';
+  var _cov=_cardImg?mediaUrlSync(_cardImg):(state.settings&&state.settings.coverImg?mediaUrlSync(state.settings.coverImg):'');
   return '<div class="status-card hg-card" data-kind="card" data-view="chat"'
     +' data-p="'+pg+'" data-r="'+it.r+'" data-c="'+it.c+'" style="'+st+'">'
     +'<span class="sc-cover"'+(_cov?' style="background-image:url(\''+_cov+'\')"':'')+'></span>'
@@ -11250,6 +11251,7 @@ function renderWidgetLib(){
   html+='</div>';
   /* 每个组件都能换底图（以前这里没有 file 输入，所以点了没反应） */
   html+='<div class="wdlib-imgrow" style="margin-top:10px">';
+  html+='<button class="preset-btn" data-act="wdlib-img" data-k="card">陆沉卡片底图</button>';
   html+='<button class="preset-btn" data-act="wd-photo" data-k="photo">相册封面图</button>';
   for(var wi=0;wi<defs.length;wi++)html+='<button class="preset-btn" data-act="wdlib-img" data-k="'+defs[wi].k+'">'+defs[wi].n+'底图</button>';
   html+='</div>';
