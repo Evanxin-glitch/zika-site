@@ -6293,6 +6293,38 @@ function inputRestore(snap){
     if(el.setSelectionRange)el.setSelectionRange(_pos,_pos);
   }catch(e){}
 }
+
+/* ===== 只追加一条新气泡（快路）。不适合追加时返回 false，交给原来的全量重绘 ===== */
+function chatTryAppendLast(msgs, contact){
+  try{
+    if(!inChatView()) return false;
+    var list = document.getElementById('chatList');
+    if(!list) return false;
+    /* 有引用条 / 多选框 / 他正在输入 / 折叠过更早的消息 → 不走快路 */
+    if(_quoteId) return false;
+    if(document.querySelector('.multi-bar')) return false;
+    if(document.querySelector('.typing-row')) return false;
+    if(window.__chatAll) return false;
+    if(!msgs.length) return false;
+    /* 必须正好比上次多一条，且新的是最后一条 */
+    var prev = window.__chatRendered;
+    if(!prev || prev.contactId !== contact.id) return false;
+    if(msgs.length !== prev.count + 1) return false;
+    var last = msgs[msgs.length - 1];
+    if(!last || last.id === prev.lastId) return false;
+    if(prev.lastTs && (last.ts || 0) < prev.lastTs) return false;   /* 补发的老消息 → 不追加 */
+    /* 造这一个气泡 */
+    var tmp = document.createElement('div');
+    tmp.innerHTML = bubbleHtml(last, contact);
+    var node = tmp.firstElementChild;
+    if(!node) return false;
+    list.appendChild(node);
+    window.__chatRendered = { contactId: contact.id, count: msgs.length, lastId: last.id, lastTs: last.ts || 0 };
+    if(_chatAtBottom){ try{ list.scrollTop = list.scrollHeight }catch(e){} }
+    return true;
+  }catch(e){ return false }
+}
+
 function renderChat(){
   var _inSnap=inputSnapshot();
 
@@ -6310,6 +6342,8 @@ function renderChat(){
   /* ★ 按时间戳排序（同一时刻保持原顺序）。
      以前是"纯数组顺序"显示，导致补发时改过时间戳的消息顺序和界面对不上。 */
   msgs.sort(function(a,b){ return (a.ts||0)-(b.ts||0) });
+  /* 快路：只多了一条新消息、且你正贴着底部 → 只追加，不重画 */
+  if(chatTryAppendLast(msgs, c)) return;
   var top='<div class="chat-top"><button class="back" data-view="home">'+ICON_BACK+'</button><span class="pat-av" data-act="pat">'+avatarHtml(c,32)+'</span><div class="ct-who"><div class="ct-name">'+esc(c.name)+'</div><div class="ct-chips">'+statusChip()+'</div></div><div class="pr"><button class="back" data-act="call-voice" title="语音电话">'+ICON_CALL+'</button><button class="back" data-act="call-video" title="视频电话">'+ICON_VIDEO+'</button><button class="back" data-act="chat-room" title="聊天室设置">'+ICON_MORE+'</button></div></div>';
   /* 壁纸原来挂在 #chatList 上（那正是滚动容器，而且 CSS 里写了
      background-attachment:local），所以聊天记录一滑，壁纸跟着跑。
@@ -6376,6 +6410,12 @@ function renderChat(){
     if(fresh)wrap.innerHTML=fresh.innerHTML;
   }
   applyChatCss();
+  try{
+    if(inChatView()&&msgs.length){
+      var _lm=msgs[msgs.length-1];
+      window.__chatRendered={contactId:c.id,count:msgs.length,lastId:_lm.id,lastTs:_lm.ts||0};
+    }else{ window.__chatRendered=null }
+  }catch(eR){}
   /* ★ 只有"你本来就贴在底部"时才自动滚到底。
      以前无条件 scrollTop=scrollHeight —— 你往上翻旧消息时，
      只要来一条新消息就被立刻拽回最底部（用户报过）。 */
@@ -14216,6 +14256,64 @@ function pgSetLastFromSheet(offset) {
   if (!P.rec[P.last]) P.rec[P.last] = 1;
   save(); closeSheet(); renderPeriod(); toast('已更新上次经期开始');
 }
+
+/* ===== 性能小优化（不改变任何外观与逻辑） =====
+   1) 给图片加 loading="lazy" + decoding="async"（滚到才加载，解码不占主线程）
+   2) 用 contain / will-change 让聊天列表滚动走 GPU，减少整页重排
+   全程是"加法"，不改原有渲染结构，出问题删掉这个文件即可 */
+(function perfPack() {
+  if (window.__perfPack) return; window.__perfPack = 1;
+
+  /* ---------- 图片懒加载 ---------- */
+  function markLazy(root) {
+    try {
+      var imgs = (root || document).querySelectorAll('img:not([data-lz])');
+      for (var i = 0; i < imgs.length; i++) {
+        var im = imgs[i];
+        im.setAttribute('data-lz', '1');
+        if (!im.hasAttribute('loading')) im.setAttribute('loading', 'lazy');
+        if (!im.hasAttribute('decoding')) im.setAttribute('decoding', 'async');
+      }
+    } catch (e) { }
+  }
+
+  /* 页面渲染会整块换掉 innerHTML，所以用观察器盯着新出现的图 */
+  function watch() {
+    var root = document.getElementById('view') || document.body;
+    if (!root) return;
+    markLazy(root);
+    try {
+      var mo = new MutationObserver(function (list) {
+        var hit = false;
+        for (var i = 0; i < list.length; i++) {
+          if (list[i].addedNodes && list[i].addedNodes.length) { hit = true; break }
+        }
+        if (hit) markLazy(root);
+      });
+      mo.observe(root, { childList: true, subtree: true });
+    } catch (e) { }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch);
+  else watch();
+
+  /* ---------- 滚动/合成优化（只在聊天列表与长列表上生效） ---------- */
+  var css = ''
+    + '#chatList{contain:layout paint;will-change:scroll-position}'
+    /* 气泡内部变化不要牵动整页 */
+    + '#view .bubble{contain:layout style}'
+    /* 主页网格与组件区：内部重排不外溢 */
+    + '#home .home-grid{contain:layout style}'
+    /* 减少滚动时的白屏抖动 */
+    + '.chat-wrap,.home-pages{overscroll-behavior:contain}'
+    /* 图片不参与布局计算之外的合成 */
+    + '#view img{content-visibility:auto}';
+  try {
+    var st = document.createElement('style');
+    st.id = 'perf-pack-css';
+    st.textContent = css;
+    document.head.appendChild(st);
+  } catch (e) { }
+})();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
