@@ -6303,7 +6303,8 @@ function chatTryAppendLast(msgs, contact){
     /* 有引用条 / 多选框 / 他正在输入 / 折叠过更早的消息 → 不走快路 */
     if(_quoteId) return false;
     if(document.querySelector('.multi-bar')) return false;
-    if(document.querySelector('.typing-row')) return false;
+    if(document.querySelector('.bubble.typing')) return false;
+    try{ if(typeof _typing!=='undefined'&&_typing) return false }catch(eT){}
     if(window.__chatAll) return false;
     if(!msgs.length) return false;
     /* 必须正好比上次多一条，且新的是最后一条 */
@@ -6318,7 +6319,9 @@ function chatTryAppendLast(msgs, contact){
     tmp.innerHTML = bubbleHtml(last, contact);
     var node = tmp.firstElementChild;
     if(!node) return false;
-    list.appendChild(node);
+    var _trow=list.querySelector('.bubble.typing');
+    if(_trow&&_trow.parentNode&&_trow.parentNode.parentNode===list){ list.insertBefore(node,_trow.parentNode) }
+    else { list.appendChild(node); }
     window.__chatRendered = { contactId: contact.id, count: msgs.length, lastId: last.id, lastTs: last.ts || 0 };
     if(_chatAtBottom){ try{ list.scrollTop = list.scrollHeight }catch(e){} }
     return true;
