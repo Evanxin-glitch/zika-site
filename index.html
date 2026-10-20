@@ -2149,7 +2149,7 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 /* 气泡 */
 .bubble.in{background:#FFFFFF !important;border:1px solid rgba(17,18,20,.12) !important;color:#111214 !important;backdrop-filter:none !important}
 .bubble.out{background:#111214 !important;border-color:#111214 !important;color:#FFFFFF !important}
-.bubble.out *{color:#FFFFFF !important}
+/* (已移除：不再强制白字) */
 /* 头像底色统一灰（只针对“字母头像”，用户上传的图片头像不动） */
 .bubble-av,.chat-avatar,.sc-avatar{background:#EDEDED !important;color:#111214 !important;border:1px solid rgba(17,18,20,.08) !important}
 /* 编辑模式选中框黑 */
@@ -2282,6 +2282,28 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 .pg-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#111214;border:1.5px solid #fff}
 
 .app-item .ic{position:relative}
+
+.pg-dd{display:flex;gap:8px;margin:4px 0 10px}
+.pg-sel{flex:1;appearance:none;border:1px solid rgba(17,18,20,.12);background:#fff;border-radius:12px;padding:12px 10px;font-size:15px;color:#111214;font-variant-numeric:tabular-nums}
+.pg-quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.pg-q{border:1px solid rgba(17,18,20,.12);background:#fff;border-radius:999px;padding:7px 13px;font-size:12.5px;color:#3A3B3F}
+
+/* 气泡：背景与字色配对（保证任何预设下文字都看得见） */
+#view.bs-default .bubble.out{--bub-bg:#111214;--bub-ink:#FFFFFF;--bub-ink-2:rgba(255,255,255,.62)}
+#view.bs-wechat  .bubble.out{--bub-bg:#95EC69;--bub-ink:#1E2A1E;--bub-ink-2:rgba(0,0,0,.5)}
+#view.bs-kakao   .bubble.out{--bub-bg:#FFFFFF;--bub-ink:#22262B;--bub-ink-2:rgba(0,0,0,.42)}
+#view.bs-imessage.bubble.out,
+#view.bs-imessage .bubble.out{--bub-bg:#34C759;--bub-ink:#0B2410;--bub-ink-2:rgba(0,0,0,.42)}
+#view.bs-custom  .bubble.out{--bub-bg:#111214;--bub-ink:#FFFFFF;--bub-ink-2:rgba(255,255,255,.62)}
+.bubble.out{background:var(--bub-bg,#111214) !important;color:var(--bub-ink,#fff) !important}
+.bubble.out .t,.bubble.out .st,.bubble.out .quote-box{color:var(--bub-ink-2,rgba(255,255,255,.62)) !important}
+/* 上传了气泡皮肤图时：文字加描边，浅图深图都看得清 */
+.bubble.out[style*="background-image"],.bubble.out.has-skin{
+  text-shadow:0 1px 3px rgba(0,0,0,.45),0 0 1px rgba(0,0,0,.25);
+}
+.bubble.out[style*="background-image"] .t,.bubble.out.has-skin .t{text-shadow:0 1px 2px rgba(0,0,0,.45)}
+/* 收到的消息（浅底深字）也统一走变量 */
+.bubble.in{background:#fff !important;color:#111214 !important}
 </style>
 </head>
 <body>
@@ -4459,7 +4481,7 @@ function syncAppOrder(){
 function appListDefs(){
   return [
 
-    {v:'period',n:'月经',c:'#2B2B2E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M12 3.5c3.6 3 6 6 6 9.2a6 6 0 0 1-12 0c0-3.2 2.4-6.2 6-9.2z"/><path d="M12 11v5"/></svg>'},
+    {v:'period',n:'潮汐',c:'#2B2B2E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M12 3.5c3.6 3 6 6 6 9.2a6 6 0 0 1-12 0c0-3.2 2.4-6.2 6-9.2z"/><path d="M12 11v5"/></svg>'},
     {v:'memo',n:'备忘录',c:'#2B2B2E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></svg>'},
     {v:'schedule',n:'日程',c:'#5B7F68',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/></svg>'},
     {v:'guide',n:'指南',c:'#8A7F6A',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M4 5h9a3 3 0 0 1 3 3v12H7a3 3 0 0 1-3-3z"/><path d="M16 8h4v12h-4"/></svg>'},
@@ -4477,7 +4499,6 @@ function appListDefs(){
     {v:'shop',n:'商城',c:'#D98E5F',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l-1.2 12.2a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8z"/><path d="M8.5 7a3.5 3.5 0 0 1 7 0"/></svg>'},
     {v:'music',n:'音乐',c:'#8E6BB8',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.6"/><circle cx="16.5" cy="16" r="2.6"/></svg>'},
     {v:'me',n:'设置',c:'#6E7F5E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>'},
-    {v:'tide',n:'潮汐',c:'#D98CA8',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/><path d="M3 13c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/><path d="M3 18c2.5 1.4 4.5 1.4 7 0s4.5-1.4 7 0 3.5 1.4 4 1"/></svg>'},
     {v:'wallet',n:'钱包',c:'#C9A227',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="15" r="1.4" fill="#fff"/></svg>'},
     {v:'tarot',n:'塔罗',c:'#7B6BB0',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><circle cx="12" cy="12" r="3"/></svg>'},
     {v:'widgets',n:'组件库',c:'#8E9BB3',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2"/></svg>'},  ];
@@ -6274,6 +6295,8 @@ function inputRestore(snap){
 }
 function renderChat(){
   var _inSnap=inputSnapshot();
+
+
   /* 只有正停在聊天页时才整页重绘。否则（例如来电时）只更新聊天列表那一块，
      绝不把用户当前所在的页面覆盖成聊天页 */
   if(!inChatView()&&!document.getElementById('chatList'))return;
@@ -6291,7 +6314,11 @@ function renderChat(){
   /* 壁纸原来挂在 #chatList 上（那正是滚动容器，而且 CSS 里写了
      background-attachment:local），所以聊天记录一滑，壁纸跟着跑。
      现在挂到不滚动的 .chat-wrap 上，壁纸就固定住了。 */
+  var CHAT_MAX_RENDER=120;
+  var _hiddenCount=0;
+  if(!window.__chatAll&&msgs.length>CHAT_MAX_RENDER){ _hiddenCount=msgs.length-CHAT_MAX_RENDER; msgs=msgs.slice(-CHAT_MAX_RENDER); }
   var body='<div class="chat-wrap" style="'+chatBgStyle()+'"><div id="chatList">';
+  if(_hiddenCount>0) body+='<div class="chat-earlier" data-act="chat-earlier">↑ 更早的消息（已折叠 '+_hiddenCount+' 条）</div>';
   if(!msgs.length)body+='<div class="empty"><span class="big">字</span>还没有消息，先打个招呼吧</div>';
   for(var j=0;j<msgs.length;j++)body+=bubbleHtml(msgs[j],c);
   /* ★ 自愈：万一"输入中"还挂着，但既没有待发的回复计划、也没有任何"该回还没回"的消息，
@@ -6355,9 +6382,11 @@ function renderChat(){
   var list2=$('#chatList');
   if(list2){
     try{
-      list2.addEventListener('scroll',function(){
-        _chatAtBottom=(this.scrollHeight-this.scrollTop-this.clientHeight)<90;
-      },{passive:true});
+      if(!list2.__scrBound){ list2.__scrBound=1;
+        list2.addEventListener('scroll',function(){
+          _chatAtBottom=(this.scrollHeight-this.scrollTop-this.clientHeight)<90;
+        },{passive:true});
+      }
       if(_chatAtBottom){
         list2.scrollTop=list2.scrollHeight;
         /* ★ 图片/表情包是之后才加载出来的，加载完内容会变长 ——
@@ -6633,6 +6662,7 @@ function bubbleHtml(m,c){
     +(inMulti?'':meta)
     +'</div></div>';
 }
+
 function sendChat(){
   var ta=$('#chatText');if(!ta)return;
   var text=ta.value.trim();
@@ -10370,6 +10400,7 @@ document.addEventListener('click',function(e){
     else if(act==='qk-now')qkNow()
     else if(act==='qk-batch')qkBatch()
     else if(act==='qk-batch-send')qkBatchSend()
+    else if(act==='chat-earlier'){window.__chatAll=true;window.__chatSig='';renderChat();var _cl=document.getElementById('chatList');if(_cl)_cl.scrollTop=0}
     else if(act==='sc-save')schedSave()
     else if(act==='mm-save')memoSave()
     else if(act==='mm-del')memoDel(id)
@@ -13936,7 +13967,7 @@ function memoGate() {
   });
 })();
 
-/* ===== 月经记录（周条 + 来了/结束了 + 站内提醒，不进聊天） =====
+/* ===== 潮汐（经期记录，周条 + 来了/结束了 + 站内提醒，不进聊天） =====
    数据：state.period = {cycle:28, per:5, last:'2026-10-18', end:'', rec:{'2026-10-18':1}, on:true, seenLast:''} */
 function pgPad(n) { return ('0' + n).slice(-2) }
 function pgKey(d) { return d.getFullYear() + '-' + pgPad(d.getMonth() + 1) + '-' + pgPad(d.getDate()) }
@@ -13997,7 +14028,7 @@ var _pgWeek = 0;
 function renderPeriod() {
   var P = pgState(), late = pgLate(), dayIdx = pgDayIndex();
   var pct = Math.max(0, Math.min(100, Math.round(dayIdx / P.cycle * 100)));
-  var h = '<div class="page-top"><button class="back" data-view="home">' + ICON_BACK + '</button><span class="pt">月经记录</span></div>';
+  var h = '<div class="page-top"><button class="back" data-view="home">' + ICON_BACK + '</button><span class="pt">潮汐</span></div>';
   h += '<div class="pg-wrap">';
 
   /* 顶部操作 */
@@ -14050,7 +14081,7 @@ function renderPeriod() {
     var d = pgParse(k); if (!d) return;
     h += '<div class="li"><span class="d">' + pgFmt(d) + '</span><span class="tag">' + ops[P.rec[k]] + '</span><span class="ln"></span></div>';
   });
-  h += '<div class="li"><span class="d" style="color:#6B6D72">上次经期开始</span><span class="tag">' + pgFmt(pgParse(P.last) || pgToday()) + '</span></div>';
+  h += '<div class="li" data-act="pg-last"><span class="d" style="color:#6B6D72">上次经期开始</span><span class="tag">' + pgFmt(pgParse(P.last) || pgToday()) + ' ›</span></div>';
   h += '</div>';
 
   /* 设置 */
@@ -14104,6 +14135,9 @@ function pgBind() {
     if (act === 'pg-on') { e.preventDefault(); P.on = !P.on; save(); renderPeriod(); return }
     if (act === 'pg-cycle') { e.preventDefault(); P.cycle = (P.cycle >= 40 ? 21 : P.cycle + 1); save(); renderPeriod(); return }
     if (act === 'pg-per') { e.preventDefault(); P.per = (P.per >= 10 ? 3 : P.per + 1); save(); renderPeriod(); return }
+    if (act === 'pg-last') { e.preventDefault(); pgLastSheet(); return }
+    if (act === 'pg-q') { e.preventDefault(); pgSetLastFromSheet(+a.getAttribute('data-q')); return }
+    if (act === 'pg-last-save') { e.preventDefault(); pgSetLastFromSheet(null); return }
   }, true);
 }
 pgBind();
@@ -14127,6 +14161,61 @@ function pgDotTick() {
   } catch (e) { }
 }
 setInterval(function () { try { pgDotTick() } catch (e) { } }, 2000);
+
+/* ---------- 上次经期开始：三下拉（兼容所有浏览器） ---------- */
+var _pgY = 0, _pgM = 0, _pgD = 0;
+function pgLastSheet() {
+  var P = pgState(), d = pgParse(P.last) || pgToday();
+  var h = '<h2>上次经期开始</h2>';
+  h += '<div class="pg-dd">'
+    + '<select id="pgY" class="pg-sel"></select>'
+    + '<select id="pgM" class="pg-sel"></select>'
+    + '<select id="pgD" class="pg-sel"></select>'
+    + '</div>';
+  h += '<div class="pg-quick">'
+    + '<button class="pg-q" data-act="pg-q" data-q="0">今天</button>'
+    + '<button class="pg-q" data-act="pg-q" data-q="1">昨天</button>'
+    + '<button class="pg-q" data-act="pg-q" data-q="2">前天</button>'
+    + '<button class="pg-q" data-act="pg-q" data-q="7">一周前</button>'
+    + '<button class="pg-q" data-act="pg-q" data-q="28">一个月前</button>'
+    + '</div>';
+  h += '<div class="actions"><button class="cancel" data-act="sheet-close">取消</button>'
+    + '<button class="ok" data-act="pg-last-save">保存</button></div>';
+  openSheet(h);
+  var Y = document.getElementById('pgY'), M = document.getElementById('pgM'), Dd = document.getElementById('pgD');
+  if (!Y) return;
+  var cur = new Date().getFullYear(), o = '';
+  for (var y = cur; y >= 2021; y--) o += '<option value="' + y + '"' + (y === d.getFullYear() ? ' selected' : '') + '>' + y + ' 年</option>';
+  Y.innerHTML = o;
+  o = '';
+  for (var mm = 1; mm <= 12; mm++) o += '<option value="' + mm + '"' + (mm === d.getMonth() + 1 ? ' selected' : '') + '>' + mm + ' 月</option>';
+  M.innerHTML = o;
+  pgFillDays(d.getDate());
+  Y.onchange = function () { pgFillDays(); }; M.onchange = function () { pgFillDays(); };
+}
+function pgFillDays(keep) {
+  var Y = document.getElementById('pgY'), M = document.getElementById('pgM'), Dd = document.getElementById('pgD');
+  if (!Y || !Dd) return;
+  var y = +Y.value, m = +M.value;
+  var max = [31, ((y % 4 === 0 && y % 100 !== 0) || y % 400 === 0) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1];
+  var sel = keep || Math.min(+Dd.value || 1, max);
+  var o = '';
+  for (var i = 1; i <= max; i++) o += '<option value="' + i + '"' + (i === sel ? ' selected' : '') + '>' + i + ' 日</option>';
+  Dd.innerHTML = o;
+}
+function pgSetLastFromSheet(offset) {
+  var d = pgToday();
+  if (offset != null) d = new Date(d.getTime() - offset * 86400000);
+  else {
+    var Y = document.getElementById('pgY'), M = document.getElementById('pgM'), Dd = document.getElementById('pgD');
+    if (!Y) return;
+    d = new Date(+Y.value, +M.value - 1, +Dd.value);
+  }
+  var P = pgState();
+  P.last = pgKey(d); P.end = ''; P.seenLast = '';
+  if (!P.rec[P.last]) P.rec[P.last] = 1;
+  save(); closeSheet(); renderPeriod(); toast('已更新上次经期开始');
+}
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
