@@ -2186,13 +2186,13 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 .sc-av text{fill:#111214 !important}
 
 /* 真黑白补丁4：没上传底图的组件才白底（有底图的 .haswbg 保留你上传的图） */
-.widget:not(.haswbg),.hg-card:not(.haswbg){background-image:none !important;background-color:#FFFFFF !important}
+/* 保留用户底图：不再强制清 background-image */
 /* 字母头像里的字：强制黑（有图片的不受影响） */
 .sc-av *,.sc-avatar *,.bubble-av *,.chat-avatar *,.avatar *{color:#111214 !important;fill:#111214 !important;stroke:#111214 !important}
 .sc-av img,.sc-avatar img,.bubble-av img,.chat-avatar img,.avatar img{filter:none !important}
 
 /* 黑白拼接：组件卡黑顶带 + 白底；有底图时黑带半透明，图照常透出 */
-.widget{border:1px solid #111214 !important}
+.widget{border:1px solid rgba(17,18,20,.12) !important}
 .widget .wf-tt,.widget .widget-title{
   display:inline-block;background:#111214;color:#FFFFFF !important;
   padding:2px 8px;border-radius:6px;font-size:11px !important;letter-spacing:.04em;
@@ -2206,6 +2206,20 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 .widget,.widget *{color:#111214 !important}
 .widget small,.widget .meta,.widget .wd-label,.widget .wf-s,.widget .wd-sub,.widget .time{color:#6B6D72 !important}
 .widget .wf-tt,.widget .wf-tt *{color:#FFFFFF !important}
+
+/* 柔和边框：不用纯黑，改浅灰细边 + 极浅阴影 */
+.widget,.hg-card,.status-card{
+  border:1px solid rgba(17,18,20,.12) !important;
+  box-shadow:0 1px 3px rgba(0,0,0,.04) !important;
+}
+/* 心情进度环等彩色元素改黑 */
+.wd-progress circle,.wd-ring circle,.ring-fg{stroke:#111214 !important}
+.wd-progress .track,.ring-bg{stroke:rgba(17,18,20,.10) !important}
+/* 标题带保持黑，但更小巧 */
+.widget .wf-tt,.widget .widget-title{padding:1px 7px;border-radius:5px;font-size:10.5px !important}
+
+/* 卡片默认底色：白（用户底图 --wbg 仍会显示在最上层） */
+.widget,.hg-widget,.hg-card,.status-card{background-image:var(--wbg,none) !important;background-color:#FFFFFF !important}
 </style>
 </head>
 <body>
