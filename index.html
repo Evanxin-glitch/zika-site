@@ -2405,6 +2405,47 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 .ccd-dots i:nth-child(3){opacity:.9}
 .ccd-row{display:flex;gap:8px;font-size:12.5px;color:#6B6D72;margin-top:6px}
 .ccd-row b{color:#111214;font-weight:600}
+
+/* ===== 宠物 App ===== */
+.pt-wrap{padding:2px 16px 0;color:#111214}
+.pt-pets{display:flex;gap:8px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}
+.pt-pets::-webkit-scrollbar{display:none}
+.pt-petbtn{flex:0 0 auto;border:1px solid rgba(17,18,20,.12);background:#fff;border-radius:14px;padding:8px 10px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:64px}
+.pt-petbtn.on{background:#111214;border-color:#111214;color:#fff}
+.pt-petbtn.on .pn{color:rgba(255,255,255,.72)}
+.pt-petbtn svg{width:38px;height:38px}
+.pt-petbtn .pn{font-size:10.5px;color:#6B6D72;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pt-petbtn.add{justify-content:center;font-size:20px;color:#6B6D72;min-width:56px;padding:14px 0}
+.pt-empty{border:1px dashed rgba(17,18,20,.18);border-radius:16px;padding:28px 16px;text-align:center;font-size:13px;color:#6B6D72;margin-top:12px;line-height:1.8}
+.pt-card{border:1px solid rgba(17,18,20,.12);border-radius:18px;padding:16px;margin-top:12px;text-align:center;background:#fff}
+.pt-big{display:flex;justify-content:center}
+.pt-big svg{width:150px;height:150px;image-rendering:pixelated}
+.pt-name{font-size:15px;font-weight:600;margin-top:2px}
+.pt-sub{font-size:11.5px;color:#6B6D72}
+.pt-stats{margin-top:12px;text-align:left}
+.pt-st{display:flex;align-items:center;gap:9px;margin:7px 0;font-size:12px}
+.pt-st .lbl{width:34px;color:#6B6D72}
+.pt-st .bar{flex:1;height:7px;border-radius:99px;background:#EFEFEF;overflow:hidden}
+.pt-st .bar i{display:block;height:100%;background:#111214;transition:width .3s}
+.pt-st .v{width:34px;text-align:right;color:#6B6D72;font-variant-numeric:tabular-nums}
+.pt-say{display:flex;align-items:center;gap:8px;border:1px solid rgba(17,18,20,.12);border-radius:12px;padding:9px 11px;margin-top:12px;font-size:12.5px;color:#2A2B2F;background:#FAFAFA;text-align:left}
+.pt-say .av{width:19px;height:19px;border-radius:50%;background:#111214;color:#fff;font-size:9.5px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.pt-acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.pt-btn{border:1px solid #111214;background:#111214;color:#fff;border-radius:12px;padding:12px 0;font-size:13.5px;font-weight:600}
+.pt-btn.ghost{background:#fff;color:#111214}
+.pt-opts{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.pt-opt{border:1px solid rgba(17,18,20,.12);border-radius:999px;padding:8px 13px;font-size:12.5px;color:#3A3B3F;background:#fff}
+.pt-h{font-size:12px;color:#6B6D72}
+.pt-h b{color:#111214;font-size:13px}
+.pt-li{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid rgba(17,18,20,.06);font-size:12.5px}
+.pt-li .t{width:42px;color:#6B6D72;font-variant-numeric:tabular-nums}
+.pt-li .who{width:44px;flex:0 0 auto;color:#6B6D72}
+.pt-li .who.me{color:#111214;font-weight:600}
+.pt-li .what{flex:1;min-width:0}
+.pt-prev{display:flex;justify-content:center;margin:4px 0 0}
+.pt-prev svg{width:96px;height:96px;image-rendering:pixelated}
+/* 聊天里的宠物系统卡片 */
+.petsys{display:inline-flex;align-items:center;gap:8px;border:1px dashed rgba(17,18,20,.25);border-radius:12px;padding:8px 12px;font-size:11.5px;color:#3A3B3F;background:#fff}
 </style>
 </head>
 <body>
@@ -3222,6 +3263,9 @@ function migrate(s){
   if(s.settings.checkinPct===undefined)s.settings.checkinPct=25;
   if(s.settings.postPct===undefined)s.settings.postPct=50;
   if(!Array.isArray(s.memos))s.memos=[];
+  if(!Array.isArray(s.pets))s.pets=[];
+  if(!Array.isArray(s.petLog))s.petLog=[];
+  if(s.petCur===undefined)s.petCur=0;
   if(!s.period||typeof s.period!=='object')s.period={cycle:28,per:5,last:'',end:'',rec:{},on:true,seenLast:''};
   if(s.settings.callMin===undefined)s.settings.callMin=15;
   if(s.settings.callMax===undefined)s.settings.callMax=60;
@@ -4460,7 +4504,7 @@ function coverStyle(){
 }
 
 /* ================= 路由 ================= */
-var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey','game','guide','read','schedule','memo','period'];
+var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey','game','guide','read','schedule','memo','period','pet'];
 var _routedOnce=false;
 function router(){
   var h=location.hash.replace('#','');
@@ -4542,6 +4586,7 @@ function render(v){
   else if(v==='schedule')renderSchedule();
   else if(v==='memo')renderMemo();
   else if(v==='period')renderPeriod();
+  else if(v==='pet')renderPets();
   else renderMe();
   /* 一起听开着的时候：离开听歌界面自动缩成悬浮条，回到听歌界面自动收起 */
   try{if(typeof musBarToggle==='function')musBarToggle()}catch(e){}
@@ -4585,6 +4630,7 @@ function syncAppOrder(){
 function appListDefs(){
   return [
 
+    {v:'pet',n:'宠物',c:'#C0875A',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M7.5 10.5c-1.2 0-2.2-1.1-2.2-2.5S6.3 5.5 7.5 5.5s2.2 1.1 2.2 2.5-1 2.5-2.2 2.5z"/><path d="M16.5 10.5c-1.2 0-2.2-1.1-2.2-2.5s1-2.5 2.2-2.5 2.2 1.1 2.2 2.5-1 2.5-2.2 2.5z"/><path d="M12 19.5c-3.2 0-5.4-1.9-5.4-4 0-1.7 1.6-2.8 3.4-2.8 1 0 1.6.3 2 .6.4-.3 1-.6 2-.6 1.8 0 3.4 1.1 3.4 2.8 0 2.1-2.2 4-5.4 4z"/></svg>'},
     {v:'period',n:'潮汐',c:'#2B2B2E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M12 3.5c3.6 3 6 6 6 9.2a6 6 0 0 1-12 0c0-3.2 2.4-6.2 6-9.2z"/><path d="M12 11v5"/></svg>'},
     {v:'memo',n:'备忘录',c:'#2B2B2E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><rect x="5" y="3.5" width="14" height="17" rx="3"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></svg>'},
     {v:'schedule',n:'日程',c:'#5B7F68',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/></svg>'},
@@ -6753,6 +6799,10 @@ function bubbleHtml(m,c){
       +'<div class="gc-foot"><span class="gc-state '+qcls+'">'+qst+'</span></div>'
       +'</div></div>';
   }
+  if(m.kind==='petsys'){
+    return '<div class="msg-row in"><span class="bubble-av">'+cAvatar(c)+'</span>'
+      +'<span class="petsys"><i style="width:7px;height:7px;border-radius:50%;background:#111214;display:inline-block"></i>'+esc(m.text||'')+'</span></div>';
+  }
   if(m.kind==='invite'){
     var whoName=(m.dir==='in')?c.name:'我';
     var state2=m.accepted?'已接受':(m.refused?'已婉拒':'待回应');
@@ -7873,6 +7923,7 @@ function modePick(id){
 }
 function timerStart(){
   if(!_curMode){toast('先选一个模式');return}
+  CLK.clear(_tmrTick);_tmrTick=null;   /* 防止重复开计时器（会导致倒计时变快） */
   if(_left<=0){var mo=findMode(_curMode);if(mo)_left=mo.mins*60}
   _running=true;
   beep(true);
@@ -8560,7 +8611,7 @@ var BACKUP_CATS=[
  {k:'me',        n:'我的资料',          d:'昵称、头像、个人资料',        keys:['me']},
  {k:'contacts',  n:'梦角资料',          d:'角色、头像、回复节奏、概率',   keys:['contacts','activeContact']},
  {k:'desktop',   n:'全局设置与桌面',    d:'主题、壁纸、字体、各种开关',   keys:['settings','appIcons','appOrder','appPos','appPage']},
- {k:'widgets',   n:'桌面小组件',        d:'组件内容、布局和媒体引用',     keys:['period','memos','widgets','widgetsOn','widgetOrder','widgetSize','widgetPage','widgetPos','widgetImgs','widgetWeather','widgetCount','widgetProgress','widgetPhoto','widgetCalendar','widgetDaysLabel','widgetDaysUnit','widgetNote','widgetMusic','anniversaryDays']},
+ {k:'widgets',   n:'桌面小组件',        d:'组件内容、布局和媒体引用',     keys:['pets','petLog','period','memos','widgets','widgetsOn','widgetOrder','widgetSize','widgetPage','widgetPos','widgetImgs','widgetWeather','widgetCount','widgetProgress','widgetPhoto','widgetCalendar','widgetDaysLabel','widgetDaysUnit','widgetNote','widgetMusic','anniversaryDays']},
  {k:'chat',      n:'聊天记录',          d:'各联系人的文字和媒体消息',     keys:['messages','nextInit','nextCallDue','nextInviteDue']},
  {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet','mySaves','pollLog','surveys']},
  {k:'cards',     n:'字卡库',            d:'分组、字卡、固定字卡',         keys:['cards','cardCats','statusCards','moodCards','patCards','diaryCards','writerCards','_smDeleted','currentStatus','currentMood']},
@@ -14796,7 +14847,30 @@ function pgSetLastFromSheet(offset) {
   /* ---------- 渲染 ---------- */
   var _say = '', _lastElapsed = 0, _wasRunning = false;
 
+  /* 同名模式去重：优先留自定义，其次留默认里第一个 */
+  function dedupeModes() {
+    try {
+      var cp = state.companion; if (!cp) return;
+      var seen = {}, keepM = [], keepC = [];
+      (cp.custom || []).forEach(function (m) {
+        if (!m || !String(m.name || '').trim()) return;
+        var n = String(m.name).trim();
+        if (seen[n]) return; seen[n] = 1; keepC.push(m);
+      });
+      (cp.modes || []).forEach(function (m) {
+        if (!m || !String(m.name || '').trim()) return;
+        var n = String(m.name).trim();
+        if (seen[n]) return; seen[n] = 1; keepM.push(m);
+      });
+      if (keepM.length !== (cp.modes || []).length || keepC.length !== (cp.custom || []).length) {
+        cp.modes = keepM; cp.custom = keepC;
+        try { save() } catch (e) { }
+      }
+    } catch (e) { }
+  }
+
   window.renderCompanion = function () {
+    dedupeModes();
     var cp = state.companion, modes = compModes();
     var cur = null;
     for (var i = 0; i < modes.length; i++) if (modes[i].id === _curMode) cur = modes[i];
@@ -14820,14 +14894,14 @@ function pgSetLastFromSheet(offset) {
     h += '<div class="cp-modes">';
     for (var k = 0; k < modes.length; k++) {
       var mo = modes[k];
-      h += '<button class="cp-mode' + (mo.id === _curMode ? ' on' : '') + '" data-act="mode-pick" data-id="' + mo.id + '" data-mode="1">'
+      h += '<button class="cp-mode mode-chip' + (mo.id === _curMode ? ' on' : '') + '" data-act="mode-pick" data-id="' + mo.id + '" data-mode="1">'
         + '<b>' + esc(mo.name) + '</b><span>' + mo.mins + ' 分钟</span></button>';
     }
     h += '<button class="cp-mode add" data-act="mode-add">＋</button></div>';
 
     /* 按钮 */
     h += '<div class="cp-acts">'
-      + '<button class="cp-btn" data-act="timer-start">' + (_running ? '暂停' : '开始') + '</button>'
+      + '<button class="cp-btn" data-act="' + (_running ? 'timer-pause' : 'timer-start') + '">' + (_running ? '暂停' : '开始') + '</button>'
       + '<button class="cp-btn ghost" data-act="timer-reset">重置</button></div>';
 
     /* 他说一句 */
@@ -14899,8 +14973,11 @@ function pgSetLastFromSheet(offset) {
       var stt = document.getElementById('timerState');
       if (stt) stt.textContent = _running ? ('专注中 · ' + (cur ? cur.name : '')) : (cur ? cur.name : '选一个模式开始陪伴');
       /* 开始按钮文案 */
-      var sb = document.querySelector('[data-act="timer-start"]');
-      if (sb) sb.textContent = _running ? '暂停' : '开始';
+      var sb = document.querySelector('.cp-acts .cp-btn');
+      if (sb) {
+        sb.setAttribute('data-act', _running ? 'timer-pause' : 'timer-start');
+        sb.textContent = _running ? '暂停' : '开始';
+      }
     } catch (e) { }
 
     /* 每 15 分钟说一句 */
@@ -15033,6 +15110,203 @@ function pgSetLastFromSheet(offset) {
     } catch (e) { }
     return origBubble.apply(null, arguments);
   };
+})();
+
+/* ===== 宠物 App（像素猫 · 最多 3 只 · 陆沉也会照顾） =====
+   数据：state.pets=[{id,name,bi,breed,h,m,c,day,say,last}]
+   记录：state.petLog=[{t,who,what,pet}]  who: '我' | '陆沉'
+   他照顾 → 往主聊天推一条 kind:'petsys' 的小卡片（不合并，每条都留） */
+var PET_LIMIT = 3;
+var PET_BREEDS = [
+  { n: '中华田园猫', c: '#d4c0ab', s: '#8c7360', b: '#fdfcfb' },
+  { n: '英国短毛猫', c: '#91a3b0', s: '#708090', b: '#91a3b0' },
+  { n: '布偶猫', c: '#fdfcfb', s: '#b0c4de', b: '#ffffff' },
+  { n: '暹罗猫', c: '#f5f5dc', s: '#3d2b1f', b: '#e6dacb' },
+  { n: '苏格兰折耳猫', c: '#e3c9c9', s: '#c19a9a', b: '#fdfcfb', fold: true }
+];
+function petSVG(idx, size) {
+  size = size || 150;
+  var i = PET_BREEDS[idx] || PET_BREEDS[0], f = !!i.fold;
+  var y1 = f ? 14 : 11, y2 = f ? 15 : 12, y3 = f ? 16 : 13;
+  return '<svg viewBox="0 0 48 48" width="' + size + '" height="' + size + '" shape-rendering="crispEdges">'
+    + '<rect x="14" y="' + y1 + '" width="4" height="1" fill="#333"/><rect x="13" y="' + y2 + '" width="1" height="4" fill="#333"/><rect x="18" y="' + y2 + '" width="1" height="3" fill="#333"/>'
+    + '<rect x="30" y="' + y1 + '" width="4" height="1" fill="#333"/><rect x="34" y="' + y2 + '" width="1" height="4" fill="#333"/><rect x="29" y="' + y2 + '" width="1" height="3" fill="#333"/>'
+    + '<rect x="14" y="' + y2 + '" width="4" height="3" fill="' + i.c + '"/><rect x="15" y="' + y3 + '" width="2" height="2" fill="#f8b8b8"/>'
+    + '<rect x="30" y="' + y2 + '" width="4" height="3" fill="' + i.c + '"/><rect x="31" y="' + y3 + '" width="2" height="2" fill="#f8b8b8"/>'
+    + '<rect x="18" y="15" width="12" height="1" fill="#333"/><rect x="12" y="16" width="1" height="11" fill="#333"/><rect x="35" y="16" width="1" height="11" fill="#333"/><rect x="13" y="27" width="22" height="1" fill="#333"/>'
+    + '<rect x="14" y="28" width="1" height="9" fill="#333"/><rect x="33" y="28" width="1" height="9" fill="#333"/><rect x="15" y="37" width="18" height="1" fill="#333"/>'
+    + '<rect x="35" y="30" width="4" height="1" fill="#333"/><rect x="39" y="31" width="1" height="5" fill="#333"/><rect x="34" y="36" width="5" height="1" fill="#333"/>'
+    + '<rect x="13" y="16" width="22" height="11" fill="' + i.c + '"/><rect x="15" y="28" width="18" height="9" fill="' + i.c + '"/><rect x="35" y="31" width="4" height="5" fill="' + i.c + '"/>'
+    + '<rect x="21" y="16" width="6" height="1" fill="' + i.s + '"/><rect x="23" y="17" width="2" height="2" fill="' + i.s + '"/><rect x="13" y="21" width="3" height="1" fill="' + i.s + '"/><rect x="32" y="21" width="3" height="1" fill="' + i.s + '"/><rect x="36" y="31" width="1" height="5" fill="' + i.s + '"/><rect x="38" y="31" width="1" height="5" fill="' + i.s + '"/>'
+    + '<rect x="19" y="22" width="2" height="2" fill="#333"/><rect x="27" y="22" width="2" height="2" fill="#333"/><rect x="24" y="25" width="1" height="1" fill="#f8b8b8"/><rect x="20" y="27" width="8" height="10" fill="' + i.b + '"/><rect x="21" y="35" width="1" height="2" fill="#333"/><rect x="26" y="35" width="1" height="2" fill="#333"/>'
+    + '</svg>';
+}
+function petClamp(v) { return Math.max(0, Math.min(100, v)) }
+function petList() { if (!Array.isArray(state.pets)) state.pets = []; return state.pets }
+function petLog() { if (!Array.isArray(state.petLog)) state.petLog = []; return state.petLog }
+function petCur() { var l = petList(); if (!l.length) return null; var i = state.petCur | 0; if (i < 0 || i >= l.length) i = 0; return l[i] }
+function petSayFine() { return pick(['它今天挺乖的。', '它一直在窗边趴着。', '刚才打雷，它躲到床底下了。', '它刚才睡着了，我叫它都没理。']) }
+
+/* 时间衰减：按上次时间差扣状态（每小时 -7/-6/-5） */
+function petDecay(p) {
+  var now = Date.now(), last = p.last || now;
+  var hours = (now - last) / 3600000;
+  if (hours <= 0.05) return 0;
+  p.h = petClamp(p.h - hours * 7);
+  p.m = petClamp(p.m - hours * 6);
+  p.c = petClamp(p.c - hours * 5);
+  p.last = now;
+  p.day = (p.day || 1) + Math.floor(hours / 24);
+  return hours;
+}
+/* 他的照顾：状态低时按概率补一次，写记录 + 推聊天卡片 */
+function petHimCare(silent) {
+  var did = 0;
+  petList().forEach(function (p) {
+    petDecay(p);
+    var acts = [];
+    if (p.h < 55 && Math.random() < 0.75) { p.h = petClamp(p.h + 30); acts.push({ t: '喂了猫粮', k: 'feed' }) }
+    if (p.m < 55 && Math.random() < 0.6) { p.m = petClamp(p.m + 26); acts.push({ t: '陪它玩了一会儿', k: 'play' }) }
+    if (p.c < 40 && Math.random() < 0.5) { p.c = petClamp(p.c + 28); acts.push({ t: '给它擦了毛', k: 'bath' }) }
+    acts.forEach(function (a) {
+      petLog().push({ t: now(), who: '陆沉', what: a.t, pet: p.name });
+      if (!silent) {
+        try {
+          var c = activeContact();
+          if (c) {
+            pushIn(c.id, '🐾 陆沉' + a.t + ' · ' + p.name, now());
+            var lm = state.messages[state.messages.length - 1];
+            if (lm) { lm.kind = 'petsys'; lm.petSys = 1 }
+          }
+        } catch (e) { }
+      }
+      did++;
+    });
+    if (p.h < 35) p.say = pick(['它一直喵喵叫，你是不是忘了它。', '碗空了，你忙完喂一下。']);
+    else if (p.m < 35) p.say = pick(['它今天有点闷，陪它玩一会儿吧。', '它盯着门看了一下午。']);
+    else if (p.c < 30) p.say = '它身上有味道了，该洗了。';
+  });
+  if (did) save();
+  return did;
+}
+
+/* ---------- 界面 ---------- */
+var _petOp = 'feed';
+var PET_OPS = {
+  feed: [['普通猫粮', 18], ['吞拿鱼罐头', 28], ['香脆鱼干', 15], ['爱心猫饭', 32]],
+  play: [['逗猫棒', 20], ['踢踢球', 16], ['抱一抱', 14], ['钻纸箱', 18]],
+  bath: [['洗个澡', 30], ['擦擦毛', 12]]
+};
+function renderPets() {
+  var list = petList();
+  var h = '<div class="page-top"><button class="back" data-view="home">' + ICON_BACK + '</button><span class="pt">宠物</span>'
+    + '<span style="margin-left:auto;font-size:11.5px;color:#6B6D72">' + (list.length ? (list.length + ' / ' + PET_LIMIT + ' 只') : '') + '</span></div>';
+  h += '<div class="pt-wrap">';
+
+  /* 宠物切换 */
+  h += '<div class="pt-pets">';
+  list.forEach(function (p, i) {
+    h += '<button class="pt-petbtn' + (i === (state.petCur | 0) ? ' on' : '') + '" data-act="pet-switch" data-i="' + i + '">'
+      + petSVG(p.bi, 38) + '<span class="pn">' + esc(p.name) + '</span></button>';
+  });
+  if (list.length < PET_LIMIT) h += '<button class="pt-petbtn add" data-act="pet-adopt">＋</button>';
+  h += '</div>';
+
+  var p = petCur();
+  if (!p) {
+    h += '<div class="pt-empty">还没有宠物，点上面的「＋」领养一只。<br><span style="font-size:11px">最多 ' + PET_LIMIT + ' 只</span></div></div>';
+    $('#view').innerHTML = h; return;
+  }
+  petDecay(p);
+  var stateTxt = (p.h < 30 || p.m < 30) ? '需要照顾' : (p.m > 80 ? '心情很好' : '状态不错');
+  h += '<div class="pt-card">'
+    + '<div class="pt-big">' + petSVG(p.bi, 150) + '</div>'
+    + '<div class="pt-name">' + esc(p.name) + '</div>'
+    + '<div class="pt-sub">' + esc(p.breed) + ' · ' + stateTxt + ' · 第 ' + (p.day || 1) + ' 天</div>'
+    + '<div class="pt-stats">'
+    + petBar('饱腹', p.h) + petBar('心情', p.m) + petBar('清洁', p.c)
+    + '</div>'
+    + '<div class="pt-say"><span class="av">陆</span><span>' + esc(p.say || petSayFine()) + '</span></div>'
+    + '</div>';
+
+  /* 操作 */
+  h += '<div class="pt-acts">'
+    + '<button class="pt-btn' + (_petOp === 'feed' ? '' : ' ghost') + '" data-act="pet-op" data-op="feed">喂食</button>'
+    + '<button class="pt-btn' + (_petOp === 'play' ? '' : ' ghost') + '" data-act="pet-op" data-op="play">玩耍</button>'
+    + '<button class="pt-btn' + (_petOp === 'bath' ? '' : ' ghost') + '" data-act="pet-op" data-op="bath">洗澡</button></div>';
+  h += '<div class="pt-opts">';
+  (PET_OPS[_petOp] || []).forEach(function (x) {
+    h += '<button class="pt-opt" data-act="pet-do" data-name="' + esc(x[0]) + '" data-v="' + x[1] + '">' + esc(x[0]) + '</button>';
+  });
+  h += '</div>';
+
+  /* 记录 */
+  var logs = petLog().slice(-8).reverse();
+  h += '<div class="pt-card" style="padding:0;margin-top:12px"><div class="pt-h" style="padding:12px 14px 6px"><b>谁做了什么</b></div>';
+  if (!logs.length) h += '<div style="padding:0 14px 14px;font-size:12px;color:#6B6D72">还没有记录</div>';
+  logs.forEach(function (x) {
+    var d = new Date(x.t);
+    var hm = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    h += '<div class="pt-li"><span class="t">' + hm + '</span><span class="who ' + (x.who === '我' ? 'me' : 'him') + '">' + x.who + '</span>'
+      + '<span class="what">' + esc(x.what) + (x.pet ? '（' + esc(x.pet) + '）' : '') + '</span></div>';
+  });
+  h += '</div>';
+  h += '<div style="height:26px"></div></div>';
+  $('#view').innerHTML = h;
+}
+function petBar(label, v) {
+  return '<div class="pt-st"><span class="lbl">' + label + '</span><span class="bar"><i style="width:' + Math.round(v) + '%"></i></span>'
+    + '<span class="v">' + Math.round(v) + '</span></div>';
+}
+
+/* ---------- 动作 ---------- */
+function petAdoptSheet() {
+  if (petList().length >= PET_LIMIT) { toast('最多养 ' + PET_LIMIT + ' 只'); return }
+  var bi = state.petAdoptBi | 0;
+  var h = '<h2>领养一只</h2>'
+    + '<div class="pt-prev" id="petPrev">' + petSVG(bi, 96) + '</div>'
+    + '<label>品种</label><select id="petBi">' + PET_BREEDS.map(function (b, i) { return '<option value="' + i + '"' + (i === bi ? ' selected' : '') + '>' + b.n + '</option>' }).join('') + '</select>'
+    + '<label>名字</label><input id="petName" maxlength="8" placeholder="起个名字">'
+    + '<div class="actions"><button class="cancel" data-act="sheet-close">取消</button>'
+    + '<button class="ok" data-act="pet-adopt-ok">确认领养</button></div>';
+  openSheet(h);
+  var sel = document.getElementById('petBi');
+  if (sel) sel.onchange = function () { state.petAdoptBi = +this.value; var pv = document.getElementById('petPrev'); if (pv) pv.innerHTML = petSVG(+this.value, 96) };
+}
+function petAdoptOk() {
+  if (petList().length >= PET_LIMIT) { toast('最多养 ' + PET_LIMIT + ' 只'); return }
+  var bi = parseInt(inpVal('petBi'), 10); if (!(bi >= 0)) bi = 0;
+  var nm = String(inpVal('petName') || '').trim() || '小猫';
+  petList().push({ id: 'pet' + Date.now(), name: nm, bi: bi, breed: PET_BREEDS[bi].n, h: 80, m: 75, c: 90, day: 1, say: petSayFine(), last: Date.now() });
+  state.petCur = petList().length - 1;
+  petLog().push({ t: now(), who: '我', what: '领养了 ' + nm + '（' + PET_BREEDS[bi].n + '）', pet: nm });
+  save(); closeSheet(); renderPets(); toast('领养了 ' + nm);
+}
+function petDo(name, val) {
+  var p = petCur(); if (!p) return;
+  if (_petOp === 'feed') p.h = petClamp(p.h + val);
+  if (_petOp === 'play') p.m = petClamp(p.m + val);
+  if (_petOp === 'bath') p.c = petClamp(p.c + val);
+  p.say = pick(['谢谢主人喵。', '再来一次喵？', '舒服了喵。', '还想吃。']);
+  petLog().push({ t: now(), who: '我', what: (_petOp === 'feed' ? '喂了' : (_petOp === 'play' ? '陪玩' : '洗了')) + '：' + name, pet: p.name });
+  save(); renderPets();
+}
+
+(function petBind() {
+  if (window.__petBound) return; window.__petBound = 1;
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    var a = t.closest('[data-act]'); if (!a) return;
+    var act = a.getAttribute('data-act');
+    if (act.indexOf('pet-') !== 0) return;
+    if (act === 'pet-switch') { e.preventDefault(); state.petCur = parseInt(a.getAttribute('data-i'), 10) || 0; save(); renderPets(); return }
+    if (act === 'pet-adopt') { e.preventDefault(); petAdoptSheet(); return }
+    if (act === 'pet-adopt-ok') { e.preventDefault(); petAdoptOk(); return }
+    if (act === 'pet-op') { e.preventDefault(); _petOp = a.getAttribute('data-op'); renderPets(); return }
+    if (act === 'pet-do') { e.preventDefault(); petDo(a.getAttribute('data-name'), parseInt(a.getAttribute('data-v'), 10) || 10); return }
+  }, true);
+  /* 隔一会儿检查一次：状态掉了他会照顾（不刷屏：只有动作才推消息） */
+  setInterval(function () { try { petHimCare(false) } catch (e) { } }, 120000);
 })();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
