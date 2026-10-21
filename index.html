@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="64c456244a">
+<meta name="x-build" content="494f989d5d">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -6326,12 +6326,26 @@ function schedule(){
        这条评论就永远不会发生了 —— 现在只要还没评论过就排队执行。 */
     if(p.commentDue&&!p.commented)items.push({ts:p.commentDue,fn:(function(pp){return function(){postComment(pp)}})(p)});
     if(p.replyMineDue)items.push({ts:p.replyMineDue,fn:(function(pp){return function(){postReplyMine(pp)}})(p)});
+  }
   var ac2=activeContact();
+  /* 首次进入先排一条朋友圈（否则一条都没有时永远排不上） */
+  if(ac2){
+    state.nextPostDue=state.nextPostDue||{};
+    if(!state.nextPostDue[ac2.id]){
+      state.nextPostDue[ac2.id]=t+rnd((state.settings.momMin||180)*60000,(state.settings.momMax||720)*60000);
+    }
+  }
+  /* 排期异常就重排：存的时间比"最长间隔"还远，说明数据坏了或换了设置 */
+  if(ac2&&state.nextPostDue&&state.nextPostDue[ac2.id]){
+    var _maxGap=(state.settings.momMax||720)*60000;
+    if(state.nextPostDue[ac2.id]>t+_maxGap+60000||state.nextPostDue[ac2.id]<0){
+      state.nextPostDue[ac2.id]=t+rnd((state.settings.momMin||180)*60000,_maxGap);
+    }
+  }
   if(ac2&&state.nextPostDue&&state.nextPostDue[ac2.id])items.push({ts:state.nextPostDue[ac2.id],fn:(function(cc){return function(){maybePost(cc,now());state.nextPostDue[cc.id]=now()+rnd((state.settings.momMin||180)*60000,(state.settings.momMax||720)*60000);save();schedule()}})(ac2)});
   if(state.settings&&state.settings.visitorOn){
     if(!state.nextVisitDue)state.nextVisitDue=t+rnd((state.settings.visitorMin||180)*60000,(state.settings.visitorMax||720)*60000);
     items.push({ts:state.nextVisitDue,fn:function(){state.lastVisit=now();state.visitorCount=(state.visitorCount||0)+1;state.nextVisitDue=now()+rnd((state.settings.visitorMin||180)*60000,(state.settings.visitorMax||720)*60000);try{visitLeaveCard()}catch(e){}save();renderAll()}});
-  }
   }
   var acX=activeContact();
   if(acX&&state.settings&&state.settings.callOn!==false){
@@ -6434,6 +6448,22 @@ function schedule(){
     _timer=CLK.set(function(){nx.fn();schedule()},_sd);
   }
 }
+/* ===== 回到前台就重新排期（手机后台会暂停定时器） ===== */
+(function schedResume(){
+  if(window.__schedResume)return; window.__schedResume=1;
+  var last=0;
+  function kick(){
+    var t=Date.now();
+    if(t-last<1200)return;      /* 防抖，别来回触发 */
+    last=t;
+    try{ if(typeof schedule==='function')schedule() }catch(e){}
+  }
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden)kick() });
+  window.addEventListener('focus',kick);
+  window.addEventListener('pageshow',kick);
+  setTimeout(kick,1500);
+})();
+
 function markRead(m){
   if(m.read)return;
   m.read=true;
