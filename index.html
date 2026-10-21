@@ -2304,6 +2304,107 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 .bubble.out[style*="background-image"] .t,.bubble.out.has-skin .t{text-shadow:0 1px 2px rgba(0,0,0,.45)}
 /* 收到的消息（浅底深字）也统一走变量 */
 .bubble.in{background:#fff !important;color:#111214 !important}
+
+/* ===== 字卡库（改造版） ===== */
+.cc-wrap{padding:2px 16px 0;color:#111214}
+.cc-ta{width:100%;min-height:88px;border:1px solid rgba(17,18,20,.12);border-radius:12px;padding:11px 12px;font-size:15px;font-family:inherit;line-height:1.6;background:#fff;color:#111214;resize:vertical;box-sizing:border-box}
+.cc-cats{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 8px}
+.cc-chip{border:1px solid rgba(17,18,20,.12);background:#fff;border-radius:999px;padding:7px 12px;font-size:12.5px;color:#3A3B3F;display:flex;align-items:center;gap:4px}
+.cc-chip.on{background:#111214;border-color:#111214;color:#fff;font-weight:600}
+.cc-fxdot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5}
+.cc-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.cc-btn{border:1px solid #111214;background:#111214;color:#fff;border-radius:12px;padding:10px 14px;font-size:13.5px;font-weight:600}
+.cc-btn.ghost{background:#fff;color:#111214}
+.cc-msg{font-size:12px;color:#111214;min-height:16px;margin:4px 0 6px}
+.cc-grp{display:flex;align-items:center;gap:8px;padding:10px 0 6px;font-size:12.5px;font-weight:600}
+.cc-grp b{font-weight:400;color:#6B6D72;font-size:11px}
+.cc-list{border:1px solid rgba(17,18,20,.12);border-radius:14px;overflow:hidden}
+.cc-li{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid rgba(17,18,20,.06);font-size:13.5px}
+.cc-li:last-child{border-bottom:0}
+.cc-t{flex:1;min-width:0;word-break:break-word}
+.cc-x{width:22px;height:22px;border-radius:50%;border:1px solid rgba(17,18,20,.12);display:flex;align-items:center;justify-content:center;color:#8A8C91;font-size:12px;flex:0 0 auto}
+.cc-fx{font-size:10px;color:#6B6D72;border:1px solid rgba(17,18,20,.12);border-radius:6px;padding:1px 5px;flex:0 0 auto;font-style:normal}
+.cc-mrow{display:flex;align-items:center;gap:8px;padding:11px 0;border-bottom:1px solid rgba(17,18,20,.06);font-size:14px}
+.cc-mrow:last-of-type{border-bottom:0}
+.cc-mn{flex:1;min-width:0;word-break:break-word}
+.cc-mc{font-size:11px;color:#6B6D72;margin-right:4px}
+.cc-mb{border:1px solid rgba(17,18,20,.12);background:#fff;border-radius:9px;padding:6px 10px;font-size:12px;color:#3A3B3F}
+.cc-mb.danger{color:#A33B33;border-color:rgba(163,59,51,.28)}
+
+.cc-hint{font-size:11.5px;color:#6B6D72;line-height:1.6}
+
+.cc-chip.muted{opacity:.45}
+.cc-mute{border:1px solid rgba(17,18,20,.12);background:#fff;border-radius:8px;padding:3px 8px;font-size:10.5px;color:#6B6D72;margin-left:4px}
+.cc-mute.on{background:#EDEDED;color:#111214;border-color:rgba(17,18,20,.2)}
+
+/* ===== 陪伴页（新版 ins 风） ===== */
+.cp-streak{margin-left:auto;font-size:11.5px;color:#6B6D72}
+.cp-wrap{padding:2px 16px 0;color:#111214;border-radius:20px}
+.cp-timer{display:flex;justify-content:center;margin:14px 0 6px}
+.cp-ring{position:relative;width:220px;height:220px}
+.cp-ring svg{transform:rotate(-90deg)}
+.cp-track{stroke:rgba(17,18,20,.08)}
+.cp-fg{stroke:#111214;stroke-linecap:round;transition:stroke-dashoffset .35s linear}
+.cp-mid{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.cp-t{font-size:38px;font-weight:600;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.cp-m{font-size:12px;color:#6B6D72}
+.cp-modes{display:flex;gap:8px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}
+.cp-modes::-webkit-scrollbar{display:none}
+.cp-mode{flex:0 0 auto;border:1px solid rgba(17,18,20,.12);border-radius:14px;padding:10px 14px;background:#fff;display:flex;flex-direction:column;gap:2px;min-width:92px;text-align:left}
+.cp-mode b{font-size:13.5px;font-weight:600}
+.cp-mode span{font-size:11px;color:#6B6D72}
+.cp-mode.on{background:#111214;border-color:#111214;color:#fff}
+.cp-mode.on span{color:rgba(255,255,255,.65)}
+.cp-mode.add{align-items:center;justify-content:center;color:#6B6D72;font-size:20px;min-width:54px;padding:10px 0}
+.cp-acts{display:flex;gap:10px;margin-top:12px}
+.cp-btn{flex:1;border:1px solid #111214;background:#111214;color:#fff;border-radius:14px;padding:13px;font-size:15px;font-weight:600}
+.cp-btn.ghost{background:#fff;color:#111214}
+.cp-say{display:flex;align-items:center;gap:9px;border:1px solid rgba(17,18,20,.12);border-radius:14px;padding:11px 13px;margin-top:12px;font-size:13px;color:#2A2B2F;background:#FAFAFA}
+.cp-say .av{width:20px;height:20px;border-radius:50%;background:#111214;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.cp-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.cp-stat{border:1px solid rgba(17,18,20,.12);border-radius:14px;padding:12px;text-align:center;background:#fff}
+.cp-stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.cp-stat span{font-size:10.5px;color:#6B6D72}
+.cp-card{border:1px solid rgba(17,18,20,.12);border-radius:16px;padding:14px;margin-top:12px;background:#fff}
+.cp-h{font-size:12px;color:#6B6D72}
+.cp-h b{color:#111214;font-size:13px}
+.cp-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:78px;margin-top:10px}
+.cp-bar{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px}
+.cp-bar i{display:block;width:56%;max-width:20px;border-radius:6px;background:#E8E8E8}
+.cp-bar.done i{background:#111214}
+.cp-bar .d{font-size:10px;color:#6B6D72}
+.cp-bar.today .d{color:#111214;font-weight:600}
+.cp-mini{border:1px solid rgba(17,18,20,.12);background:#fff;border-radius:10px;padding:9px;font-size:12px;color:#3A3B3F}
+
+/* ===== 聊天卡片（邀请/转账/查岗）新版 ===== */
+.ccd{flex:1;min-width:0;max-width:82%;border:1px solid rgba(17,18,20,.12);border-radius:16px;padding:14px;background:#fff;color:#111214}
+.ccd.done{border-color:rgba(17,18,20,.2)}
+.ccd-tag{display:inline-block;font-size:10px;letter-spacing:.1em;color:#6B6D72;border:1px solid rgba(17,18,20,.12);border-radius:6px;padding:1px 6px}
+.ccd-t{font-size:15px;font-weight:600;margin:8px 0 2px}
+.ccd-s{font-size:12px;color:#6B6D72}
+.ccd-acts{display:flex;gap:8px;margin-top:12px}
+.ccd-main{flex:1;border:1px solid #111214;background:#111214;color:#fff;border-radius:11px;padding:11px;font-size:13.5px;font-weight:600}
+.ccd-sub{flex:0 0 84px;border:1px solid rgba(17,18,20,.12);background:#fff;color:#3A3B3F;border-radius:11px;padding:11px;font-size:13.5px}
+.ccd-amt{font-size:32px;font-weight:600;letter-spacing:-.01em;margin:8px 0 2px;font-variant-numeric:tabular-nums}
+.ccd-amt small{font-size:17px;margin-right:2px}
+.ccd-kv{display:flex;gap:6px;font-size:12px;color:#6B6D72;margin-top:2px}
+.ccd-kv b{color:#111214;font-weight:600}
+.ccd-foot{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid rgba(17,18,20,.08)}
+.ccd-foot .grow{flex:1}
+.ccd-pill{font-size:11px;border:1px solid rgba(17,18,20,.12);border-radius:999px;padding:3px 9px;color:#3A3B3F}
+.ccd-time{font-size:11px;color:#6B6D72}
+.ccd-q{font-size:16px;font-weight:600;margin:8px 0 4px}
+.ccd-opts{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.ccd-opt{border:1px solid rgba(17,18,20,.12);border-radius:999px;padding:8px 13px;font-size:12.5px;color:#3A3B3F;background:#fff}
+.ccd-reply{margin-top:9px}
+.ccd-in{width:100%;box-sizing:border-box;border:1px solid rgba(17,18,20,.12);border-radius:10px;padding:9px 11px;font-size:13px;font-family:inherit;resize:none}
+.ccd-wait{font-size:11px;color:#6B6D72;margin-top:9px;display:flex;align-items:center;gap:6px}
+.ccd-dots{display:inline-flex;gap:3px}
+.ccd-dots i{width:4px;height:4px;border-radius:50%;background:#111214;opacity:.35}
+.ccd-dots i:nth-child(2){opacity:.6}
+.ccd-dots i:nth-child(3){opacity:.9}
+.ccd-row{display:flex;gap:8px;font-size:12.5px;color:#6B6D72;margin-top:6px}
+.ccd-row b{color:#111214;font-weight:600}
 </style>
 </head>
 <body>
@@ -2808,7 +2909,7 @@ function defaultState(){
     widgetMusic:{song:'Full moon',artist:'LENmoment'},
     visitorCount:0,lastVisit:0,nextPostDue:{},nextVisitDue:0,
     tide:{start:'',days:5,cycle:28,history:[]},
-    companion:{bgKey:'cb1',bgImg:'',modes:[{id:uid(),name:'学习',mins:25,color:'#5F8F7B'},{id:uid(),name:'运动',mins:45,color:'#D98E5F'},{id:uid(),name:'工作',mins:50,color:'#7A9CC6'}],custom:[]},
+    companion:{bgKey:'cb1',bgImg:'',modes:[{id:uid(),name:'学习',mins:25,color:'#5F8F7B'},{id:uid(),name:'运动',mins:45,color:'#D98E5F'},{id:uid(),name:'工作',mins:50,color:'#7A9CC6'},{id:uid(),name:'吃饭',mins:20,color:'#C0875A'}],custom:[]},
     me:{name:'我',avatarType:'char',avatarImg:'',color:'#D98E5F'},
     receivedTotal:0,nextInit:{},lastActive:t,activeContact:'mj'
   };
@@ -2958,6 +3059,9 @@ function migrate(s){
   if(!Array.isArray(s.shop.orders))s.shop.orders=[];
   if(!s.companion)s.companion=defaultState().companion;
   if(!s.companion.modes||!s.companion.modes.length)s.companion.modes=defaultState().companion.modes;
+  if(Array.isArray(s.companion.modes)&&!s.companion.modes.some(function(m){return m&&m.name==='吃饭'})){
+    s.companion.modes.push({id:'eat'+Date.now(),name:'吃饭',mins:20,color:'#C0875A'});
+  }
   if(!s.companion.custom)s.companion.custom=[];
   if(s.settings){
     if(s.settings.callBg===undefined)s.settings.callBg='c1';
@@ -5764,36 +5868,54 @@ function drawCards(n,poolArr){
 }
 var FALLBACK=['收到，我在。','嗯，我在听。','记下了。','好，就这么说定了。'];
 function drawCardText(){var d=drawCards(1);return d.length?d[0]:pick(FALLBACK)}
-function pickCardText(used){
-  /* ★ 小熊语录和用户自己的字卡一起参与（用户要求：跟"自己添加的字卡"一样） */
-  var _allC=state.cards.concat(state.bearCards||[]);
-  if(!_allC.length)return drawCardText();
-  /* 按分类分组并缓存（字卡库变了自动失效） */
-  var sig=_allC.length+':'+(_allC[_allC.length-1].id||'');
-  if(_cardGroups&&_cardSig!==sig){_cardGroups=null;_cardKeys=null}
-  _cardSig=sig;
-  var groups=_cardGroups;
-  if(!groups){
-    groups={};
-    for(var i=0;i<_allC.length;i++){var tg=_allC[i].tag||'';(groups[tg]=groups[tg]||[]).push(_allC[i])}
-    _cardGroups=groups;
-    _cardKeys=null;
-  }
-  var keys=_cardKeys;
-  if(!keys){keys=[];for(var kk in groups)keys.push(kk);_cardKeys=keys}
-  /* 分类等概率 -> 分类内"不放回"地挑，保证同一条消息里不会重复用同一张字卡 */
-  var order=_shuffleKeys(keys),fallback='';
-  for(var a=0;a<order.length;a++){
-    var g=groups[order[a]];
-    if(!g||!g.length)continue;
-    var pool=_unusedTexts(g,used);
-    if(!pool.length)continue;
-    var text=pool[Math.floor(Math.random()*pool.length)];
-    if(!fallback)fallback=text;
-    if(!used||used.indexOf(text)<0)return text;
-  }
-  return fallback||drawCardText();
+var _cardBag = [];            /* 洗好的牌堆：依次取，取完重洗 */
+var _cardBagSig = '';
+function _mutedCats() {
+  if (!Array.isArray(state.mutedCats)) state.mutedCats = [];
+  return state.mutedCats;
 }
+function _chatCardPool() {
+  var muted = _mutedCats(), out = [];
+  function push(arr) {
+    if (!Array.isArray(arr)) return;
+    for (var i = 0; i < arr.length; i++) {
+      var c = arr[i];
+      if (!c || !String(c.text || '').trim()) continue;
+      if (c.muted) continue;
+      if (c.tag && muted.indexOf(c.tag) >= 0) continue;
+      out.push(String(c.text).trim());
+    }
+  }
+  push(state.cards);
+  /* 小熊语录没有 tag 字段：用固定名「小熊语录」控制它是否参与 */
+  if (muted.indexOf('小熊语录') < 0) push(state.bearCards);
+  return out;
+}
+function _refillBag() {
+  var pool = _chatCardPool();
+  /* Fisher-Yates 洗牌：一副牌打乱，发完才重洗 → 轮完之前不会重复 */
+  for (var i = pool.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+  }
+  _cardBag = pool;
+}
+/* 洗牌取用：按张数加权（每张一张牌），并且一轮内不重复 */
+function pickCardText(used) {
+  var all = _chatCardPool();
+  if (!all.length) return drawCardText();
+  var sig = all.length + ':' + all[0];
+  if (sig !== _cardBagSig) { _cardBagSig = sig; _cardBag = [] }
+  for (var guard = 0; guard < 40; guard++) {
+    if (!_cardBag.length) _refillBag();
+    var t = _cardBag.pop();
+    if (t == null) break;
+    if (used && used.indexOf(t) >= 0) continue;     /* 同一条消息里不重复 */
+    return t;
+  }
+  return drawCardText();
+}
+
 function _shuffleKeys(keys){
   var a=keys.slice();
   for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}
@@ -5808,7 +5930,7 @@ function _unusedTexts(g,used){
   return out;
 }
 var _cardGroups=null,_cardKeys=null,_cardSig=null;
-function cardLibChanged(){_cardGroups=null;_cardKeys=null}
+function cardLibChanged(){_cardGroups=null;_cardKeys=null;_cardBag=[];_cardBagSig=""}
 function drawBalancedCards(n){
   var out=[],used=[];
   for(var i=0;i<n;i++){
@@ -7341,15 +7463,23 @@ function cardBatchSave(){
   var arr=cardBatchParse(ta?ta.value:'');
   if(!arr.length){toast('一行写一张字卡');return}
   state.cardCats=state.cardCats||[];
-  var t=now(),i;
+  var t=now(),i,added=0,skipped=0;
+  var _exists={};
+  (state.cards||[]).forEach(function(c){ if(c&&c.text)_exists[c.text]=1 });
   for(i=0;i<arr.length;i++){
-    state.cards.push({id:uid(),text:arr[i].text,tag:arr[i].tag,created:t+i});
+    var tx=String(arr[i].text||'').trim();
+    if(!tx)continue;
+    if(_exists[tx]){skipped++;continue}
+    _exists[tx]=1;
+    state.cards.push({id:uid(),text:tx,tag:arr[i].tag,created:t+i});
     if(arr[i].tag&&state.cardCats.indexOf(arr[i].tag)<0)state.cardCats.push(arr[i].tag);
+    added++;
   }
   _cardQ='';
   if(arr[0].tag)_cat=arr[0].tag;
+  try{cardLibChanged()}catch(e){}
   save();closeSheet();renderCards();
-  toast('已导入 '+arr.length+' 张字卡');
+  toast('已导入 '+added+' 张'+(skipped?('，跳过重复 '+skipped+' 张'):''));
 }
 function cardBatchFile(input){
   if(!input.files||!input.files[0])return;
@@ -7368,6 +7498,7 @@ function cardBatchFile(input){
 }
 function cardSave(){
   var text=inpVal('cardText').trim();
+  if(text&&(state.cards||[]).some(function(c){return c&&c.text===text})){toast('这张已经有了');return}
   if(!text){toast('写点内容再保存');return}
   var tag=inpVal('cardTag').trim();
   state.cards.push({id:uid(),text:text,tag:tag,created:now()});
@@ -7706,9 +7837,10 @@ function renderCompanion(){
   html+='<div class="cc"><div class="app-sec-title" style="color:#4A3F33">陪伴模式</div><div class="mode-chips">';
   for(var i=0;i<modes.length;i++){
     var mo=modes[i];
-    html+='<button class="mode-chip'+(mo.id===_curMode?' on':'')+'" data-act="mode-pick" data-id="'+mo.id+'">'+esc(mo.name)+' '+mo.mins+'分</button>';
+    html+='<button class="mode-chip'+(mo.id===_curMode?' on':'')+'" data-act="mode-pick" data-id="'+mo.id+'" data-mode="1">'+esc(mo.name)+' '+mo.mins+'分</button>';
   }
   html+='</div>';
+  setTimeout(function(){ bindModeLongPress(); }, 0);
   html+='<div class="timer-box"><div class="timer" id="timerText">'+fmtLeft()+'</div><div class="timer-state" id="timerState">'+( _running?'专注中…':(_curMode?'准备好了，开始吧':'选一个模式开始陪伴') )+'</div></div>';
   html+='<div class="timer-btns"><button data-act="timer-start">开始</button><button class="ghost" data-act="timer-pause">暂停</button><button class="ghost" data-act="timer-reset">重置</button></div>';
   html+='<div style="display:flex;gap:8px;margin-top:14px"><button class="btn ghost" style="flex:1;background:rgba(255,253,246,.85);border-color:var(--line);color:#4A3F33" data-act="mode-add">添加模式</button><button class="btn ghost" style="flex:1;background:rgba(255,253,246,.85);border-color:var(--line);color:#4A3F33" data-act="cbg-change">换背景</button></div>';
@@ -8006,6 +8138,77 @@ function renderMe(){
   inputRestore(_inSnap);
 }
 /** 设置页里的存档状态卡片 */
+
+
+/* ===== 陪伴模式：长按改名/改时长/删除 ===== */
+var _modeLpTimer = null, _modeLpFired = false;
+function bindModeLongPress() {
+  var chips = document.querySelectorAll('.mode-chip[data-mode]');
+  for (var i = 0; i < chips.length; i++) {
+    (function (el) {
+      if (el.__lpBound) return; el.__lpBound = 1;
+      function down(e) {
+        _modeLpFired = false;
+        CLK.clear(_modeLpTimer);
+        _modeLpTimer = CLK.set(function () {
+          _modeLpFired = true;
+          var id = el.getAttribute('data-id');
+          openModeEdit(id);
+        }, 520);
+      }
+      function up() { CLK.clear(_modeLpTimer) }
+      el.addEventListener('touchstart', down, { passive: true });
+      el.addEventListener('touchend', up);
+      el.addEventListener('touchmove', up, { passive: true });
+      el.addEventListener('mousedown', down);
+      el.addEventListener('mouseup', up);
+      el.addEventListener('mouseleave', up);
+      /* 长按触发后，阻止随后的点击（避免又切换了模式） */
+      el.addEventListener('click', function (e) {
+        if (_modeLpFired) { e.preventDefault(); e.stopPropagation(); _modeLpFired = false }
+      }, true);
+    })(chips[i]);
+  }
+}
+function _findMode(id) {
+  var all = compModes();
+  for (var i = 0; i < all.length; i++) if (all[i] && all[i].id === id) return all[i];
+  return null;
+}
+function openModeEdit(id) {
+  var m = _findMode(id); if (!m) return;
+  var h = '<h2>编辑模式</h2>'
+    + '<label>名字</label><input id="meName" maxlength="8" value="' + esc(m.name || '') + '">'
+    + '<label>时长（分钟）</label><input id="meMins" type="number" inputmode="numeric" min="1" max="180" value="' + (m.mins || 25) + '">'
+    + '<div class="actions" style="margin-top:16px">'
+    + '<button class="cancel" style="flex:0 0 70px;color:#C25B52" data-act="mode-edit-del" data-id="' + esc(id) + '">删除</button>'
+    + '<button class="cancel" data-act="sheet-close">取消</button>'
+    + '<button class="ok" data-act="mode-edit-save" data-id="' + esc(id) + '">保存</button>'
+    + '</div>';
+  openSheet(h);
+}
+function saveModeEdit(id) {
+  var m = _findMode(id); if (!m) { toast('找不到这个模式'); return }
+  var n = String(inpVal('meName') || '').trim();
+  var t = parseInt(inpVal('meMins'), 10);
+  if (!n) { toast('写个名字'); return }
+  if (!(t >= 1)) t = m.mins || 25;
+  t = Math.max(1, Math.min(180, t));
+  m.name = n; m.mins = t;
+  /* 正在计时的就是这个模式 → 剩余时间跟着改 */
+  if (_curMode === id) { _totalMs = t * 60000; if (!_running) _leftMs = _totalMs }
+  save(); closeSheet(); renderCompanion(); toast('已保存：' + n + ' ' + t + ' 分钟');
+}
+function delMode(id) {
+  var cp = state.companion;
+  var before = (cp.modes || []).length + (cp.custom || []).length;
+  cp.modes = (cp.modes || []).filter(function (x) { return !x || x.id !== id });
+  cp.custom = (cp.custom || []).filter(function (x) { return !x || x.id !== id });
+  var after = cp.modes.length + cp.custom.length;
+  if (after === before) { toast('找不到这个模式'); return }
+  if (_curMode === id) { _running = false; CLK.clear(_tmrTick); _tmrTick = null; _curMode = null; _leftMs = 0; _totalMs = 0 }
+  save(); closeSheet(); renderCompanion(); toast('已删除');
+}
 
 function storageHealthHtml(){
   var h='<div class="card">';
@@ -10471,6 +10674,8 @@ document.addEventListener('click',function(e){
     else if(act==='timer-pause')timerPause();
     else if(act==='timer-reset')timerReset();
     else if(act==='mode-add')sheetModeAdd();
+    else if(act==='mode-edit-save')saveModeEdit(btn.getAttribute('data-id'));
+    else if(act==='mode-edit-del')delMode(btn.getAttribute('data-id'));
     else if(act==='mode-save')modeSave();
     else if(act==='cbg-change')sheetCbg();
     else if(act==='pick-cbg')pickCbg(btn.getAttribute('data-key'));
@@ -14316,6 +14521,518 @@ function pgSetLastFromSheet(offset) {
     st.textContent = css;
     document.head.appendChild(st);
   } catch (e) { }
+})();
+
+/* ===== 字卡库（改造原有页面，不新增 App） =====
+   分类：
+     固定（不可删/不可改名，但能往里加）：小熊语录 / 状态 / 心情 / 拍一拍 / 日记
+     普通（可改名/删除）：日常 / 吵架 / 想念 / 你自己建的
+   数据：固定分类各自写回原来的池子，普通分类写在 state.cards */
+(function cardsUI() {
+  if (window.__cardsUI) return; window.__cardsUI = 1;
+
+  var FIXED = [
+    { n: '小熊语录', pool: 'bearCards', label: '小熊语录' },
+    { n: '状态', pool: 'statusCards' },
+    { n: '心情', pool: 'moodCards' },
+    { n: '拍一拍', pool: 'patCards' },
+    { n: '日记', pool: 'diaryCards' }
+  ];
+  var cur = '日常';       /* 当前分类 */
+  var mgrOpen = false;
+
+  function fixedDef(name) { for (var i = 0; i < FIXED.length; i++) if (FIXED[i].n === name) return FIXED[i]; return null }
+  function poolOf(name) { var d = fixedDef(name); if (d) { if (!Array.isArray(state[d.pool])) state[d.pool] = []; return state[d.pool] } if (!Array.isArray(state.cards)) state.cards = []; return state.cards }
+  function itemsOf(name) {
+    var out = [];
+    if (fixedDef(name)) {
+      var arr = poolOf(name);
+      for (var i = 0; i < arr.length; i++) { var x = arr[i]; if (x && String(x.text || '').trim()) out.push(x) }
+      return out;
+    }
+    /* 普通分类：只取 state.cards 里属于这个 tag 的 */
+    var want = (name === '未分类') ? '' : name;
+    (state.cards || []).forEach(function (c) { if (c && String(c.text || '').trim() && (c.tag || '') === want) out.push(c) });
+    return out;
+  }
+  function normalCats() {
+    var set = {}, out = [];
+    function add(t) { if (!t) return; if (fixedDef(t)) return; if (set[t]) return; set[t] = 1; out.push(t) }
+    (state.cardCats || []).forEach(add);
+    (state.cards || []).forEach(function (c) { add(c && c.tag) });
+    return out;
+  }
+  function allCats() {
+    var out = FIXED.map(function (d) { return d.n }).concat(normalCats());
+    if (state.cards && state.cards.some(function (c) { return c && !c.tag })) out.push('未分类');
+    return out;
+  }
+  function esc2(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
+
+  /* ---------- 页面 ---------- */
+  window.renderCards = function () {
+    if (allCats().indexOf(cur) < 0) cur = allCats()[0] || '日常';
+    var cats = allCats();
+    var chips = cats.map(function (c) {
+      var fx = fixedDef(c) ? '<i class="cc-fxdot"></i>' : '';
+      var muted = (state.mutedCats || []).indexOf(c) >= 0;
+      return '<button class="cc-chip' + (c === cur ? ' on' : '') + (muted ? ' muted' : '') + '" data-act="cc-tab" data-c="' + esc2(c) + '">' + esc2(c) + fx + '</button>';
+    }).join('');
+
+    var list = itemsOf(cur), isFixed = !!fixedDef(cur);
+    var rows = list.map(function (x) {
+      var del = x.mine ? '<span class="cc-x" data-act="cc-del" data-c="' + esc2(cur) + '" data-t="' + esc2(x.text) + '">✕</span>' : '<i class="cc-fx">固定</i>';
+      return '<div class="cc-li"><span class="cc-t">' + esc2(x.text) + '</span>' + del + '</div>';
+    }).join('');
+    if (!list.length) rows = '<div class="cc-li" style="color:#6B6D72">这个分类还没有内容，上面输入就能加</div>';
+
+    var h = '<div class="page-top"><button class="back" data-view="home">' + ICON_BACK + '</button><span class="pt">字卡</span></div>'
+      + '<div class="cc-wrap">'
+      + '<textarea id="ccInput" class="cc-ta" placeholder="一行一张，可以一次粘贴一大段"></textarea>'
+      + '<div class="cc-cats">' + chips + '</div>'
+      + '<div class="cc-row"><button class="cc-btn" data-act="cc-add">添加</button>'
+      + '<button class="cc-btn ghost" data-act="cc-newcat">＋ 新分类</button>'
+      + '<button class="cc-btn ghost" data-act="cc-manage">管理分类</button>'
+      + '<button class="cc-btn ghost" data-act="cc-batch">批量导入</button></div>'
+      + '<div class="cc-msg" id="ccMsg"></div>'
+      + '<div class="cc-grp"><span>' + esc2(cur) + '</span><b>' + list.length + ' 张</b>' + (isFixed ? '<i class="cc-fx">固定</i>' : '')
+      + (fixedDef(cur) ? '' : '<button class="cc-mute' + ((state.mutedCats || []).indexOf(cur) >= 0 ? ' on' : '') + '" data-act="cc-mute" data-c="' + esc2(cur) + '">' + ((state.mutedCats || []).indexOf(cur) >= 0 ? '已屏蔽' : '屏蔽') + '</button>')
+      + '</div>'
+      + '<div class="cc-list">' + rows + '</div>'
+      + '<div style="height:30px"></div></div>';
+    $('#view').innerHTML = h;
+    if (mgrOpen) openManage();
+  };
+
+  function msg(t) { var el = document.getElementById('ccMsg'); if (el) el.textContent = t || '' }
+
+  /* ---------- 添加 ---------- */
+  function addCards() {
+    var ta = document.getElementById('ccInput');
+    var arr = String((ta && ta.value) || '').split(/\r?\n/).map(function (x) { return x.trim() }).filter(function (x) { return x });
+    if (!arr.length) { msg('写一句吧'); return }
+    var pool = poolOf(cur);
+    var exists = {};
+    (Array.isArray(state.cards) ? state.cards : []).forEach(function (c) { if (c && c.text) exists[c.text] = 1 });
+    FIXED.forEach(function (d) { (state[d.pool] || []).forEach(function (c) { if (c && c.text) exists[c.text] = 1 }) });
+    var added = 0, skipped = 0;
+    arr.forEach(function (t) {
+      if (exists[t]) { skipped++; return }
+      exists[t] = 1;
+      var o = { id: 'c' + Date.now() + Math.floor(Math.random() * 999), text: t, created: Date.now(), mine: 1 };
+      if (!fixedDef(cur)) o.tag = (cur === '未分类' ? '' : cur);
+      pool.push(o);
+      if (o.tag && !(state.cardCats || []).indexOf(o.tag) >= 0) { state.cardCats = state.cardCats || []; if (state.cardCats.indexOf(o.tag) < 0) state.cardCats.push(o.tag) }
+      added++;
+    });
+    if (ta) ta.value = '';
+    try { cardLibChanged() } catch (e) { }
+    save(); renderCards();
+    msg('已添加 ' + added + ' 张' + (skipped ? ('，跳过重复 ' + skipped + ' 张') : ''));
+  }
+
+  /* ---------- 删除（只能删自己加的） ---------- */
+  function delCard(cat, text) {
+    var arr = poolOf(cat), d = fixedDef(cat);
+    for (var i = 0; i < arr.length; i++) {
+      if (arr[i] && String(arr[i].text) === text) {
+        if (!arr[i].mine) { toast('这张是站内固定的，不能删'); return }
+        arr.splice(i, 1); break;
+      }
+    }
+    try { cardLibChanged() } catch (e) { }
+    save(); renderCards(); toast('已删除');
+  }
+
+  /* ---------- 批量导入 ---------- */
+  function openBatch() {
+    var fx = !!fixedDef(cur);
+    var h = '<h2>批量导入到「' + esc2(cur) + '」</h2>'
+      + '<div class="cc-hint">一行一张；以【分类名】开头的行会被当成分类标题（导入到固定分类时忽略它）。' + (fx ? '<br><b>这是固定分类，导入的条目只追加，不会覆盖原有内容。</b>' : '') + '</div>'
+      + '<textarea id="ccBatch" class="cc-ta" placeholder="我想你了&#10;今天有没有好好吃饭"></textarea>'
+      + '<div class="cc-row" style="margin-top:8px"><label class="cc-btn ghost" style="text-align:center">选择文件<input type="file" id="ccBatchFile" accept=".txt,text/plain" style="display:none"></label><span class="cc-hint" id="ccBatchCount">0 张</span></div>'
+      + '<div class="actions"><button class="cancel" data-act="sheet-close">取消</button>'
+      + '<button class="ok" data-act="cc-batch-save">导入</button></div>';
+    openSheet(h);
+    var ta = document.getElementById('ccBatch');
+    function cnt() {
+      var n = String((ta && ta.value) || '').split(/\r?\n/).map(function (x) { return x.trim() }).filter(function (x) { return x }).length;
+      var el = document.getElementById('ccBatchCount'); if (el) el.textContent = n + ' 张';
+    }
+    if (ta) ta.oninput = cnt;
+    var f = document.getElementById('ccBatchFile');
+    if (f) f.onchange = function () {
+      var file = this.files && this.files[0]; if (!file) return;
+      var fr = new FileReader();
+      fr.onload = function () { if (ta) { ta.value = String(fr.result || ''); cnt() } };
+      fr.readAsText(file); this.value = '';
+    };
+  }
+  function saveBatch() {
+    var ta = document.getElementById('ccBatch');
+    var lines = String((ta && ta.value) || '').split(/\r?\n/).map(function (x) { return x.trim() }).filter(function (x) { return x });
+    if (!lines.length) { toast('一行写一张'); return }
+    var pool = poolOf(cur), exists = {};
+    (Array.isArray(state.cards) ? state.cards : []).forEach(function (c) { if (c && c.text) exists[c.text] = 1 });
+    FIXED.forEach(function (d) { (state[d.pool] || []).forEach(function (c) { if (c && c.text) exists[c.text] = 1 }) });
+    var added = 0, skipped = 0;
+    lines.forEach(function (t) {
+      if (/^[【\[].+[】\]]$/.test(t)) return;      /* 分类标题行跳过 */
+      if (exists[t]) { skipped++; return }
+      exists[t] = 1;
+      var o = { id: 'c' + Date.now() + Math.floor(Math.random() * 999), text: t, created: Date.now(), mine: 1 };
+      if (!fixedDef(cur) && cur !== '未分类') o.tag = cur;
+      pool.push(o); added++;
+    });
+    try { cardLibChanged() } catch (e) { }
+    save(); closeSheet(); renderCards();
+    msg('已导入 ' + added + ' 张' + (skipped ? ('，跳过重复 ' + skipped + ' 张') : ''));
+  }
+
+  /* ---------- 管理分类 ---------- */
+  function openManage() {
+    var h = '<h2>管理分类</h2>';
+    var cats = allCats();
+    cats.forEach(function (c) {
+      var n = itemsOf(c).length, fx = !!fixedDef(c), muted = (state.mutedCats || []).indexOf(c) >= 0;
+      h += '<div class="cc-mrow"><span class="cc-mn">' + esc2(c) + '</span><span class="cc-mc">' + n + ' 张</span>'
+        + '<button class="cc-mb' + (muted ? ' danger' : '') + '" data-act="cc-mute" data-c="' + esc2(c) + '">' + (muted ? '恢复' : '屏蔽') + '</button>'
+        + (fx ? '<i class="cc-fx">固定</i>'
+          : '<button class="cc-mb" data-act="cc-rename" data-c="' + esc2(c) + '">改名</button>'
+          + '<button class="cc-mb danger" data-act="cc-delcat" data-c="' + esc2(c) + '">删除</button>')
+        + '</div>';
+    });
+    h += '<div class="actions"><button class="cancel" data-act="sheet-close">关闭</button>'
+      + '<button class="ok" data-act="cc-newcat">＋ 新分类</button></div>';
+    openSheet(h);
+    mgrOpen = true;
+  }
+
+  /* ---------- 事件 ---------- */
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    var a = t.closest('[data-act]'); if (!a) return;
+    var act = a.getAttribute('data-act');
+    if (act === 'cc-tab') { cur = a.getAttribute('data-c'); renderCards(); return }
+    if (act === 'cc-add') { e.preventDefault(); addCards(); return }
+    if (act === 'cc-del') { e.preventDefault(); delCard(a.getAttribute('data-c'), a.getAttribute('data-t')); return }
+    if (act === 'cc-mute') {
+      e.preventDefault();
+      var cname = a.getAttribute('data-c');
+      state.mutedCats = state.mutedCats || [];
+      var k = state.mutedCats.indexOf(cname);
+      if (k >= 0) state.mutedCats.splice(k, 1); else state.mutedCats.push(cname);
+      try { cardLibChanged() } catch (x) { }
+      save(); renderCards();
+      toast(state.mutedCats.indexOf(cname) >= 0 ? '已屏蔽这个分类（不参与抽卡）' : '已恢复');
+      return;
+    }
+    if (act === 'cc-manage') { e.preventDefault(); openManage(); return }
+    if (act === 'cc-batch') { e.preventDefault(); openBatch(); return }
+    if (act === 'cc-batch-save') { e.preventDefault(); saveBatch(); return }
+    if (act === 'cc-newcat') {
+      e.preventDefault();
+      var n = prompt('新分类名字');
+      if (!n) return; n = String(n).trim(); if (!n) return;
+      state.cardCats = state.cardCats || [];
+      if (state.cardCats.indexOf(n) < 0) state.cardCats.push(n);
+      cur = n; save(); try { closeSheet() } catch (x) { } mgrOpen = false; renderCards(); return;
+    }
+    if (act === 'cc-rename') {
+      e.preventDefault();
+      var old = a.getAttribute('data-c');
+      var nn = prompt('改成什么名字？（留空取消）', old);
+      if (nn == null) return; nn = String(nn).trim(); if (!nn || nn === old) return;
+      (state.cards || []).forEach(function (c) { if (c && (c.tag || '') === old) c.tag = nn });
+      state.cardCats = (state.cardCats || []).map(function (x) { return x === old ? nn : x });
+      if (cur === old) cur = nn;
+      try { cardLibChanged() } catch (x) { }
+      save(); try { closeSheet() } catch (x) { } mgrOpen = false; renderCards(); toast('已改名'); return;
+    }
+    if (act === 'cc-delcat') {
+      e.preventDefault();
+      var name = a.getAttribute('data-c');
+      if (fixedDef(name)) { toast('固定分类不能删'); return }
+      var n2 = (state.cards || []).filter(function (c) { return c && (c.tag || '') === name }).length;
+      if (!confirm('删除分类「' + name + '」？\n里面 ' + n2 + ' 张卡会变成「未分类」，不会丢。')) return;
+      (state.cards || []).forEach(function (c) { if (c && (c.tag || '') === name) c.tag = '' });
+      state.cardCats = (state.cardCats || []).filter(function (x) { return x !== name });
+      if (cur === name) cur = '未分类';
+      try { cardLibChanged() } catch (x) { }
+      save(); try { closeSheet() } catch (x) { } mgrOpen = false; renderCards(); toast('已删除分类，卡保留'); return;
+    }
+  }, true);
+})();
+
+/* ===== 陪伴页 · 新版界面（黑白极简 / ins 风）=====
+   思路：只换"长什么样"，计时逻辑全部复用原来的
+   （_curMode / _left / _running / tick / timerStart / timerPause / timerReset / modePick / compModes）
+   关键点：保留 #timerText 和 #timerState 这两个 id，原来的 tick() 才能继续工作。 */
+(function companionUI() {
+  if (window.__compUI) return; window.__compUI = 1;
+
+  var SAYS = {
+    start: ['开始吧，我在。', '我看着时间，你只管做。', '这次想专注多久？我陪你。', '好，开始。不用紧张。',
+      '把手机扣过去吧，我替你看着。', '别急着进入状态，先坐稳。'],
+    mid: ['过了十五分钟了，还好吗？', '要不要先喝口水？', '还撑得住吗？撑不住就停。', '我在，慢慢来。',
+      '肩是不是又耸起来了？放松点。', '眼睛看远处一下，十秒就好。', '不用一次做完，慢慢推进就行。', '我数着时间呢，你不用看表。'],
+    end: ['辛苦了，休息一下。', '到点了，站起来走两步。', '做得不错，去放松会儿。', '今天也谢谢你陪我。',
+      '剩下的等会儿再说，先歇着。', '喝口水，然后想干嘛干嘛去。']
+  };
+  function pick(a) { return a[Math.floor(Math.random() * a.length)] }
+  function pad2(n) { return ('0' + n).slice(-2) }
+
+  /* 统计：按天记分钟 */
+  function stats() {
+    var cp = state.companion;
+    if (!cp.stats || typeof cp.stats !== 'object') cp.stats = { days: {}, done: 0 };
+    if (!cp.stats.days) cp.stats.days = {};
+    if (typeof cp.stats.done !== 'number') cp.stats.done = 0;
+    return cp.stats;
+  }
+  function dayKey(d) { d = d || new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) }
+  function todayMin() { return stats().days[dayKey()] || 0 }
+
+  /* ---------- 渲染 ---------- */
+  var _say = '', _lastElapsed = 0, _wasRunning = false;
+
+  window.renderCompanion = function () {
+    var cp = state.companion, modes = compModes();
+    var cur = null;
+    for (var i = 0; i < modes.length; i++) if (modes[i].id === _curMode) cur = modes[i];
+    var total = cur ? (cur.mins || 25) * 60 : 25 * 60;
+    var left = _left || total;
+    var pct = total ? Math.max(0, Math.min(1, 1 - left / total)) : 0;
+    var R = 98, C = 2 * Math.PI * R;
+
+    var h = '<div class="page-top"><button class="back" data-view="home">' + ICON_BACK + '</button><span class="pt">陪伴</span>'
+      + '<span class="cp-streak" id="cpStreak"></span></div>';
+    h += '<div class="cp-wrap">';
+
+    /* 大计时 */
+    h += '<div class="cp-timer"><div class="cp-ring">'
+      + '<svg width="220" height="220"><circle class="cp-track" cx="110" cy="110" r="' + R + '" fill="none" stroke-width="8"></circle>'
+      + '<circle class="cp-fg" id="cpFg" cx="110" cy="110" r="' + R + '" fill="none" stroke-width="8" stroke-dasharray="' + C.toFixed(2) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(2) + '"></circle></svg>'
+      + '<div class="cp-mid"><div class="cp-t" id="timerText">' + fmtLeft() + '</div>'
+      + '<div class="cp-m" id="timerState">' + (cur ? (cur.name) : '选一个模式开始陪伴') + '</div></div></div></div>';
+
+    /* 模式卡 */
+    h += '<div class="cp-modes">';
+    for (var k = 0; k < modes.length; k++) {
+      var mo = modes[k];
+      h += '<button class="cp-mode' + (mo.id === _curMode ? ' on' : '') + '" data-act="mode-pick" data-id="' + mo.id + '" data-mode="1">'
+        + '<b>' + esc(mo.name) + '</b><span>' + mo.mins + ' 分钟</span></button>';
+    }
+    h += '<button class="cp-mode add" data-act="mode-add">＋</button></div>';
+
+    /* 按钮 */
+    h += '<div class="cp-acts">'
+      + '<button class="cp-btn" data-act="timer-start">' + (_running ? '暂停' : '开始') + '</button>'
+      + '<button class="cp-btn ghost" data-act="timer-reset">重置</button></div>';
+
+    /* 他说一句 */
+    h += '<div class="cp-say"><span class="av">陆</span><span id="compSay">' + esc(_say || pick(SAYS.start)) + '</span></div>';
+
+    /* 统计 */
+    var st = stats(), wk = [];
+    for (var d = 6; d >= 0; d--) {
+      var dt = new Date(); dt.setDate(dt.getDate() - d);
+      wk.push({ k: dayKey(dt), v: st.days[dayKey(dt)] || 0, w: ['日', '一', '二', '三', '四', '五', '六'][dt.getDay()], today: d === 0 });
+    }
+    var maxv = 1; wk.forEach(function (x) { if (x.v > maxv) maxv = x.v });
+    h += '<div class="cp-row"><div class="cp-stat"><b>' + todayMin() + '</b><span>今日陪伴（分钟）</span></div>'
+      + '<div class="cp-stat"><b>' + (st.done || 0) + '</b><span>完成次数</span></div></div>';
+    h += '<div class="cp-card"><div class="cp-h"><b>最近 7 天</b></div><div class="cp-bars">';
+    wk.forEach(function (x) {
+      var hh = x.v ? Math.max(6, Math.round(x.v / maxv * 62)) : 4;
+      h += '<div class="cp-bar' + (x.v ? ' done' : '') + (x.today ? ' today' : '') + '"><i style="height:' + hh + 'px"></i><div class="d">' + x.w + '</div></div>';
+    });
+    h += '</div></div>';
+
+    /* 换底图 */
+    h += '<div class="cp-row" style="margin-top:10px"><button class="cp-mini" data-act="cbg-change">换底图</button>'
+      + '<button class="cp-mini" data-act="mode-add">添加模式</button></div>';
+
+    h += '<div style="height:26px"></div></div>';
+    $('#view').innerHTML = h;
+
+    /* 背景（沿用原来的 bgImg / 预设） */
+    try {
+      var bg = cp.bgImg
+        ? ('background-image:url(' + mediaUrlSync(cp.bgImg) + ');background-size:cover;background-position:center;background-color:#fff')
+        : 'background:#fff';
+      var w = document.querySelector('.cp-wrap'); if (w) w.setAttribute('style', bg);
+    } catch (e) { }
+
+    /* 连续天数 */
+    try {
+      var streak = 0, t2 = new Date();
+      for (var s2 = 0; s2 < 60; s2++) {
+        var kk = dayKey(t2);
+        if (st.days[kk]) { streak++; t2.setDate(t2.getDate() - 1) } else break;
+      }
+      var el2 = document.getElementById('cpStreak');
+      if (el2) el2.textContent = streak > 1 ? ('连续 ' + streak + ' 天') : '';
+    } catch (e) { }
+
+    /* 长按改名/改时长（沿用已有函数） */
+    try { if (typeof bindModeLongPress === 'function') setTimeout(bindModeLongPress, 0) } catch (e) { }
+  };
+
+  /* ---------- 包一层 tick：圆环进度 + 15 分钟一句 + 到点记账 ---------- */
+  var _origTick = window.tick;
+  window.tick = function () {
+    var beforeLeft = _left;
+    var wasRunning = _running;
+    try { _origTick.apply(null, arguments) } catch (e) { }
+
+    /* 圆环 */
+    try {
+      var modes = compModes(), cur = null;
+      for (var i = 0; i < modes.length; i++) if (modes[i].id === _curMode) cur = modes[i];
+      var total = cur ? (cur.mins || 25) * 60 : 25 * 60;
+      var left = _left || total, pct = total ? Math.max(0, Math.min(1, 1 - left / total)) : 0;
+      var C = 2 * Math.PI * 98;
+      var fg = document.getElementById('cpFg');
+      if (fg) fg.setAttribute('stroke-dashoffset', String((C * (1 - pct)).toFixed(2)));
+      /* 状态文字：专注中 · 学习 */
+      var stt = document.getElementById('timerState');
+      if (stt) stt.textContent = _running ? ('专注中 · ' + (cur ? cur.name : '')) : (cur ? cur.name : '选一个模式开始陪伴');
+      /* 开始按钮文案 */
+      var sb = document.querySelector('[data-act="timer-start"]');
+      if (sb) sb.textContent = _running ? '暂停' : '开始';
+    } catch (e) { }
+
+    /* 每 15 分钟说一句 */
+    try {
+      var modes2 = compModes(), cur2 = null;
+      for (var j = 0; j < modes2.length; j++) if (modes2[j].id === _curMode) cur2 = modes2[j];
+      var total2 = cur2 ? (cur2.mins || 25) * 60 : 25 * 60;
+      var elapsed = total2 - (_left || 0);
+      if (_running && elapsed > 0 && elapsed % 900 === 0 && elapsed !== _lastElapsed) {
+        _lastElapsed = elapsed;
+        var say = document.getElementById('compSay');
+        if (say) say.textContent = pick(SAYS.mid);
+      }
+    } catch (e) { }
+
+    /* 到点：记一次 + 说结束语 */
+    try {
+      if (wasRunning && !_running && _left <= 0) {
+        var st3 = stats(), cur3 = null, ms = compModes();
+        for (var k = 0; k < ms.length; k++) if (ms[k].id === _curMode) cur3 = ms[k];
+        var mins = cur3 ? (cur3.mins || 25) : 25;
+        var dk = dayKey();
+        st3.days[dk] = (st3.days[dk] || 0) + mins;
+        st3.done = (st3.done || 0) + 1;
+        _say = pick(SAYS.end);
+        try { save() } catch (e2) { }
+        var el = document.getElementById('compSay');
+        if (el) el.textContent = _say;
+        try { toast('完成 ' + (cur3 ? cur3.name : '') + ' ' + mins + ' 分钟，休息一下'); } catch (e3) { }
+        try { renderCompanion() } catch (e4) { }
+      }
+    } catch (e) { }
+
+    /* 点了开始 / 换了模式，说一句开场 */
+    try {
+      if (!wasRunning && _running) { _lastElapsed = 0; _say = pick(SAYS.start); var s4 = document.getElementById('compSay'); if (s4) s4.textContent = _say }
+    } catch (e) { }
+  };
+})();
+
+/* ===== 聊天卡片重做（邀请 / 转账 / 查岗）—— 只换外观，动作与数据全部沿用原来的 ===== */
+(function chatCards() {
+  if (window.__chatCards) return; window.__chatCards = 1;
+
+  var origBubble = (typeof bubbleHtml === 'function') ? bubbleHtml : null;
+  if (!origBubble) return;
+
+  function av(c, m) { return (m.dir === 'in' ? cAvatar(c) : meAvatar()) }
+
+  /* ① 陪伴邀请 */
+  function inviteCard(m, c) {
+    var st = m.accepted ? '已接受' : (m.refused ? '已婉拒' : '');
+    var tag = '<span class="ccd-tag">' + (st || '邀请') + '</span>';
+    var sub = esc(m.modeName || '专注') + ' · ' + (m.mins || 25) + ' 分钟 · 到点我提醒你休息';
+    var acts = '';
+    if (m.dir === 'in' && !m.accepted && !m.refused) {
+      acts = '<div class="ccd-acts">'
+        + '<button class="ccd-main" data-act="invite-accept" data-id="' + m.id + '">接受</button>'
+        + '<button class="ccd-sub" data-act="invite-decline" data-id="' + m.id + '">待会</button></div>';
+    }
+    return '<div class="msg-row ' + m.dir + '"><span class="bubble-av">' + av(c, m) + '</span>'
+      + '<div class="ccd ' + (m.accepted ? 'done' : '') + '">' + tag
+      + '<div class="ccd-t">想和你一起专注</div>'
+      + '<div class="ccd-s">' + sub + '</div>'
+      + acts + '</div></div>';
+  }
+
+  /* ② 转账 */
+  function transferCard(m, c) {
+    var amt = (m.amount || 0).toFixed(2);
+    var isIn = (m.dir === 'in');
+    var toWho = isIn ? '我' : c.name;
+    var ok = !!m.accepted, back = !!m.refunded;
+    var tag = ok ? '已到账' : (back ? '已退还' : '转账');
+    var note = ok ? ('已存入 ' + esc(toWho) + ' 的零钱')
+      : (back ? '对方没有收下，已原路退回' : ('等 ' + esc(toWho) + ' 收下'));
+    var btns = '';
+    if (isIn && !ok && !back) {
+      btns = '<div class="ccd-acts">'
+        + '<button class="ccd-main" data-act="transfer-decide" data-id="' + m.id + '" data-ok="1">收下</button>'
+        + '<button class="ccd-sub" data-act="transfer-decide" data-id="' + m.id + '" data-ok="0">退还</button></div>';
+    }
+    return '<div class="msg-row ' + m.dir + '"><span class="bubble-av">' + av(c, m) + '</span>'
+      + '<div class="ccd money">'
+      + '<span class="ccd-tag">' + tag + '</span>'
+      + '<div class="ccd-amt"><small>¥</small>' + amt + '</div>'
+      + '<div class="ccd-kv">TO <b>' + esc(toWho) + '</b></div>'
+      + '<div class="ccd-kv">' + note + '</div>'
+      + '<div class="ccd-foot"><span class="ccd-pill">' + (ok ? '已到账' : (back ? '已退还' : '待收款')) + '</span>'
+      + '<span class="grow"></span><span class="ccd-time">' + fmtTime(m.ts) + '</span></div>'
+      + btns + '</div></div>';
+  }
+
+  /* ③ 查岗 */
+  function checkinCard(m, c) {
+    var isIn = (m.dir === 'in');
+    var q = String(m.text || '').replace(/^查岗[:：]\s*/, '');
+    var body = '';
+    if (isIn) {
+      if (m.myReply) {
+        body = '<div class="ccd-row"><span>你已回复</span><b>' + esc(m.myReply) + '</b></div>';
+        if (m.hisReply) body += '<div class="ccd-row"><span>' + esc(c.name) + ' 回复</span><b>' + esc(m.hisReply) + '</b></div>';
+      } else {
+        var chips = ['在工作', '正在吃饭', '回家路上', '也在想你'];
+        body = '<div class="ccd-opts">';
+        for (var i = 0; i < chips.length; i++) {
+          body += '<button class="ccd-opt" data-act="ck-send" data-id="' + m.id + '" data-txt="' + esc(chips[i]) + '">' + esc(chips[i]) + '</button>';
+        }
+        body += '</div>';
+        body += '<div class="ccd-reply"><textarea class="ccd-in" rows="1" placeholder="或者自己说一句……" data-ck="' + m.id + '"></textarea></div>';
+        body += '<div class="ccd-acts"><button class="ccd-main" data-act="ck-send" data-id="' + m.id + '">回复并发送</button>'
+          + '<button class="ccd-sub" data-act="ck-later" data-id="' + m.id + '">稍后</button></div>'
+          + '<div class="ccd-wait"><span class="ccd-dots"><i></i><i></i><i></i></span>他正在等你的回答</div>';
+      }
+    } else {
+      body = '<div class="ccd-row"><span>你的查岗</span><b>' + esc(q) + '</b></div>';
+      if (m.hisReply) body += '<div class="ccd-row"><span>' + esc(c.name) + ' 回复</span><b>' + esc(m.hisReply) + '</b></div>';
+    }
+    return '<div class="msg-row ' + m.dir + '"><span class="bubble-av">' + av(c, m) + '</span>'
+      + '<div class="ccd"><span class="ccd-tag">查岗</span>'
+      + '<div class="ccd-q">' + esc(q) + '</div>'
+      + body + '</div></div>';
+  }
+
+  window.bubbleHtml = function (m, c) {
+    try {
+      if (m && m.kind === 'invite') return inviteCard(m, c);
+      if (m && m.kind === 'transfer') return transferCard(m, c);
+      if (m && m.kind === 'checkin') return checkinCard(m, c);
+    } catch (e) { }
+    return origBubble.apply(null, arguments);
+  };
 })();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
