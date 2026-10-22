@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="494f989d5d">
+<meta name="x-build" content="dd8019d81d">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -6595,33 +6595,45 @@ function inputRestore(snap){
 
 /* ===== 只追加一条新气泡（快路）。不适合追加时返回 false，交给原来的全量重绘 ===== */
 function chatTryAppendLast(msgs, contact){
+  /* ★ 改成"增量追加"：只要前缀没变，就把新消息一条条 append 进去，
+     不再整页重建（参考 Choccori：body.insertBefore(line, typing)）。
+     删除/撤回/换人时才退回整页重绘。 */
   try{
     if(!inChatView()) return false;
     var list = document.getElementById('chatList');
     if(!list) return false;
-    /* 有引用条 / 多选框 / 他正在输入 / 折叠过更早的消息 → 不走快路 */
     if(_quoteId) return false;
     if(document.querySelector('.multi-bar')) return false;
-    if(document.querySelector('.bubble.typing')) return false;
-    try{ if(typeof _typing!=='undefined'&&_typing) return false }catch(eT){}
     if(window.__chatAll) return false;
     if(!msgs.length) return false;
-    /* 必须正好比上次多一条，且新的是最后一条 */
     var prev = window.__chatRendered;
-    if(!prev || prev.contactId !== contact.id) return false;
-    if(msgs.length !== prev.count + 1) return false;
-    var last = msgs[msgs.length - 1];
-    if(!last || last.id === prev.lastId) return false;
-    if(prev.lastTs && (last.ts || 0) < prev.lastTs) return false;   /* 补发的老消息 → 不追加 */
-    /* 造这一个气泡 */
-    var tmp = document.createElement('div');
-    tmp.innerHTML = bubbleHtml(last, contact);
-    var node = tmp.firstElementChild;
-    if(!node) return false;
-    var _trow=list.querySelector('.bubble.typing');
-    if(_trow&&_trow.parentNode&&_trow.parentNode.parentNode===list){ list.insertBefore(node,_trow.parentNode) }
-    else { list.appendChild(node); }
-    window.__chatRendered = { contactId: contact.id, count: msgs.length, lastId: last.id, lastTs: last.ts || 0 };
+    if(!prev || prev.contactId !== contact.id || !prev.ids) return false;
+    if(msgs.length <= prev.ids.length) return false;          /* 有删除/撤回 → 整页重绘 */
+    for(var i=0;i<prev.ids.length;i++){
+      if(msgs[i].id !== prev.ids[i]) return false;            /* 前缀不一致 → 整页重绘 */
+    }
+    var tNow = now(), added = 0;
+    for(var j=prev.ids.length;j<msgs.length;j++){
+      var m = msgs[j];
+      if(!m) continue;
+      if((m.ts||0) > tNow + 200) continue;                    /* 未来时间戳不提前画 */
+      var tmp = document.createElement('div');
+      tmp.innerHTML = bubbleHtml(m, contact);
+      var node = tmp.firstElementChild;
+      if(!node) continue;
+      var trow = list.querySelector('.bubble.typing');
+      if(trow && trow.parentNode && trow.parentNode.parentNode === list){
+        list.insertBefore(node, trow.parentNode);
+      } else {
+        list.appendChild(node);
+      }
+      prev.ids.push(m.id);
+      added++;
+    }
+    if(!added) return false;
+    prev.count = prev.ids.length;
+    prev.lastId = msgs[msgs.length-1].id;
+    prev.lastTs = msgs[msgs.length-1].ts || 0;
     if(_chatAtBottom){ try{ list.scrollTop = list.scrollHeight }catch(e){} }
     return true;
   }catch(e){ return false }
@@ -6715,7 +6727,7 @@ function renderChat(){
   try{
     if(inChatView()&&msgs.length){
       var _lm=msgs[msgs.length-1];
-      window.__chatRendered={contactId:c.id,count:msgs.length,lastId:_lm.id,lastTs:_lm.ts||0};
+      window.__chatRendered={contactId:c.id,count:msgs.length,ids:msgs.map(function(x){return x.id}),lastId:_lm.id,lastTs:_lm.ts||0};
     }else{ window.__chatRendered=null }
   }catch(eR){}
   /* ★ 只有"你本来就贴在底部"时才自动滚到底。
@@ -9125,8 +9137,10 @@ function replyPump(){
   if(!c){state._pending=null;save();return}
   var wait=plan.nextAt-now();
   if(wait>0){
+    /* 只在"还没有输入行"时画一次；已经在转圈就只更新时间，不再整页重绘（避免闪跳） */
+    var _hasTypingRow=!!document.querySelector('#chatList .bubble.typing');
     if(state.settings&&state.settings.typingOn!==false)_typing={contactId:c.id,ts:now(),hold:true};
-    renderChat();
+    if(!_hasTypingRow) renderChat();
     _replyTimer=CLK.set(replyPump,Math.min(wait+30,3000));
     return;
   }
@@ -9935,24 +9949,33 @@ var _stkSuppress=false;
 function bindStickerPress(){
   var panel=document.querySelector('#sheet-mask');   /* 整张弹层：图片栏 + emoji 栏都要能长按 */
   if(!panel)return;
-  function startAt(t){
+  var _sx=0,_sy=0;
+  function startAt(t,x,y){
     if(!t||!t.closest)return;
+    _sx=x||0;_sy=y||0;
     var em=t.closest('[data-act="emoji-send"]');
     if(em){
       var v=em.getAttribute('data-e');
-      _stkPress=CLK.set(function(){_stkPress=0;_stkSuppress=true;CLK.set(function(){_stkSuppress=false},400);emojiDel(v)},650);
+      _stkPress=CLK.set(function(){_stkPress=0;_stkSuppress=true;CLK.set(function(){_stkSuppress=false},400);emojiDel(v)},900);
       return;
     }
     var b=t.closest('[data-act="sticker-send"]');
     if(!b)return;
-    _stkPress=CLK.set(function(){_stkPress=0;_stkSuppress=true;CLK.set(function(){_stkSuppress=false},400);stickerDel(b.getAttribute('data-id'))},650);
+    _stkPress=CLK.set(function(){_stkPress=0;_stkSuppress=true;CLK.set(function(){_stkSuppress=false},400);stickerDel(b.getAttribute('data-id'))},900);
   }
   function cancel(){if(_stkPress){CLK.clear(_stkPress);_stkPress=0}}
   panel.addEventListener('click',function(e){if(_stkSuppress){e.stopPropagation();e.preventDefault()}},true);
-  panel.addEventListener('touchstart',function(e){startAt(e.target)},{passive:true});
+  panel.addEventListener('touchstart',function(e){var t0=e.touches&&e.touches[0];startAt(e.target,t0?t0.clientX:0,t0?t0.clientY:0)},{passive:true});
+  /* ★ 手指一动就取消：以前只有 touchmove 事件本身取消，
+     但"按住不动只是停顿"同样会满 650ms → 用户滑列表时手一停就删了。 */
+  panel.addEventListener('touchmove',function(e){
+    var t0=e.touches&&e.touches[0];
+    if(_stkPress&&t0&&(Math.abs(t0.clientX-_sx)>10||Math.abs(t0.clientY-_sy)>10))cancel();
+  },{passive:true});
   panel.addEventListener('touchend',cancel);
   panel.addEventListener('touchmove',cancel);
-  panel.addEventListener('mousedown',function(e){startAt(e.target)});
+  panel.addEventListener('mousedown',function(e){startAt(e.target,e.clientX,e.clientY)});
+  panel.addEventListener('mousemove',function(e){if(_stkPress&&(Math.abs(e.clientX-_sx)>10||Math.abs(e.clientY-_sy)>10))cancel()});
   panel.addEventListener('mouseup',cancel);
   panel.addEventListener('mouseleave',cancel);
 }
@@ -9998,6 +10021,7 @@ function sendSticker(id){
 }
 /** 删除表情包（长按表情面板里的图） */
 function stickerDel(id){
+  if(!confirm('删除这个表情包？\n删了就找不回来了。'))return;
   var arr=state.stickers||[];
   for(var i=0;i<arr.length;i++)if(arr[i].id===id){arr.splice(i,1);break}
   save();sheetStickers();toast('已删除这个表情');
