@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="dd8019d81d">
+<meta name="x-build" content="pd3808cf41">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -33,6 +33,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:linear-gradient(165deg,var(--body-g1),var(--body-g2));color:var(--ink);font-family:var(--sans);font-size:calc(15px*var(--fs));line-height:1.55}
 button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer}
 input,textarea{font-family:inherit;font-size:calc(16px*var(--fs));color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none;width:100%}
@@ -87,6 +88,8 @@ input:focus,textarea:focus{border-color:var(--green)}
    整页被顶上去不回来，底部输入框就停在半空、下面露一大片空白（用户报的"被带起来"）。
    .screen / .home-page 早就写了 contain，就聊天列表漏了。 */
 #chatList{flex:1;overflow-y:auto;padding:12px 12px;display:flex;flex-direction:column;gap:9px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;overscroll-behavior-y:contain}
+/* ★ 消息从底部往上堆（和微信一样）：话少时不再贴着顶部往下长，来新消息三点也不会往下蹦一格 */
+#chatList:before{content:'';display:block;flex:0 0 auto;margin-top:auto;margin-bottom:-9px;height:0}
 /* 聊天壁纸固定在外层（不滚动）上，滑聊天记录时壁纸不动 */
 .chat-wrap{background-size:cover;background-position:center;background-repeat:no-repeat}
 /* ===== 气泡：内容自适应宽度，时间/已读挪到气泡外面 ===== */
@@ -99,6 +102,17 @@ input:focus,textarea:focus{border-color:var(--green)}
 .msg-col .bubble{width:fit-content;max-width:100%;align-self:inherit}
 .msg-row.out .msg-col .bubble{align-self:flex-end}
 .msg-row.in .msg-col .bubble{align-self:flex-start}
+.zkm-line{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:4px;padding:0 2px;max-width:100%}
+.msg-row.out .zkm-line{justify-content:flex-end}
+.zkm-chip{display:inline-flex;align-items:center;gap:4px;font-size:calc(10px*var(--fs));line-height:1.4;color:var(--sub);background:rgba(0,0,0,.045);border-radius:99px;padding:1.5px 7px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zkm-chip i{font-style:normal;font-size:calc(9px*var(--fs));font-weight:700;color:var(--green);opacity:.95;flex:0 0 auto}
+.chat-wrap .zkm-chip{box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.cc-mood{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0 2px;font-size:11.5px;color:#6B6D72}
+.cc-mood>span{font-weight:600;color:#3A3B3F}
+.cc-lv{border:1px solid rgba(17,18,20,.14);background:#fff;border-radius:999px;padding:4px 10px;font-size:11.5px;color:#3A3B3F}
+.cc-lv.on{background:#111214;border-color:#111214;color:#fff;font-weight:600}
+.cc-moodhint{font-style:normal;font-size:11px;color:#8A8D93;background:rgba(17,18,20,.05);border-radius:999px;padding:2px 8px}
+.cc-moodnote{font-size:11px;color:#8A8D93;line-height:1.5;margin:0 0 6px}
 .msg-meta{display:flex;align-items:center;gap:5px;margin-top:4px;padding:0 4px;line-height:1.2}
 .msg-meta .t{font-size:calc(10.5px*var(--fs));color:var(--sub);white-space:nowrap}
 .msg-meta .st{font-size:calc(10.5px*var(--fs));color:#7FA8D9;font-weight:700;white-space:nowrap}
@@ -656,7 +670,7 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
   .card,.post,.mail-item,.diary-item,.daily-card,.saved-item,.tr-item,.status-card{backdrop-filter:blur(12px) saturate(140%)!important;-webkit-backdrop-filter:blur(12px) saturate(140%)!important}
 }
 /* 滚动容器：纵向滚动与横向分页各自独立，手势不打架 */
-.home-page,.screen{overscroll-behavior:contain}
+.home-page,.screen{overscroll-behavior-x:contain;overscroll-behavior-y:auto}
 /* 浮层残留兜底：通话/转账/面板隐藏后不应再拦手或留下白块 */
 #callOverlay:not(.show),#transferOverlay:not(.show),#sheet-mask.hide,#ntfBar[style*="none"]{pointer-events:none!important}
 #toast{pointer-events:none}
@@ -731,6 +745,10 @@ input,textarea{background:rgba(255,255,255,.66)!important;border:1px solid var(-
 #sheet-mask{position:fixed;inset:0;background:rgba(58,44,31,.4);z-index:50;display:flex;align-items:flex-end;justify-content:center}
 #sheet-mask.hide{display:none}
 .sheet{width:100%;max-width:560px;background:var(--glass-strong);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--glass-brd);border-top:none;border-radius:22px 22px 0 0;padding:14px 16px calc(18px + env(safe-area-inset-bottom));max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:up .22s ease}
+/* ★ 键盘弹起来时弹层让出键盘高度（脚本会加 .kb-open） */
+#sheet-mask.kb-open .sheet{max-height:calc(100dvh - var(--kb,0px) - 14px)}
+#sheet-mask.kb-open{overscroll-behavior:contain}
+.sheet textarea{scroll-margin:24px}
 @keyframes up{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
 .sheet h2{font-family:var(--serif);font-size:calc(18px*var(--fs));font-weight:700;margin-bottom:12px}
 .sheet label{display:block;font-size:calc(12.5px*var(--fs));color:var(--sub);margin:10px 0 4px}
@@ -2964,11 +2982,11 @@ function defaultState(){
     /* ★ 小熊语录（用户给的 29 条，去掉序号）：跟"聊天字卡"一样参与抽卡 */
     bearCards:[
       {id:'bear1',text:'有你在身边，午后的阳光更加温暖'},
-      {id:'bear2',text:'不好好吃饭，不好好睡个觉，不听话，也不长记性'},
+      {id:'bear2',text:'不好好吃饭，不好好睡觉，不听话，也不长记性'},
       {id:'bear3',text:'不必担心，我相信我的小姑娘想做的，一定能够做到'},
       {id:'bear4',text:'丝线的两端连接着你和我，这从来不是束缚，而是命定的归属'},
       {id:'bear5',text:'你会有很广袤的未来，我会站在你身边，和你迎接所有的未知与浪漫'},
-      {id:'bear6',text:'小兔子的索求，一向没办法拒绝'},
+      {id:'bear6',text:'小兔子的索求，我一向没办法拒绝'},
       {id:'bear7',text:'今晚要一直睁着眼和黑暗抗争吗'},
       {id:'bear8',text:'谢谢你的陪伴，我现在的确很放松'},
       {id:'bear9',text:'我的小兔子，现在开心吗'},
@@ -3095,7 +3113,30 @@ function migrate(s){
   }catch(e){}
   /* ★ 小熊语录：老存档没有这个字段就补上（只补一次，之后用户删了不会被重新塞回来） */
   if(!Array.isArray(s.bearCards))s.bearCards=defaultState().bearCards;
+  /* ★ 小熊语录两句文案修订（只改"还是原文"的那两条，自己改过的不碰） */
+  try{
+    if(s.settings&&!s.settings._bearTxtV1){
+      s.settings._bearTxtV1=1;
+      var _bt=[['不好好吃饭，不好好睡个觉，不听话，也不长记性','不好好吃饭，不好好睡觉，不听话，也不长记性'],
+               ['小兔子的索求，一向没办法拒绝','小兔子的索求，我一向没办法拒绝']];
+      for(var _bi=0;_bi<s.bearCards.length;_bi++){
+        var _bc=s.bearCards[_bi];
+        if(!_bc)continue;
+        for(var _bj=0;_bj<_bt.length;_bj++)if(_bc.text===_bt[_bj][0])_bc.text=_bt[_bj][1];
+      }
+    }
+  }catch(e){}
+  /* ★ 内置聊天字卡分类（只补一次；用户可以自己删/改名） */
+  try{
+    if(s.settings&&!s.settings._cardCatsV1){
+      s.settings._cardCatsV1=1;
+      var _baseCats=['日常','想念','吵架','哄我','晚安','撒娇','情话','思念','安慰','鼓励','关心','夸奖','报备'];
+      if(!Array.isArray(s.cardCats))s.cardCats=[];
+      for(var _bci=0;_bci<_baseCats.length;_bci++)if(s.cardCats.indexOf(_baseCats[_bci])<0)s.cardCats.push(_baseCats[_bci]);
+    }
+  }catch(e){}
   _obj('companion',defaultState().companion); _obj('widgets',{}); _obj('appIcons',{});
+  _obj('cardCatMood',{});   /* 分类的情绪倾向：{分类名:'neg'|'pos'|'close'|'mid'|'auto'} */
   _obj('music',{songs:[],cur:0,vol:1,loop:'list',shuffle:false,bg:'mb1'});
   if(!Array.isArray(s.music.songs))s.music.songs=[];
   _obj('tide',{}); _obj('diary',{}); _obj('currentStatus',{text:'在喝咖啡',ts:now()});
@@ -6149,6 +6190,13 @@ function pickBurstCount(c){
 function pushIn(cid,text,t,replyTo,catchup){
   var m={id:uid(),contactId:cid,dir:'in',text:text,ts:t};
   if(catchup)m.catchup=1;      /* ★ 离线补发的消息：气泡上会带一个小"补发"标 */
+  /* ★ 交流情绪：按这条用到的字卡分类掷三级链条（情绪→心意→交流意图），只挂在自己身上 */
+  try{
+    if(typeof moodChainFor==='function'){
+      var _ml=moodChainFor(text);
+      if(_ml&&_ml.length)m.moodLine=_ml;
+    }
+  }catch(e){}
   if(state.settings&&state.settings.soundOn)beep();
   if(replyTo)m.replyTo=replyTo;
   state.messages.push(m);
@@ -6634,6 +6682,18 @@ function chatTryAppendLast(msgs, contact){
     prev.count = prev.ids.length;
     prev.lastId = msgs[msgs.length-1].id;
     prev.lastTs = msgs[msgs.length-1].ts || 0;
+    /* ★ 增量追加后也要收/补"输入中"三点（不然他回完最后一句三点还挂着） */
+    var _trow2 = list.querySelector('.bubble.typing');
+    if(_typing && !_typingStillExpected(_typing.contactId)) _typing = null;
+    var _wantT = !!((state.settings && state.settings.typingOn!==false) && _typing
+      && _typing.contactId === contact.id && (_typing.hold || now()-_typing.ts < 8000));
+    if(_wantT && !_trow2){
+      var _tw = document.createElement('div');
+      _tw.innerHTML = typingRow(contact);
+      if(_tw.firstElementChild) list.appendChild(_tw.firstElementChild);
+    }else if(!_wantT && _trow2 && _trow2.parentNode && _trow2.parentNode.parentNode === list){
+      list.removeChild(_trow2.parentNode);
+    }
     if(_chatAtBottom){ try{ list.scrollTop = list.scrollHeight }catch(e){} }
     return true;
   }catch(e){ return false }
@@ -6680,7 +6740,7 @@ function renderChat(){
     body+='<div class="quote-bar"><span class="txt">回复：'+esc(trunc(msgText(_quoteId),26))+'</span><button data-act="quote-cancel">取消</button></div>';
   }
   body+=multiBarHtml();
-  body+='<div class="chat-input"><button class="tool-btn" data-act="qk-menu" title="快捷">⚡</button><button class="tool-btn" data-act="tools">'+ICON_PLUS+'</button><textarea id="chatText" rows="1" placeholder="说点什么…"></textarea><button class="tool-btn" data-act="emoji">'+ICON_EMOJI+'</button><button data-act="send-chat">发送</button></div></div>';
+  body+='<div class="chat-input"><button class="tool-btn" data-act="qk-menu" title="更多">'+ICON_MORE+'</button><button class="tool-btn" data-act="tools">'+ICON_PLUS+'</button><textarea id="chatText" rows="1" placeholder="说点什么…"></textarea><button class="tool-btn" data-act="emoji">'+ICON_EMOJI+'</button><button data-act="send-chat">发送</button></div></div>';
   /* ★ 重绘前先记住"离底部多少像素"。
      以前重绘后不做任何恢复：列表重建 → scrollTop 回到 0 → 你正翻着旧消息（比如在填问卷），
      点一下选项就被甩到很久以前那批消息上（用户报的）。
@@ -6836,7 +6896,16 @@ function _typingStillExpected(cid){
   return false;
 }
 function typingRow(c){
-  return '<div class="msg-row in"><span class="bubble-av">'+cAvatar(c)+'</span><div class="bubble in typing"><span class="typing-dots"><i></i><i></i><i></i></span></div></div>';
+  /* ★ 三点不要"闪"：整页重绘会把这一行重建，眨眼动画会从 0 重新开始。
+     按"他这次输入已经持续了多久"给负延时，重建后接着原来的相位跳。 */
+  var _t0=(_typing&&typeof _typing.ts==='number')?_typing.ts:now();
+  var _ph=Math.max(0,((now()-_t0)%1100))/1000;
+  function _dly(off){ var v=-((_ph+off)%1.1); if(!isFinite(v))v=0; return v.toFixed(3)+'s' }
+  return '<div class="msg-row in"><span class="bubble-av">'+cAvatar(c)+'</span><div class="bubble in typing"><span class="typing-dots">'
+    +'<i style="animation-delay:'+_dly(0)+'"></i>'
+    +'<i style="animation-delay:'+_dly(.22)+'"></i>'
+    +'<i style="animation-delay:'+_dly(.44)+'"></i>'
+    +'</span></div></div>';
 }
 /** 引用块里显示什么（决策/查岗这类卡片没有 text，要取它自己的字段） */
 function quoteLabel(om,c){
@@ -7013,10 +7082,18 @@ function bubbleHtml(m,c){
   var inMulti=!!(_multiSel&&_multiSel.on);
   var picked=inMulti&&_multiSel.ids[m.id]?1:0;
   var tapAct=inMulti?'msg-multi-pick':'quote';
+  /* ★ 交流情绪：气泡下面一行小胶囊 */
+  var moodLine='';
+  if(m.dir==='in'&&m.moodLine&&m.moodLine.length&&!(state.settings&&state.settings.moodChainOn===false)){
+    moodLine='<div class="zkm-line">'
+      +m.moodLine.map(function(x){return '<span class="zkm-chip"><i>'+esc(x.tag)+'</i>'+esc(x.label)+'</span>'}).join('')
+      +'</div>';
+  }
   return '<div class="msg-row '+m.dir+(inMulti?' multi-on':'')+(picked?' picked':'')+'"><span class="bubble-av">'+av+'</span>'
     +'<span class="multi-tick">'+(picked?'✓':'')+'</span>'
     +'<div class="msg-col">'
     +'<div class="bubble '+m.dir+extraCls+'" data-act="'+tapAct+'" data-id="'+m.id+'">'+q+body+'</div>'
+    +moodLine
     +(inMulti?'':meta)
     +'</div></div>';
 }
@@ -7506,10 +7583,10 @@ function letterSend(){
 
 /* ================= 字卡库（分类 + 导入导出） ================= */
 var _cat='全部';
-var CARD_TAGS=['日常','想念','吵架','哄我','晚安'];
+var CARD_TAGS=['日常','想念','吵架','哄我','晚安','撒娇','情话','思念','安慰','鼓励','关心','夸奖','报备'];
 var _lib='cards';
 var _cat='全部';
-var CARD_TAGS=['日常','想念','吵架','哄我','晚安'];
+var CARD_TAGS=['日常','想念','吵架','哄我','晚安','撒娇','情话','思念','安慰','鼓励','关心','夸奖','报备'];
 var _lib='cards';
 var _cardQ='';
 /* 从哪一页点的 ＋，就在那一页添加组件 */
@@ -8303,6 +8380,7 @@ function renderMe(){
      于是 .value 抛错、整段保存中断（自查抓到的）。 */
 
   html+='<div class="sw-row"><div><b>消息操作菜单</b><span>气泡旁显示 ⋮ 可复制删除</span></div><div class="switch'+(state.settings.msgMenu?' on':'')+'" data-act="st-sw" data-key="msgMenu"></div></div>';
+  html+='<div class="sw-row"><div><b>交流情绪</b><span>气泡下方显示他的情绪标签（按字卡分类判定）</span></div><div class="switch'+(state.settings.moodChainOn!==false?' on':'')+'" data-act="st-sw" data-key="moodChainOn"></div></div>';
   html+='<div class="me-group-title">美化</div>';
   /* ★ 网站名称：用户可以自己输入（默认"沉与昕之恋"） */
   html+='<div class="me-sec" id="sec-sitename"><h3>网站名称</h3><div class="card">'
@@ -9139,7 +9217,11 @@ function replyPump(){
   if(wait>0){
     /* 只在"还没有输入行"时画一次；已经在转圈就只更新时间，不再整页重绘（避免闪跳） */
     var _hasTypingRow=!!document.querySelector('#chatList .bubble.typing');
-    if(state.settings&&state.settings.typingOn!==false)_typing={contactId:c.id,ts:now(),hold:true};
+    if(state.settings&&state.settings.typingOn!==false){
+      /* ★ ts 只在"这一轮刚开始"时写一次：每 3 秒重排一次又重置，三点动画会从头开始 */
+      if(!_typing||_typing.contactId!==c.id)_typing={contactId:c.id,ts:now(),hold:true};
+      else _typing.hold=true;
+    }
     if(!_hasTypingRow) renderChat();
     _replyTimer=CLK.set(replyPump,Math.min(wait+30,3000));
     return;
@@ -9161,7 +9243,7 @@ function replyPump(){
     return;
   }
   var txt=plan.queue[plan.idx];
-  if(txt===undefined){_typing=null;state._pending=null;save();schedule();return}
+  if(txt===undefined){_typing=null;state._pending=null;save();renderChat();schedule();return}
   pushIn(c.id,txt,now(),plan.idx===0?plan.quote:null);
   plan.idx++;
   if(plan.idx>=plan.queue.length){
@@ -9887,7 +9969,6 @@ function checkinLater(id){
 function sheetTools(){
   var items=[
     {act:'image-send',n:'图片',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M3 17l5-4 4 3 4-4 5 4"/></svg>'},
-    {act:'emoji',n:'表情',ic:ICON_EMOJI},
     {act:'checkin',n:'查岗',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 12h16M4 12a8 8 0 0 1 8-8m-8 8a8 8 0 0 0 8 8m8-8a8 8 0 0 0-8-8m8 8a8 8 0 0 1-8 8"/></svg>'},
     {act:'poll',n:'决策',ic:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 20V10m5 10V4m5 16v-8m5 8V7"/></svg>'},
     {act:'call-voice',n:'语音电话',ic:ICON_CALL},
@@ -14735,7 +14816,7 @@ function pgSetLastFromSheet(offset) {
     /* 主页网格与组件区：内部重排不外溢 */
     + '#home .home-grid{contain:layout style}'
     /* 减少滚动时的白屏抖动 */
-    + '.chat-wrap,.home-pages{overscroll-behavior:contain}'
+    + '.chat-wrap{overscroll-behavior:contain}.home-pages{overscroll-behavior-x:contain;overscroll-behavior-y:auto}'
     /* 图片不参与布局计算之外的合成 */
     + '#view img{content-visibility:auto}';
   try {
@@ -14792,6 +14873,15 @@ function pgSetLastFromSheet(offset) {
   }
   function esc2(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') }
 
+  /* 情绪倾向旁边那句小提示：这一档会挂出什么情绪 */
+  function moodHintText(lv) {
+    if (lv === 'builtin') return '用内置映射';
+    if (lv === 'auto') return '按卡里的字判断';
+    var g = (window.MOOD_CHAIN && MOOD_CHAIN.level && MOOD_CHAIN.level[lv]) || [];
+    if (!g.length) return '';
+    return '→ ' + g.map(function (x) { return x[0] }).join(' / ');
+  }
+
   /* ---------- 页面 ---------- */
   window.renderCards = function () {
     if (allCats().indexOf(cur) < 0) cur = allCats()[0] || '日常';
@@ -14804,7 +14894,7 @@ function pgSetLastFromSheet(offset) {
 
     var list = itemsOf(cur), isFixed = !!fixedDef(cur);
     var rows = list.map(function (x) {
-      var del = x.mine ? '<span class="cc-x" data-act="cc-del" data-c="' + esc2(cur) + '" data-t="' + esc2(x.text) + '">✕</span>' : '<i class="cc-fx">固定</i>';
+      var del = '<span class="cc-x" data-act="cc-del" data-c="' + esc2(cur) + '" data-t="' + esc2(x.text) + '">✕</span>';
       return '<div class="cc-li"><span class="cc-t">' + esc2(x.text) + '</span>' + del + '</div>';
     }).join('');
     if (!list.length) rows = '<div class="cc-li" style="color:#6B6D72">这个分类还没有内容，上面输入就能加</div>';
@@ -14813,6 +14903,15 @@ function pgSetLastFromSheet(offset) {
       + '<div class="cc-wrap">'
       + '<textarea id="ccInput" class="cc-ta" placeholder="一行一张，可以一次粘贴一大段"></textarea>'
       + '<div class="cc-cats">' + chips + '</div>'
+      + (isFixed ? '' : (function () {
+        var curLv = (typeof moodCatLevel === 'function') ? moodCatLevel(cur) : 'auto';
+        var lvs = [['neg', '偏负面'], ['pos', '偏正面'], ['close', '亲密'], ['mid', '中性'], ['auto', '自动']];
+        var btns = lvs.map(function (x) {
+          return '<button class="cc-lv' + (curLv === x[0] ? ' on' : '') + '" data-act="cc-mood" data-lv="' + x[0] + '">' + x[1] + '</button>';
+        }).join('');
+        return '<div class="cc-mood"><span>情绪倾向</span>' + btns + '<i class="cc-moodhint">' + moodHintText(curLv) + '</i></div>'
+          + '<div class="cc-moodnote">只决定他抽到这类卡时挂什么情绪标签，不影响抽卡、不改字卡本身</div>';
+      })())
       + '<div class="cc-row"><button class="cc-btn" data-act="cc-add">添加</button>'
       + '<button class="cc-btn ghost" data-act="cc-newcat">＋ 新分类</button>'
       + '<button class="cc-btn ghost" data-act="cc-manage">管理分类</button>'
@@ -14854,14 +14953,18 @@ function pgSetLastFromSheet(offset) {
     msg('已添加 ' + added + ' 张' + (skipped ? ('，跳过重复 ' + skipped + ' 张') : ''));
   }
 
-  /* ---------- 删除（只能删自己加的） ---------- */
+  /* ---------- 删除（固定分类里的卡也能删；删空后不再被默认值填回来） ---------- */
   function delCard(cat, text) {
     var arr = poolOf(cat), d = fixedDef(cat);
     for (var i = 0; i < arr.length; i++) {
       if (arr[i] && String(arr[i].text) === text) {
-        if (!arr[i].mine) { toast('这张是站内固定的，不能删'); return }
         arr.splice(i, 1); break;
       }
+    }
+    if (d) {
+      var K = { bearCards: 'bear', statusCards: 'status', moodCards: 'mood', patCards: 'pat', diaryCards: 'diary' };
+      state._smDeleted = state._smDeleted || {};
+      state._smDeleted[K[d.pool] || d.pool] = 1;
     }
     try { cardLibChanged() } catch (e) { }
     save(); renderCards(); toast('已删除');
@@ -14939,6 +15042,16 @@ function pgSetLastFromSheet(offset) {
     if (act === 'cc-tab') { cur = a.getAttribute('data-c'); renderCards(); return }
     if (act === 'cc-add') { e.preventDefault(); addCards(); return }
     if (act === 'cc-del') { e.preventDefault(); delCard(a.getAttribute('data-c'), a.getAttribute('data-t')); return }
+    if (act === 'cc-mood') {
+      e.preventDefault();
+      var lv = a.getAttribute('data-lv');
+      if (typeof moodSetCatLevel === 'function') {
+        moodSetCatLevel(cur, lv);
+        renderCards();
+        toast('「' + cur + '」的情绪倾向：' + (typeof moodCatLevelName === 'function' ? moodCatLevelName(lv) : lv));
+      }
+      return;
+    }
     if (act === 'cc-mute') {
       e.preventDefault();
       var cname = a.getAttribute('data-c');
@@ -15834,6 +15947,320 @@ function roomShop() {
     }).catch(function () { });
   });
 })();
+/* ★ 键盘别把弹窗里的输入框盖住 */
+/* ================= 键盘别把弹窗里的输入框盖住 =================
+   用户报的：聊天室设置里那个「自定义气泡 CSS」的框，一点就把键盘弹出来，
+   键盘正好盖住它，连粘贴都看不到自己在往哪粘。
+
+   做法（不依赖某个浏览器特例）：
+     · 键盘高度用 visualViewport 算：innerHeight - visualViewport.height
+     · 弹层底部留出这么高（#sheet-mask padding-bottom），弹窗就被顶到键盘上面
+     · 再把正在输入的那个框滚到弹窗可见区里
+     · 收键盘 / 关弹窗 / 转屏都还原
+   只影响"弹窗里有输入框"的情况，聊天页底部输入框那条路不动。 */
+(function(){
+  if(window.__kbFit)return; window.__kbFit=1;
+
+  function mask(){ return document.getElementById('sheet-mask') }
+  function kbH(){
+    try{
+      var vv=window.visualViewport;
+      if(!vv)return 0;
+      var h=Math.round(window.innerHeight-vv.height-(vv.offsetTop||0));
+      return h>0?h:0;
+    }catch(e){ return 0 }
+  }
+  function activeField(m){
+    var ae=document.activeElement;
+    if(!ae||!m||!m.contains(ae))return null;
+    var t=ae.tagName;
+    return (t==='TEXTAREA'||t==='INPUT')?ae:null;
+  }
+  function scrollIntoSheet(sheet,el){
+    try{
+      var r=el.getBoundingClientRect(), sr=sheet.getBoundingClientRect();
+      var pad=14;
+      if(r.bottom>sr.bottom-pad||r.top<sr.top+pad){
+        el.scrollIntoView({block:'center'});
+      }
+    }catch(e){}
+  }
+  function fit(){
+    /* ★ 聊天页底部输入栏：安卓上键盘有时只是"盖住"内容（布局视口不变），
+       输入框就压在键盘底下。这时把输入栏整体抬起来（kb 就是"被盖住的高度"）；
+       如果浏览器自己把布局高度缩了（kb≈0），就什么都不做，避免抬两次。 */
+    var kbRaw=kbH();
+    try{ chatLift(kbRaw) }catch(e){}
+    var m=mask();
+    if(!m)return;
+    var open=!m.classList.contains('hide');
+    var kb=open?kbRaw:0;
+    /* 键盘没起来（或他接了个外接键盘）→ 还原，别留白 */
+    if(kb<80){
+      if(m.style.paddingBottom){ m.style.paddingBottom=''; m.style.removeProperty('--kb') }
+      m.classList.remove('kb-open');
+      return;
+    }
+    m.style.setProperty('--kb',kb+'px');
+    m.style.paddingBottom=kb+'px';
+    m.classList.add('kb-open');
+    var sheet=m.querySelector('.sheet');
+    var f=activeField(m);
+    if(sheet&&f)scrollIntoSheet(sheet,f);
+  }
+  /* 聊天输入栏抬起来（只在"键盘盖住"的模式下用） */
+  function chatLift(kb){
+    var bar=document.querySelector('.chat-input');
+    if(!bar)return;
+    var want=kb>80?('calc('+kb+'px - env(safe-area-inset-bottom))'):'';
+    if(want){ if(bar.style.marginBottom!==want) bar.style.marginBottom=want }
+    else if(bar.style.marginBottom){ bar.style.marginBottom='' }
+  }
+  function later(){ setTimeout(fit,60); setTimeout(fit,280) }   /* 键盘升降是动画，量两次 */
+
+  document.addEventListener('focusin',function(e){
+    var t=e.target;
+    if(!t||!t.tagName)return;
+    if(t.tagName!=='TEXTAREA'&&t.tagName!=='INPUT')return;
+    if(t.id==='chatText'){ later(); return }        /* 聊天输入框：只管底部栏抬高 */
+    var m=mask();
+    if(!m||!m.contains(t))return;
+    later();
+  },true);
+  document.addEventListener('focusout',function(){ setTimeout(fit,140) },true);
+  window.addEventListener('resize',later);
+  window.addEventListener('orientationchange',later);
+  try{
+    if(window.visualViewport){
+      window.visualViewport.addEventListener('resize',later);
+      window.visualViewport.addEventListener('scroll',later);
+    }
+  }catch(e){}
+  /* 弹窗开关 / 换了内容也重算一次 */
+  try{
+    var m0=mask();
+    if(m0&&window.MutationObserver){
+      new MutationObserver(function(){ setTimeout(fit,40) }).observe(m0,{attributes:true,attributeFilter:['class'],childList:true});
+    }
+  }catch(e){}
+  window.addEventListener('load',function(){ setTimeout(fit,200) });
+  window.__kbFitRun=fit;
+})();
+
+/* ★ 交流情绪：三级链条（情绪→心意→交流意图） */
+/* ===== 交流情绪：字卡分类 → 情绪 → 心意 → 交流意图（三级链条） =====
+   只用于聊天里"他回的这条"（气泡下方一行小胶囊），写信 / 日记 / 状态 / 心情 / 拍一拍都不挂。
+   判定顺序：卡上的分类倾向 → 小熊语录库默认 → 关键词 → 中性。
+   一轮多张卡时按 负面 -1 / 亲密 +1.5 / 正面 +1 / 中性 0 加总后定档。
+   概率：情绪 70% / 心意 45% / 交流意图 40%（内容驱动，比纯随机低，免得每条都挂）。
+   全部可关：state.settings.moodChainOn === false */
+
+var MOOD_CHAIN = {
+  /* 内置 13 个聊天字卡分类 → 情绪组（带权重） */
+  cat: {
+    '日常': [['平静', 60], ['温柔', 40]],
+    '晚安': [['温柔', 60], ['平静', 40]],
+    '吵架': [['委屈', 60], ['不安', 40]],
+    '哄我': [['委屈', 55], ['黏人', 45]],
+    '想念': [['想念', 100]],
+    '思念': [['想念', 60], ['心疼', 40]],
+    '撒娇': [['黏人', 60], ['心动', 40]],
+    '情话': [['心动', 60], ['温柔', 40]],
+    '安慰': [['心疼', 60], ['温柔', 40]],
+    '鼓励': [['认真', 60], ['温柔', 40]],
+    '关心': [['心疼', 60], ['温柔', 40]],
+    '夸奖': [['喜悦', 60], ['心动', 40]],
+    '报备': [['认真', 60], ['平静', 40]]
+  },
+  /* 用户自建分类可选的 5 档 → 情绪组 */
+  level: {
+    neg: [['委屈', 55], ['不安', 45]],
+    pos: [['喜悦', 60], ['心动', 40]],
+    close: [['黏人', 55], ['心动', 45]],
+    mid: [['平静', 60], ['温柔', 40]]
+  },
+  /* 小熊语录（没有分类，靠库默认） */
+  bear: [['心动', 50], ['黏人', 30], ['温柔', 20]],
+  /* 情绪组 → 情绪词 */
+  emo: {
+    '平静': ['平静', '还好', '没什么起伏'],
+    '温柔': ['心软', '温柔', '放松'],
+    '喜悦': ['有点开心', '轻快', '明亮'],
+    '心动': ['心动', '脸有点热', '被你说到心里'],
+    '想念': ['想你', '有点空', '等你'],
+    '黏人': ['有点黏你', '想被抱', '想赖着'],
+    '心疼': ['心疼', '舍不得', '想护着你'],
+    '不安': ['有点不安', '慌', '怕你走'],
+    '委屈': ['委屈', '嘴硬', '有点生气'],
+    '认真': ['认真', '郑重', '想让你放心']
+  },
+  /* 关键词兜底：没分类的卡扫一遍（命中即定档，不再往下看） */
+  words: [
+    ['委屈', ['委屈', '嘴硬', '生气', '烦', '讨厌', '凶', '吵', '随便你', '算了', '不想说', '没意思']],
+    ['不安', ['别走', '怕', '慌', '担心', '不安', '离开', '会不会']],
+    ['心疼', ['心疼', '舍不得', '别难过', '辛苦', '累', '照顾好', '休息', '喝水', '早点睡']],
+    ['想念', ['想你', '想念', '想起', '好久没', '等你', '见你']],
+    ['黏人', ['抱', '蹭', '黏', '赖', '撒娇', '亲亲', '亲一下']],
+    ['心动', ['心动', '喜欢', '爱你', '心动', '脸热', '宝贝']],
+    ['喜悦', ['开心', '高兴', '好耶', '太好', '顺利', '不错', '谢谢', '真好']],
+    ['认真', ['放心', '报备', '告诉你', '郑重', '答应']]
+  ],
+  /* 情绪 → 心意（权重） */
+  emoToHeart: {
+    '平静': [['陪伴', 40], ['分享', 30], ['倾听', 30]],
+    '温柔': [['照顾', 35], ['陪伴', 35], ['靠近', 30]],
+    '喜悦': [['分享', 50], ['表达', 30], ['陪伴', 20]],
+    '心动': [['靠近', 45], ['表达', 35], ['珍惜', 20]],
+    '想念': [['靠近', 45], ['表达', 30], ['陪伴', 25]],
+    '黏人': [['靠近', 55], ['陪伴', 30], ['表达', 15]],
+    '心疼': [['照顾', 45], ['陪伴', 30], ['确认', 25]],
+    '不安': [['确认', 40], ['陪伴', 35], ['表达', 25]],
+    '委屈': [['表达', 45], ['确认', 30], ['陪伴', 25]],
+    '认真': [['表达', 45], ['珍惜', 30], ['陪伴', 25]]
+  },
+  /* 心意 → 心意词 */
+  heart: {
+    '陪伴': ['陪着你', '我在', '安静陪着'],
+    '靠近': ['想靠近', '想抱你', '想蹭一下'],
+    '照顾': ['想照顾你', '想管着你', '想让你好好吃饭'],
+    '表达': ['想告诉你', '想让你懂', '想说出来'],
+    '倾听': ['想听你说', '想听你讲', '慢慢说'],
+    '分享': ['想分享', '想让你知道', '想和你说'],
+    '珍惜': ['想记住', '舍不得忘', '想留久一点'],
+    '确认': ['想确认', '想问你', '想知道你怎么想']
+  },
+  /* 心意 → 交流意图（权重） */
+  heartToIntent: {
+    '陪伴': [['陪伴', 45], ['回应', 30], ['等待', 25]],
+    '靠近': [['靠近', 55], ['表达', 25], ['陪伴', 20]],
+    '照顾': [['安慰', 40], ['了解', 30], ['陪伴', 30]],
+    '表达': [['表达', 50], ['了解', 25], ['回应', 25]],
+    '倾听': [['了解', 45], ['回应', 30], ['等待', 25]],
+    '分享': [['表达', 40], ['了解', 35], ['回应', 25]],
+    '珍惜': [['表达', 45], ['陪伴', 30], ['靠近', 25]],
+    '确认': [['了解', 50], ['表达', 30], ['等待', 20]]
+  },
+  /* 交流意图词 */
+  intent: {
+    '回应': ['回应你', '听到了', '我在听'],
+    '靠近': ['想靠近', '想抱一下', '想赖着你'],
+    '了解': ['想问问你', '想知道你在想什么', '有点好奇'],
+    '安慰': ['想安慰你', '想让你好一点', '别难过'],
+    '鼓励': ['相信你', '你可以的', '我在你这边'],
+    '陪伴': ['陪你', '我在', '不走'],
+    '表达': ['想让你懂', '想说出来', '想告诉你'],
+    '等待': ['等你', '等你回', '慢慢来']
+  }
+};
+
+/* 按权重从 [['名字',权重],…] 里抽一个 */
+function _moodPickW(list) {
+  var total = 0, i;
+  for (i = 0; i < list.length; i++) total += list[i][1];
+  if (!total) return null;
+  var r = Math.random() * total;
+  for (i = 0; i < list.length; i++) { r -= list[i][1]; if (r <= 0) return list[i][0] }
+  return list[list.length - 1][0];
+}
+/* 从词池里随机取，尽量不和已经用过的词撞 */
+function _moodWord(group, used) {
+  var pool = (MOOD_CHAIN.emo[group] || MOOD_CHAIN.heart[group] || MOOD_CHAIN.intent[group] || []);
+  if (!pool.length) return '';
+  var av = [];
+  for (var i = 0; i < pool.length; i++) if (!used || used.indexOf(pool[i]) < 0) av.push(pool[i]);
+  if (!av.length) av = pool;
+  return av[Math.floor(Math.random() * av.length)];
+}
+/* 分类 → 情绪候选：先看用户选的倾向，再看内置表 */
+function _moodCatGroups(cat) {
+  var cm = (state && state.cardCatMood) || {};
+  var lv = cm[cat];
+  if (lv && MOOD_CHAIN.level[lv]) return MOOD_CHAIN.level[lv].slice();
+  if (lv === 'auto') return null;                 /* 显式"自动"→走关键词 */
+  if (MOOD_CHAIN.cat[cat]) return MOOD_CHAIN.cat[cat].slice();
+  return null;
+}
+/* 文本扫关键词 → 情绪组 */
+function _moodByWords(text) {
+  var s = String(text || '');
+  for (var i = 0; i < MOOD_CHAIN.words.length; i++) {
+    var g = MOOD_CHAIN.words[i];
+    for (var k = 0; k < g[1].length; k++) if (s.indexOf(g[1][k]) >= 0) return g[0];
+  }
+  return null;
+}
+/* 把一条消息的文本反查回"用了哪些卡"（拼字卡是空格连接，所以拆开查） */
+function moodCardsOfText(text) {
+  var out = [], parts = String(text || '').split(/[\s\n]+/), i;
+  var byText = {};
+  for (i = 0; i < (state.cards || []).length; i++) { var c = state.cards[i]; if (c && c.text) byText[c.text] = c }
+  var bearTexts = {};
+  for (i = 0; i < (state.bearCards || []).length; i++) { var b = state.bearCards[i]; if (b && b.text) bearTexts[b.text] = 1 }
+  for (i = 0; i < parts.length; i++) {
+    var p = parts[i];
+    if (!p) continue;
+    if (byText[p]) out.push({ tag: byText[p].tag || '' });
+    else if (bearTexts[p]) out.push({ tag: '__bear__' });
+  }
+  return out;
+}
+
+/* 主函数：吃一条消息的文本，返回 [{tag:'情绪',label:'…'}, …]（可能为空数组） */
+function moodChainFor(text) {
+  var st = (state && state.settings) || {};
+  if (st.moodChainOn === false) return [];
+  var picked = moodCardsOfText(text), i;
+  /* 1) 定档：逐张取情绪候选，按"负面 -1 / 亲密 +1.5 / 正面 +1 / 中性 0"加总 */
+  var groups = [], pos = 0, neg = 0, known = 0;
+  for (i = 0; i < picked.length; i++) {
+    var pk = picked[i], cand = null;
+    if (pk.tag === '__bear__') cand = MOOD_CHAIN.bear;
+    else if (pk.tag) cand = _moodCatGroups(pk.tag);
+    if (cand) { known++; for (var j = 0; j < cand.length; j++) groups.push(cand[j]); }
+  }
+  /* 没有分类信息（或分类是"自动"）：退到卡里的关键词 */
+  if (!known) {
+    var w1r = _moodByWords(text);
+    if (!w1r) return [];                          /* ★ 认不出来就不挂，别硬说他是"平静" */
+    groups = [[w1r, 100]];
+  }
+  /* 2) 情绪：70% 才有 */
+  if (Math.random() > 0.7) return [];
+  var emo = _moodPickW(groups.length ? groups : [['平静', 100]]);
+  var used = [], out = [];
+  var w1 = _moodWord(emo, used); if (!w1) return [];
+  used.push(w1);
+  out.push({ tag: '情绪', label: w1 });
+  /* 3) 心意：45% 才有 */
+  if (Math.random() > 0.45) return out;
+  var heart = _moodPickW(MOOD_CHAIN.emoToHeart[emo] || [['陪伴', 100]]);
+  var w2b = _moodWord(heart, used);
+  if (heart && w2b) { used.push(w2b); out.push({ tag: '心意', label: w2b }) }
+  /* 4) 交流意图：40% 才有 */
+  if (Math.random() > 0.40) return out;
+  var itn = _moodPickW(MOOD_CHAIN.heartToIntent[heart] || [['回应', 100]]);
+  var w3 = _moodWord(itn, used);
+  if (itn && w3) out.push({ tag: '交流意图', label: w3 });
+  return out;
+}
+
+/* 给界面用：一个分类现在的倾向（返回 neg/pos/close/mid/auto） */
+function moodCatLevel(cat) {
+  var cm = (state && state.cardCatMood) || {};
+  if (cm[cat]) return cm[cat];
+  if (MOOD_CHAIN.cat[cat]) return 'builtin';      /* 内置表里有：显示"内置" */
+  return 'auto';
+}
+function moodCatLevelName(lv) {
+  return ({ neg: '偏负面', pos: '偏正面', close: '亲密', mid: '中性', auto: '自动（按关键词）', builtin: '内置' })[lv] || '自动（按关键词）';
+}
+function moodSetCatLevel(cat, lv) {
+  if (!state.cardCatMood) state.cardCatMood = {};
+  if (lv === 'auto') state.cardCatMood[cat] = 'auto';
+  else state.cardCatMood[cat] = lv;
+  save();
+}
+
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
