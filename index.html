@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="pcad03cbac">
+<meta name="x-build" content="p950b4ad0b">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -2557,6 +2557,16 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 .rm-item img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;image-rendering:pixelated}
 .rm-item span{position:absolute;left:0;right:0;bottom:-16px;font-size:10px;color:#6B6D72;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rm-tray{padding-bottom:20px}
+</style>
+<style id="liteMode">
+body.lite *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.lite .widget,body.lite .hg-widget,body.lite .home-grid>.hg-card,body.lite .card,body.lite .me-sec .card,
+body.lite .sheet,body.lite .menu,body.lite .chat-input,body.lite .bubble{
+  background-image:none!important;background-color:rgba(255,255,255,.92)!important;box-shadow:0 4px 12px rgba(70,58,40,.07)!important}
+body.lite .bubble.me{background-color:#EAF3E8!important}
+body.lite .bubble.you{background-color:#fff!important}
+body.lite .home-page{content-visibility:auto;contain-intrinsic-size:393px 880px}
+body.lite .home-pages{will-change:auto!important}
 </style>
 </head>
 <body>
@@ -16641,6 +16651,60 @@ function mxUpload(){
 window.mengxiEnsure=mx;
 })();
 
+
+/* ㉘ 轻量模式 */
+(function(){ if(window.__liteMode)return; window.__liteMode=1;
+function on(){ try{ return localStorage.getItem("zika_lite")!=="0" }catch(e){ return true } }
+function apply(){ try{ document.body.classList.toggle("lite", on()) }catch(e){} }
+apply(); setTimeout(apply,300); setTimeout(apply,1200);
+window.zikaLiteToggle=function(){ try{ localStorage.setItem("zika_lite", on()?"0":"1") }catch(e){} apply(); };
+if(typeof renderMe==="function" && !window.__liteHook){ window.__liteHook=1; var _rm=renderMe;
+  renderMe=function(){ var r=_rm.apply(this,arguments);
+    try{ var host=document.getElementById("sec-font");
+      if(host && !document.getElementById("sec-lite")){
+        host.insertAdjacentHTML("afterend","<div class=\"me-sec\" id=\"sec-lite\"><h3>轻量模式</h3><div class=\"card row\" style=\"cursor:pointer\" data-act=\"lite-toggle\"><div><b>"+(on()?"已开启":"已关闭")+"</b><div class=\"meta\">关掉毛玻璃和重阴影，页面打开更快（低配手机建议开）</div></div></div></div>");
+      }
+    }catch(e){} return r } }
+document.addEventListener("click",function(e){ var t=e.target.closest&&e.target.closest("[data-act=\"lite-toggle\"]");
+  if(!t)return; window.zikaLiteToggle(); try{ renderMe() }catch(e){} },true);
+})();
+
+/* ㉙ 存档写入合并（消掉启动时多次全量保存） */
+(function(){ if(window.__saveCoalesce)return; window.__saveCoalesce=1;
+if(typeof save!=="function")return;
+var _save=save, pend=false, timer=null, booting=true;
+function flush(){ if(timer){clearTimeout(timer);timer=null} if(!pend)return; pend=false; try{_save()}catch(e){} }
+save=function(){ pend=true; var wait=booting?600:250; if(timer)return; timer=setTimeout(flush,wait); };
+function bootDone(){ booting=false; if(pend)flush(); }
+setTimeout(bootDone,1500); setInterval(function(){ if(!booting&&pend)flush() },4000);
+window.addEventListener("pagehide",flush); window.addEventListener("beforeunload",flush);
+document.addEventListener("visibilitychange",function(){ if(document.visibilityState==="hidden")flush() });
+window.zikaSaveNow=flush;
+})();
+
+/* ㉚ 启动诊断 */
+(function(){ if(window.__bootDiag)return; window.__bootDiag=1;
+function kb(n){ return (n/1024).toFixed(0)+"KB" }
+function lsSizes(){ var o={}; try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); var v=localStorage.getItem(k)||""; if(v.length>2000)o[k]=v.length } }catch(e){} return o }
+function measured(){ var t=performance.getEntriesByType("navigation")[0]||{}; var p=performance.getEntriesByType("paint")||[];
+  return { load:Math.round(t.loadEventEnd||0), dom:Math.round(t.domContentLoadedEventEnd||0), fp:Math.round(p.length?p[0].startTime:0) } }
+setTimeout(function(){ try{
+  var m=measured(), ls=lsSizes(), tot=0, parts=[];
+  for(var k in ls){ tot+=ls[k]; parts.push(k+"="+kb(ls[k])) }
+  window.__diagInfo={ load:m.load, dom:m.dom, fp:m.fp, saveCount:window.__saveCount||0,
+    lsTotal:tot, lsParts:parts.join(" · "), cards:(window.state?state.cards.length:0),
+    msgs:(window.state?state.messages.length:0) };
+  if(navigator.storage&&navigator.storage.estimate)navigator.storage.estimate().then(function(e){ window.__diagInfo.idb=(e.usage||0) });
+  if(m.load>6000 && typeof toast==="function"){ toast("打开用了 "+(m.load/1000).toFixed(1)+"s｜存档 "+kb(tot)+"｜写盘 "+(window.__saveCount||0)+" 次") }
+}catch(e){} }, 2600);
+if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var _rm=renderMe;
+  renderMe=function(){ var r=_rm.apply(this,arguments);
+    try{ var host=document.getElementById("sec-store"); if(host && !document.getElementById("sec-diag")){
+      var d=window.__diagInfo||{}; var txt="首屏 "+((d.fp||0)/1000).toFixed(1)+"s · 加载完成 "+((d.load||0)/1000).toFixed(1)+"s · 写盘 "+(d.saveCount||0)+" 次 · 存档 "+(d.lsTotal?((d.lsTotal/1024).toFixed(0)+"KB"):"—")
+        +(d.idb?(" · 大容量存储 "+(d.idb/1048576).toFixed(1)+"MB"):"");
+        host.insertAdjacentHTML("afterend","<div class=\"me-sec\" id=\"sec-diag\"><h3>启动诊断</h3><div class=\"card\" style=\"padding:13px 14px\"><div style=\"font-size:12.5px;line-height:1.7\">"+txt+"</div><div class=\"meta\" style=\"margin-top:6px\">"+(d.lsParts?("存档明细：" + d.lsParts):"")+"</div></div></div>");
+    } }catch(e){} return r } }
+})();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
