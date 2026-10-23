@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="p950b4ad0b">
+<meta name="x-build" content="p414750e00">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -4654,7 +4654,7 @@ function coverStyle(){
 }
 
 /* ================= 路由 ================= */
-var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey','game','guide','read','schedule','memo','period','pet','room','mengxi'];
+var VIEWS=['home','profile','chat','moments','mail','cards','diary','companion','tide','wallet','me','tarot','widgets','music','shop','survey','game','guide','read','schedule','memo','period','pet','room','mengxi','hisphone'];
 var _routedOnce=false;
 function router(){
   var h=location.hash.replace('#','');
@@ -4727,6 +4727,7 @@ function render(v){
   else if(v==='wallet')renderWallet();
   else if(v==='tarot')renderTarot();
   else if(v==='mengxi'){ try{ if(typeof window.mengxiEnsure==='function')window.mengxiEnsure() }catch(e){} renderMengxi(); }
+  else if(v==='hisphone'){ try{ renderHisPhone() }catch(e){ try{goView('home')}catch(e2){} } }
   else if(v==='widgets')renderWidgetLib();
   else if(v==='music')renderMusic();
   else if(v==='shop')renderShop();
@@ -4804,6 +4805,7 @@ function appListDefs(){
     {v:'me',n:'设置',c:'#6E7F5E',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3"/></svg>'},
     {v:'wallet',n:'钱包',c:'#C9A227',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="15" r="1.4" fill="#fff"/></svg>'},
     {v:'tarot',n:'塔罗',c:'#7B6BB0',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><circle cx="12" cy="12" r="3"/></svg>'},
+    {v:'hisphone',n:'查手机',c:'#3A3F4B',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 5.2h3"/><path d="M9.5 12.5h5M9.5 16h3"/></svg>'},
     {v:'mengxi',n:'梦隙',c:'#C08FA8',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.6l1.7 2h5.7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2H5.5a2 2 0 0 1-2-2z"/><path d="M8 13.2h8M8 16h5"/></svg>'},
     {v:'widgets',n:'组件库',c:'#8E9BB3',ic:'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2"/></svg>'},  ];
 }
@@ -15938,27 +15940,11 @@ function roomShop() {
   }, true);
 })();
 
-/* ===== PWA：注册 Service Worker（离线 + 桌面图标） ===== */
-(function () {
-  if (!('serviceWorker' in navigator)) return;
-  var _h=location.hostname;
-  var _secure=(location.protocol==='https:')||(_h==='localhost')||(_h==='127.0.0.1')||(_h==='[::1]');
-  if (!_secure && location.protocol !== 'file:') return;
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('./sw.js', { scope: './' }).then(function (r) {
-      /* 有新 SW 在等：直接让它接管（配合页面的版本检测，刷新即可拿到新版） */
-      r.addEventListener('updatefound', function () {
-        var w = r.installing;
-        if (!w) return;
-        w.addEventListener('statechange', function () {
-          if (w.state === 'installed' && navigator.serviceWorker.controller) {
-            try { w.postMessage({ type: 'skipWaiting' }) } catch (e) { }
-          }
-        });
-      });
-    }).catch(function () { });
-  });
-})();
+/* ===== 已移除页面级 Service Worker（__noPageSW）===== */
+(function(){ if(!("serviceWorker" in navigator))return; try{
+  navigator.serviceWorker.getRegistrations().then(function(rs){ for(var i=0;i<rs.length;i++){ try{rs[i].unregister()}catch(e){} } }).catch(function(){});
+  if(window.caches&&caches.keys){ caches.keys().then(function(ks){ for(var i=0;i<ks.length;i++){ if(/^zika-v/.test(ks[i])){ try{caches.delete(ks[i])}catch(e){} } } }).catch(function(){}); }
+}catch(e){} })();
 /* ★ 键盘别把弹窗里的输入框盖住 */
 /* ================= 键盘别把弹窗里的输入框盖住 =================
    用户报的：聊天室设置里那个「自定义气泡 CSS」的框，一点就把键盘弹出来，
@@ -16669,19 +16655,6 @@ document.addEventListener("click",function(e){ var t=e.target.closest&&e.target.
   if(!t)return; window.zikaLiteToggle(); try{ renderMe() }catch(e){} },true);
 })();
 
-/* ㉙ 存档写入合并（消掉启动时多次全量保存） */
-(function(){ if(window.__saveCoalesce)return; window.__saveCoalesce=1;
-if(typeof save!=="function")return;
-var _save=save, pend=false, timer=null, booting=true;
-function flush(){ if(timer){clearTimeout(timer);timer=null} if(!pend)return; pend=false; try{_save()}catch(e){} }
-save=function(){ pend=true; var wait=booting?600:250; if(timer)return; timer=setTimeout(flush,wait); };
-function bootDone(){ booting=false; if(pend)flush(); }
-setTimeout(bootDone,1500); setInterval(function(){ if(!booting&&pend)flush() },4000);
-window.addEventListener("pagehide",flush); window.addEventListener("beforeunload",flush);
-document.addEventListener("visibilitychange",function(){ if(document.visibilityState==="hidden")flush() });
-window.zikaSaveNow=flush;
-})();
-
 /* ㉚ 启动诊断 */
 (function(){ if(window.__bootDiag)return; window.__bootDiag=1;
 function kb(n){ return (n/1024).toFixed(0)+"KB" }
@@ -16705,6 +16678,1047 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
         host.insertAdjacentHTML("afterend","<div class=\"me-sec\" id=\"sec-diag\"><h3>启动诊断</h3><div class=\"card\" style=\"padding:13px 14px\"><div style=\"font-size:12.5px;line-height:1.7\">"+txt+"</div><div class=\"meta\" style=\"margin-top:6px\">"+(d.lsParts?("存档明细：" + d.lsParts):"")+"</div></div></div>");
     } }catch(e){} return r } }
 })();
+/* ★ 查手机（数据层 + iOS 界面） */
+/* ================= 查手机 · 数据层 =================
+   这一版只做「数据 + 存档」：
+     · state.phone 存人设、生成内容、AI 配置
+     · 把 state.phone 挂进备份分类（导出的 JSON 里就有人设了，换手机导入还在）
+     · 给 AI 用的脱敏 / 素材收集工具（还没真的发请求）
+   UI（iOS 手机界面）是下一步；这里先把地基打好，随时能回滚。 */
+(function () {
+  if (window.__phoneData) return; window.__phoneData = 1;
+
+  /* ---------- 默认值 ---------- */
+  function phoneDefault() {
+    return {
+      ver: 1,
+      /* 人设：只填一次 */
+      profile: {
+        name: '陆沉', job: '26 · 万甄集团 / SONDER CEO，刚从英国回来',
+        trait: '谦和有礼、冷静克制。什么都照顾到了，却很难真正走近',
+        habit: '手冲咖啡、读书、拆装机械表（黑暗里也能打好领带）',
+        speech: '语速慢，句子短，礼貌到位；偶尔一句把人堵住，然后自己先笑',
+        rel: '你是他的兔子小姐。他什么都安排好了，却很少直说；你怕黑，他记得',
+        exp: '15 岁去英国读书，26 岁回光启市接任 CEO；母亲为救他去世，父亲从未喜欢过他',
+        confirmed: false,   /* AI 确认过没有 */
+        ts: 0
+      },
+      /* 生成出来的内容（每次刷新覆盖） */
+      hist: [], notes: [], cart: [], msgs: [], album: [],
+      lastGen: 0,
+      /* AI 接口（用户自己填，本机保存） */
+      api: { provider: 'custom', base: 'https://api3.jiushi.xin/v1', key: '', model: '', models: [] },
+      /* 每次生成发给 AI 什么（用户可控） */
+      aiCfg: { sendChat: true, chatN: 20, sendMemos: true, sendSchedule: true, mask: true },
+      pin: { head: '01', tail: '' }   /* 相册密码：前两位固定 01（他生日 0122），后两位用户输一次就记住 */
+    };
+  }
+
+  function phoneEnsure() {
+    try {
+      if (typeof state === 'undefined' || !state) return null;
+      if (!state.phone || typeof state.phone !== 'object') state.phone = phoneDefault();
+      var p = state.phone, d = phoneDefault(), k;
+      /* 缺哪个补哪个（老存档升级、或用户手改坏了都能自愈） */
+      if (!p.profile || typeof p.profile !== 'object') p.profile = d.profile;
+      for (k in d.profile) if (p.profile[k] === undefined) p.profile[k] = d.profile[k];
+      if (!p.api || typeof p.api !== 'object') p.api = d.api;
+      for (k in d.api) if (p.api[k] === undefined) p.api[k] = d.api[k];
+      if (!p.aiCfg || typeof p.aiCfg !== 'object') p.aiCfg = d.aiCfg;
+      for (k in d.aiCfg) if (p.aiCfg[k] === undefined) p.aiCfg[k] = d.aiCfg[k];
+      if (!p.pin || typeof p.pin !== 'object') p.pin = d.pin;
+      ['hist', 'notes', 'cart', 'msgs', 'album'].forEach(function (a) { if (!Array.isArray(p[a])) p[a] = [] });
+      if (typeof p.lastGen !== 'number') p.lastGen = 0;
+      return p;
+    } catch (e) { return null }
+  }
+  window.phoneEnsure = phoneEnsure;
+
+  /* ---------- 挂进备份分类 ---------- */
+  try {
+    if (typeof BACKUP_CATS !== 'undefined' && BACKUP_CATS && BACKUP_CATS.push) {
+      var has = false;
+      for (var i = 0; i < BACKUP_CATS.length; i++) if (BACKUP_CATS[i] && BACKUP_CATS[i].k === 'phone') has = true;
+      if (!has) {
+        BACKUP_CATS.push({
+          k: 'phone', n: '查手机',
+          d: '他的人设 + 浏览记录 / 备忘录 / 购物 / 信息',
+          keys: ['phone']
+        });
+      }
+    }
+  } catch (e) { }
+
+  /* ---------- 给 AI 用的素材（含脱敏） ---------- */
+  function maskText(s) {
+    try {
+      return String(s || '')
+        .replace(/1[3-9]\d{9}/g, function (m) { return m.slice(0, 3) + '****' + m.slice(-4) })
+        .replace(/\b\d{17}[\dXx]\b/g, '******')
+        .replace(/(省|市|区|县|路|街|巷|号|栋|楼|室)/g, '$1')
+        .replace(/\d{6,}/g, function (m) { return m.slice(0, 2) + '****' });
+    } catch (e) { return String(s || '') }
+  }
+
+  /** 收集这次要发给 AI 的材料：人设 + 最近 N 条聊天 + 你的备忘录标题 + 日程 + 天气 */
+  window.phoneAIContext = function (opt) {
+    var p = phoneEnsure(); if (!p) return null;
+    var cfg = p.aiCfg || {}, out = { profile: p.profile, chat: [], memos: [], schedule: [], weather: null };
+    try {
+      if (cfg.sendChat && typeof state !== 'undefined' && state.messages && state.messages.length) {
+        var n = Math.max(4, Math.min(80, cfg.chatN || 20));
+        var arr = state.messages.slice(-n * 3);   /* 多取一点再筛当前联系人 */
+        var cid = (typeof activeContact === 'function' && activeContact()) ? activeContact().id : null;
+        var picked = [];
+        for (var i = arr.length - 1; i >= 0 && picked.length < n; i--) {
+          var m = arr[i];
+          if (cid && m.contactId && m.contactId !== cid) continue;
+          if (!m.text) continue;
+          picked.push({ from: m.dir === 'in' ? 'him' : 'me', text: String(m.text).slice(0, 120) });
+        }
+        out.chat = picked.reverse();
+      }
+      if (cfg.sendMemos) {
+        var memos = (state.memos && state.memos.length) ? state.memos : (state.memoList || []);
+        out.memos = (memos || []).slice(0, 20).map(function (m) {
+          return String((m && (m.text || m.title)) || m || '').slice(0, 80);
+        });
+      }
+      if (cfg.sendSchedule) {
+        var sc = (state.schedule && state.schedule.items) ? state.schedule.items : (state.schedules || []);
+        out.schedule = (sc || []).slice(0, 15).map(function (s) {
+          return { t: String((s && (s.title || s.text)) || '').slice(0, 40), d: String((s && s.date) || '') };
+        });
+      }
+    } catch (e) { }
+    if (out.weather && cfg.mask) out.weather = { city: out.weather.city, temp: out.weather.temp, text: out.weather.text };
+    return out;
+  };
+
+  /** 人设确认（没配 Key 时本地生成确认结果；配了之后走 AI） */
+  window.phoneProfileConfirm = function (p) {
+    var pr = (p || (phoneEnsure() || {}).profile) || {};
+    return {
+      ok: true,
+      at: Date.now(),
+      points: [
+        '一个把关心藏在细节里、话不多的 ' + (String(pr.job || '').split('·').pop() || '人'),
+        '性格：' + (pr.trait || '—'),
+        '习惯：' + (pr.habit || '—'),
+        '说话：' + (pr.speech || '—'),
+        '关系：' + (pr.rel || '—'),
+        '经历：' + (pr.exp || '—')
+      ]
+    };
+  };
+
+
+  /* ---------- 中转站 / 兼容接口：拉模型 + 测试连接 ---------- */
+  function apiErr(e, status) {
+    if (status === 401) return 'Key 无效或未授权（401）';
+    if (status === 402) return '余额不足（402）';
+    if (status === 403) return '服务商拒绝访问，或不允许浏览器直连（403）';
+    if (status === 404) return '地址不对，或者不支持 /models（404）';
+    if (status === 429) return '请求太频繁 / 额度用完（429）';
+    if (e && (e.name === 'TypeError' || /fetch|network/i.test(String(e.message || '')))) return '浏览器连不上：可能是跨域被拦或网络不通';
+    return String((e && e.message) || ('HTTP ' + (status || '错误')));
+  }
+  function baseOf(cfg) {
+    var b = String((cfg && cfg.base) || '').trim().replace(/\/+$/, '');
+    return b;
+  }
+  /** 拉模型列表：GET {base}/models → data[].id */
+  window.phoneApiModels = function (cfg) {
+    cfg = cfg || ((phoneEnsure() || {}).api || {});
+    var base = baseOf(cfg);
+    if (!base) return Promise.resolve({ ok: false, msg: '还没填接口地址' });
+    if (!cfg.key) return Promise.resolve({ ok: false, msg: '还没填 Key' });
+    return fetch(base + '/models', { headers: { 'Authorization': 'Bearer ' + cfg.key } })
+      .then(function (r) {
+        if (!r.ok) return r.text().then(function (t) { return { ok: false, status: r.status, msg: apiErr(null, r.status) } });
+        return r.json().then(function (j) {
+          var ids = (j && j.data || []).map(function (x) { return x && (x.id || x.name) }).filter(Boolean);
+          var p = phoneEnsure(); if (p) { p.api.models = ids; if (!p.api.model && ids.length) p.api.model = ids[0]; try { save() } catch (e) { } }
+          return { ok: true, models: ids, msg: '连接成功 · 拿到 ' + ids.length + ' 个模型' };
+        });
+      })
+      .catch(function (e) { return { ok: false, msg: apiErr(e) } });
+  };
+  /** 测试连接：先打 /models；有的中转站不支持就发一条 1 token 的对话 */
+  window.phoneApiTest = function (cfg) {
+    cfg = cfg || ((phoneEnsure() || {}).api || {});
+    return window.phoneApiModels(cfg).then(function (r) {
+      if (r.ok) return r;
+      var base = baseOf(cfg);
+      if (!base || !cfg.key) return r;
+      return fetch(base + '/chat/completions', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + cfg.key },
+        body: JSON.stringify({ model: cfg.model || 'gpt-4o-mini', messages: [{ role: 'user', content: 'ping' }], max_tokens: 1 })
+      }).then(function (res) {
+        if (res.ok) return { ok: true, msg: '连接成功（模型列表没拿到，但对话接口能用）' };
+        return { ok: false, status: res.status, msg: apiErr(null, res.status) };
+      }).catch(function (e) { return { ok: false, msg: apiErr(e) } });
+    });
+  };
+
+  /* ---------- 启动时补齐 ---------- */
+  try { phoneEnsure(); } catch (e) { }
+  if (typeof renderHome === 'function' && !window.__phoneHook) {
+    window.__phoneHook = 1;
+    var _rh = renderHome;
+    renderHome = function () {
+      try { phoneEnsure() } catch (e) { }
+      return _rh.apply(this, arguments);
+    };
+  }
+})();
+
+/* ================= 查手机（陆沉的 iPhone）=================
+   首页 App「查手机」→ 全屏 iOS 界面：
+     Safari 浏览记录 / 备忘录 / 信息 / 购物 / 健康 / 天气 / 音乐 / 相册(01__) / 设置
+   数据：
+     · 人设：第一次填一次（7 项），存 state.phone.profile，进备份
+     · 浏览/备忘录/信息/购物：配了 AI 就用 AI 生成（JSON），没配就用内置模板
+     · 天气：Open-Meteo（免 Key）
+     · 健康：按人设基础值 + 站内日程联动
+     · 音乐：读站内歌单
+     · 相册：用你上传过的图（朋友圈 / 梦隙稿件 / 聊天图），没有就用描述卡
+   依赖：49-phoneData.js（state.phone / phoneApiTest / phoneAIContext） */
+(function () {
+  if (window.__hisPhone) return; window.__hisPhone = 1;
+
+  /* ---------- 常用 ---------- */
+  function P() { return (typeof phoneEnsure === 'function' ? phoneEnsure() : state.phone) || {} }
+  function prof() { return P().profile || {} }
+  function esc2(s) { return (typeof esc === 'function') ? esc(s) : String(s == null ? '' : s) }
+  function nowTs() { return Date.now() }
+  function rnd(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a }
+  function todayKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() }
+
+  /* ---------- 图标 ---------- */
+  function S(p, o) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round"' + (o || '') + '>' + p + '</svg>' }
+  var APPS = [
+    { k: 'safari', n: 'Safari', cls: 'safari', ic: S('<circle cx="12" cy="12" r="8.6"/><path d="M15.6 8.4l-2.1 5.1-5.1 2.1 2.1-5.1z" fill="currentColor" stroke="none"/>') },
+    { k: 'notes', n: '备忘录', cls: 'notes', ic: S('<path d="M6.5 3.5h11a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-15a1 1 0 0 1 1-1z"/><path d="M9 8h6M9 12h6M9 16h4"/>') },
+    { k: 'music', n: '音乐', cls: 'music', ic: S('<path d="M9 17.5V6.4l9.5-1.9v11"/><circle cx="6.5" cy="17.6" r="2.4" fill="currentColor" stroke="none"/><circle cx="16" cy="15.6" r="2.4" fill="currentColor" stroke="none"/>') },
+    { k: 'health', n: '健康', cls: 'health', ic: S('<path d="M12 20s-7-4.7-7-9.5A4.15 4.15 0 0 1 12 7.5a4.15 4.15 0 0 1 7 3c0 4.8-7 9.5-7 9.5z"/>') },
+    { k: 'weather', n: '天气', cls: 'weather', ic: S('<circle cx="9.2" cy="9.4" r="3.1"/><path d="M9.2 3.4v1.8M3.2 9.4h1.8M4.9 5.1l1.3 1.3M13.5 5.1l-1.3 1.3"/><path d="M11.4 18.6h7.4a3.1 3.1 0 0 0 0-6.2 4.1 4.1 0 0 0-7.8 1"/>') },
+    { k: 'photos', n: '相册', cls: 'photos', ic: S('<circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><path d="M12 3.6v2.2M12 18.2v2.2M3.6 12h2.2M18.2 12h2.2M6.1 6.1l1.6 1.6M16.3 16.3l1.6 1.6M17.9 6.1l-1.6 1.6M7.7 16.3l-1.6 1.6"/>') },
+    { k: 'msgs', n: '信息', cls: 'msgs', ic: S('<path d="M4.2 6.2h15.6v9.4H9.4l-5.2 4z" fill="currentColor" stroke="none"/>') },
+    { k: 'shop', n: '购物', cls: 'shop', ic: S('<path d="M4.5 8.2h15l-1.2 11.3H5.7z"/><path d="M8.8 8.2V6.4a3.2 3.2 0 0 1 6.4 0v1.8"/>') },
+    { k: 'settings', n: '设置', cls: 'settings', ic: S('<circle cx="12" cy="12" r="3.1"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1 2 2 0 1 1-4 0 1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 4.6 15a2 2 0 1 1 0-4 1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 11 4.6a2 2 0 1 1 4 0 1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.6 1.6 0 0 0 19.4 11a2 2 0 1 1 0 4z"/>') }
+  ];
+  function iconHtml(a) {
+    return '<div class="hp-app" data-hp="' + a.k + '"><div class="hp-ico ' + a.cls + '">' + a.ic
+      + (a.badge ? '<span class="hp-badge">' + a.badge + '</span>' : '')
+      + (a.k === 'photos' ? '<span class="hp-lock">' + S('<rect x="5" y="10.5" width="14" height="9.5" rx="2.6" fill="#fff" stroke="none"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="#fff"/>', ' stroke-width="2.2"') + '</span>' : '')
+      + '</div><span>' + a.n + '</span></div>';
+  }
+
+  /* ---------- CSS ---------- */
+  function css() {
+    if (document.getElementById('hpCss')) return;
+    var s = document.createElement('style'); s.id = 'hpCss';
+    s.textContent = [
+      '#hp{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;background:#000;color:#fff;overflow:hidden;',
+      'font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;font-feature-settings:"tnum";-webkit-user-select:none;user-select:none}',
+      '#hp.hp-off{display:none}',
+      '#hp .hp-wall{position:absolute;inset:0;background:',
+      'radial-gradient(90% 60% at 12% 4%,#4E4BE0 0%,transparent 58%),radial-gradient(80% 55% at 92% 18%,#1E7BC8 0%,transparent 62%),',
+      'radial-gradient(95% 70% at 70% 108%,#D64C93 0%,transparent 60%),radial-gradient(70% 60% at 30% 80%,#6A3FC0 0%,transparent 58%),',
+      'linear-gradient(165deg,#141428 0%,#1D1B3A 40%,#2A1E45 70%,#3A2247 100%)}',
+      '#hp .hp-status{position:relative;z-index:6;height:calc(46px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;padding:env(safe-area-inset-top) 20px 0}',
+      '#hp .hp-status b{font-size:15px;font-weight:600}',
+      '#hp .hp-status .r{display:flex;align-items:center;gap:6px}',
+      '#hp .hp-refresh{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);border:.5px solid rgba(255,255,255,.24);',
+      'color:#fff;font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:99px;font-family:inherit}',
+      '#hp .hp-refresh:active{transform:scale(.95)}',
+      '#hp .hp-desk{position:relative;z-index:4;flex:1;overflow-y:auto;padding:6px 20px 0;display:flex;flex-direction:column;gap:14px}',
+      '#hp .hp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 10px}',
+      '#hp .hp-app{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer}',
+      '#hp .hp-app:active .hp-ico{transform:scale(.9)}',
+      '#hp .hp-ico{position:relative;width:62px;height:62px;border-radius:15.5px;display:flex;align-items:center;justify-content:center;color:#fff;',
+      'box-shadow:0 8px 18px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.28);transition:transform .13s cubic-bezier(.23,1,.32,1);overflow:hidden}',
+      '#hp .hp-ico:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 46%)}',
+      '#hp .hp-ico svg{width:33px;height:33px;position:relative;z-index:1}',
+      '#hp .hp-app>span{font-size:11px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);max-width:76px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '#hp .safari{background:conic-gradient(from 200deg,#26D0FF,#0A84FF 45%,#0B5BD6 75%,#26D0FF)}',
+      '#hp .notes{background:linear-gradient(180deg,#FFD84D,#FFB300);color:#7A5100}',
+      '#hp .music{background:linear-gradient(180deg,#FF6B7E,#F0294A)}',
+      '#hp .health{background:linear-gradient(180deg,#FF7A93,#FF2D55)}',
+      '#hp .weather{background:linear-gradient(180deg,#63B8FF,#0A5FD0)}',
+      '#hp .settings{background:linear-gradient(180deg,#A8A8AE,#5E5E64)}',
+      '#hp .photos{background:conic-gradient(from 120deg,#FFD60A,#FF375F,#BF5AF2,#0A84FF,#FFD60A)}',
+      '#hp .msgs{background:linear-gradient(180deg,#67E88A,#12B33F)}',
+      '#hp .shop{background:linear-gradient(180deg,#FFB03A,#F26B00)}',
+      '#hp .hp-badge{position:absolute;right:-3px;top:-3px;min-width:19px;height:19px;border-radius:99px;background:#FF453A;color:#fff;',
+      'font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 5px;z-index:3;border:1.5px solid rgba(0,0,0,.5)}',
+      '#hp .hp-lock{position:absolute;right:3px;bottom:3px;z-index:2}',
+      '#hp .hp-lock svg{width:15px;height:15px;stroke-width:2.2}',
+      '#hp .hp-wd{display:flex;gap:10px}',
+      '#hp .hp-card{flex:1;border-radius:22px;padding:13px 15px;background:rgba(255,255,255,.13);border:.5px solid rgba(255,255,255,.14)}',
+      '#hp .hp-card .n{font-size:10.5px;opacity:.75}',
+      '#hp .hp-card .v{font-size:27px;font-weight:300;letter-spacing:-1px;line-height:1.15;margin-top:2px}',
+      '#hp .hp-card .d{font-size:10.5px;opacity:.8;margin-top:1px}',
+      '#hp .hp-dots{display:flex;justify-content:center;gap:6px;padding:8px 0 calc(10px + env(safe-area-inset-bottom))}',
+      '#hp .hp-dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.32)}',
+      '#hp .hp-dots i.on{background:#fff}',
+      /* 内页 */
+      '#hp .hp-view{position:absolute;inset:0;z-index:20;background:#000;display:none;flex-direction:column}',
+      '#hp .hp-view.on{display:flex}',
+      '#hp .hp-nav{flex:0 0 auto;padding:calc(4px + env(safe-area-inset-top)) 8px 8px;display:flex;align-items:center;gap:6px;',
+      'background:rgba(20,20,22,.9);border-bottom:.5px solid rgba(255,255,255,.09);position:relative}',
+      '#hp .hp-back{display:flex;align-items:center;gap:2px;color:#0A84FF;font-size:16px;padding:6px 8px;cursor:pointer}',
+      '#hp .hp-title{position:absolute;left:0;right:0;text-align:center;font-size:16px;font-weight:600;pointer-events:none}',
+      '#hp .hp-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 14px calc(26px + env(safe-area-inset-bottom))}',
+      '#hp .hp-lab{font-size:11.5px;color:#8E8E93;margin:16px 4px 7px;letter-spacing:.5px}',
+      '#hp .hp-list{background:#1C1C1E;border-radius:16px;overflow:hidden}',
+      '#hp .hp-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:.5px solid rgba(255,255,255,.09);cursor:pointer}',
+      '#hp .hp-row:last-child{border-bottom:none}',
+      '#hp .hp-row:active{background:rgba(255,255,255,.05)}',
+      '#hp .hp-sq{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;color:#fff;background:rgba(255,255,255,.1)}',
+      '#hp .hp-sq svg{width:19px;height:19px}',
+      '#hp .hp-tx{flex:1;min-width:0}',
+      '#hp .hp-tx b{display:block;font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '#hp .hp-tx span{display:block;font-size:12px;color:#8E8E93;margin-top:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '#hp .hp-rt{font-size:12px;color:#8E8E93;flex:0 0 auto}',
+      '#hp .hp-hint{font-size:11.5px;color:#8E8E93;line-height:1.55;margin:9px 4px 0}',
+      '#hp .hp-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:6px;margin-left:6px;vertical-align:1px;font-weight:600;background:rgba(10,132,255,.18);color:#63B8FF}',
+      '#hp .hp-tag.you{background:rgba(255,55,95,.18);color:#FF7A93}',
+      '#hp .hp-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}',
+      '#hp .hp-hc{background:#1C1C1E;border-radius:18px;padding:14px}',
+      '#hp .hp-hc .n{font-size:11px;color:#8E8E93}',
+      '#hp .hp-hc .v{font-size:27px;font-weight:700;letter-spacing:-.6px;margin-top:3px}',
+      '#hp .hp-hc .v small{font-size:12px;font-weight:500;color:#8E8E93;margin-left:3px}',
+      '#hp .hp-hc .d{font-size:11px;color:#8E8E93;margin-top:5px}',
+      '#hp .hp-bars{display:flex;align-items:flex-end;gap:8px;height:96px;margin-top:6px}',
+      '#hp .hp-bars .d{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}',
+      '#hp .hp-bars .d i{display:block;width:100%;border-radius:5px;background:linear-gradient(180deg,#FF7A93,#FF2D55);min-height:5px}',
+      '#hp .hp-bars .d span{font-size:9.5px;color:#8E8E93}',
+      '#hp .hp-wx{border-radius:22px;padding:22px 20px;background:linear-gradient(170deg,#2E7BD6,#154C9E)}',
+      '#hp .hp-wx .city{font-size:26px;font-weight:600}',
+      '#hp .hp-wx .temp{font-size:72px;font-weight:200;line-height:1.05;letter-spacing:-3px}',
+      '#hp .hp-wx .txt{font-size:14px;opacity:.94}',
+      '#hp .hp-wx .meta{display:flex;gap:16px;margin-top:14px;font-size:12px;opacity:.9}',
+      '#hp .hp-seg{display:flex;background:rgba(120,120,128,.24);border-radius:11px;padding:2px;margin:8px 0 2px}',
+      '#hp .hp-seg button{flex:1;border:none;background:transparent;font-size:13px;color:#fff;padding:7px 0;border-radius:9px;font-family:inherit}',
+      '#hp .hp-seg button.on{background:rgba(255,255,255,.22);font-weight:600}',
+      '#hp .hp-inl{display:flex;align-items:center;border-bottom:.5px solid rgba(255,255,255,.09)}',
+      '#hp .hp-inl:last-child{border-bottom:none}',
+      '#hp .hp-inl .k{font-size:15px;padding-left:14px;flex:0 0 84px;color:#fff}',
+      '#hp .hp-inp{flex:1;border:none!important;background:transparent!important;font-size:15px;padding:12px 14px;outline:none;color:#fff!important;min-width:0;border-radius:0!important}',
+      '#hp .hp-btn{width:100%;border:none;background:#0A84FF;color:#fff;font-size:15px;font-weight:600;padding:13px;border-radius:13px;font-family:inherit}',
+      '#hp .hp-btn.ghost{background:#2C2C2E;color:#fff}',
+      '#hp .hp-album{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}',
+      '#hp .hp-album div{aspect-ratio:1/1;border-radius:4px;background-size:cover;background-position:center;position:relative;overflow:hidden}',
+      '#hp .hp-album span{position:absolute;left:5px;bottom:4px;font-size:9px;color:rgba(255,255,255,.9);text-shadow:0 1px 3px rgba(0,0,0,.6)}',
+      /* 人设引导 */
+      '#hp .hp-setup{position:absolute;inset:0;z-index:40;background:rgba(12,12,14,.985);overflow-y:auto;padding:calc(18px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom))}',
+      '#hp .hp-setup h2{font-size:23px;font-weight:700}',
+      '#hp .hp-setup .sub{font-size:12.5px;color:#8E8E93;margin-top:6px;line-height:1.6}',
+      '#hp .hp-setup .tmpl{background:rgba(10,132,255,.08);border:.5px dashed rgba(10,132,255,.4);border-radius:12px;padding:11px 13px;font-size:12px;color:#9CCBFF;line-height:1.6;margin-top:12px}',
+      '#hp .hp-fld{margin-top:13px}',
+      '#hp .hp-fld label{display:block;font-size:11.5px;color:#8E8E93;margin-bottom:5px}',
+      '#hp input,#hp textarea,#hp select{background:#1C1C1E!important;color:#fff!important;border:.5px solid rgba(255,255,255,.12)!important;',
+      'border-radius:12px!important;box-shadow:none!important}',
+      '#hp input::placeholder,#hp textarea::placeholder{color:#5A5A5E!important}',
+      '#hp .hp-fld input,#hp .hp-fld textarea{width:100%!important;font:14px/1.5 inherit;padding:11px 13px!important;outline:none;resize:none}',
+      '#hp .hp-fld textarea{min-height:64px}',
+      '#hp .hp-lock2{position:absolute;inset:0;z-index:35;background:rgba(10,10,12,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}',
+      '#hp .hp-pin{display:flex;gap:14px}',
+      '#hp .hp-pin i{width:15px;height:15px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;font-size:11px;color:#8E8E93}',
+      '#hp .hp-pin i.on{border-color:#fff;background:#fff}',
+      '#hp .hp-pin i.fixed{border-style:dashed}',
+      '#hp .hp-pin i.fixed.on{background:transparent}',
+      '#hp .hp-keys{display:grid;grid-template-columns:repeat(3,70px);gap:13px;margin-top:4px}',
+      '#hp .hp-keys button{width:70px;height:70px;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:25px;font-family:inherit}',
+      '#hp .hp-toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:rgba(28,28,30,.96);color:#fff;font-size:12.5px;',
+      'padding:9px 16px;border-radius:99px;opacity:0;transition:opacity .22s;z-index:70;pointer-events:none;border:.5px solid rgba(255,255,255,.1);white-space:nowrap}',
+      '#hp .hp-toast.on{opacity:1}'
+    ].join('\n');
+    document.head.appendChild(s);
+  }
+
+  /* ---------- 模板生成（没配 AI 时用） ---------- */
+  function pickFrom(arr, n) {
+    var a = arr.slice(), out = [];
+    while (a.length && out.length < n) out.push(a.splice(rnd(0, a.length - 1), 1)[0]);
+    return out;
+  }
+  function tmplData(pr) {
+    var name = pr.name || '他';
+    var job = pr.job || '';
+    var isBoss = /CEO|总裁|老板|董事/.test(job);
+    var hist = [
+      { t: '23:41', site: 'zhihu.com', title: '怎么哄生气的人（认真版）' },
+      { t: '22:10', site: 'ctrip.com', title: (isBoss ? '光启市 → 伦敦 直飞 12 月' : '最近的高铁 周五晚') },
+      { t: '20:33', site: 'xiaohongshu.com', title: '手很容易干 冬天 护手霜 无香' },
+      { t: '18:02', site: 'bilibili.com', title: (isBoss ? '3 号机芯 游丝 拆解 全过程' : '机械键盘 茶轴 静音') },
+      { t: '15:47', site: 'taobao.com', title: (isBoss ? '耶加雪菲 浅烘 豆子 手冲' : '挂耳咖啡 深烘') },
+      { t: '12:20', site: 'meituan.com', title: '兔子造型 蛋糕 定制' },
+      { t: '09:15', site: 'weather.com.cn', title: '伦敦 十二月 天气' },
+      { t: '01:12', site: '—', title: '怎么才能让她不怕黑' }
+    ];
+    var notes = [
+      { tag: 'you', title: '她怕黑', body: '走廊那盏灯留着。她不说，但进门会先看灯。' },
+      { tag: 'self', title: (isBoss ? '周一 9:30 董事会' : '周一 早会'), body: '提前二十分钟到。把现金流那页放第三页。' },
+      { tag: 'you', title: '她爱喝的那家', body: '浅烘手冲，不加糖。周二他们休息，别记错。' },
+      { tag: 'self', title: (isBoss ? '3 号机芯 游丝' : '键盘 空格键'), body: '换新的。旧的留着，她说过想看里面怎么转。' }
+    ];
+    var msgs = [
+      { from: '秘书 · 周', text: '陆总，明早十点的会改到九点半', time: '22:47', unread: 2, ico: '📋' },
+      { from: '家里', text: '明天的家宴别迟到', time: '21:03', unread: 1, ico: '🕯' },
+      { from: '一家手冲店', text: '您订的豆子到了，还是老时间给您留位', time: '19:12', unread: 0, ico: '☕' },
+      { from: '旧同学 Evan', text: 'Are you coming back this winter?', time: '昨天', unread: 0, ico: '🍂' }
+    ];
+    var cart = [
+      { e: '🧣', n: '羊绒围巾 · 暗红', d: '她说过讨厌艳红，这个偏暗', pr: '¥1,280', st: '运输中', tag: '给你', time: '2026-11-28 23:41' },
+      { e: '🐰', n: '兔子胸针 · 银镀白金', d: '她叫兔子小姐。别做太可爱。', pr: '¥2,160', st: '已下单', tag: '给你', time: '2026-12-01 02:12' },
+      { e: '🧴', n: '无香护手霜（3 支装）', d: '冬天手会裂。放她包里', pr: '¥268', st: '已签收', tag: '给你', time: '2026-11-14 19:07' },
+      { e: '☕', n: '耶加雪菲 浅烘 500g', d: '周二的量，别让她等', pr: '¥198', st: '已签收', tag: '给自己', time: '2026-11-20 09:02' }
+    ];
+    return { hist: hist, notes: notes, msgs: msgs, cart: cart };
+  }
+
+  /* ---------- AI 生成 ---------- */
+  function aiPrompt(pr, ctx) {
+    var sys = '你是一个中文小说助手。根据人物设定，生成"这个人手机上会有的东西"。只输出 JSON，不要解释、不要代码块。';
+    var shape = '{"hist":[{"t":"23:41","site":"zhihu.com","title":"..."}],"notes":[{"tag":"self|you","title":"...","body":"..."}],"msgs":[{"from":"...","text":"...","time":"22:47","unread":0,"ico":"☕"}],"cart":[{"e":"🧣","n":"...","d":"...","pr":"¥268","st":"已签收","tag":"给你|给自己","time":"2026-11-28 23:41"}]}';
+    var u = '人物设定：\n名字：' + (pr.name || '') + '\n年龄职业：' + (pr.job || '') + '\n性格：' + (pr.trait || '') +
+      '\n习惯：' + (pr.habit || '') + '\n说话方式：' + (pr.speech || '') + '\n我们的关系：' + (pr.rel || '') + '\n经历：' + (pr.exp || '') +
+      '\n\n最近的聊天（他/我）：\n' + (ctx.chat || []).map(function (c) { return (c.from === 'him' ? '他：' : '我：') + c.text }).join('\n') +
+      '\n\n我的备忘录：\n' + (ctx.memos || []).join('\n') +
+      '\n\n日程：\n' + (ctx.schedule || []).map(function (s) { return s.t + ' ' + s.d }).join('\n') +
+      '\n\n要求：\n1) 浏览记录 8 条，时间分散在一天里，7 条正常 + 1 条无痕(site 填 "—")；标题要贴人设和他关心的事，允许 1 条有点私密。' +
+      '\n2) 备忘录 4~6 条，混着"他自己的事"和"关于我"的，tag 用 self / you。' +
+      '\n3) 信息 6 条，按他的人设编他收到的人（秘书、家里、常去的店、朋友、陌生号码等），未读 0~2。' +
+      '\n4) 购物 4~6 件，给他自己和给我都买，pr 用 ¥xxx，st 用 已下单/待收货/运输中/已签收，tag 用 给你/给自己，time 用 YYYY-MM-DD HH:MM。' +
+      '\n5) 全部中文（信息里的英文可以保留），不要出现真实手机号和地址。只输出 JSON，格式：' + shape;
+    return [{ role: 'system', content: sys }, { role: 'user', content: u }];
+  }
+  function aiGenerate() {
+    var p = P(), cfg = p.api || {};
+    var base = String(cfg.base || '').replace(/\/+$/, '');
+    if (!base || !cfg.key) return Promise.resolve(null);
+    var pr = prof(), ctx = {};
+    try { ctx = (window.phoneAIContext ? window.phoneAIContext() : {}) || {} } catch (e) { }
+    return fetch(base + '/chat/completions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + cfg.key },
+      body: JSON.stringify({ model: cfg.model || 'gpt-4o-mini', temperature: 0.9, messages: aiPrompt(pr, ctx) })
+    }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (j) {
+      var txt = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
+      txt = String(txt).replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+      var s = txt.indexOf('{'), e = txt.lastIndexOf('}');
+      if (s < 0 || e < 0) throw new Error('返回不是 JSON');
+      var o = JSON.parse(txt.slice(s, e + 1));
+      if (!o || (!o.hist && !o.notes)) throw new Error('JSON 结构不对');
+      return o;
+    }).catch(function () { return null });
+  }
+
+  /* ---------- 天气（Open-Meteo，免 Key） ---------- */
+  var CITY = { '光启市': { lat: 31.23, lon: 121.47, label: '光启市' }, '伦敦': { lat: 51.51, lon: -0.13, label: '伦敦' } };
+  var WCODE = { 0: '晴', 1: '晴间多云', 2: '多云', 3: '阴', 45: '雾', 48: '雾凇', 51: '小毛雨', 53: '毛毛雨', 55: '大毛雨', 61: '小雨', 63: '中雨', 65: '大雨', 71: '小雪', 73: '中雪', 75: '大雪', 80: '阵雨', 81: '强阵雨', 82: '暴雨', 95: '雷阵雨' };
+  function fetchWeather(city, cb) {
+    var c = CITY[city] || CITY['光启市'];
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + c.lat + '&longitude=' + c.lon +
+      '&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m' +
+      '&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1';
+    Promise.resolve().then(function () { return fetch(url) }).then(function (r) { return r.json() }).then(function (j) {
+      var cur = (j && j.current) || {}, dy = (j && j.daily) || {};
+      cb({
+        city: c.label, temp: Math.round(cur.temperature_2m), text: WCODE[cur.weather_code] || '多云',
+        feels: Math.round(cur.apparent_temperature), hum: Math.round(cur.relative_humidity_2m),
+        wind: Math.round(cur.wind_speed_10m) + ' km/h',
+        hi: Math.round((dy.temperature_2m_max || [0])[0]), lo: Math.round((dy.temperature_2m_min || [0])[0])
+      });
+    }).catch(function () { cb(null) });
+  }
+
+  /* ---------- 健康（人设基础值 + 日程联动） ---------- */
+  function healthData() {
+    var pr = prof(), job = pr.job || '';
+    var isBoss = /CEO|总裁|老板|董事/.test(job);
+    var baseSteps = isBoss ? 9500 : 7200;
+    var bonus = 0, note = '';
+    try {
+      var sc = (state.schedule && (state.schedule.items || state.schedule)) || state.schedules || [];
+      var t = todayKey();
+      (sc || []).forEach(function (s) {
+        var txt = String((s && (s.title || s.text)) || '');
+        var d = String((s && s.date) || '');
+        if (!txt) return;
+        if (/出差|伦敦|飞|机场/.test(txt) && (!d || d.indexOf(t) >= 0 || d.indexOf('-') > 0)) { bonus += 4200; note = '出差路上走得多' }
+        else if (/健身|跑步|运动|球/.test(txt)) { bonus += 2600; note = '今天有运动' }
+        else if (/会议|开会|加班/.test(txt)) { bonus += 600; note = '会多' }
+      });
+    } catch (e) { }
+    var steps = baseSteps + bonus + rnd(-800, 900);
+    if (steps < 2600) steps = 2600;
+    var kcal = Math.round(steps * 0.045) + rnd(60, 120);
+    var sleepH = isBoss ? (rnd(48, 68) / 10) : (rnd(58, 74) / 10);
+    return {
+      steps: steps, kcal: kcal, hr: rnd(58, 70),
+      sleep: Math.floor(sleepH) + ' 小时 ' + Math.round((sleepH % 1) * 60) + ' 分',
+      week: [rnd(50, 80), rnd(60, 100), rnd(55, 95), rnd(65, 100), rnd(55, 95), rnd(35, 60), rnd(45, 85)],
+      note: note
+    };
+  }
+
+  /* ---------- 音乐（站内歌单） ---------- */
+  function musicList() {
+    var out = [];
+    try {
+      var list = (state.music && (state.music.list || state.music.playlist)) || state.musicList || [];
+      (list || []).slice(0, 6).forEach(function (m) {
+        out.push({ n: (m && (m.name || m.title)) || '未命名', a: (m && (m.artist || m.a)) || '', tag: '站内歌单' });
+      });
+      if (typeof musCur === 'function') {
+        var c = musCur();
+        if (c && (c.name || c.title)) out.unshift({ n: c.name || c.title, a: c.artist || '', tag: '正在听' });
+      }
+    } catch (e) { }
+    if (!out.length) out = [{ n: 'Nocturne Op.9 No.2', a: '肖邦', tag: '他常听' }, { n: '夜的钢琴曲 五', a: '石进', tag: '他常听' }];
+    return out;
+  }
+
+  /* ---------- 相册（用你上传过的图） ---------- */
+  function albumData() {
+    var refs = [];
+    function push(r, cap, src) { if (r && refs.length < 9) refs.push({ ref: r, cap: cap, src: src }) }
+    try {
+      (state.posts || []).forEach(function (p) {
+        var imgs = (p && (p.imgs || p.images)) || [];
+        imgs.forEach(function (r) { push(r, (p.text || '').slice(0, 10) || '你的朋友圈', '从你朋友圈存的') });
+        if (p && p.img) push(p.img, (p.text || '').slice(0, 10) || '你的朋友圈', '从你朋友圈存的');
+      });
+    } catch (e) { }
+    try {
+      if (state.mengxi && state.mengxi.photos) state.mengxi.photos.forEach(function (r) { push(r, '梦里的稿子', '梦隙里的') });
+    } catch (e) { }
+    try {
+      (state.messages || []).slice(-200).forEach(function (m) {
+        if (m && (m.img || m.image)) push(m.img || m.image, '你发的图', '你发给他的')
+      });
+    } catch (e) { }
+    return refs;
+  }
+
+  /* ---------- 状态 ---------- */
+  var V = { open: false, view: '', stack: [], city: '光启市', weather: null, album: null };
+
+  function save0() { try { save() } catch (e) { } }
+  function generate(force) {
+    var p = P();
+    return aiGenerate().then(function (ai) {
+      var t = tmplData(prof());
+      var src = ai || t;
+      p.hist = Array.isArray(src.hist) && src.hist.length ? src.hist : t.hist;
+      p.notes = Array.isArray(src.notes) && src.notes.length ? src.notes : t.notes;
+      p.msgs = Array.isArray(src.msgs) && src.msgs.length ? src.msgs : t.msgs;
+      p.cart = Array.isArray(src.cart) && src.cart.length ? src.cart : t.cart;
+      p.lastGen = nowTs();
+      p.genBy = ai ? 'ai' : 'template';
+      save0();
+      return p.genBy;
+    });
+  }
+  function ensureData() {
+    var p = P();
+    if ((p.hist && p.hist.length) && !force) return Promise.resolve(p.genBy || 'cache');
+    return generate(true);
+  }
+  var force = false;
+
+  /* ---------- 渲染 ---------- */
+  function el(id) { return document.getElementById(id) }
+  function rootHtml() {
+    return '<div class="hp-wall"></div>'
+      + '<div class="hp-status"><b>' + clockText() + '</b><span class="r">'
+      + '<button class="hp-refresh" id="hpRefresh">' + S('<path d="M20 11a8 8 0 1 0-2.4 6.6"/><path d="M20 4.5V11h-6.5"/>', ' stroke-width="2.6" width="12" height="12" style="width:12px;height:12px;display:inline-block;vertical-align:-1px"') + ' 刷新</button>'
+      + '<span style="font-size:11px;opacity:.8">5G</span>'
+      + '</span></div>'
+      + '<div class="hp-desk" id="hpDesk">'
+      + '<div class="hp-grid">' + APPS.map(iconHtml).join('') + '</div>'
+      + '<div class="hp-wd">'
+      + '<div class="hp-card"><div class="n" id="hpWxCity">' + V.city + '</div><div class="v" id="hpWxTemp">—</div><div class="d" id="hpWxText">读取中…</div></div>'
+      + '<div class="hp-card"><div class="n">今天</div><div class="v" id="hpToday">—</div><div class="d" id="hpTodaySub">—</div></div>'
+      + '</div>'
+      + '<div class="hp-dots"><i class="on"></i><i></i></div>'
+      + '</div>'
+      + '<div class="hp-view" id="hpView"><div class="hp-nav"><span class="hp-back" id="hpBack">‹ 返回</span><span class="hp-title" id="hpTitle"></span></div><div class="hp-body" id="hpBody"></div></div>'
+      + '<div class="hp-toast" id="hpToast"></div>';
+  }
+  function clockText() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n };
+    return d.getHours() + ':' + p(d.getMinutes());
+  }
+  function toast2(m) {
+    var t = el('hpToast'); if (!t) return;
+    t.textContent = m; t.classList.add('on');
+    clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('on') }, 1600);
+  }
+
+  window.renderHisPhone = function () {
+    css();
+    var host = document.createElement('div');
+    host.id = 'hp'; host.className = 'hp-off';
+    host.innerHTML = rootHtml();
+    document.body.appendChild(host);
+    V.open = true;
+    setTimeout(function () { host.classList.remove('hp-off') }, 0);
+
+    /* 时钟 / 桌面小组件 */
+    var tick = setInterval(function () {
+      var b = host.querySelector('.hp-status b'); if (b) b.textContent = clockText();
+      if (!document.body.contains(host)) clearInterval(tick);
+    }, 15000);
+    var d = new Date(), wk = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+    el('hpToday').textContent = d.getDate();
+    el('hpTodaySub').textContent = '周' + wk + ' · ' + (d.getMonth() + 1) + ' 月';
+    fetchWeather(V.city, function (w) {
+      V.weather = w;
+      if (w) {
+        el('hpWxTemp').textContent = w.temp + '°';
+        el('hpWxText').textContent = w.text + ' · 最高 ' + w.hi + '°';
+      } else {
+        el('hpWxTemp').textContent = '—';
+        el('hpWxText').textContent = '天气拿不到（网络）';
+      }
+    });
+
+    host.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('[data-hp]');
+      if (a) { openApp(a.getAttribute('data-hp')); return }
+      var back = e.target.closest && e.target.closest('#hpBack');
+      if (back) { goBack(); return }
+      if (e.target.closest && e.target.closest('#hpRefresh')) { doRefresh(); return }
+      var b2 = e.target.closest && e.target.closest('#hpStart');
+      if (b2) { confirmProfile(); return }
+      var b3 = e.target.closest && e.target.closest('#hpEditProfile');
+      if (b3) { showSetup(true); return }
+      var city = e.target.closest && e.target.closest('[data-city]');
+      if (city) { V.city = city.getAttribute('data-city'); renderView('weather'); return }
+      var note = e.target.closest && e.target.closest('[data-note]');
+      if (note) { renderNote(+note.getAttribute('data-note')); return }
+      var msg = e.target.closest && e.target.closest('[data-msg]');
+      if (msg) { renderMsg(+msg.getAttribute('data-msg')); return }
+      var goods = e.target.closest && e.target.closest('[data-goods]');
+      if (goods) { renderOrder(+goods.getAttribute('data-goods')); return }
+      var kd = e.target.closest && e.target.closest('[data-k]');
+      if (kd) { pinKey(kd.getAttribute('data-k')); return }
+      var pinX = e.target.closest && e.target.closest('#hpPinCancel');
+      if (pinX) { closeLock(); return }
+      var seg = e.target.closest && e.target.closest('[data-seg]');
+      if (seg) { weatherCity = seg.getAttribute('data-seg'); renderView('weather'); return }
+      var test = e.target.closest && e.target.closest('#hpApiTest');
+      if (test) { doApiTest(); return }
+      var pull = e.target.closest && e.target.closest('#hpApiModels');
+      if (pull) { doApiModels(); return }
+      var saveBtn = e.target.closest && e.target.closest('#hpApiSave');
+      if (saveBtn) { saveApiUI(); return }
+    });
+
+    /* 首次进入：填人设 */
+    var p = P();
+    if (!p.profile || !p.profile.confirmed) showSetup(false);
+    else ensureData();
+  };
+
+  function closePhone() {
+    var h = el('hp'); if (h && h.parentNode) h.parentNode.removeChild(h);
+    V.open = false;
+    try { goView('home') } catch (e) { }
+  }
+
+  /* ---------- 人设引导 ---------- */
+  function showSetup(isEdit) {
+    var h = el('hp'); if (!h) return;
+    var old = el('hpSetup'); if (old) old.remove();
+    var pr = prof();
+    var box = document.createElement('div'); box.className = 'hp-setup'; box.id = 'hpSetup';
+    box.innerHTML = '<h2>' + (isEdit ? '改人设' : '开启「查手机」') + '</h2>'
+      + '<div class="sub">' + (isEdit ? '改完再确认一次，之后生成的内容都会跟着变。' : '先填一次他的设定，交给 AI 确认；以后一直用这份，不用再填。') + '</div>'
+      + '<div class="tmpl">模板：名字 / 年龄职业 / 性格 / 生活习惯 / 说话方式 / <b>我们的关系</b> / <b>生活经历</b>。填得越具体，生成出来的浏览记录、备忘录、购物越像他。</div>'
+      + '<div class="hp-fld"><label>名字</label><input id="hpName" value="' + esc2(pr.name || '陆沉') + '"></div>'
+      + '<div class="hp-fld"><label>年龄 / 职业</label><input id="hpJob" value="' + esc2(pr.job || '26 · 万甄集团 / SONDER CEO，刚从英国回来') + '"></div>'
+      + '<div class="hp-fld"><label>性格</label><textarea id="hpTrait">' + esc2(pr.trait || '谦和有礼、冷静克制。什么都照顾到了，却很难真正走近') + '</textarea></div>'
+      + '<div class="hp-fld"><label>生活习惯</label><textarea id="hpHabit">' + esc2(pr.habit || '手冲咖啡、读书、拆装机械表（黑暗里也能打好领带）') + '</textarea></div>'
+      + '<div class="hp-fld"><label>说话方式</label><textarea id="hpSpeech">' + esc2(pr.speech || '语速慢，句子短，礼貌到位；偶尔一句把人堵住，然后自己先笑') + '</textarea></div>'
+      + '<div class="hp-fld"><label>我们的关系</label><textarea id="hpRel">' + esc2(pr.rel || '你是他的兔子小姐。他什么都安排好了，却很少直说；你怕黑，他记得') + '</textarea></div>'
+      + '<div class="hp-fld"><label>生活经历</label><textarea id="hpExp">' + esc2(pr.exp || '15 岁去英国读书，26 岁回光启市接任 CEO；母亲为救他去世，父亲从未喜欢过他') + '</textarea></div>'
+      + '<div id="hpConfirm"></div>'
+      + '<div style="margin-top:16px"><button class="hp-btn" id="hpAiBtn">交给 AI 确认人设</button></div>';
+    h.appendChild(box);
+
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('#hpAiBtn');
+      if (!b) return;
+      var p = P();
+      p.profile = {
+        name: (el('hpName').value || '陆沉').trim(),
+        job: (el('hpJob').value || '').trim(),
+        trait: (el('hpTrait').value || '').trim(),
+        habit: (el('hpHabit').value || '').trim(),
+        speech: (el('hpSpeech').value || '').trim(),
+        rel: (el('hpRel').value || '').trim(),
+        exp: (el('hpExp').value || '').trim(),
+        confirmed: false, ts: nowTs()
+      };
+      var cf = el('hpConfirm');
+      cf.innerHTML = '<div class="hp-hint" style="margin-top:14px">正在读他…</div>';
+      var finish = function (source) {
+        var pts = ['一个把关心藏在细节里、话不多的 ' + (String(p.profile.job).split('·').pop() || '人'),
+          '性格：' + p.profile.trait, '习惯：' + p.profile.habit, '说话：' + p.profile.speech,
+          '关系：' + p.profile.rel, '经历：' + p.profile.exp];
+        cf.innerHTML = '<div class="hp-list" style="margin-top:14px;padding:14px"><b style="font-size:13px">确认过的人设' + (source === 'ai' ? '（AI）' : '') + '</b>'
+          + '<div style="font-size:12.5px;line-height:1.7;margin-top:8px;color:#D6D6DA">'
+          + pts.map(function (t, i) { return (i + 1) + ' · ' + esc2(t) }).join('<br>') + '</div></div>'
+          + '<div style="margin-top:12px"><button class="hp-btn" id="hpStart">开始查手机</button></div>';
+        var st = el('hpStart');
+        if (st) st.addEventListener('click', function () { confirmProfile() });
+      };
+      /* 有 AI 就先让 AI 过一遍（失败就本地确认，不挡流程） */
+      var cfg = (P().api) || {};
+      if (cfg.base && cfg.key) {
+        aiProfileConfirm(p.profile).then(function (ok) { finish(ok ? 'ai' : 'local') });
+      } else setTimeout(function () { finish('local') }, 500);
+    });
+  }
+  function aiProfileConfirm(pr) {
+    var cfg = (P().api) || {};
+    var base = String(cfg.base || '').replace(/\/+$/, '');
+    if (!base || !cfg.key) return Promise.resolve(false);
+    return fetch(base + '/chat/completions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + cfg.key },
+      body: JSON.stringify({
+        model: cfg.model || 'gpt-4o-mini', temperature: 0.3, max_tokens: 200,
+        messages: [{ role: 'system', content: '你帮我核对人物设定，只回"可以"两个字，不要别的。' },
+        { role: 'user', content: JSON.stringify(pr) }]
+      })
+    }).then(function (r) { return r.ok }).catch(function () { return false });
+  }
+  function confirmProfile() {
+    var p = P();
+    if (p.profile) p.profile.confirmed = true;
+    save0();
+    var s = el('hpSetup'); if (s) s.remove();
+    toast2('人设已保存，只填这一次');
+    ensureData().then(function (by) {
+      if (by === 'ai') toast2('已用 AI 生成'); else if (by === 'template') toast2('没配 API，用内置模板生成');
+    });
+  }
+
+  /* ---------- 内页 ---------- */
+  function openApp(k) {
+    if (k === 'photos') { openPhotos(); return }
+    V.stack = [];
+    renderView(k);
+  }
+  function renderView(k, noPush) {
+    var h = el('hp'); if (!h) return;
+    var v = el('hpView'), b = el('hpBody'), t = el('hpTitle');
+    if (!noPush && V.view && V.view !== k) V.stack.push(V.view);
+    V.view = k;
+    var names = { safari: 'Safari', notes: '备忘录', music: '音乐', health: '健康', weather: '天气', msgs: '信息', shop: '购物', settings: '设置' };
+    t.textContent = names[k] || '';
+    b.innerHTML = (R[k] || function () { return '<p class="hp-hint">还没做</p>' })();
+    v.classList.add('on'); b.scrollTop = 0;
+    if (k === 'settings') bindApiUI();
+  }
+  function goBack() {
+    var v = el('hpView');
+    if (V.stack.length) {
+      var k = V.stack.pop();
+      V.view = '';
+      renderView(k, true);
+      return;
+    }
+    if (v) v.classList.remove('on');
+    V.view = '';
+  }
+
+  /* Safari */
+  function R_safari() {
+    var p = P(), hist = p.hist || [];
+    function rows(arr, off) {
+      return arr.map(function (x, i) {
+        return '<div class="hp-row"><span class="hp-sq" style="background:linear-gradient(180deg,#33C6FF,#0A7CFF)">'
+          + S('<circle cx="12" cy="12" r="8"/><path d="M15.4 8.6l-2 5-5 2 2-5z" fill="#fff" stroke="none"/>') + '</span>'
+          + '<div class="hp-tx"><b>' + esc2(x.title) + '</b><span>' + (x.site === '—' ? '无痕浏览' : esc2(x.site)) + '</span></div>'
+          + '<span class="hp-rt">' + esc2(x.t) + '</span></div>';
+      }).join('');
+    }
+    var first = hist.slice(0, Math.ceil(hist.length / 2)), second = hist.slice(first.length);
+    return '<div class="hp-lab">今天</div><div class="hp-list">' + rows(first, 0) + '</div>'
+      + '<div class="hp-lab">更早</div><div class="hp-list">' + rows(second, first.length)
+      + '<div class="hp-row" style="opacity:.5"><span class="hp-sq">' + S('<path d="M4.5 7h15M9.5 7V5h5v2M6.5 7l1 13h9l1-13"/>') + '</span>'
+      + '<div class="hp-tx"><b style="text-decoration:line-through">已删除的记录</b><span>无痕浏览 · 无法查看</span></div></div></div>'
+      + '<p class="hp-hint">按「人设 + 你们最近的聊天」生成；点右上「刷新」重新生成一批。</p>';
+  }
+  /* 备忘录 */
+  function R_notes() {
+    var p = P();
+    return '<div class="hp-lab">全部笔记</div><div class="hp-list">' + (p.notes || []).map(function (x, i) {
+      return '<div class="hp-row" data-note="' + i + '"><span class="hp-sq" style="background:linear-gradient(180deg,#FFD84D,#FFB300);color:#7A5100">'
+        + S('<path d="M6.5 3.5h11v17h-11z"/><path d="M9 8h6M9 12h6"/>') + '</span>'
+        + '<div class="hp-tx"><b>' + esc2(x.title) + '<span class="hp-tag' + (x.tag === 'you' ? ' you' : '') + '">' + (x.tag === 'you' ? '关于你' : '自己') + '</span></b>'
+        + '<span>' + esc2(String(x.body || '').slice(0, 18)) + '…</span></div><span class="hp-rt">›</span></div>';
+    }).join('') + '</div><p class="hp-hint">他自己记的和关于你的混在一起，靠右上角小标签区分。</p>';
+  }
+  function renderNote(i) {
+    var x = (P().notes || [])[i]; if (!x) return;
+    V.stack.push('notes'); V.view = 'note';
+    el('hpTitle').textContent = '备忘录';
+    el('hpBody').innerHTML = '<div style="padding:6px 2px"><div style="font-size:22px;font-weight:700;line-height:1.3">' + esc2(x.title) + '</div>'
+      + '<div style="font-size:11.5px;color:#8E8E93;margin-top:6px">' + (x.tag === 'you' ? '关于你' : '他自己的事') + '</div>'
+      + '<div style="font-size:15px;line-height:1.8;margin-top:16px;white-space:pre-wrap">' + esc2(x.body) + '</div></div>';
+  }
+  /* 信息 */
+  function R_msgs() {
+    var p = P(), arr = p.msgs || [];
+    var un = arr.reduce(function (a, b) { return a + (b.unread || 0) }, 0);
+    return '<div class="hp-lab">信息' + (un ? ' · ' + un + ' 条未读' : '') + '</div><div class="hp-list">'
+      + arr.map(function (m, i) {
+        return '<div class="hp-row" data-msg="' + i + '"><span class="hp-sq" style="font-size:17px">' + esc2(m.ico || '💬') + '</span>'
+          + '<div class="hp-tx"><b>' + esc2(m.from) + (m.unread ? ' <span class="hp-badge" style="position:static;display:inline-flex;vertical-align:1px;min-width:17px;height:17px;font-size:10.5px">' + m.unread + '</span>' : '') + '</b>'
+          + '<span>' + esc2(m.text) + '</span></div><span class="hp-rt">' + esc2(m.time) + '</span></div>';
+      }).join('') + '</div><p class="hp-hint">整列表按人设生成：秘书、家里、常去的店、朋友、陌生号码。</p>';
+  }
+  function renderMsg(i) {
+    var m = (P().msgs || [])[i]; if (!m) return;
+    V.stack.push('msgs'); V.view = 'msg';
+    el('hpTitle').textContent = m.from;
+    var reply = /秘书/.test(m.from) ? '好，我知道了。' : /家里|家宴/.test(m.from) ? '会到。' : /店|咖啡/.test(m.from) ? '下午来拿。' : /Evan|伦敦/.test(m.from) ? 'Maybe. I will see.' : '……你是哪位？';
+    el('hpBody').innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;padding:10px 0">'
+      + '<div style="display:flex;justify-content:flex-start"><div style="max-width:76%;padding:9px 13px;border-radius:18px;border-bottom-left-radius:6px;background:#2C2C2E;font-size:14.5px;line-height:1.45">' + esc2(m.text) + '</div></div>'
+      + '<div style="display:flex;justify-content:flex-end"><div style="max-width:76%;padding:9px 13px;border-radius:18px;border-bottom-right-radius:6px;background:#0A84FF;font-size:14.5px;line-height:1.45">' + esc2(reply) + '</div></div>'
+      + '</div><p class="hp-hint">对话由 AI 按人设生成（没配 API 时是内置模板）。</p>';
+  }
+  /* 购物 */
+  function R_shop() {
+    var p = P(), arr = p.cart || [];
+    return '<div class="hp-seg" style="margin:8px 0 10px"><button class="on" style="background:rgba(255,159,10,.9);color:#231000;font-weight:700">他的购物车</button>'
+      + '<button>订单</button><button>待付款</button></div><div class="hp-list">'
+      + arr.map(function (g, i) {
+        return '<div class="hp-row" data-goods="' + i + '"><span class="hp-sq" style="font-size:24px;background:rgba(255,255,255,.06)">' + esc2(g.e || '📦') + '</span>'
+          + '<div class="hp-tx"><b>' + esc2(g.n) + '</b><span>' + esc2(g.d) + '</span>'
+          + '<span style="margin-top:4px"><span class="hp-tag" style="background:rgba(255,255,255,.1);color:#8E8E93">' + esc2(g.tag) + '</span></span></div>'
+          + '<div class="hp-rt" style="text-align:right"><b style="display:block;color:#FF9F0A;font-size:14px">' + esc2(g.pr) + '</b><span style="font-size:10.5px">' + esc2(g.st) + '</span></div></div>';
+      }).join('') + '</div><p class="hp-hint">按「人设 + 你们的聊天 + 备忘录」生成：给你的、给自己的、出差路上买的。</p>';
+  }
+  function renderOrder(i) {
+    var g = (P().cart || [])[i]; if (!g) return;
+    V.stack.push('shop'); V.view = 'order';
+    el('hpTitle').textContent = '订单详情';
+    var row = function (k, v) {
+      return '<div class="hp-row" style="cursor:default"><div class="hp-tx"><b style="font-size:13.5px;color:#8E8E93;font-weight:400">' + k + '</b></div>'
+        + '<span class="hp-rt" style="color:#fff;font-size:13.5px;max-width:64%;text-align:right;white-space:normal">' + esc2(v) + '</span></div>';
+    };
+    el('hpBody').innerHTML = '<div style="display:flex;gap:14px;align-items:center;padding:8px 2px 14px">'
+      + '<div style="width:68px;height:68px;border-radius:16px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:28px">' + esc2(g.e || '📦') + '</div>'
+      + '<div style="flex:1"><div style="font-size:15.5px;font-weight:600;line-height:1.35">' + esc2(g.n) + '</div>'
+      + '<div style="font-size:11.5px;color:#8E8E93;margin-top:5px">' + esc2(g.d) + '</div></div>'
+      + '<div style="font-size:17px;font-weight:700;color:#FF9F0A">' + esc2(g.pr) + '</div></div>'
+      + '<div class="hp-lab">订单</div><div class="hp-list">' + row('下单时间', g.time || '—') + row('订单状态', g.st || '—') + '</div>'
+      + '<p class="hp-hint">只留订单信息。收货人、地址、手机号一律不显示，也不发给 AI。</p>';
+  }
+  /* 健康 */
+  function R_health() {
+    var h = healthData();
+    return '<div class="hp-grid2">'
+      + '<div class="hp-hc"><div class="n">步数</div><div class="v">' + h.steps.toLocaleString() + '<small>步</small></div><div class="d">' + (h.note || '日常') + '</div></div>'
+      + '<div class="hp-hc"><div class="n">活动能量</div><div class="v">' + h.kcal + '<small>千卡</small></div><div class="d">基础代谢 ' + (rnd(1700, 1850)) + '</div></div>'
+      + '<div class="hp-hc"><div class="n">静息心率</div><div class="v">' + h.hr + '<small>bpm</small></div>'
+      + '<div style="margin-top:8px"><svg viewBox="0 0 240 40" preserveAspectRatio="none" style="width:100%;height:34px"><path d="M0 24 H26 l5 -6 l6 12 l7 -20 l8 32 l6 -18 l5 6 H240" fill="none" stroke="#FF375F" stroke-width="2" stroke-linecap="round"/></svg></div></div>'
+      + '<div class="hp-hc"><div class="n">睡眠</div><div class="v" style="font-size:19px">' + h.sleep + '</div><div class="d">昨晚</div></div></div>'
+      + '<div class="hp-lab">本周步数</div><div class="hp-list" style="padding:14px"><div class="hp-bars">'
+      + h.week.map(function (v, i) { return '<div class="d"><i style="height:' + v + '%"></i><span>' + ['一', '二', '三', '四', '五', '六', '日'][i] + '</span></div>' }).join('')
+      + '</div></div><p class="hp-hint">步数、卡路里跟站内日程联动：出差/健身那天会明显变高。</p>';
+  }
+  /* 天气 */
+  var weatherCity = '光启市';
+  function R_weather() {
+    var w = (weatherCity === V.city && V.weather) ? V.weather : null;
+    var seg = '<div class="hp-seg">' + Object.keys(CITY).map(function (c) {
+      return '<button data-seg="' + c + '"' + (c === weatherCity ? ' class="on"' : '') + '>' + c + '</button>';
+    }).join('') + '</div>';
+    var main = w
+      ? '<div class="hp-wx"><div class="city">' + w.city + '</div><div class="temp">' + w.temp + '°</div>'
+      + '<div class="txt">' + esc2(w.text) + ' · 最高 ' + w.hi + '° / 最低 ' + w.lo + '°</div>'
+      + '<div class="meta"><span>体感 ' + w.feels + '°</span><span>湿度 ' + w.hum + '%</span><span>风 ' + esc2(w.wind) + '</span></div></div>'
+      : '<div class="hp-list" style="padding:16px"><div style="font-size:13px">正在读取 ' + weatherCity + ' 的天气…</div>'
+      + '<div class="hp-hint" style="margin-top:6px">数据来自 Open-Meteo（免 Key）；没网时这里会空。</div></div>';
+    setTimeout(function () {
+      fetchWeather(weatherCity, function (r) {
+        if (r) { V.weather = r; V.city = weatherCity; if (V.view === 'weather') renderView('weather', true) }
+      });
+    }, 60);
+    return seg + main + '<div class="hp-lab">他那边</div><div class="hp-list"><div class="hp-row" style="cursor:default">'
+      + '<span class="hp-sq" style="background:linear-gradient(180deg,#63B8FF,#0A5FD0)">' + S('<circle cx="9" cy="9" r="3"/><path d="M12 18h7a3 3 0 0 0 0-6 4 4 0 0 0-7.6 1"/>') + '</span>'
+      + '<div class="hp-tx"><b>' + (weatherCity === '伦敦' ? '在伦敦' : '在光启市') + '</b><span>' + (weatherCity === '伦敦' ? '出差那几天' : '今晚 8 点下班') + '</span></div></div></div>'
+      + '<p class="hp-hint">跟你这边是同一个数据源；可以切光启市 / 伦敦。</p>';
+  }
+  /* 音乐 */
+  function R_music() {
+    return '<div class="hp-lab">最近播放</div><div class="hp-list">' + musicList().map(function (m) {
+      return '<div class="hp-row"><span class="hp-sq" style="background:linear-gradient(180deg,#FF6B7E,#F0294A)">'
+        + S('<path d="M9 17.5V6.4l9.5-1.9v11"/><circle cx="6.5" cy="17.6" r="2.3" fill="#fff" stroke="none"/><circle cx="16" cy="15.6" r="2.3" fill="#fff" stroke="none"/>') + '</span>'
+        + '<div class="hp-tx"><b>' + esc2(m.n) + '</b><span>' + esc2(m.a || '—') + ' · ' + esc2(m.tag) + '</span></div></div>';
+    }).join('') + '</div><p class="hp-hint">读的是你站内歌单里的歌 + 他正在听的那首。</p>';
+  }
+  /* 设置 */
+  function R_settings() {
+    var p = P(), a = p.api || {}, cfg = p.aiCfg || {}, pr = prof();
+    return '<div class="hp-lab">AI 接口（生成浏览 / 备忘录 / 信息 / 购物）</div><div class="hp-list">'
+      + '<div class="hp-inl"><span class="k">地址</span><input class="hp-inp" id="hpApiBase" value="' + esc2(a.base || '') + '" placeholder="https://api3.jiushi.xin/v1"></div>'
+      + '<div class="hp-inl"><span class="k">Key</span><input class="hp-inp" id="hpApiKey" type="password" value="' + esc2(a.key || '') + '" placeholder="sk-..."></div>'
+      + '<div class="hp-inl"><span class="k">模型</span><input class="hp-inp" id="hpApiModel" value="' + esc2(a.model || '') + '" placeholder="点下面的「拉取模型」"></div>'
+      + '</div><div style="display:flex;gap:10px;margin-top:10px">'
+      + '<button class="hp-btn" id="hpApiTest">测试连接</button>'
+      + '<button class="hp-btn ghost" id="hpApiModels">拉取模型</button></div>'
+      + '<div style="margin-top:8px"><button class="hp-btn ghost" id="hpApiSave">保存</button></div>'
+      + '<p class="hp-hint">没配也能用（内置模板）。配了才是真按人设 + 聊天生成。Key 只存本机，不会发给第三方。</p>'
+      + '<div class="hp-lab">人设（只填一次）</div><div class="hp-list" style="padding:14px"><div style="font-size:13px;line-height:1.7">'
+      + '<b>' + esc2(pr.name) + '</b> · ' + esc2(pr.job) + '<br><span style="color:#8E8E93">性格：</span>' + esc2(pr.trait)
+      + '<br><span style="color:#8E8E93">习惯：</span>' + esc2(pr.habit) + '<br><span style="color:#8E8E93">关系：</span>' + esc2(pr.rel)
+      + '</div></div><div style="margin-top:10px"><button class="hp-btn ghost" id="hpEditProfile">改人设</button></div>'
+      + '<div class="hp-lab">每次生成会发给 AI 什么</div><div class="hp-list" style="padding:14px"><div style="font-size:12.5px;line-height:1.8">'
+      + '✅ 人设 7 项<br>✅ 最近聊天 ' + (cfg.chatN || 20) + ' 条<br>✅ 你的备忘录标题<br>✅ 日程（出差/健身/会议）'
+      + '<br>❌ 照片、语音、完整地址、手机号、Key<br><span style="color:#8E8E93">手机号/长数字发送前会自动打码</span></div></div>';
+  }
+  function bindApiUI() { }
+  function saveApiUI() {
+    var p = P();
+    p.api = p.api || {};
+    p.api.base = (el('hpApiBase') && el('hpApiBase').value || '').trim();
+    p.api.key = (el('hpApiKey') && el('hpApiKey').value || '').trim();
+    p.api.model = (el('hpApiModel') && el('hpApiModel').value || '').trim();
+    save0(); toast2('已保存');
+  }
+  function doApiTest() {
+    saveApiUI();
+    var p = P();
+    if (typeof window.phoneApiTest !== 'function') { toast2('接口模块没加载'); return }
+    toast2('测试中…');
+    window.phoneApiTest(p.api).then(function (r) {
+      toast2(r.msg || (r.ok ? '连接成功' : '连接失败'));
+    });
+  }
+  function doApiModels() {
+    saveApiUI();
+    var p = P();
+    if (typeof window.phoneApiModels !== 'function') { toast2('接口模块没加载'); return }
+    toast2('拉取模型中…');
+    window.phoneApiModels(p.api).then(function (r) {
+      if (!r.ok) { toast2(r.msg || '拉取失败'); return }
+      var m = (r.models || []).slice(0, 60);
+      if (!m.length) { toast2('没拿到模型'); return }
+      var cur = p.api.model || m[0];
+      p.api.model = cur; save0();
+      var box = el('hpBody');
+      var pick = '<div class="hp-lab">选一个模型（' + m.length + ' 个）</div><div class="hp-list">'
+        + m.map(function (id) { return '<div class="hp-row" data-model="' + esc2(id) + '"><div class="hp-tx"><b>' + esc2(id) + '</b></div>'
+          + (id === cur ? '<span class="hp-rt">当前</span>' : '') + '</div>' }).join('') + '</div>';
+      box.insertAdjacentHTML('afterbegin', pick);
+      box.querySelectorAll('[data-model]').forEach(function (row) {
+        row.addEventListener('click', function () {
+          p.api.model = row.getAttribute('data-model'); save0();
+          if (el('hpApiModel')) el('hpApiModel').value = p.api.model;
+          toast2('模型：' + p.api.model);
+          renderView('settings', true);
+        });
+      });
+      toast2('拿到 ' + m.length + ' 个模型');
+    });
+  }
+
+  /* ---------- 相册 ---------- */
+  function openPhotos() {
+    var p = P();
+    if (p.pin && p.pin.tail) { renderAlbum(); return }
+    var h = el('hp'); if (!h) return;
+    var old = el('hpLock'); if (old) old.remove();
+    var box = document.createElement('div'); box.className = 'hp-lock2'; box.id = 'hpLock';
+    box.innerHTML = '<div style="font-size:16px;font-weight:600">相册已上锁</div>'
+      + '<div style="font-size:12px;color:#8E8E93">前两位是 01（他的生日 0122），后两位自己输</div>'
+      + '<div class="hp-pin"><i class="fixed on">01</i><i id="hpP1"></i><i id="hpP2"></i></div>'
+      + '<div class="hp-keys">' + [1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map(function (n) { return '<button data-k="' + n + '">' + n + '</button>' }).join('')
+      + '<span></span><button data-k="⌫">⌫</button><span></span></div>'
+      + '<button class="hp-btn ghost" id="hpPinCancel" style="width:auto;padding:9px 24px;margin-top:6px">取消</button>';
+    h.appendChild(box);
+    V.pinBuf = '';
+  }
+  function closeLock() { var b = el('hpLock'); if (b) b.remove(); V.pinBuf = '' }
+  function pinKey(k) {
+    var p = P();
+    if (!el('hpLock')) return;
+    if (k === '⌫') { V.pinBuf = (V.pinBuf || '').slice(0, -1); paintPin(); return }
+    if ((V.pinBuf || '').length >= 2) return;
+    V.pinBuf = (V.pinBuf || '') + k; paintPin();
+    if (V.pinBuf.length === 2) {
+      setTimeout(function () {
+        if (V.pinBuf === '22') { p.pin = { head: '01', tail: '22' }; save0(); closeLock(); renderAlbum(); }
+        else { V.pinBuf = ''; paintPin(); toast2('密码不对'); }
+      }, 160);
+    }
+  }
+  function paintPin() {
+    var a = el('hpP1'), b = el('hpP2');
+    if (a) { a.className = (V.pinBuf || '').length >= 1 ? 'on' : ''; a.textContent = (V.pinBuf || '')[0] || '' }
+    if (b) { b.className = (V.pinBuf || '').length >= 2 ? 'on' : ''; b.textContent = (V.pinBuf || '')[1] || '' }
+  }
+  function renderAlbum() {
+    var refs = albumData();
+    V.stack.push(''); V.view = 'album';
+    el('hpTitle').textContent = '相册';
+    var vv = el('hpView'); if (vv) vv.classList.add('on');
+    var caps = ['她坐在窗边', '兔子蛋糕', '伦敦那家店', '她的手 拿着咖啡', '睡着了 别叫醒', '书房的灯', '你发的图', '雨天的窗', '工位 咖啡'];
+    var html = '';
+    if (refs.length) {
+      html = '<div class="hp-lab">共有 ' + refs.length + ' 张</div><div class="hp-album">' + refs.map(function (r, i) {
+        var u = '';
+        try { u = mediaUrlSync(r.ref) } catch (e) { }
+        var bg = u ? ('background-image:url(\'' + u + '\')') : 'background:linear-gradient(150deg,#3A2A4A,#1C1424)';
+        return '<div style="' + bg + '"><span>' + esc2(r.cap || caps[i % caps.length]) + '</span></div>';
+      }).join('') + '</div>'
+        + '<p class="hp-hint">这些是你自己上传过的图（朋友圈 / 梦隙稿件 / 聊天图）。他手机里存的就是这些。</p>';
+    } else {
+      var ph = ['linear-gradient(150deg,#5A2B3A,#2A1620)', 'linear-gradient(150deg,#3B3350,#1B1828)', 'linear-gradient(150deg,#294A4A,#132A2A)'];
+      html = '<div class="hp-lab">他拍的</div><div class="hp-album">'
+        + ph.map(function (g, i) { return '<div style="background:' + g + '"><span>' + caps[i] + '</span></div>' }).join('')
+        + '</div><p class="hp-hint">你还没上传过图片，所以这里先用描述卡占位；你在朋友圈/梦隙里发过图之后，这里会自动换成真图。</p>';
+    }
+    el('hpBody').innerHTML = html;
+  }
+
+  var R = { safari: R_safari, notes: R_notes, msgs: R_msgs, shop: R_shop, health: R_health, weather: R_weather, music: R_music, settings: R_settings };
+
+  /* ---------- 刷新 ---------- */
+  function doRefresh() {
+    var b = el('hpRefresh');
+    if (b) { b.style.opacity = .5 }
+    toast2('重新生成中…');
+    force = true;
+    aiGenerate().then(function (ai) {
+      var p = P(), t = tmplData(prof());
+      var src = ai || t;
+      p.hist = src.hist || t.hist; p.notes = src.notes || t.notes; p.msgs = src.msgs || t.msgs; p.cart = src.cart || t.cart;
+      p.lastGen = nowTs(); p.genBy = ai ? 'ai' : 'template';
+      save0(); force = false;
+      if (b) b.style.opacity = 1;
+      toast2(ai ? '已用 AI 重新生成' : '没配 API，用模板重新生成');
+      if (V.view && V.view !== 'note' && V.view !== 'msg' && V.view !== 'order') renderView(V.view, true);
+    });
+  }
+})();
+
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
