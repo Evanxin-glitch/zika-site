@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="pa5f10661e">
+<meta name="x-build" content="p2d5e626c7">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -2561,12 +2561,17 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 <style id="liteMode">
 body.lite *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 body.lite .widget:not(.haswbg),body.lite .hg-widget:not(.haswbg),body.lite .home-grid>.hg-card,body.lite .card,body.lite .me-sec .card,
-body.lite .sheet,body.lite .menu,body.lite .chat-input,body.lite .bubble{
+body.lite .sheet,body.lite .menu,body.lite .chat-input{
   background-image:none!important;background-color:rgba(255,255,255,.92)!important;box-shadow:0 4px 12px rgba(70,58,40,.07)!important}
 body.lite .bubble.me{background-color:#EAF3E8!important}
 body.lite .bubble.you{background-color:#fff!important}
 body.lite .home-page{content-visibility:auto;contain-intrinsic-size:393px 880px}
 body.lite .home-pages{will-change:auto!important}
+</style>
+<style id="noZoom16">
+.d-cmt-in textarea,.diary-card textarea{font-size:16px!important;line-height:1.5!important}
+.chat-input textarea,.cinput textarea{font-size:16px!important}
+#view input[type=text],#view input[type=search],#view input:not([type]){font-size:16px!important}
 </style>
 </head>
 <body>
@@ -10042,8 +10047,11 @@ function sheetStickers(){
 /** 面板里长按表情图片 = 删除 */
 var _stkSuppress=false;
 function bindStickerPress(){
-  var panel=document.querySelector('#sheet-mask');   /* 整张弹层：图片栏 + emoji 栏都要能长按 */
+  var panel=document.querySelector('#sheet-mask');
   if(!panel)return;
+  if(panel._stkBound)return;   /* 只绑一次：以前重复绑定会一次长按弹 N 个确认框 */
+  panel._stkBound=1;
+  if(_stkPress){try{CLK.clear(_stkPress)}catch(e){}_stkPress=0}
   var _sx=0,_sy=0;
   function startAt(t,x,y){
     if(!t||!t.closest)return;
@@ -10115,8 +10123,11 @@ function sendSticker(id){
   save();closeSheet();renderChat();schedule();
 }
 /** 删除表情包（长按表情面板里的图） */
+var _stkDelAt=0;
 function stickerDel(id){
-  if(!confirm('删除这个表情包？\n删了就找不回来了。'))return;
+  var _t0=Date.now(); if(_t0-_stkDelAt<600)return; _stkDelAt=_t0;   /* 600ms 内只处理一次，防止连环弹 */
+  var _ok=false; try{ _ok=confirm('删除这个表情包？\n删了就找不回来了。') }catch(e){ _ok=false }
+  if(!_ok)return;
   var arr=state.stickers||[];
   for(var i=0;i<arr.length;i++)if(arr[i].id===id){arr.splice(i,1);break}
   save();sheetStickers();toast('已删除这个表情');
@@ -16642,6 +16653,7 @@ window.mengxiEnsure=mx;
 
 /* ㉘ 轻量模式 */
 (function(){ if(window.__liteMode)return; window.__liteMode=1;
+try{ if(localStorage.getItem("zika_lite")==="1"){ localStorage.setItem("zika_lite","0"); } }catch(e){}   /* __liteReset：旧版默认开，帮你关掉一次 */
 function on(){ try{ return localStorage.getItem("zika_lite")==="1" }catch(e){ return false } }
 function apply(){ try{ document.body.classList.toggle("lite", on()) }catch(e){} }
 apply(); setTimeout(apply,300); setTimeout(apply,1200);
@@ -17340,17 +17352,13 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       if (saveBtn) { saveApiUI(); return }
     });
 
-    /* 首次进入 / 被系统回收后重进：按上次的状态恢复 */
+    /* 首次进入才要填人设；只要确认过，永远先进桌面（改人设只能从设置进） */
     var p = P();
-    var needSetup = (!p.profile || !p.profile.confirmed) || (p.draft && p.draft.ts && !p.profile.confirmed) || !!(p.ui && p.ui.setup);
     if (!p.profile || !p.profile.confirmed) {
       showSetup(false);
-    } else if (p.ui && p.ui.setup) {
-      /* 上次在改人设 → 直接回到改人设，且草稿已预填 */
-      showSetup(true);
     } else {
+      try { p.ui = { open: true, setup: false, view: '' } } catch (e) { }
       ensureData();
-      if (p.ui && p.ui.view) { try { renderView(p.ui.view) } catch (e) { } }
     }
   };
 
@@ -17452,7 +17460,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
         speech: (el('hpSpeech') || {}).value || '', rel: (el('hpRel') || {}).value || '',
         exp: (el('hpExp') || {}).value || '', ts: nowTs()
       };
-      p.ui = { open: true, setup: true, view: '' };
+      p.ui = { open: true, setup: false, view: '' };
       save0();
     }
     box.addEventListener('input', function () { clearTimeout(box._dt); box._dt = setTimeout(saveDraft, 400) });
@@ -18268,6 +18276,243 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       renderShop2();
     }
   }, true);
+})();
+
+/* ★ 气泡美化 v2 */
+/* ================= 气泡美化 v2：把用户的 CSS 编译一遍再注入 =================
+   参考 Möbius 的做法（标准类名 → 真实结构 → 作用域 → 强制 !important → 排除特殊卡）：
+     · 用户只写 .message / .message-sent / .message-received / .message-all 等标准类名
+     · 编译时映射到我们的结构：.bubble.out / .bubble.in / .msg-col .bubble / .msg-row
+     · 每条选择器加 #view.bs-custom 前缀提权重，每条声明补 !important
+     · 特殊气泡（礼物/查岗/转账/邀请/红包/决策/表情/图片/语音）用 :not() 排除，避免被弄坏
+     · 注入到 </body> 前，聊天每次渲染后重新 apply；语法错误给出提示而不是静默失效
+   只接管「自定义气泡 CSS」这一块，其它设置与结构不动。 */
+(function () {
+  if (window.__bubbleV2) return; window.__bubbleV2 = 1;
+
+  /* ---------- 标准类名 → 我们的结构 ---------- */
+  var EXCL = ':not(.gcard):not(.c-gift):not(.c-check):not(.c-transfer):not(.c-invite)'
+    + ':not(.c-red):not(.c-decision):not(.stk):not(.imgbox):not(.voicebox):not(.card-box)';
+
+  var ALIAS = [
+    ['.message-received-wrapper', '.msg-row.in'],
+    ['.message-sent-wrapper', '.msg-row.out'],
+    ['.message-wrapper', '.msg-row'],
+    ['.message-all', '.msg-col .bubble' + EXCL],
+    ['.message-voice', '.msg-col .voicebox'],
+    ['.message-image', '.msg-col .imgbox'],
+    ['.message-sticker', '.msg-col .stk'],
+    ['.message-media', '.msg-col :is(.voicebox,.imgbox,.stk)'],
+    ['.message-received', '.bubble.in' + EXCL],
+    ['.message-sent', '.bubble.out' + EXCL],
+    ['.message', '.bubble' + EXCL]
+  ];
+
+  function escRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }
+
+  /* ---------- 语法检查：花括号配对 + 基本选择器 ---------- */
+  function basicCheck(css) {
+    var s = String(css || '');
+    var open = (s.match(/\{/g) || []).length, close = (s.match(/\}/g) || []).length;
+    if (open !== close) return '花括号不配对（' + open + ' 个 {，' + close + ' 个 }）';
+    if (!open && !/[a-z-]+\s*:\s*[^;]+/i.test(s)) return '既没有选择器也没有属性';
+    return '';
+  }
+
+  /* ---------- 声明补 !important（不重复补、不碰 url 里的分号） ---------- */
+  function strengthen(decls) {
+    var out = [], i = 0, depth = 0, buf = '', parts = [];
+    var s = String(decls || '');
+    for (i = 0; i < s.length; i++) {
+      var ch = s[i];
+      if (ch === '(') depth++;
+      else if (ch === ')') depth = Math.max(0, depth - 1);
+      if (ch === ';' && depth === 0) { parts.push(buf); buf = ''; }
+      else buf += ch;
+    }
+    if (buf.trim()) parts.push(buf);
+    parts.forEach(function (p) {
+      var t = String(p).trim();
+      if (!t) return;
+      if (/!\s*important\s*$/i.test(t)) out.push(t + ';');
+      else out.push(t + ' !important;');
+    });
+    return out.join(' ');
+  }
+
+  /* ---------- 编译 ---------- */
+  function compile(raw) {
+    var src = String(raw || '')
+      .replace(/<\/?style\b[^>]*>/gi, '')
+      .replace(/url\(\s*(['"]?)\[[^\]]+\]\(\s*(https?:\/\/[^)\s]+)\s*\)\1\s*\)/gi, function (_, q, u) { return 'url("' + u + '")' })
+      .trim();
+    if (!src) return { css: '', err: '' };
+    var err = basicCheck(src);
+    if (err) return { css: '', err: err };
+
+    /* 没有花括号：当成"属性列表"，直接套到两条气泡上（兼容旧数据） */
+    if (!/[{}]/.test(src)) {
+      var body = strengthen(src);
+      return {
+        css: '#view.bs-custom .msg-col .bubble.out' + EXCL + ',\n#view.bs-custom .msg-col .bubble.in' + EXCL + ' { ' + body + ' }',
+        err: ''
+      };
+    }
+
+    /* 有花括号：逐条规则处理 */
+    var out = [], re = /([^{}]+)\{([^{}]*)\}/g, m, n = 0;
+    while ((m = re.exec(src))) {
+      var sel = String(m[1]).trim();
+      var body2 = String(m[2]).trim();
+      if (!sel || !body2) continue;
+      if (/^@/.test(sel)) { if (/keyframes/i.test(sel)) out.push(sel + '{' + body2 + '}'); continue }
+      var mapped = sel.split(',');
+      var mapped2 = [];
+      for (var i = 0; i < mapped.length; i++) {
+        var one = mapped[i].trim();
+        if (!one) continue;
+        ALIAS.forEach(function (pair) {
+          var rx = new RegExp(escRe(pair[0]) + '(?![\\w-])', 'g');
+          one = one.replace(rx, pair[1]);
+        });
+        mapped2.push('#view.bs-custom ' + one);
+      }
+      if (!mapped2.length) continue;
+      out.push(mapped2.join(',\n') + ' { ' + strengthen(body2) + ' }');
+      n++;
+    }
+    if (!out.length) return { css: '', err: '没有解析出任何规则（检查一下选择器和花括号）' };
+    return { css: out.join('\n'), err: '', rules: n };
+  }
+
+  /* ---------- 注入（放在 body 末尾，权重与顺序都靠后） ---------- */
+  function inject(css) {
+    var el = document.getElementById('bubbleCssV2');
+    if (!css) { if (el && el.parentNode) el.parentNode.removeChild(el); return }
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'bubbleCssV2';
+      document.body.appendChild(el);
+    }
+    el.textContent = css;
+    if (el.parentNode !== document.body) document.body.appendChild(el);
+  }
+
+  /* ---------- 接管原来的 applyChatCss（只改气泡这一段） ---------- */
+  var _apply = (typeof applyChatCss === 'function') ? applyChatCss : null;
+  window.applyChatCssV2 = function () {
+    var st = (typeof state !== 'undefined' && state.settings) ? state.settings : {};
+    var preset = st.bubblePreset || 'default';
+    var v = document.getElementById('view');
+    if (v) {
+      v.className = 'bs-' + preset;
+      v.style.setProperty('--bub-r', (st.bubbleRadius === undefined ? 17 : st.bubbleRadius) + 'px');
+      v.style.setProperty('--bub-o', (st.bubbleOpacity === undefined ? 100 : st.bubbleOpacity) + '%');
+    }
+    var raw = st.chatCss || '';
+    if (preset !== 'custom') { inject(''); return { ok: true, rules: 0 } }
+    var r = compile(raw);
+    inject(r.css);
+    window.__bubbleCssErr = r.err || '';
+    window.__bubbleCssRules = r.rules || 0;
+    return { ok: !r.err, err: r.err, rules: r.rules || 0 };
+  };
+
+  if (_apply) {
+    applyChatCss = function () {
+      try { _apply.apply(this, arguments) } catch (e) { }
+      try { window.applyChatCssV2() } catch (e) { }
+    };
+  }
+
+  /* 聊天渲染后重新 apply（保证顺序：永远在站点规则之后） */
+  if (typeof renderChat === 'function' && !window.__bubbleChatHook) {
+    window.__bubbleChatHook = 1;
+    var _rc = renderChat;
+    renderChat = function () {
+      var r = _rc.apply(this, arguments);
+      try { window.applyChatCssV2() } catch (e) { }
+      return r;
+    };
+  }
+
+  /* 启动时也跑一次 */
+  try { setTimeout(function () { try { window.applyChatCssV2() } catch (e) { } }, 600) } catch (e) { }
+
+  /* ---------- 设置面板：说明表 + 示例 + 错误提示（只加气泡这一段） ---------- */
+  function guideHtml() {
+    return '<div class="bubble-guide">'
+      + '<div class="bg-t">可用的标准类名（粘贴外部 CSS 时照着写）</div>'
+      + '<div class="bg-row"><code>.message</code><span>普通文字气泡</span></div>'
+      + '<div class="bg-row"><code>.message-received</code><span>对方的气泡</span></div>'
+      + '<div class="bg-row"><code>.message-sent</code><span>我自己的气泡</span></div>'
+      + '<div class="bg-row"><code>.message-all</code><span>除礼物/查岗/转账等特殊卡以外的全部气泡</span></div>'
+      + '<div class="bg-row"><code>.message-voice</code><code>.message-image</code><code>.message-sticker</code><span>语音 / 图片 / 表情</span></div>'
+      + '<div class="bg-row"><code>.message-sent-wrapper</code><span>我这一整行（要做对齐、外边距时用）</span></div>'
+      + '<div class="bg-note">特殊卡（礼物、查岗、转账、邀请、红包、决策、表情、图片、语音）已自动排除，不会被你的 CSS 弄坏。</div>'
+      + '</div>';
+  }
+  var SAMPLE = '/* 例子：对方气泡换成米色毛玻璃，自己气泡做成描边 */\n'
+    + '.message-received {\n  background: #FBF6EC !important;\n  border: 1px solid #EFE3CE !important;\n  border-radius: 16px !important;\n}\n'
+    + '.message-sent {\n  background: #FFFFFF !important;\n  border: 1px solid #D9E4DA !important;\n  border-radius: 16px !important;\n}\n';
+
+  function enhancePanel() {
+    try {
+      var ta = document.getElementById('chatCssIn');
+      if (!ta || document.getElementById('bubbleGuide')) return;
+      var box = document.createElement('div');
+      box.id = 'bubbleGuide';
+      box.innerHTML = guideHtml()
+        + '<div style="display:flex;gap:8px;margin-top:8px">'
+        + '<button type="button" class="btn ghost" id="bubbleSample" style="flex:1">填入示例</button>'
+        + '<button type="button" class="btn ghost" id="bubbleCheck" style="flex:1">检查语法</button></div>'
+        + '<div id="bubbleMsg" class="meta" style="margin-top:6px;min-height:16px"></div>';
+      ta.parentNode.insertBefore(box, ta.nextSibling);
+      box.querySelector('#bubbleSample').addEventListener('click', function () {
+        ta.value = SAMPLE;
+        var m = document.getElementById('bubbleMsg');
+        if (m) { m.textContent = '已填入示例，点下面的「应用CSS」就能看到效果'; m.style.color = '#7A6E8A' }
+      });
+      box.querySelector('#bubbleCheck').addEventListener('click', function () {
+        var r = compile(ta.value);
+        var m = document.getElementById('bubbleMsg');
+        if (!m) return;
+        if (r.err) { m.textContent = '✗ ' + r.err; m.style.color = '#C0553F' }
+        else { m.textContent = '✓ 语法没问题，解析出 ' + (r.rules || 1) + ' 条规则'; m.style.color = '#4C7A56' }
+      });
+      var st = (typeof state !== 'undefined' && state.settings) ? state.settings : {};
+      if (st.chatCss) {
+        var rr = compile(st.chatCss);
+        var m2 = document.getElementById('bubbleMsg');
+        if (m2 && rr.err) { m2.textContent = '✗ 你现在这段有问题：' + rr.err; m2.style.color = '#C0553F' }
+      }
+    } catch (e) { }
+  }
+  if (typeof sheetChatRoom === 'function' && !window.__bubblePanelHook) {
+    window.__bubblePanelHook = 1;
+    var _sheet = sheetChatRoom;
+    sheetChatRoom = function () {
+      var r = _sheet.apply(this, arguments);
+      try { enhancePanel() } catch (e) { }
+      return r;
+    };
+  }
+
+  /* 样式 */
+  function css() {
+    if (document.getElementById('bubbleGuideCss')) return;
+    var s = document.createElement('style'); s.id = 'bubbleGuideCss';
+    s.textContent = [
+      '.bubble-guide{background:rgba(255,255,255,.6);border:1px solid rgba(140,120,160,.18);border-radius:12px;padding:10px 12px;margin-top:8px}',
+      '.bubble-guide .bg-t{font-size:11px;color:#8A7C82;letter-spacing:.3px;margin-bottom:6px}',
+      '.bubble-guide .bg-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;font-size:11.5px;color:#4A4048;margin-top:4px}',
+      '.bubble-guide code{background:rgba(140,120,160,.12);border-radius:5px;padding:1px 5px;font-size:11px;color:#6E5A7C}',
+      '.bubble-guide .bg-row span{color:#8A7C82}',
+      '.bubble-guide .bg-note{font-size:11px;color:#8A7C82;margin-top:8px;line-height:1.5}'
+    ].join('\n');
+    document.head.appendChild(s);
+  }
+  try { css() } catch (e) { }
 })();
 
 </script>
