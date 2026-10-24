@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="pfe176f194">
+<meta name="x-build" content="pa5f10661e">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -17424,8 +17424,12 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     if (dr && dr.ts) { for (var dk in dr) if (dk !== 'ts' && dr[dk]) pr[dk] = dr[dk] }
     var box = document.createElement('div'); box.className = 'hp-setup'; box.id = 'hpSetup';
     box.innerHTML = '<div style="display:flex;align-items:flex-start"><div style="flex:1"><h2>' + (isEdit ? '改人设' : '开启「查手机」') + '</h2></div>'
+      + '<div style="display:flex;gap:6px">'
+      + '<button id="hpSetupHome" style="background:rgba(10,132,255,.28);border:.5px solid rgba(10,132,255,.5);color:#fff;'
+      + 'font-size:12px;padding:6px 12px;border-radius:99px;font-family:inherit">‹ 主页</button>'
       + '<button id="hpSetupExit" style="background:rgba(255,255,255,.12);border:.5px solid rgba(255,255,255,.2);color:#fff;'
-      + 'font-size:12px;padding:6px 12px;border-radius:99px;font-family:inherit">退出</button></div>'
+      + 'font-size:12px;padding:6px 12px;border-radius:99px;font-family:inherit">退出</button>'
+      + '</div></div>'
       + '<div class="sub">' + (isEdit ? '改完再确认一次，之后生成的内容都会跟着变。' : '先填一次他的设定，交给 AI 确认；以后一直用这份，不用再填。') + '</div>'
       + '<div class="tmpl">模板：名字 / 年龄职业 / 性格 / 生活习惯 / 说话方式 / <b>我们的关系</b> / <b>生活经历</b>。填得越具体，生成出来的浏览记录、备忘录、购物越像他。</div>'
       + '<div class="hp-fld"><label>名字</label><input id="hpName" value="' + esc2(pr.name || '陆沉') + '"></div>'
@@ -17455,6 +17459,8 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     box.addEventListener('change', function () { clearTimeout(box._dt); box._dt = setTimeout(saveDraft, 200) });
 
     box.addEventListener('click', function (e) {
+      var hb = e.target.closest && e.target.closest('#hpSetupHome');
+      if (hb) { closeSetup(true); return }
       var ex = e.target.closest && e.target.closest('#hpSetupExit');
       if (ex) { closePhone(); return }
       var b = e.target.closest && e.target.closest('#hpAiBtn');
@@ -17504,6 +17510,20 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       })
     }).then(function (r) { return r.ok }).catch(function () { return false });
   }
+  /* 关掉人设页 → 回到查手机桌面（人设没确认也能先看） */
+  function closeSetup(save) {
+    var s = el('hpSetup'); if (s && s.parentNode) s.parentNode.removeChild(s);
+    try {
+      var p = P();
+      p.ui = { open: true, setup: false, view: '' };
+      save0();
+    } catch (e) { }
+    var hv = el('hpView'); if (hv) hv.classList.remove('on');
+    V.view = ''; V.stack = [];
+    try { ensureData() } catch (e) { }
+  }
+  window.hisPhoneCloseSetup = closeSetup;
+
   function confirmProfile() {
     var p = P();
     if (p.profile) p.profile.confirmed = true;
@@ -17511,6 +17531,8 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     p.ui = { open: true, setup: false, view: '' };
     save0();
     var s = el('hpSetup'); if (s) s.remove();
+    var hv0 = el('hpView'); if (hv0) hv0.classList.remove('on');
+    V.view = ''; V.stack = [];
     toast2('人设已保存，只填这一次');
     ensureData().then(function (by) {
       if (by === 'ai') toast2('已用 AI 生成'); else if (by === 'template') toast2('没配 API，用内置模板生成');
@@ -17828,6 +17850,424 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       if (V.view && V.view !== 'note' && V.view !== 'msg' && V.view !== 'order') renderView(V.view, true);
     });
   }
+})();
+
+/* ★ 商城 v2 */
+/* ================= 商城 v2：小店风 + 我自己上架 =================
+   · 页面整体换成"小店橱窗"：纸卡、价签、分类胶囊、顶部余额
+   · 右上「＋」上架商品：图片用 emoji（分组挑选），名称/价格/分类/描述
+   · 我上架的商品：他能送给我（他的礼物池会带上），我也能送他
+   · 送给 TA：扣我的余额；让 TA 买：他答应时扣他的余额
+   · 兼容老数据：state.shop.items/orders 继续用，新增 custom / hisMoney
+   依赖：23-shopItem.js（shopGen / shopItem 等），本文件在运行时覆盖它们 */
+(function () {
+  if (window.__shopV2) return; window.__shopV2 = 1;
+
+  /* ---------- 数据 ---------- */
+  function SP() {
+    if (!state.shop || typeof state.shop !== 'object') state.shop = {};
+    var s = state.shop;
+    if (!Array.isArray(s.custom)) s.custom = [];
+    if (typeof s.hisMoney !== 'number') s.hisMoney = 20000;
+    if (typeof s.myMoney !== 'number') {
+      s.myMoney = (state.wallet && typeof state.wallet.balance === 'number') ? state.wallet.balance : 0;
+    }
+    return s;
+  }
+  function myMoney() {
+    try { if (state.wallet && typeof state.wallet.balance === 'number') return state.wallet.balance } catch (e) { }
+    return SP().myMoney || 0;
+  }
+  function setMyMoney(v) {
+    try {
+      if (!state.wallet) state.wallet = { balance: 0, log: [] };
+      state.wallet.balance = Math.max(0, Math.round(v * 100) / 100);
+      if (!Array.isArray(state.wallet.log)) state.wallet.log = [];
+    } catch (e) { }
+    SP().myMoney = myMoney();
+  }
+  function hisMoney() { return SP().hisMoney }
+  function setHisMoney(v) { SP().hisMoney = Math.max(0, Math.round(v * 100) / 100) }
+  function allItems() {
+    var s = SP(), base = [];
+    try { base = (typeof shopGen === 'function' ? shopGen().items : (s.items || [])) || [] } catch (e) { base = s.items || [] }
+    return base.concat(s.custom);
+  }
+  function findItem(id) {
+    var a = allItems();
+    for (var i = 0; i < a.length; i++) if (String(a[i].id) === String(id)) return a[i];
+    return null;
+  }
+  function catNameOf(c) {
+    try { if (typeof SHOP_POOLS !== 'undefined' && SHOP_POOLS[c]) return SHOP_POOLS[c].n } catch (e) { }
+    return c === 'all' ? '全部' : (c || '其他');
+  }
+  function esc2(s) { return (typeof esc === 'function') ? esc(s) : String(s == null ? '' : s) }
+  function toast2(m) { try { toast(m) } catch (e) { } }
+  function money(n) { return '¥' + Number(n || 0).toFixed(2) }
+
+  /* ---------- emoji 分组 ---------- */
+  var GRP = [
+    { g: '礼物 · 饰品', list: ['🎁', '🐰', '💍', '🎀', '🧸', '💐', '🌹', '🧣', '👜', '👛', '⌚', '📿', '🪞', '🕯', '🎐', '🔔'] },
+    { g: '吃的 · 喝的', list: ['☕', '🍵', '🧋', '🥛', '🍰', '🍫', '🍪', '🍬', '🍩', '🧁', '🍜', '🥟', '🍚', '🍣', '🍎', '🍇'] },
+    { g: '日用 · 杂物', list: ['🧴', '🩹', '🧼', '🧻', '🪥', '🧦', '🩴', '🧤', '🔦', '🪑', '🧺', '🪣', '🔧', '💊', '🧷', '🪮'] },
+    { g: '花 · 氛围', list: ['🌷', '🌻', '🌸', '🍂', '🪴', '🍀', '✨', '🫧', '🌙', '⭐', '🕊', '🪄', '🎈', '🎼', '🪔', '🧿'] },
+    { g: '数码 · 书', list: ['🎧', '📖', '📚', '💻', '⌨️', '🖱', '📱', '🎮', '💿', '📷', '🖋', '📝', '🗂', '🕰', '🎹', '🪞'] }
+  ];
+
+  /* ---------- 样式 ---------- */
+  function css() {
+    if (document.getElementById('spCss')) return;
+    var s = document.createElement('style'); s.id = 'spCss';
+    s.textContent = [
+      '.sp-wrap{background:#FDF7F4;min-height:100%}',
+      '.sp-top{display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(255,253,251,.9);border-bottom:1px solid #EFE3E6;position:sticky;top:0;z-index:5}',
+      '.sp-top b{font-size:19px;font-weight:700;letter-spacing:.4px}',
+      '.sp-top .r{margin-left:auto;display:flex;align-items:center;gap:8px}',
+      '.sp-money{font-size:12px;color:#B0808C;background:#FBEEF1;border-radius:99px;padding:5px 11px;font-weight:600}',
+      '.sp-add{width:34px;height:34px;border-radius:12px;border:none;background:linear-gradient(180deg,#F09CAF,#E0738C);color:#fff;font-size:20px;line-height:1;box-shadow:0 6px 14px rgba(224,115,140,.32)}',
+      '.sp-body{padding:12px 14px 30px}',
+      '.sp-hero{position:relative;border-radius:20px;padding:16px;margin-bottom:12px;border:1px solid #fff;',
+      'background:linear-gradient(120deg,#FBE3E9,#F7EDE2 60%,#EFE6F5);box-shadow:0 10px 24px rgba(190,150,165,.16)}',
+      '.sp-hero .t1{font-size:12.5px;color:#9C8088;letter-spacing:.4px}',
+      '.sp-hero .t2{font-family:Georgia,"Songti SC",serif;font-size:22px;margin-top:2px}',
+      '.sp-hero .t3{font-size:11.5px;color:#A08890;margin-top:4px}',
+      '.sp-hero .stamp{position:absolute;right:13px;top:13px;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.7);',
+      'border:1px dashed #E3B9C4;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;color:#C08A99;line-height:1.2}',
+      '.sp-tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}',
+      '.sp-tabs::-webkit-scrollbar{display:none}',
+      '.sp-tab{flex:0 0 auto;border:1px solid #EFE3E6;background:#fff;color:#7C6E74;font-size:12.5px;padding:6px 13px;border-radius:99px;font-family:inherit}',
+      '.sp-tab.on{background:#2A2126;border-color:#2A2126;color:#fff;font-weight:600}',
+      '.sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}',
+      '.sp-card{position:relative;border-radius:18px;background:#FFFDFB;border:1px solid #fff;box-shadow:0 8px 20px rgba(190,150,165,.14);padding:12px;display:flex;flex-direction:column}',
+      '.sp-ph{height:74px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(160deg,#FDF1F4,#F6F0E8)}',
+      '.sp-nm{font-size:13.5px;font-weight:600;margin-top:9px;line-height:1.3}',
+      '.sp-ds{font-size:10.5px;color:#8A7C82;margin-top:3px;min-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.sp-price{display:flex;align-items:baseline;gap:3px;margin-top:8px}',
+      '.sp-price b{font-family:Georgia,serif;font-size:18px;color:#C9556F}',
+      '.sp-price span{font-size:10px;color:#C08A99}',
+      '.sp-btns{display:flex;gap:6px;margin-top:9px}',
+      '.sp-btns button{flex:1;border:none;border-radius:10px;font-size:11.5px;padding:8px 0;font-family:inherit}',
+      '.sp-b1{background:linear-gradient(180deg,#F09CAF,#E0738C);color:#fff;font-weight:600;box-shadow:0 5px 12px rgba(224,115,140,.28)}',
+      '.sp-b2{background:#FBF3F5;color:#9C7B84;border:1px solid #EEDCE1!important}',
+      '.sp-tag{position:absolute;left:10px;top:10px;font-size:9.5px;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.92);color:#B5896A;border:1px solid #EFE0D2}',
+      '.sp-tag.mine{background:#EAF3EA;color:#5C8060;border-color:#D7E6D7}',
+      '.sp-more{position:absolute;right:8px;top:8px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.9);color:#B0808C;',
+      'display:flex;align-items:center;justify-content:center;font-size:14px;border:1px solid #F0E2E6;z-index:3}',
+      '.sp-sec{display:flex;align-items:center;gap:8px;margin:18px 2px 8px}',
+      '.sp-sec b{font-size:14px}',
+      '.sp-sec span{font-size:11px;color:#8A7C82;margin-left:auto}',
+      '.sp-orders{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(190,150,165,.12)}',
+      '.sp-orow{display:flex;align-items:center;gap:11px;padding:11px 13px;border-bottom:1px solid #F6EFF1}',
+      '.sp-orow:last-child{border-bottom:none}',
+      '.sp-orow .em{width:36px;height:36px;border-radius:11px;background:#FBF1F4;display:flex;align-items:center;justify-content:center;font-size:18px}',
+      '.sp-orow .tx{flex:1;min-width:0}',
+      '.sp-orow .tx b{display:block;font-size:13px;font-weight:600}',
+      '.sp-orow .tx span{display:block;font-size:10.5px;color:#8A7C82;margin-top:1px}',
+      '.sp-orow .p{font-size:12.5px;color:#C9556F;font-weight:600}',
+      /* 上架面板 */
+      '.sp-mask{position:fixed;inset:0;z-index:80;background:rgba(40,25,32,.34)}',
+      '.sp-sheet{position:fixed;left:0;right:0;bottom:0;z-index:81;background:#fff;border-radius:24px 24px 0 0;',
+      'padding:16px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;box-shadow:0 -10px 30px rgba(80,50,60,.18)}',
+      '.sp-sheet h3{font-size:17px;font-weight:700}',
+      '.sp-sheet .hint{font-size:11.5px;color:#8A7C82;margin-top:5px;line-height:1.55}',
+      '.sp-fld{margin-top:12px}',
+      '.sp-fld label{display:block;font-size:11.5px;color:#8A7C82;margin-bottom:5px}',
+      '.sp-fld input{width:100%;border:1px solid #EFE3E6;background:#FFFDFC;border-radius:12px;padding:11px 12px;font:14px/1.4 inherit;color:#2A2126;outline:none}',
+      '.sp-fld input:focus{border-color:#F3B7C4}',
+      '.sp-grp{font-size:11px;color:#A99AA0;margin:11px 2px 6px}',
+      '.sp-emos{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}',
+      '.sp-emos button{aspect-ratio:1/1;border:1px solid #EFE3E6;background:#fff;border-radius:10px;font-size:19px;line-height:1}',
+      '.sp-emos button.on{border-color:#E0738C;background:#FDF0F3;box-shadow:0 0 0 2px rgba(224,115,140,.18)}',
+      '.sp-row3{display:flex;gap:8px}.sp-row3 .sp-fld{flex:1}',
+      '.sp-btnrow{display:flex;gap:9px;margin-top:16px}',
+      '.sp-btnrow button{flex:1;border:none;border-radius:13px;padding:13px;font-size:14.5px;font-weight:600;font-family:inherit}',
+      '.sp-ok{background:linear-gradient(180deg,#F09CAF,#E0738C);color:#fff;box-shadow:0 8px 18px rgba(224,115,140,.3)}',
+      '.sp-no{background:#F6EFF1;color:#8A7C82}'
+    ].join('\n');
+    document.head.appendChild(s);
+  }
+
+  /* ---------- 页面 ---------- */
+  var CUR = 'all';
+
+  function renderShop2() {
+    css();
+    SP();
+    try { if (typeof shopGen === 'function') shopGen() } catch (e) { }
+    var c = (typeof activeContact === 'function') ? activeContact() : null;
+    var s = SP();
+    var items = allItems();
+    var list = items.filter(function (it) {
+      if (CUR === 'all') return true;
+      if (CUR === 'mine') return !!it.mine;
+      return it.cat === CUR;
+    });
+    var d = new Date();
+    var h = '<div class="sp-wrap"><div class="sp-top">'
+      + '<button class="back" data-view="home" style="width:34px;height:34px;border-radius:12px;background:#fff;border:1px solid #EFE3E6">' + (typeof ICON_BACK !== 'undefined' ? ICON_BACK : '‹') + '</button>'
+      + '<b>商城</b><div class="r"><span class="sp-money">' + money(myMoney()) + '</span>'
+      + '<button class="sp-add" data-sp="add">＋</button></div></div>'
+
+      + '<div class="sp-body">'
+      + '<div class="sp-hero"><div class="t1">今日上新 · 每天换一批</div><div class="t2">给他买点东西</div>'
+      + '<div class="t3">共 ' + items.length + ' 件 · 他的余额 ' + money(hisMoney()) + '</div>'
+      + '<div class="stamp">TODAY<br>' + (d.getMonth() + 1) + '/' + d.getDate() + '</div></div>'
+
+      + '<div class="sp-tabs">'
+      + '<button class="sp-tab' + (CUR === 'all' ? ' on' : '') + '" data-sp="cat" data-c="all">全部</button>';
+    try {
+      for (var i = 0; i < SHOP_CATS.length; i++) {
+        var k = SHOP_CATS[i];
+        h += '<button class="sp-tab' + (CUR === k ? ' on' : '') + '" data-sp="cat" data-c="' + k + '">' + SHOP_POOLS[k].n + '</button>';
+      }
+    } catch (e) { }
+    /* 自定义分类 */
+    var seen = {};
+    s.custom.forEach(function (it) { if (it.cat && !seen[it.cat]) { seen[it.cat] = 1 } });
+    for (var cc in seen) h += '<button class="sp-tab' + (CUR === cc ? ' on' : '') + '" data-sp="cat" data-c="' + esc2(cc) + '">' + esc2(cc) + '</button>';
+    h += '<button class="sp-tab' + (CUR === 'mine' ? ' on' : '') + '" data-sp="cat" data-c="mine">我上架的' + (s.custom.length ? ' ' + s.custom.length : '') + '</button>';
+    h += '</div>';
+
+    h += '<div class="sp-grid">';
+    if (!list.length) h += '<div style="grid-column:1/-1;padding:26px 0;text-align:center;color:#A99AA0;font-size:13px">这个分类还没有东西</div>';
+    list.forEach(function (it) {
+      var catN = it.mine ? '我上架的' : (it.catName || catNameOf(it.cat));
+      var priceS = Number(it.price || 0).toFixed(2).split('.');
+      h += '<div class="sp-card">'
+        + '<span class="sp-tag' + (it.mine ? ' mine' : '') + '">' + esc2(catN) + '</span>'
+        + (it.mine ? '<span class="sp-more" data-sp="more" data-id="' + esc2(it.id) + '">⋯</span>' : '')
+        + '<div class="sp-ph">' + esc2(it.emoji || '🎁') + '</div>'
+        + '<div class="sp-nm">' + esc2(it.name) + '</div>'
+        + '<div class="sp-ds">' + esc2(it.desc || it.d || '') + '</div>'
+        + '<div class="sp-price"><b>' + priceS[0] + '</b><span>.' + priceS[1] + '</span></div>'
+        + '<div class="sp-btns"><button class="sp-b1" data-sp="buy" data-id="' + esc2(it.id) + '">送给 TA</button>'
+        + '<button class="sp-b2" data-sp="ask" data-id="' + esc2(it.id) + '">让 TA 买</button></div></div>';
+    });
+    h += '</div>';
+
+    /* 礼物记录 */
+    h += '<div class="sp-sec"><b>礼物记录</b><span>' + (c ? ('和 ' + esc2(c.name) + ' 的往来') : '') + '</span></div>';
+    var ords = (s.orders || []).slice(0, 12);
+    if (!ords.length) h += '<div class="sp-orders" style="padding:20px;text-align:center;color:#A99AA0;font-size:12.5px">还没有礼物</div>';
+    else {
+      h += '<div class="sp-orders">' + ords.map(function (o) {
+        var t = '';
+        try { t = (typeof fmtTime === 'function') ? fmtTime(o.ts) : '' } catch (e) { }
+        return '<div class="sp-orow"><span class="em">' + esc2(o.emoji || '🎁') + '</span>'
+          + '<div class="tx"><b>' + esc2(o.name) + '</b><span>' + t + ' · ' + (o.dir === 'in' ? 'TA 送的' : '我送的') + '</span></div>'
+          + '<span class="p">' + money(o.price) + '</span></div>';
+      }).join('') + '</div>';
+    }
+    h += '</div></div>';
+
+    var v = document.getElementById('view');
+    if (v) v.innerHTML = h;
+  }
+
+  window.renderShop = renderShop2;
+
+  /* ---------- 交互 ---------- */
+  function openSheet(editId) {
+    css();
+    var s = SP();
+    var editing = editId ? s.custom.filter(function (x) { return String(x.id) === String(editId) })[0] : null;
+    var pick = (editing && editing.emoji) || '🎁';
+    var box = document.createElement('div');
+    box.innerHTML = '<div class="sp-mask" data-sp="close"></div>'
+      + '<div class="sp-sheet"><h3>' + (editing ? '编辑商品' : '上架一个商品') + '</h3>'
+      + '<div class="hint">图片用 emoji 代替（不占空间，也不会多一条上传通道）。价格随便写，送的时候从余额里扣。</div>'
+      + '<div class="sp-fld"><label>选一个 emoji 当图片</label><div id="spEmo"></div></div>'
+      + '<div class="sp-fld"><label>名称</label><input id="spName" value="' + esc2(editing ? editing.name : '') + '" placeholder="比如：他爱喝的那款手冲豆"></div>'
+      + '<div class="sp-row3"><div class="sp-fld"><label>价格</label><input id="spPrice" type="number" min="0" step="0.5" value="' + (editing ? editing.price : '') + '" placeholder="68"></div>'
+      + '<div class="sp-fld"><label>分类</label><input id="spCat" value="' + esc2(editing ? editing.cat : '') + '" placeholder="礼物"></div></div>'
+      + '<div class="sp-fld"><label>一句描述（可留空）</label><input id="spDesc" value="' + esc2(editing ? (editing.desc || '') : '') + '" placeholder="比如：浅烘，不加糖"></div>'
+      + '<div class="sp-btnrow"><button class="sp-no" data-sp="close">取消</button>'
+      + '<button class="sp-ok" data-sp="save" data-id="' + esc2(editing ? editing.id : '') + '">' + (editing ? '保存' : '上架') + '</button></div></div>';
+    document.body.appendChild(box);
+    box._pick = pick;
+    paintEmos(box);
+    box.addEventListener('click', function (e) {
+      var t = e.target;
+      var em = t.closest && t.closest('[data-e]');
+      if (em) { box._pick = em.getAttribute('data-e'); paintEmos(box); return }
+      var act = t.closest && t.closest('[data-sp]');
+      if (!act) return;
+      var a = act.getAttribute('data-sp');
+      if (a === 'close') { box.remove(); return }
+      if (a === 'save') saveItem(box, act.getAttribute('data-id'));
+    });
+  }
+  function paintEmos(box) {
+    var host = box.querySelector('#spEmo');
+    host.innerHTML = GRP.map(function (g) {
+      return '<div class="sp-grp">' + g.g + '</div><div class="sp-emos">'
+        + g.list.map(function (e) { return '<button data-e="' + e + '"' + (e === box._pick ? ' class="on"' : '') + '>' + e + '</button>' }).join('')
+        + '</div>';
+    }).join('');
+  }
+  function saveItem(box, editId) {
+    var s = SP();
+    var nm = (box.querySelector('#spName').value || '').trim();
+    if (!nm) { toast2('先写个名称'); return }
+    var pr = parseFloat(box.querySelector('#spPrice').value);
+    if (!(pr >= 0)) { toast2('价格写个数字'); return }
+    var cat = (box.querySelector('#spCat').value || '礼物').trim();
+    var desc = (box.querySelector('#spDesc').value || '').trim();
+    if (editId) {
+      var it = s.custom.filter(function (x) { return String(x.id) === String(editId) })[0];
+      if (it) { it.emoji = box._pick; it.name = nm; it.price = pr; it.cat = cat; it.catName = cat; it.desc = desc }
+      toast2('已保存');
+    } else {
+      s.custom.unshift({
+        id: 'my' + Date.now().toString(36), emoji: box._pick, name: nm, price: pr,
+        cat: cat, catName: cat, desc: desc, mine: 1
+      });
+      toast2('上架成功');
+      CUR = 'mine';
+    }
+    try { save() } catch (e) { }
+    box.remove();
+    renderShop2();
+  }
+
+  /* 送给 TA：扣我的钱 */
+  function buy(id) {
+    var it = findItem(id); if (!it) return;
+    var c = (typeof activeContact === 'function') ? activeContact() : null;
+    if (!c) { toast2('先加个联系人吧'); return }
+    if (myMoney() < it.price) { toast2('余额不够了（还差 ' + money(it.price - myMoney()) + '）'); return }
+    setMyMoney(myMoney() - it.price);
+    try {
+      state.messages.push({
+        id: uid(), contactId: c.id, dir: 'out', readDue: now() + 4000, kind: 'gift',
+        itemName: it.name, emoji: it.emoji, price: it.price, catName: it.catName || it.cat,
+        ts: now(), replyDue: now() + rndDelay(c), answered: false
+      });
+    } catch (e) { }
+    var s = SP();
+    s.orders.unshift({ id: uid(), name: it.name, emoji: it.emoji, price: it.price, dir: 'out', ts: now(), status: 'sent' });
+    if (s.orders.length > 60) s.orders.length = 60;
+    try { save() } catch (e) { }
+    toast2('已送给 ' + c.name + '：' + it.name + '（扣 ' + money(it.price) + '）');
+    try { goView('chat'); renderChat() } catch (e) { renderShop2() }
+  }
+
+  /* 让 TA 买：先请求；他答应时扣他的钱（在 shopAnswer 里处理） */
+  function ask(id) {
+    var it = findItem(id); if (!it) return;
+    var c = (typeof activeContact === 'function') ? activeContact() : null;
+    if (!c) { toast2('先加个联系人吧'); return }
+    if (hisMoney() < it.price) { toast2(c.name + '的余额不够（还差 ' + money(it.price - hisMoney()) + '）'); return }
+    try {
+      state.messages.push({
+        id: uid(), contactId: c.id, dir: 'out', readDue: now() + 4000, kind: 'buyreq',
+        itemName: it.name, emoji: it.emoji, price: it.price, catName: it.catName || it.cat,
+        ts: now(), replyDue: now() + rndDelay(c), answered: false
+      });
+    } catch (e) { }
+    try { save() } catch (e) { }
+    toast2('已跟 ' + c.name + ' 说想要这个（他答应会扣他的钱）');
+    try { goView('chat'); renderChat() } catch (e) { renderShop2() }
+  }
+
+  /* 包装他的回应：答应代买时扣他的余额 */
+  if (typeof shopAnswer === 'function' && !window.__shopAnsHook) {
+    window.__shopAnsHook = 1;
+    var _ans = shopAnswer;
+    shopAnswer = function (m) {
+      var s = SP();
+      var before = (s.orders || []).length;
+      var hisBefore = hisMoney();
+      var r = _ans.apply(this, arguments);
+      var s2 = SP();
+      var added = (s2.orders || []).length > before ? s2.orders[0] : null;
+      if (added && added.dir === 'in' && added.price) {
+        if (hisMoney() >= added.price) setHisMoney(hisMoney() - added.price);
+        else setHisMoney(hisBefore);
+        try { save() } catch (e) { }
+      }
+      return r;
+    };
+  }
+
+  /* 他的礼物池：带上我上架的商品 */
+  if (typeof shopHisGift === 'function' && !window.__shopHisHook) {
+    window.__shopHisHook = 1;
+    var _hisGift = shopHisGift;
+    shopHisGift = function (c) {
+      var pool = allItems();
+      if (!pool.length) return _hisGift.apply(this, arguments);
+      var it = pool[Math.floor(Math.random() * pool.length)];
+      if (!it) return _hisGift.apply(this, arguments);
+      try {
+        state.messages.push({
+          id: uid(), contactId: c.id, dir: 'in', kind: 'gift', itemName: it.name, emoji: it.emoji,
+          price: it.price, catName: it.catName || it.cat, ts: now()
+        });
+        var s = SP();
+        s.orders.unshift({ id: uid(), name: it.name, emoji: it.emoji, price: it.price, dir: 'in', ts: now(), status: 'gift' });
+        if (s.orders.length > 60) s.orders.length = 60;
+        if (hisMoney() >= (it.price || 0)) setHisMoney(hisMoney() - it.price);
+        save();
+        return true;
+      } catch (e) { return false }
+    };
+  }
+
+  /* 点击委托（我们的按钮都带 data-sp） */
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var b = t.closest('[data-sp]');
+    if (!b) return;
+    var a = b.getAttribute('data-sp');
+    if (a === 'cat') { e.preventDefault(); CUR = b.getAttribute('data-c') || 'all'; renderShop2(); return }
+    if (a === 'add') { e.preventDefault(); openSheet(''); return }
+    if (a === 'buy') { e.preventDefault(); buy(b.getAttribute('data-id')); return }
+    if (a === 'ask') { e.preventDefault(); ask(b.getAttribute('data-id')); return }
+    if (a === 'more') {
+      e.preventDefault();
+      var id = b.getAttribute('data-id');
+      var s = SP();
+      var it = s.custom.filter(function (x) { return String(x.id) === String(id) })[0];
+      if (!it) return;
+      /* 用站内 sheet 做个小菜单 */
+      try {
+        if (typeof openSheet === 'function') {
+          openSheet('<h2>' + esc2(it.name) + '</h2><p class="meta" style="margin:-4px 0 10px">' + money(it.price) + ' · ' + esc2(it.cat || '礼物') + '</p>'
+            + '<div class="actions"><button class="ok" data-sp-edit="' + id + '">编辑</button>'
+            + '<button class="cancel" data-sp-del="' + id + '">下架</button></div>');
+          window.__spEditId = id;
+        } else { openSheet(id) }
+      } catch (e2) { openSheet(id) }
+      return;
+    }
+  }, true);
+
+  /* 站内 sheet 的编辑/下架按钮 */
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var ed = t.closest('[data-sp-edit]');
+    if (ed) {
+      e.preventDefault();
+      try { closeSheet() } catch (x) { }
+      openSheet(ed.getAttribute('data-sp-edit'));
+      return;
+    }
+    var dl = t.closest('[data-sp-del]');
+    if (dl) {
+      e.preventDefault();
+      var id = dl.getAttribute('data-sp-del');
+      var s = SP();
+      s.custom = s.custom.filter(function (x) { return String(x.id) !== String(id) });
+      try { save() } catch (x) { }
+      try { closeSheet() } catch (x) { }
+      toast2('已下架');
+      renderShop2();
+    }
+  }, true);
 })();
 
 </script>
