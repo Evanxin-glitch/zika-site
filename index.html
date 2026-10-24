@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="pf5e54d3be">
+<meta name="x-build" content="pfe176f194">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -17268,6 +17268,14 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('on') }, 1600);
   }
 
+  /* 点首页那个「查手机」图标：拦下来，直接开浮层，不改 hash */
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('[data-view="hisphone"]');
+    if (!a) return;
+    e.preventDefault(); e.stopPropagation();
+    window.renderHisPhone();
+  }, true);
+
   window.renderHisPhone = function () {
     css();
     var old = document.getElementById('hp'); if (old && old.parentNode) old.parentNode.removeChild(old);
@@ -17276,6 +17284,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     host.innerHTML = rootHtml();
     document.body.appendChild(host);
     V.open = true;
+    try { var pp0 = P(); pp0.ui = Object.assign({}, pp0.ui || {}, { open: true }) } catch (e) { }
     setTimeout(function () { host.classList.remove('hp-off') }, 0);
 
     /* 时钟 / 桌面小组件 */
@@ -17331,10 +17340,18 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       if (saveBtn) { saveApiUI(); return }
     });
 
-    /* 首次进入：填人设 */
+    /* 首次进入 / 被系统回收后重进：按上次的状态恢复 */
     var p = P();
-    if (!p.profile || !p.profile.confirmed) showSetup(false);
-    else ensureData();
+    var needSetup = (!p.profile || !p.profile.confirmed) || (p.draft && p.draft.ts && !p.profile.confirmed) || !!(p.ui && p.ui.setup);
+    if (!p.profile || !p.profile.confirmed) {
+      showSetup(false);
+    } else if (p.ui && p.ui.setup) {
+      /* 上次在改人设 → 直接回到改人设，且草稿已预填 */
+      showSetup(true);
+    } else {
+      ensureData();
+      if (p.ui && p.ui.view) { try { renderView(p.ui.view) } catch (e) { } }
+    }
   };
 
   function killOverlay() {
@@ -17345,6 +17362,40 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     } catch (e) { }
   }
   window.hisPhoneCleanup = killOverlay;
+
+  /* 启动恢复：上次关掉页面前正开着查手机 → 自动回来（改人设的草稿也在） */
+  function autoResume() {
+    try {
+      var p = P();
+      if (!p.profile || !p.profile.confirmed) return;
+      if (!(p.ui && p.ui.open)) return;
+      if (document.getElementById('hp')) return;
+      if (typeof window.renderHisPhone === 'function') window.renderHisPhone();
+    } catch (e) { }
+  }
+  setTimeout(autoResume, 900);
+  window.addEventListener('pageshow', function () { setTimeout(autoResume, 300) });
+
+  /* 看门狗：每 2.5 秒核对一次"路由 vs 壳子"，防止出现"有壳子但点不动"或"没壳子"
+     只做纠正，不动用户数据 */
+  var _wd = setInterval(function () {
+    try {
+      var h = document.getElementById('hp');
+      if (h && h.classList.contains('hp-off')) h.classList.remove('hp-off');
+    } catch (e) { }
+  }, 2500);
+
+  /* 从后台回来 / 从 bfcache 恢复：把壳子状态修一遍 */
+  window.addEventListener('pageshow', function (ev) {
+    try {
+      var v = (location.hash || '').replace('#', '') || 'home';
+      if (v === 'hisphone') {
+        var h = document.getElementById('hp');
+        if (!h) window.renderHisPhone();
+        else h.classList.remove('hp-off');
+      }
+    } catch (e) { }
+  });
   try {
     window.addEventListener('hashchange', function () {
       var v = (location.hash || '').replace('#', '') || 'home';
@@ -17361,15 +17412,16 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
 
   function closePhone() {
     var h = el('hp'); if (h && h.parentNode) h.parentNode.removeChild(h);
-    V.open = false;
-    try { goView('home') } catch (e) { }
+    V.open = false; V.view = ''; V.stack = [];
+    try { var p = P(); p.ui = { open: false, setup: false, view: '' }; save0() } catch (e) { }
   }
 
   /* ---------- 人设引导 ---------- */
   function showSetup(isEdit) {
     var h = el('hp'); if (!h) return;
     var old = el('hpSetup'); if (old) old.remove();
-    var pr = prof();
+    var pr = prof(), dr = (P().draft || {});
+    if (dr && dr.ts) { for (var dk in dr) if (dk !== 'ts' && dr[dk]) pr[dk] = dr[dk] }
     var box = document.createElement('div'); box.className = 'hp-setup'; box.id = 'hpSetup';
     box.innerHTML = '<div style="display:flex;align-items:flex-start"><div style="flex:1"><h2>' + (isEdit ? '改人设' : '开启「查手机」') + '</h2></div>'
       + '<button id="hpSetupExit" style="background:rgba(255,255,255,.12);border:.5px solid rgba(255,255,255,.2);color:#fff;'
@@ -17386,6 +17438,21 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       + '<div id="hpConfirm"></div>'
       + '<div style="margin-top:16px"><button class="hp-btn" id="hpAiBtn">交给 AI 确认人设</button></div>';
     h.appendChild(box);
+
+    /* 边填边存草稿：App 切换导致页面被系统回收再打开时，填了一半的内容还在 */
+    function saveDraft() {
+      var p = (typeof phoneEnsure === 'function' ? phoneEnsure() : P()) || {};
+      p.draft = {
+        name: (el('hpName') || {}).value || '', job: (el('hpJob') || {}).value || '',
+        trait: (el('hpTrait') || {}).value || '', habit: (el('hpHabit') || {}).value || '',
+        speech: (el('hpSpeech') || {}).value || '', rel: (el('hpRel') || {}).value || '',
+        exp: (el('hpExp') || {}).value || '', ts: nowTs()
+      };
+      p.ui = { open: true, setup: true, view: '' };
+      save0();
+    }
+    box.addEventListener('input', function () { clearTimeout(box._dt); box._dt = setTimeout(saveDraft, 400) });
+    box.addEventListener('change', function () { clearTimeout(box._dt); box._dt = setTimeout(saveDraft, 200) });
 
     box.addEventListener('click', function (e) {
       var ex = e.target.closest && e.target.closest('#hpSetupExit');
@@ -17440,6 +17507,8 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
   function confirmProfile() {
     var p = P();
     if (p.profile) p.profile.confirmed = true;
+    try { delete p.draft } catch (e) { p.draft = null }
+    p.ui = { open: true, setup: false, view: '' };
     save0();
     var s = el('hpSetup'); if (s) s.remove();
     toast2('人设已保存，只填这一次');
@@ -17463,6 +17532,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     t.textContent = names[k] || '';
     b.innerHTML = (R[k] || function () { return '<p class="hp-hint">还没做</p>' })();
     v.classList.add('on'); b.scrollTop = 0;
+    try { var pp = P(); pp.ui = { open: true, setup: false, view: k }; save0() } catch (e) { }
     if (k === 'settings') bindApiUI();
   }
   function goBack() {
