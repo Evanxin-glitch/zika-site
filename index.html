@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="p414750e00">
+<meta name="x-build" content="pf5e54d3be">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -2560,7 +2560,7 @@ button.ok,.btn.pri,.switch.on,.page-dots .dot.on,.sc-tab.on,.mm-chip.on,.sv-chip
 </style>
 <style id="liteMode">
 body.lite *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-body.lite .widget,body.lite .hg-widget,body.lite .home-grid>.hg-card,body.lite .card,body.lite .me-sec .card,
+body.lite .widget:not(.haswbg),body.lite .hg-widget:not(.haswbg),body.lite .home-grid>.hg-card,body.lite .card,body.lite .me-sec .card,
 body.lite .sheet,body.lite .menu,body.lite .chat-input,body.lite .bubble{
   background-image:none!important;background-color:rgba(255,255,255,.92)!important;box-shadow:0 4px 12px rgba(70,58,40,.07)!important}
 body.lite .bubble.me{background-color:#EAF3E8!important}
@@ -15469,7 +15469,9 @@ function petDecay(p) {
   p.m = petClamp(p.m - hours * 6);
   p.c = petClamp(p.c - hours * 5);
   p.last = now;
-  p.day = (p.day || 1) + Math.floor(hours / 24);
+  p.acc = (p.acc || 0) + hours;
+  var addDay = Math.floor(p.acc / 24);
+  if (addDay > 0) { p.day = (p.day || 1) + addDay; p.acc = p.acc - addDay * 24; }
   return hours;
 }
 /* 他的照顾：状态低时按概率补一次，写记录 + 推聊天卡片 */
@@ -16640,7 +16642,7 @@ window.mengxiEnsure=mx;
 
 /* ㉘ 轻量模式 */
 (function(){ if(window.__liteMode)return; window.__liteMode=1;
-function on(){ try{ return localStorage.getItem("zika_lite")!=="0" }catch(e){ return true } }
+function on(){ try{ return localStorage.getItem("zika_lite")==="1" }catch(e){ return false } }
 function apply(){ try{ document.body.classList.toggle("lite", on()) }catch(e){} }
 apply(); setTimeout(apply,300); setTimeout(apply,1200);
 window.zikaLiteToggle=function(){ try{ localStorage.setItem("zika_lite", on()?"0":"1") }catch(e){} apply(); };
@@ -17233,13 +17235,15 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     if ((p.hist && p.hist.length) && !force) return Promise.resolve(p.genBy || 'cache');
     return generate(true);
   }
+  /* 生成来源显示用 */
+  window.hisPhoneGenInfo = function () { var p = P(); return { by: p.genBy || '', at: p.lastGen || 0, n: (p.hist || []).length } };
   var force = false;
 
   /* ---------- 渲染 ---------- */
   function el(id) { return document.getElementById(id) }
   function rootHtml() {
     return '<div class="hp-wall"></div>'
-      + '<div class="hp-status"><b>' + clockText() + '</b><span class="r">'
+      + '<div class="hp-status"><span class="hp-exit" id="hpExit" style="display:flex;align-items:center;gap:3px;font-size:13px;font-weight:600;opacity:.95;cursor:pointer">' + S('<path d="M15 5l-7 7 7 7"/>', ' stroke-width="2.4" width="13" height="13" style="width:13px;height:13px;display:inline-block"') + ' 主页</span><b style="position:absolute;left:0;right:0;text-align:center;pointer-events:none">' + clockText() + '</b><span class="r">'
       + '<button class="hp-refresh" id="hpRefresh">' + S('<path d="M20 11a8 8 0 1 0-2.4 6.6"/><path d="M20 4.5V11h-6.5"/>', ' stroke-width="2.6" width="12" height="12" style="width:12px;height:12px;display:inline-block;vertical-align:-1px"') + ' 刷新</button>'
       + '<span style="font-size:11px;opacity:.8">5G</span>'
       + '</span></div>'
@@ -17266,6 +17270,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
 
   window.renderHisPhone = function () {
     css();
+    var old = document.getElementById('hp'); if (old && old.parentNode) old.parentNode.removeChild(old);
     var host = document.createElement('div');
     host.id = 'hp'; host.className = 'hp-off';
     host.innerHTML = rootHtml();
@@ -17295,6 +17300,8 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     host.addEventListener('click', function (e) {
       var a = e.target.closest && e.target.closest('[data-hp]');
       if (a) { openApp(a.getAttribute('data-hp')); return }
+      var exit = e.target.closest && e.target.closest('#hpExit');
+      if (exit) { closePhone(); return }
       var back = e.target.closest && e.target.closest('#hpBack');
       if (back) { goBack(); return }
       if (e.target.closest && e.target.closest('#hpRefresh')) { doRefresh(); return }
@@ -17330,6 +17337,28 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     else ensureData();
   };
 
+  function killOverlay() {
+    try {
+      var h = document.getElementById('hp');
+      if (h && h.parentNode) h.parentNode.removeChild(h);
+      V.open = false; V.view = ''; V.stack = [];
+    } catch (e) { }
+  }
+  window.hisPhoneCleanup = killOverlay;
+  try {
+    window.addEventListener('hashchange', function () {
+      var v = (location.hash || '').replace('#', '') || 'home';
+      if (v !== 'hisphone') killOverlay();
+    });
+    window.addEventListener('visibilitychange', function () {
+      /* 从别的 App 切回来时，如果不在查手机页，壳子一定清掉 */
+      if (document.visibilityState === 'visible') {
+        var v = (location.hash || '').replace('#', '') || 'home';
+        if (v !== 'hisphone') killOverlay();
+      }
+    });
+  } catch (e) { }
+
   function closePhone() {
     var h = el('hp'); if (h && h.parentNode) h.parentNode.removeChild(h);
     V.open = false;
@@ -17342,7 +17371,9 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     var old = el('hpSetup'); if (old) old.remove();
     var pr = prof();
     var box = document.createElement('div'); box.className = 'hp-setup'; box.id = 'hpSetup';
-    box.innerHTML = '<h2>' + (isEdit ? '改人设' : '开启「查手机」') + '</h2>'
+    box.innerHTML = '<div style="display:flex;align-items:flex-start"><div style="flex:1"><h2>' + (isEdit ? '改人设' : '开启「查手机」') + '</h2></div>'
+      + '<button id="hpSetupExit" style="background:rgba(255,255,255,.12);border:.5px solid rgba(255,255,255,.2);color:#fff;'
+      + 'font-size:12px;padding:6px 12px;border-radius:99px;font-family:inherit">退出</button></div>'
       + '<div class="sub">' + (isEdit ? '改完再确认一次，之后生成的内容都会跟着变。' : '先填一次他的设定，交给 AI 确认；以后一直用这份，不用再填。') + '</div>'
       + '<div class="tmpl">模板：名字 / 年龄职业 / 性格 / 生活习惯 / 说话方式 / <b>我们的关系</b> / <b>生活经历</b>。填得越具体，生成出来的浏览记录、备忘录、购物越像他。</div>'
       + '<div class="hp-fld"><label>名字</label><input id="hpName" value="' + esc2(pr.name || '陆沉') + '"></div>'
@@ -17357,6 +17388,8 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     h.appendChild(box);
 
     box.addEventListener('click', function (e) {
+      var ex = e.target.closest && e.target.closest('#hpSetupExit');
+      if (ex) { closePhone(); return }
       var b = e.target.closest && e.target.closest('#hpAiBtn');
       if (!b) return;
       var p = P();
@@ -17706,13 +17739,21 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     if (b) { b.style.opacity = .5 }
     toast2('重新生成中…');
     force = true;
+    var had = (P().hist || []).length > 0;
+    var hadAI = (P().genBy === 'ai');
     aiGenerate().then(function (ai) {
       var p = P(), t = tmplData(prof());
+      force = false;
+      if (b) b.style.opacity = 1;
+      if (!ai && had && hadAI) {
+        /* 之前是 AI 生成的，这次失败 → 保留原来的，不要退回模板 */
+        toast2('AI 这次没成功，已保留原来的内容');
+        return;
+      }
       var src = ai || t;
       p.hist = src.hist || t.hist; p.notes = src.notes || t.notes; p.msgs = src.msgs || t.msgs; p.cart = src.cart || t.cart;
       p.lastGen = nowTs(); p.genBy = ai ? 'ai' : 'template';
-      save0(); force = false;
-      if (b) b.style.opacity = 1;
+      save0();
       toast2(ai ? '已用 AI 重新生成' : '没配 API，用模板重新生成');
       if (V.view && V.view !== 'note' && V.view !== 'msg' && V.view !== 'order') renderView(V.view, true);
     });
