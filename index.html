@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="p2d5e626c7">
+<meta name="x-build" content="p3a0893055">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -495,7 +495,7 @@ background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
 /* 气泡尾巴已经由圆角（右下/左下 5px）表现。
    原来另外用 border 画了个 8px 三角，长气泡时和圆角错位会露出一个尖角，
    短消息和卡片上尤其明显（就是截图里圈出来的小三角），这里直接去掉。 */
-.bubble.in:after,.bubble.out:after{content:none!important;display:none!important;border:0!important}
+#view:not(.bs-custom) .bubble.in:after,#view:not(.bs-custom) .bubble.out:after{content:none!important;display:none!important;border:0!important}
 .bubble.typing:after{display:none}
 /* 聊天顶部按钮（返回键 + 三个功能键）统一尺寸 */
 .chat-top .back{width:40px;height:40px;min-width:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:rgba(255,255,255,.6);border:1px solid var(--glass-brd);flex-shrink:0;padding:0}
@@ -2572,6 +2572,10 @@ body.lite .home-pages{will-change:auto!important}
 .d-cmt-in textarea,.diary-card textarea{font-size:16px!important;line-height:1.5!important}
 .chat-input textarea,.cinput textarea{font-size:16px!important}
 #view input[type=text],#view input[type=search],#view input:not([type]){font-size:16px!important}
+</style>
+<style id="bubCustomSpace">
+#view.bs-custom .msg-row{padding-top:7px!important;padding-bottom:7px!important}
+#view.bs-custom .msg-col .bubble{overflow:visible!important}
 </style>
 </head>
 <body>
@@ -10123,11 +10127,34 @@ function sendSticker(id){
   save();closeSheet();renderChat();schedule();
 }
 /** 删除表情包（长按表情面板里的图） */
-var _stkDelAt=0;
+var _stkDelAt=0,_stkDelBox=null;
 function stickerDel(id){
-  var _t0=Date.now(); if(_t0-_stkDelAt<600)return; _stkDelAt=_t0;   /* 600ms 内只处理一次，防止连环弹 */
-  var _ok=false; try{ _ok=confirm('删除这个表情包？\n删了就找不回来了。') }catch(e){ _ok=false }
-  if(!_ok)return;
+  /* 站内单例确认框：原生 confirm 会被多个定时器叠着弹 */
+  var t0=Date.now(); if(t0-_stkDelAt<800)return; _stkDelAt=t0;
+  if(_stkDelBox)return;
+  var box=document.createElement('div'); box.id='stkDelBox';
+  box.style.cssText='position:fixed;inset:0;z-index:999;background:rgba(30,20,25,.36);display:flex;align-items:center;justify-content:center;padding:24px';
+  box.innerHTML='<div style="background:#fff;border-radius:18px;padding:18px 18px 12px;max-width:300px;width:100%;box-shadow:0 18px 50px rgba(60,40,50,.22)">'
+    +'<div style="font-size:15px;font-weight:600;line-height:1.5">删除这个表情包？</div>'
+    +'<div style="font-size:12px;color:#8A7C82;margin-top:6px">删了就找不回来了。</div>'
+    +'<div style="display:flex;gap:10px;margin-top:14px">'
+    +'<button data-stk="no" style="flex:1;border:none;border-radius:12px;padding:11px;background:#F6EFF1;color:#8A7C82;font-size:14px;font-family:inherit">取消</button>'
+    +'<button data-stk="yes" style="flex:1;border:none;border-radius:12px;padding:11px;background:linear-gradient(180deg,#F09CAF,#E0738C);color:#fff;font-size:14px;font-weight:600;font-family:inherit">删除</button>'
+    +'</div></div>';
+  document.body.appendChild(box); _stkDelBox=box;
+  function close(){ if(box.parentNode)box.parentNode.removeChild(box); _stkDelBox=null }
+  box.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('[data-stk]');
+    if(!b){ if(e.target===box) close(); return }
+    if(b.getAttribute('data-stk')==='no'){ close(); return }
+    close();
+    var arr=state.stickers||[];
+    for(var i=0;i<arr.length;i++)if(arr[i].id===id){arr.splice(i,1);break}
+    save(); try{sheetStickers()}catch(e){}; toast('已删除这个表情');
+  });
+  return;
+}
+function _stkDelUnused(id){
   var arr=state.stickers||[];
   for(var i=0;i<arr.length;i++)if(arr[i].id===id){arr.splice(i,1);break}
   save();sheetStickers();toast('已删除这个表情');
@@ -17255,6 +17282,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
   function el(id) { return document.getElementById(id) }
   function rootHtml() {
     return '<div class="hp-wall"></div>'
+      + (function(){ try{ var pf=(P().profile||{}); if(pf.confirmed) return ''; return '<div id="hpNeedProfile" style="margin:10px 14px 0;padding:9px 12px;border-radius:12px;background:rgba(255,214,102,.16);border:.5px solid rgba(255,214,102,.35);color:#FFD666;font-size:12px;display:flex;align-items:center;gap:8px"><span style="flex:1">还没填过他的人设，现在的内容是套模板生成的</span><b id="hpGoSetup" style="background:rgba(255,214,102,.22);padding:4px 10px;border-radius:99px">去填</b></div>' }catch(e){ return '' } })()
       + '<div class="hp-status"><span class="hp-exit" id="hpExit" style="display:flex;align-items:center;gap:3px;font-size:13px;font-weight:600;opacity:.95;cursor:pointer">' + S('<path d="M15 5l-7 7 7 7"/>', ' stroke-width="2.4" width="13" height="13" style="width:13px;height:13px;display:inline-block"') + ' 主页</span><b style="position:absolute;left:0;right:0;text-align:center;pointer-events:none">' + clockText() + '</b><span class="r">'
       + '<button class="hp-refresh" id="hpRefresh">' + S('<path d="M20 11a8 8 0 1 0-2.4 6.6"/><path d="M20 4.5V11h-6.5"/>', ' stroke-width="2.6" width="12" height="12" style="width:12px;height:12px;display:inline-block;vertical-align:-1px"') + ' 刷新</button>'
       + '<span style="font-size:11px;opacity:.8">5G</span>'
@@ -17352,11 +17380,9 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       if (saveBtn) { saveApiUI(); return }
     });
 
-    /* 首次进入才要填人设；只要确认过，永远先进桌面（改人设只能从设置进） */
+    /* 永远先进桌面。人设没填也不再自动弹窗，只在顶部给一条提示（用户要求：打开就是主界面） */
     var p = P();
-    if (!p.profile || !p.profile.confirmed) {
-      showSetup(false);
-    } else {
+    if (true) {
       try { p.ui = { open: true, setup: false, view: '' } } catch (e) { }
       ensureData();
     }
@@ -17467,6 +17493,8 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     box.addEventListener('change', function () { clearTimeout(box._dt); box._dt = setTimeout(saveDraft, 200) });
 
     box.addEventListener('click', function (e) {
+      var gs = e.target.closest && e.target.closest('#hpGoSetup');
+      if (gs) { showSetup(false); return }
       var hb = e.target.closest && e.target.closest('#hpSetupHome');
       if (hb) { closeSetup(true); return }
       var ex = e.target.closest && e.target.closest('#hpSetupExit');
@@ -18292,9 +18320,12 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
 
   /* ---------- 标准类名 → 我们的结构 ---------- */
   var EXCL = ':not(.gcard):not(.c-gift):not(.c-check):not(.c-transfer):not(.c-invite)'
-    + ':not(.c-red):not(.c-decision):not(.stk):not(.imgbox):not(.voicebox):not(.card-box)';
+    + ':not(.c-red):not(.c-decision):not(.stk):not(.imgbox):not(.voicebox):not(.card-box)'
+    + ':not(.bubble-media):not(.bubble-sticker)';
 
   var ALIAS = [
+    ['.incoming', '.msg-row.in'],      /* Möbius 里叫 .incoming，我们叫 .msg-row.in */
+    ['.outgoing', '.msg-row.out'],
     ['.message-received-wrapper', '.msg-row.in'],
     ['.message-sent-wrapper', '.msg-row.out'],
     ['.message-wrapper', '.msg-row'],
@@ -18344,6 +18375,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
   function compile(raw) {
     var src = String(raw || '')
       .replace(/<\/?style\b[^>]*>/gi, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')   /* 先去掉注释，否则注释会把选择器切断 */
       .replace(/url\(\s*(['"]?)\[[^\]]+\]\(\s*(https?:\/\/[^)\s]+)\s*\)\1\s*\)/gi, function (_, q, u) { return 'url("' + u + '")' })
       .trim();
     if (!src) return { css: '', err: '' };
@@ -18360,9 +18392,16 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     }
 
     /* 有花括号：逐条规则处理 */
+    function cleanPrelude(p) {
+      var lines = String(p || '').split('\n').map(function (s) { return s.trim() }).filter(Boolean);
+      if (!lines.length) return '';
+      /* 去掉"标题行"：既没有选择器特征字符、也不是 @ 开头的行（比如文件第一行写"小翅膀"） */
+      while (lines.length > 1 && !/[.#\[:*]>+~,]/.test(lines[0]) && !/^@/.test(lines[0])) lines.shift();
+      return lines.join(' ');
+    }
     var out = [], re = /([^{}]+)\{([^{}]*)\}/g, m, n = 0;
     while ((m = re.exec(src))) {
-      var sel = String(m[1]).trim();
+      var sel = cleanPrelude(m[1]);
       var body2 = String(m[2]).trim();
       if (!sel || !body2) continue;
       if (/^@/.test(sel)) { if (/keyframes/i.test(sel)) out.push(sel + '{' + body2 + '}'); continue }
@@ -18378,6 +18417,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
         mapped2.push('#view.bs-custom ' + one);
       }
       if (!mapped2.length) continue;
+      if (!/[.#\[:\w]/.test(mapped2.join(''))) continue;
       out.push(mapped2.join(',\n') + ' { ' + strengthen(body2) + ' }');
       n++;
     }
@@ -18466,6 +18506,10 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
         + '<div style="display:flex;gap:8px;margin-top:8px">'
         + '<button type="button" class="btn ghost" id="bubbleSample" style="flex:1">填入示例</button>'
         + '<button type="button" class="btn ghost" id="bubbleCheck" style="flex:1">检查语法</button></div>'
+        + '<div style="display:flex;gap:8px;margin-top:8px">'
+        + '<button type="button" class="btn ghost" id="bubbleImg" style="flex:1">插入图片（转内嵌）</button></div>'
+        + '<div class="bg-note" style="margin-top:6px">外链图片（如 i.postimg.cc）在国内经常加载不出来，导致翅膀、贴图"显示不全"。用这个按钮选一张本地图，会自动压成内嵌 base64 插进去。</div>'
+        + '<input type="file" id="bubbleImgFile" accept="image/*" style="display:none">'
         + '<div id="bubbleMsg" class="meta" style="margin-top:6px;min-height:16px"></div>';
       ta.parentNode.insertBefore(box, ta.nextSibling);
       box.querySelector('#bubbleSample').addEventListener('click', function () {
@@ -18480,6 +18524,32 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
         if (r.err) { m.textContent = '✗ ' + r.err; m.style.color = '#C0553F' }
         else { m.textContent = '✓ 语法没问题，解析出 ' + (r.rules || 1) + ' 条规则'; m.style.color = '#4C7A56' }
       });
+      var btnImg = box.querySelector('#bubbleImg');
+      var fileIn = box.querySelector('#bubbleImgFile');
+      if (btnImg && fileIn) {
+        btnImg.addEventListener('click', function () { fileIn.click() });
+        fileIn.addEventListener('change', function () {
+          var f = this.files && this.files[0]; if (!f) return;
+          var fr = new FileReader();
+          fr.onload = function () {
+            var img = new Image();
+            img.onload = function () {
+              var data;
+              try { data = (typeof encodeImg === 'function') ? encodeImg(img, 220, { q: 0.92, allowPng: true }) : String(fr.result) }
+              catch (e) { data = String(fr.result) }
+              var snip = 'background-image: url("' + data + '") !important;\nbackground-repeat: no-repeat !important;\nbackground-position: top left !important;\nbackground-size: 16px 16px !important;';
+              var s = ta.selectionStart || ta.value.length, e2 = ta.selectionEnd || ta.value.length;
+              ta.value = ta.value.slice(0, s) + snip + ta.value.slice(e2);
+              var m = box.querySelector('#bubbleMsg');
+              if (m) { m.textContent = '已插入内嵌图片（' + Math.round(data.length / 1024) + 'KB），记得点「应用CSS」'; m.style.color = '#4C7A56' }
+            };
+            img.onerror = function () { var m = box.querySelector('#bubbleMsg'); if (m) { m.textContent = '这张图读不出来，换一张试试'; m.style.color = '#C0553F' } };
+            img.src = String(fr.result);
+          };
+          fr.readAsDataURL(f);
+          this.value = '';
+        });
+      }
       var st = (typeof state !== 'undefined' && state.settings) ? state.settings : {};
       if (st.chatCss) {
         var rr = compile(st.chatCss);
