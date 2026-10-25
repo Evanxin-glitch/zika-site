@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="p3a0893055">
+<meta name="x-build" content="pa8286a39b">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -16750,7 +16750,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       /* AI 接口（用户自己填，本机保存） */
       api: { provider: 'custom', base: 'https://api3.jiushi.xin/v1', key: '', model: '', models: [] },
       /* 每次生成发给 AI 什么（用户可控） */
-      aiCfg: { sendChat: true, chatN: 20, sendMemos: true, sendSchedule: true, mask: true },
+      aiCfg: { sendChat: true, chatN: 50, sendMemos: true, sendSchedule: true, mask: true },
       pin: { head: '01', tail: '' }   /* 相册密码：前两位固定 01（他生日 0122），后两位用户输一次就记住 */
     };
   }
@@ -16770,6 +16770,13 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       if (!p.pin || typeof p.pin !== 'object') p.pin = d.pin;
       ['hist', 'notes', 'cart', 'msgs', 'album'].forEach(function (a) { if (!Array.isArray(p[a])) p[a] = [] });
       if (typeof p.lastGen !== 'number') p.lastGen = 0;
+      /* 旧默认 20 → 50：只迁移一次（之后你自己改的数字不会被覆盖） */
+      try {
+        if (!p._chatN50) {
+          if (p.aiCfg && (p.aiCfg.chatN === 20 || p.aiCfg.chatN === undefined)) p.aiCfg.chatN = 50;
+          p._chatN50 = 1;
+        }
+      } catch (e) { }
       return p;
     } catch (e) { return null }
   }
@@ -16807,7 +16814,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     var cfg = p.aiCfg || {}, out = { profile: p.profile, chat: [], memos: [], schedule: [], weather: null };
     try {
       if (cfg.sendChat && typeof state !== 'undefined' && state.messages && state.messages.length) {
-        var n = Math.max(4, Math.min(80, cfg.chatN || 20));
+        var n = Math.max(4, Math.min(120, cfg.chatN || 50));
         var arr = state.messages.slice(-n * 3);   /* 多取一点再筛当前联系人 */
         var cid = (typeof activeContact === 'function' && activeContact()) ? activeContact().id : null;
         var picked = [];
@@ -17751,7 +17758,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       + '<br><span style="color:#8E8E93">习惯：</span>' + esc2(pr.habit) + '<br><span style="color:#8E8E93">关系：</span>' + esc2(pr.rel)
       + '</div></div><div style="margin-top:10px"><button class="hp-btn ghost" id="hpEditProfile">改人设</button></div>'
       + '<div class="hp-lab">每次生成会发给 AI 什么</div><div class="hp-list" style="padding:14px"><div style="font-size:12.5px;line-height:1.8">'
-      + '✅ 人设 7 项<br>✅ 最近聊天 ' + (cfg.chatN || 20) + ' 条<br>✅ 你的备忘录标题<br>✅ 日程（出差/健身/会议）'
+      + '✅ 人设 7 项<br>✅ 最近聊天 ' + (cfg.chatN || 50) + ' 条<br>✅ 你的备忘录标题<br>✅ 日程（出差/健身/会议）'
       + '<br>❌ 照片、语音、完整地址、手机号、Key<br><span style="color:#8E8E93">手机号/长数字发送前会自动打码</span></div></div>';
   }
   function bindApiUI() { }
@@ -17961,7 +17968,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       '.sp-top b{font-size:19px;font-weight:700;letter-spacing:.4px}',
       '.sp-top .r{margin-left:auto;display:flex;align-items:center;gap:8px}',
       '.sp-money{font-size:12px;color:#B0808C;background:#FBEEF1;border-radius:99px;padding:5px 11px;font-weight:600}',
-      '.sp-add{width:34px;height:34px;border-radius:12px;border:none;background:linear-gradient(180deg,#F09CAF,#E0738C);color:#fff;font-size:20px;line-height:1;box-shadow:0 6px 14px rgba(224,115,140,.32)}',
+      '.sp-add{width:34px;height:34px;border-radius:12px;border:none;background:#141518;color:#fff;font-size:20px;line-height:1;box-shadow:0 6px 16px rgba(20,21,24,.24)}',
       '.sp-body{padding:12px 14px 30px}',
       '.sp-hero{position:relative;border-radius:20px;padding:16px;margin-bottom:12px;border:1px solid #fff;',
       'background:linear-gradient(120deg,#FBE3E9,#F7EDE2 60%,#EFE6F5);box-shadow:0 10px 24px rgba(190,150,165,.16)}',
@@ -17984,8 +17991,8 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       '.sp-price span{font-size:10px;color:#C08A99}',
       '.sp-btns{display:flex;gap:6px;margin-top:9px}',
       '.sp-btns button{flex:1;border:none;border-radius:10px;font-size:11.5px;padding:8px 0;font-family:inherit}',
-      '.sp-b1{background:linear-gradient(180deg,#F09CAF,#E0738C);color:#fff;font-weight:600;box-shadow:0 5px 12px rgba(224,115,140,.28)}',
-      '.sp-b2{background:#FBF3F5;color:#9C7B84;border:1px solid #EEDCE1!important}',
+      '.sp-b1{background:#141518;color:#fff;font-weight:600;box-shadow:0 6px 16px rgba(20,21,24,.22);letter-spacing:.02em}',
+      '.sp-b2{background:#fff;color:#3A3B3E;border:1px solid rgba(20,21,24,.14)!important}',
       '.sp-tag{position:absolute;left:10px;top:10px;font-size:9.5px;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.92);color:#B5896A;border:1px solid #EFE0D2}',
       '.sp-tag.mine{background:#EAF3EA;color:#5C8060;border-color:#D7E6D7}',
       '.sp-more{position:absolute;right:8px;top:8px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.9);color:#B0808C;',
@@ -18018,7 +18025,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       '.sp-row3{display:flex;gap:8px}.sp-row3 .sp-fld{flex:1}',
       '.sp-btnrow{display:flex;gap:9px;margin-top:16px}',
       '.sp-btnrow button{flex:1;border:none;border-radius:13px;padding:13px;font-size:14.5px;font-weight:600;font-family:inherit}',
-      '.sp-ok{background:linear-gradient(180deg,#F09CAF,#E0738C);color:#fff;box-shadow:0 8px 18px rgba(224,115,140,.3)}',
+      '.sp-ok{background:#141518;color:#fff;box-shadow:0 8px 20px rgba(20,21,24,.22)}',
       '.sp-no{background:#F6EFF1;color:#8A7C82}'
     ].join('\n');
     document.head.appendChild(s);
@@ -18583,6 +18590,255 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     document.head.appendChild(s);
   }
   try { css() } catch (e) { }
+})();
+
+/* ★ 礼物卡改版 */
+/* ================= 礼物 / 代买 卡片改版（只改这两种聊天气泡） =================
+   目标：把原来"大方块 + 右下角状态胶囊"换成"小票感"卡片：
+     · 顶部一行细标签（送出的礼物 / 他送你的 / 代买请求）
+     · 左 emoji 缩略图 + 名称 + 分类
+     · 右侧大字价签（¥ 小、数字大、.00 小）
+     · 中间虚线撕口（两侧各一个小缺口，像小票）
+     · 底部：一句备注 + 状态胶囊（带对勾/沙漏图标）
+   做法：不重写站点渲染函数，只在渲染后"装饰"这两种卡（HTML 结构不变，风险最小）。 */
+(function () {
+  if (window.__giftCard2) return; window.__giftCard2 = 1;
+
+  function css() {
+    if (document.getElementById('giftCard2Css')) return;
+    var s = document.createElement('style'); s.id = 'giftCard2Css';
+    s.textContent = [
+      /* 卡片外壳 */
+      '.gcard.c-gift,.gcard.c-teal{position:relative;border-radius:16px;padding:12px 14px 10px!important;',
+      'box-shadow:0 8px 22px rgba(150,120,140,.13)!important;border:1px solid rgba(255,255,255,.9)!important;overflow:hidden}',
+      '.gcard.c-gift.out{background:linear-gradient(165deg,#FEF4F6,#FBEDF1)!important}',
+      '.gcard.c-gift.in{background:linear-gradient(165deg,#FFFAF0,#FBF2E3)!important}',
+      '.gcard.c-teal{background:linear-gradient(165deg,#FCFDFD,#F2F5F6)!important}',
+      /* 顶部标签行 */
+      '.gcard.c-gift .gc-head,.gcard.c-teal .gc-head{display:flex;align-items:center;gap:6px;margin:0 0 9px!important}',
+      '.gcard.c-gift .gc-tag,.gcard.c-teal .gc-tag{font-size:10px!important;letter-spacing:.06em;padding:3px 8px!important;border-radius:6px!important;',
+      'background:rgba(255,255,255,.86)!important;color:#A2707F!important;font-weight:600;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}',
+      '.gcard.c-gift.in .gc-tag{color:#A07A47!important}',
+      '.gcard.c-teal .gc-tag{color:#6E7C86!important}',
+      '.gcard.c-gift .gc-time,.gcard.c-teal .gc-time{margin-left:auto;font-size:10px!important;color:#B3A5AC!important}',
+      /* 商品行 */
+      '.gcard.c-gift .gc-item,.gcard.c-teal .gc-item{display:flex;align-items:center;gap:11px;margin:0!important}',
+      '.gcard.c-gift .gc-emoji,.gcard.c-teal .gc-emoji{width:46px!important;height:46px!important;border-radius:13px!important;font-size:24px!important;',
+      'display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.9)!important;box-shadow:inset 0 0 0 1px rgba(0,0,0,.035),0 2px 6px rgba(150,120,140,.10)}',
+      '.gcard.c-gift .gc-itx,.gcard.c-teal .gc-itx{flex:1;min-width:0}',
+      '.gcard.c-gift .gc-itx b,.gcard.c-teal .gc-itx b{font-size:14px!important;font-weight:600;line-height:1.35;display:-webkit-box;',
+      '-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:#3A2A31!important}',
+      '.gcard.c-gift .gc-itx span,.gcard.c-teal .gc-itx span{font-size:11px!important;color:#A2939A!important;margin-top:2px;display:block}',
+      /* 价签 */
+      '.gc-price{display:flex;align-items:baseline;gap:1px;margin-left:8px;flex:0 0 auto;font-family:Georgia,"Songti SC",serif;color:#C9556F}',
+      '.gc-price i{font-style:normal;font-size:11px;opacity:.75;margin-right:1px}',
+      '.gc-price b{font-size:21px;line-height:1;letter-spacing:-.5px}',
+      '.gc-price small{font-size:11px;opacity:.7}',
+      '.gcard.c-gift.in .gc-price{color:#B8894A}',
+      '.gcard.c-teal .gc-price{color:#8A6E5E}',
+      /* 虚线撕口 */
+      '.gc-line{position:relative;height:1px;margin:9px -14px 7px;background:repeating-linear-gradient(90deg,rgba(150,120,130,.30) 0 5px,transparent 5px 10px)}',
+      '.gc-line::before,.gc-line::after{content:"";position:absolute;top:-5px;width:10px;height:10px;border-radius:50%;background:#FBF7F4}',
+      '.gc-line::before{left:-5px}.gc-line::after{right:-5px}',
+      '.gcard.c-gift.out .gc-line::before,.gcard.c-gift.out .gc-line::after{background:#FDF1F4}',
+      '.gcard.c-gift.in .gc-line::before,.gcard.c-gift.in .gc-line::after{background:#FDF7EC}',
+      '.gcard.c-teal .gc-line::before,.gcard.c-teal .gc-line::after{background:#FCFAF8}',
+      /* 底部：备注 + 状态 */
+      '.gcard.c-gift .gc-note,.gcard.c-teal .gc-note{margin:0!important;font-size:11px!important;color:#9A8A92!important;line-height:1.5}',
+      '.gcard.c-gift .gc-foot,.gcard.c-teal .gc-foot{display:flex;align-items:center;margin-top:5px!important}',
+      '.gcard.c-gift .gc-state,.gcard.c-teal .gc-state{padding:3px 9px!important;border-radius:99px!important;font-size:10.5px!important;font-weight:600;letter-spacing:.02em}',
+      '.gcard.c-gift .gc-state.ok,.gcard.c-teal .gc-state.ok{background:#E9F2E7!important;color:#4F7551!important}',
+      '.gcard.c-teal .gc-state.wait{background:#FBF0DC!important;color:#A87C36!important}',
+      '.gcard.c-teal .gc-state.no{background:#F5EDEE!important;color:#96737B!important}',
+      /* 代买请求的按钮行：排队整齐一点 */
+      '.gcard.c-teal .gc-btns{display:flex;gap:8px;margin:9px -2px 2px!important}',
+      '.gcard.c-teal .gc-btns button{flex:1;border:none;border-radius:10px!important;padding:9px 0!important;font-size:12.5px!important;font-weight:600;font-family:inherit}',
+      '.gcard.c-teal .gc-btns button:first-child{background:#141518!important;color:#fff!important;box-shadow:0 6px 16px rgba(20,21,24,.22)!important;letter-spacing:.02em}',
+      '.gcard.c-teal .gc-btns button.gray{background:#fff!important;color:#3A3B3E!important;box-shadow:inset 0 0 0 1px rgba(20,21,24,.14)!important}',
+      /* giftHardFix：压过站点自带的 nowrap+省略号，让长商品名换成两行 */
+      '#view .gcard .gc-itx b{white-space:normal!important;text-overflow:clip!important;overflow:hidden!important;',
+      'display:block!important;max-height:2.75em!important;line-height:1.38!important}',
+      '#view .gcard .gc-item{align-items:flex-start!important}',
+      '#view .gcard .gc-emoji{margin-top:1px}'
+    ].join('\n');
+    document.head.appendChild(s);
+  }
+
+  function splitItemSpan(card) {
+    var span = card.querySelector('.gc-itx span');
+    if (!span || span._split) return null;
+    var txt = String(span.textContent || '').trim();
+    var m = txt.match(/^(.*?)\s*·\s*¥?\s*([\d,.]+)\s*$/);
+    if (!m) return null;
+    span._split = 1;
+    span.textContent = m[1].trim();
+    var num = m[2].replace(/,/g, '');
+    var parts = Number(num).toFixed(2).split('.');
+    var price = document.createElement('span');
+    price.className = 'gc-price';
+    price.innerHTML = '<i>¥</i><b>' + parts[0] + '</b><small>.' + parts[1] + '</small>';
+    var item = card.querySelector('.gc-item');
+    if (item) item.appendChild(price);
+    return price;
+  }
+
+  function addLine(card, note, foot) {
+    if (card.querySelector('.gc-line')) return;
+    var line = document.createElement('div');
+    line.className = 'gc-line';
+    (note || foot).parentNode.insertBefore(line, note || foot);
+  }
+
+  function tidyNote(card, isGift, isIn) {
+    var note = card.querySelector('.gc-note');
+    if (!note) return;
+    var t = String(note.textContent || '').trim();
+    if (isGift) {
+      if (isIn) {
+        note.textContent = '他付的钱';
+      } else {
+        if (/已送到/.test(t)) note.textContent = '已经送到他手上';
+      }
+    } else {
+      if (/你想让/.test(t)) note.textContent = t.replace(/你想让\s*(.+?)\s*帮你买这一件/, '想让 $1 买给你');
+      if (/想让你帮他买/.test(t)) note.textContent = t.replace(/^(.+?)\s*想让你帮他买这一件/, '$1 想让你买下这件');
+    }
+  }
+
+  function decorate() {
+    try {
+      css();
+      var cards = document.querySelectorAll('.gcard.c-gift, .gcard.c-teal');
+      for (var i = 0; i < cards.length; i++) {
+        var card = cards[i];
+        if (card._done2) continue;
+        splitItemSpan(card);
+        var isGift = card.classList.contains('c-gift');
+        var isIn = card.classList.contains('in');
+        tidyNote(card, isGift, isIn);
+        var note = card.querySelector('.gc-note');
+        var foot = card.querySelector('.gc-foot');
+        // 赠品：备注没了就补一句
+        if (isGift && note && !String(note.textContent || '').trim()) {
+          note.textContent = isIn ? '他买给你的' : '已经送到他手上';
+        }
+        if (note && foot) addLine(card, note, foot);
+        // 状态胶囊加个小图标
+        var st = card.querySelector('.gc-state');
+        if (st && !st._ico) {
+          st._ico = 1;
+          var cls = st.className;
+          if (/\bok\b/.test(cls)) st.textContent = '✓ ' + st.textContent.trim();
+          else if (/wait/.test(cls)) st.textContent = '⏳ ' + st.textContent.trim();
+          else if (/no/.test(cls)) st.textContent = '· ' + st.textContent.trim();
+        }
+        card._done2 = 1;
+      }
+    } catch (e) { }
+  }
+
+  /* 渲染完聊天后装饰（只在有这两种卡时动手） */
+  if (typeof renderChat === 'function' && !window.__giftChatHook) {
+    window.__giftChatHook = 1;
+    var _rc = renderChat;
+    renderChat = function () {
+      var r = _rc.apply(this, arguments);
+      try { decorate() } catch (e) { }
+      return r;
+    };
+  }
+  /* 兜底：DOM 有变化就装饰一次（节流 300ms） */
+  var tmr = 0;
+  function later() { clearTimeout(tmr); tmr = setTimeout(decorate, 300) }
+  try {
+    if (window.MutationObserver) {
+      var mo = new MutationObserver(function () { if (document.querySelector('.gcard.c-gift,.gcard.c-teal')) later() });
+      mo.observe(document.body, { childList: true, subtree: true });
+    }
+  } catch (e) { }
+  try { setTimeout(decorate, 800) } catch (e) { }
+  window.giftCardRedecorate = decorate;
+})();
+
+/* ★ 字卡库搜索 */
+/* ================= 字卡库搜索（旧站补丁版） =================
+   旧站的字卡库没有搜索框（新版有），这里在渲染后补一条搜索栏：
+     · 位置：分类行 / 操作行之下，字卡列表之上
+     · 行为：边打边过滤（按字卡内容），分类标题下没有结果就整组隐藏
+     · 状态：查询词记在 window.__ccQ，重新渲染后自动保留
+   只在「字卡库」页出现，不影响其它页面。 */
+(function () {
+  if (window.__ccSearch) return; window.__ccSearch = 1;
+  if (typeof renderCards !== 'function') return;
+
+  function esc2(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m] }) }
+
+  function injectBar() {
+    var wrap = document.querySelector('#view .cc-wrap');
+    if (!wrap) return;
+    if (document.getElementById('ccSearchBar')) return;
+    /* 放在最上面那排分类胶囊之后（原来放在列表上方，得滚很久才看到） */
+    var anchor = wrap.querySelector('.cc-cats') || wrap.querySelector('.cc-ta') || wrap.firstChild;
+    var bar = document.createElement('div');
+    bar.id = 'ccSearchBar';
+    bar.style.cssText = 'display:flex;gap:8px;align-items:center;margin:10px 2px 6px';
+    bar.innerHTML = '<input id="ccSearchIn" type="search" placeholder="搜索字卡内容…" value="' + esc2(window.__ccQ || '') + '"'
+      + ' style="flex:1;min-width:0;border:none;border-radius:12px;padding:10px 12px;font-size:16px;'
+      + 'background:rgba(255,255,255,.86);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);outline:none;font-family:inherit">'
+      + '<button id="ccSearchClr" style="border:none;border-radius:11px;padding:10px 12px;font-size:12.5px;font-family:inherit;'
+      + 'background:rgba(255,255,255,.86);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);color:#6B6D72">清除</button>';
+    if (anchor && anchor.parentNode === wrap) wrap.insertBefore(bar, anchor.nextSibling);
+    else wrap.insertBefore(bar, wrap.firstChild);
+
+    var inp = bar.querySelector('#ccSearchIn');
+    var clr = bar.querySelector('#ccSearchClr');
+    inp.addEventListener('input', function () { window.__ccQ = inp.value; applyFilter() });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { inp.blur() } });
+    clr.addEventListener('click', function () { inp.value = ''; window.__ccQ = ''; applyFilter(); inp.focus() });
+    if (window.__ccQ) applyFilter();
+  }
+
+  function applyFilter() {
+    var q = String(window.__ccQ || '').trim().toLowerCase();
+    var wrap = document.querySelector('#view .cc-wrap');
+    if (!wrap) return;
+    var n = 0;
+    wrap.querySelectorAll('.cc-li').forEach(function (li) {
+      var tx = (li.textContent || '').toLowerCase();
+      var hit = !q || tx.indexOf(q) >= 0;
+      li.style.display = hit ? '' : 'none';
+      if (hit) n++;
+    });
+    wrap.querySelectorAll('.cc-grp').forEach(function (g) {
+      if (!q) { g.style.display = ''; return }
+      var vis = 0;
+      var sib = g.nextElementSibling;
+      while (sib && !sib.classList.contains('cc-grp')) {
+        if (sib.classList.contains('cc-li') && sib.style.display !== 'none') vis++;
+        sib = sib.nextElementSibling;
+      }
+      g.style.display = vis ? '' : 'none';
+    });
+    var tip = document.getElementById('ccSearchTip');
+    if (q && !tip) {
+      tip = document.createElement('div');
+      tip.id = 'ccSearchTip';
+      tip.style.cssText = 'font-size:11.5px;color:#8A7C82;margin:2px 2px 6px';
+      var bar = document.getElementById('ccSearchBar');
+      if (bar && bar.parentNode) bar.parentNode.insertBefore(tip, bar.nextSibling);
+    }
+    if (tip) {
+      if (q) { tip.style.display = ''; tip.textContent = n ? ('搜索到 ' + n + ' 张字卡') : '没有匹配的字卡'; }
+      else tip.style.display = 'none';
+    }
+  }
+
+  var _rc = renderCards;
+  renderCards = function () {
+    var r = _rc.apply(this, arguments);
+    try { injectBar(); applyFilter() } catch (e) { }
+    return r;
+  };
 })();
 
 </script>
