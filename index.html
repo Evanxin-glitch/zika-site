@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="p6eb0bf7c6">
+<meta name="x-build" content="p50f949b4b">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -17138,7 +17138,10 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       '\n\n最近的聊天（他/我）：\n' + (ctx.chat || []).map(function (c) { return (c.from === 'him' ? '他：' : '我：') + c.text }).join('\n') +
       '\n\n我的备忘录：\n' + (ctx.memos || []).join('\n') +
       '\n\n日程：\n' + (ctx.schedule || []).map(function (s) { return s.t + ' ' + s.d }).join('\n') +
-      '\n\n要求：\n1) 浏览记录 8 条，时间分散在一天里，7 条正常 + 1 条无痕(site 填 "—")；标题要贴人设和他关心的事，允许 1 条有点私密。' +
+      '\n\n要求：\n1) 浏览记录 8 条，时间分散在一天里，7 条正常 + 1 条无痕(site 填 "—")。' +
+      ' 【重要】其中至少 3 条必须直接来自上面的「最近的聊天」：聊天里提到过的事、物件、地点、情绪、约定、' +
+      '她要买/想去/担心的东西，就变成对应的搜索或浏览（比如她提过失眠 → 搜「助眠 白噪音」；他说过要提醒她早睡 → 搜「熬夜 危害」）。' +
+      ' 不要写和聊天无关的通用内容（上班、会议、咖啡这种）。允许 1 条有点私密。' +
       '\n2) 备忘录 4~6 条，混着"他自己的事"和"关于我"的，tag 用 self / you。' +
       '\n3) 信息 6 条，按他的人设编他收到的人（秘书、家里、常去的店、朋友、陌生号码等），未读 0~2。' +
       '\n4) 购物 4~6 件，给他自己和给我都买，pr 用 ¥xxx，st 用 已下单/待收货/运输中/已签收，tag 用 给你/给自己，time 用 YYYY-MM-DD HH:MM。' +
@@ -17154,7 +17157,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     return fetch(base + '/chat/completions', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + cfg.key },
-      body: JSON.stringify({ model: cfg.model || 'gpt-4o-mini', temperature: 0.9, messages: aiPrompt(pr, ctx) })
+      body: JSON.stringify({ model: cfg.model || 'gpt-4o-mini', temperature: 0.65, messages: aiPrompt(pr, ctx) })
     }).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
@@ -17166,7 +17169,21 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       var o = JSON.parse(txt.slice(s, e + 1));
       if (!o || (!o.hist && !o.notes)) throw new Error('JSON 结构不对');
       return o;
-    }).catch(function () { return null });
+    }).catch(function (err) {
+      var msg = String((err && err.message) || err || '未知错误');
+      var friendly = msg;
+      if (/HTTP 401/.test(msg)) friendly = '401 无效的令牌（Key 不对或过期）';
+      else if (/HTTP 402/.test(msg)) friendly = '402 额度不足 / 未充值';
+      else if (/HTTP 403/.test(msg)) friendly = '403 没有权限用这个模型';
+      else if (/HTTP 404/.test(msg)) friendly = '404 找不到接口（base 要写到 /v1）';
+      else if (/HTTP 429/.test(msg)) friendly = '429 请求太频繁，稍等再试';
+      else if (/返回不是 JSON/.test(msg)) friendly = 'AI 返回的不是 JSON（可能被截断）';
+      else if (/JSON 结构不对/.test(msg)) friendly = 'AI 返回的 JSON 结构不对';
+      else if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) friendly = '网络连不上中转站';
+      try { p.lastAIErr = friendly; p.lastAIErrAt = nowTs(); save0(); } catch (e) { }
+      if (window.console && console.warn) console.warn('[查手机] AI 生成失败：' + friendly + '（原始：' + msg + '）');
+      return null;
+    });
   }
 
   /* ---------- 天气（Open-Meteo，免 Key） ---------- */
@@ -17273,6 +17290,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       p.lastGen = nowTs();
       p.genBy = ai ? 'ai' : 'template';
       save0();
+      window.__phoneGenErr = ai ? '' : (p.lastAIErr || '未配置 API');
       return p.genBy;
     });
   }
@@ -17578,7 +17596,8 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     V.view = ''; V.stack = [];
     toast2('人设已保存，只填这一次');
     ensureData().then(function (by) {
-      if (by === 'ai') toast2('已用 AI 生成'); else if (by === 'template') toast2('没配 API，用内置模板生成');
+      if (by === 'ai') toast2('已用 AI 生成');
+      else if (by === 'template') toast2('AI 没成功：' + (window.__phoneGenErr || '未配置 API') + '（先用内置模板）');
     });
   }
 
@@ -17667,7 +17686,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     el('hpBody').innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;padding:10px 0">'
       + '<div style="display:flex;justify-content:flex-start"><div style="max-width:76%;padding:9px 13px;border-radius:18px;border-bottom-left-radius:6px;background:#2C2C2E;font-size:14.5px;line-height:1.45">' + esc2(m.text) + '</div></div>'
       + '<div style="display:flex;justify-content:flex-end"><div style="max-width:76%;padding:9px 13px;border-radius:18px;border-bottom-right-radius:6px;background:#0A84FF;font-size:14.5px;line-height:1.45">' + esc2(reply) + '</div></div>'
-      + '</div><p class="hp-hint">对话由 AI 按人设生成（没配 API 时是内置模板）。</p>';
+      + '</div><p class="hp-hint">对话由 AI 按人设 + 最近聊天生成（调用失败时才退回内置模板）。</p>';
   }
   /* 购物 */
   function R_shop() {
@@ -17889,7 +17908,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       p.hist = src.hist || t.hist; p.notes = src.notes || t.notes; p.msgs = src.msgs || t.msgs; p.cart = src.cart || t.cart;
       p.lastGen = nowTs(); p.genBy = ai ? 'ai' : 'template';
       save0();
-      toast2(ai ? '已用 AI 重新生成' : '没配 API，用模板重新生成');
+      toast2(ai ? '已用 AI 重新生成' : ('AI 没成功：' + (window.__phoneGenErr || '未配置 API') + '（先用模板）'));
       if (V.view && V.view !== 'note' && V.view !== 'msg' && V.view !== 'order') renderView(V.view, true);
     });
   }
@@ -18839,6 +18858,26 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     try { injectBar(); applyFilter() } catch (e) { }
     return r;
   };
+
+  /* 新站的「字卡库」不是走 renderCards 渲染的（另一套 cc- 结构），
+     这里再加一个 DOM 观察兜底：只要页面上出现 .cc-wrap 且没有搜索栏，就补上。 */
+  try {
+    var _t = 0;
+    var mo = new MutationObserver(function () {
+      clearTimeout(_t);
+      _t = setTimeout(function () {
+        try {
+          var wrap = document.querySelector('#view .cc-wrap');
+          if (!wrap) return;
+          if (!document.getElementById('ccSearchBar')) injectBar();
+          applyFilter();
+        } catch (e) { }
+      }, 160);
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    setTimeout(function () { try { injectBar(); applyFilter() } catch (e) { } }, 800);
+    window.__ccObserver = 1;
+  } catch (e) { }
 })();
 
 /* ★ 开场动画 */
@@ -18878,7 +18917,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     if (document.getElementById('introCss')) return;
     var s = document.createElement('style'); s.id = 'introCss';
     s.textContent = [
-      '#zIntro{position:fixed;inset:0;z-index:9999;background:#0B0A09;overflow:hidden;',
+      '#zIntro{position:fixed;inset:0;z-index:9999;background:#0B0A09;overflow:hidden;touch-action:none;',
       'display:flex;align-items:center;justify-content:center;opacity:0;',
       'transition:opacity .28s ease;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}',
       '#zIntro.on{opacity:1}',
@@ -18895,11 +18934,9 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       '#zIntro .zbody{position:absolute;left:26px;right:26px;bottom:14%;text-align:left}',
       '#zIntro .crest{position:absolute;left:50%;top:23%;width:min(94vw,400px);transform:translateX(-50%);opacity:0;',
       'animation:zCrestIn 1.8s .45s cubic-bezier(.2,1,.3,1) forwards,zCrestBreath 9s 2.6s ease-in-out infinite}',
-      '#zIntro .crest img{width:100%;display:block;filter:drop-shadow(0 0 26px rgba(196,164,116,.20))}',
+      '#zIntro .crest img{width:100%;display:block}',
       '@keyframes zCrestIn{from{opacity:0;transform:translateX(-50%) scale(.9) rotate(-3deg)}to{opacity:1;transform:translateX(-50%) scale(1) rotate(0)}}',
       '@keyframes zCrestBreath{0%,100%{transform:translateX(-50%) scale(1);opacity:1}50%{transform:translateX(-50%) scale(1.02);opacity:.92}}',
-      '#zIntro .cglow{position:absolute;inset:-14%;border-radius:50%;pointer-events:none;',
-      'background:radial-gradient(circle at 50% 46%,rgba(201,164,106,.28),rgba(201,164,106,.10) 42%,transparent 68%);',
       'filter:blur(6px);animation:zGlow 7s 1.4s ease-in-out infinite}',
       '@keyframes zGlow{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:.95;transform:scale(1.05)}}',
       '#zIntro .csheen{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:0;',
@@ -18922,7 +18959,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
       'border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.22);color:rgba(255,255,255,.66);font-size:11px;',
       'padding:6px 12px;border-radius:99px;font-family:inherit;letter-spacing:.06em;backdrop-filter:blur(8px)}',
       '#zIntro.reduce .crest,#zIntro.reduce .zname,#zIntro.reduce .zlatin,#zIntro.reduce .znote,#zIntro.reduce .zx-top,',
-      '#zIntro.reduce .cglow,#zIntro.reduce .csheen{animation:none!important;opacity:1!important;filter:none!important}',
+      '#zIntro.reduce .csheen{animation:none!important;opacity:1!important;filter:none!important}',
       '#zIntro.reduce .grain{display:none}'
     ].join('\n');
     document.head.appendChild(s);
@@ -18936,7 +18973,7 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     d.className = reduce ? 'reduce' : '';
     d.innerHTML = '<div class="grain"></div><div class="vig"></div>'
       + '<div class="zx-top"><b>光启市 · 雨</b><i></i></div>'
-      + '<div class="crest"><div class="cglow"></div><img alt="" src="' + CREST + '"><div class="csheen"></div></div>'
+      + '<div class="crest"><img alt="" src="' + CREST + '"><div class="csheen"></div></div>'
       + '<div class="zbody"><div class="zname"><span>与</span><span>沉</span></div>'
       + '<div class="zlatin">L U &nbsp; C H E N</div>'
       + '<div class="znote">这世界终将依我的意志前行。</div></div>'
@@ -18957,25 +18994,154 @@ if(typeof renderMe==="function" && !window.__diagHook){ window.__diagHook=1; var
     } catch (e) { }
     requestAnimationFrame(function () { d.classList.add('on') });
 
-    var t0 = Date.now(), done = false;
+    var t0 = Date.now(), done = false, shieldUntil = 0;
+    /* 挡板期间：把后续的点击全部吃掉，避免穿到下面的 App 图标 */
+    function block(e) {
+      if (Date.now() < shieldUntil) {
+        try { e.preventDefault(); e.stopPropagation(); } catch (x) { }
+        return false;
+      }
+    }
+    ['click', 'touchstart', 'touchend', 'pointerup', 'mouseup'].forEach(function (n) {
+      document.addEventListener(n, block, { capture: true, passive: false });
+    });
     function finish() {
       if (done) return; done = true;
+      shieldUntil = Date.now() + 900;   /* 900ms 内不让点击穿过去 */
       d.classList.add('out');
       try { document.documentElement.style.overflow = ''; document.body.style.overflow = '' } catch (e) { }
-      setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d) }, 300);
+      setTimeout(function () { if (d.parentNode) d.parentNode.removeChild(d) }, 900);
     }
     d.addEventListener('pointerdown', function (e) {
       if (Date.now() - t0 < 300) return;          /* 前 300ms 防误触 */
+      try { e.preventDefault(); } catch (x) { }    /* 断掉这次点击后续的 click */
       if (e.target && e.target.closest && e.target.closest('.zskip')) { finish(); return }
       finish();
-    }, { passive: true });
-    d.addEventListener('click', function (e) { e.preventDefault() }, true);
+    }, { passive: false });
+    d.addEventListener('click', function (e) { try { e.preventDefault() } catch (x) { } }, true);
     /* 不再自动进站：动画播完停在画面上，等用户点击 */
     try { document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden' } catch (e) { }
   }
 
   if (document.body) build();
   else document.addEventListener('DOMContentLoaded', build);
+})();
+
+/* ★ 字卡库「全部」 */
+/* ================= 旧站字卡库：加「全部」 =================
+   旧站的字卡库只能一个个分类看，没有"全部"。
+   本模块不改旧站的渲染代码，只在渲染后补一个「全部」胶囊，并用自己的一小段渲染
+   把"所有聊天字卡（不分分类）"列出来：
+     · 点「全部」→ 自己渲染全部 1601 张（按添加时间倒序，每张带所属分类小标）
+     · 点别的分类 → 交回旧站原本逻辑
+     · 删除按钮沿用旧站的 data-act="cc-del"（data-c 给「全部」时旧站会按文字从 state.cards 删）
+     · 搜索框（ccSearchBar）过滤的是 .cc-li，自然一起生效
+   只影响字卡库这一页。 */
+(function () {
+  if (window.__ccAll) return; window.__ccAll = 1;
+
+  var ALL = false;          /* 当前是否停在「全部」 */
+  var CURTXT = '';          /* 停在「全部」前所在的分类，取消时用 */
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function allCards() {
+    var out = [];
+    (state.cards || []).forEach(function (c) { if (c && String(c.text || '').trim()) out.push(c) });
+    out.sort(function (a, b) { return (b.created || 0) - (a.created || 0) });
+    return out;
+  }
+
+  function injectChip() {
+    var host = document.querySelector('#view .cc-cats');
+    if (!host) return null;
+    var chip = host.querySelector('[data-c="全部"]');
+    if (!chip) {
+      chip = document.createElement('button');
+      chip.className = 'cc-chip';
+      chip.setAttribute('data-act', 'cc-tab');
+      chip.setAttribute('data-c', '全部');
+      chip.textContent = '全部';
+      host.insertBefore(chip, host.firstChild);
+    }
+    return chip;
+  }
+
+  function paintAll() {
+    var list = document.querySelector('#view .cc-list');
+    if (!list) return;
+    var arr = allCards();
+    list.innerHTML = arr.length ? arr.map(function (x) {
+      return '<div class="cc-li"><span class="cc-t">' + esc(x.text)
+        + '<i class="cc-ctag">' + esc(x.tag || '未分类') + '</i></span>'
+        + '<span class="cc-x" data-act="cc-del" data-c="全部" data-t="' + esc(x.text) + '">✕</span></div>';
+    }).join('') : '<div class="cc-li" style="color:#6B6D72">还没有字卡</div>';
+
+    var grp = document.querySelector('#view .cc-grp span');
+    if (grp) grp.textContent = '全部';
+    var cnt = document.querySelector('#view .cc-grp b');
+    if (cnt) cnt.textContent = arr.length + ' 张';
+    var mute = document.querySelector('#view .cc-mute');
+    if (mute) mute.style.display = 'none';
+    /* 旧站会给"固定分类"挂一个「固定」小标，全部不该有 */
+    var fx = document.querySelector('#view .cc-grp .cc-fx');
+    if (fx) fx.remove();
+
+    /* 高亮「全部」 */
+    var chips = document.querySelectorAll('#view .cc-chip');
+    for (var i = 0; i < chips.length; i++) chips[i].classList.toggle('on', chips[i].getAttribute('data-c') === '全部');
+
+    /* 重绘完如果搜索框里有词，重新过滤一次（否则会把搜索结果盖掉） */
+    try {
+      var inp = document.querySelector('#ccSearchBar input');
+      if (inp && inp.value) inp.dispatchEvent(new Event('input', { bubbles: true }));
+    } catch (e) { }
+  }
+
+  function sync() {
+    try {
+      var chip = injectChip(); if (!chip) return;
+      if (ALL) paintAll();
+    } catch (e) { }
+  }
+
+  /* 点「全部」由我们接管；点别的分类交回旧站 */
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    var chip = t.closest('[data-act="cc-tab"]');
+    if (chip) {
+      var c = chip.getAttribute('data-c') || '';
+      if (c === '全部') {
+        e.preventDefault(); e.stopPropagation();
+        ALL = true; sync();
+        try { window.scrollTo(0, 0) } catch (x) { }
+        return;
+      }
+      ALL = false;
+      return;
+    }
+    /* 「全部」里点删除：旧站的 cc-del 会处理（data-c=全部 → 按文字删 state.cards），删完重绘一遍 */
+    var del = t.closest('[data-act="cc-del"]');
+    if (del && ALL) { setTimeout(sync, 60); }
+  }, true);
+
+  /* 旧站每次重绘字卡库后：补胶囊；如果停在「全部」就重新铺列表 */
+  try {
+    var t2 = 0;
+    var mo = new MutationObserver(function () {
+      clearTimeout(t2);
+      t2 = setTimeout(function () {
+        if (!document.querySelector('#view .cc-wrap')) { ALL = false; return }
+        sync();
+      }, 120);
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  } catch (e) { }
+
+  try { setTimeout(sync, 900); } catch (e) { }
+  window.ccAllSync = sync;
 })();
 
 </script>
