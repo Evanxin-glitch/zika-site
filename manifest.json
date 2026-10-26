@@ -1,6 +1,6 @@
 {
-  "name": "沉与昕之恋",
-  "short_name": "沉与昕",
+  "name": "与沉",
+  "short_name": "与沉",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -8,6 +8,12 @@
   "background_color": "#ffffff",
   "theme_color": "#7CB342",
   "icons": [
+    {
+      "src": "./apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "./icon-192.png",
       "sizes": "192x192",
