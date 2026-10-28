@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="c803f90d26">
+<meta name="x-build" content="58c23b70bb">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -2988,6 +2988,37 @@ body.room-mode .bd-board{flex:0 0 auto;max-height:34vh;overflow-y:auto}
 .pig-sheet .ebox{position:relative}
 .pig-sheet .ebox .row2{position:sticky;bottom:0;background:#FDFBFA;padding:10px 0 6px;margin-top:8px;
   box-shadow:0 -8px 12px rgba(253,251,250,.9)}
+/* ===== 版本更新条 / 站点面板 / 简介编辑 ===== */
+.zika-upd-bar{position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:99999;
+  display:flex;align-items:center;gap:8px;padding:11px 12px 11px 14px;border-radius:14px;
+  background:rgba(24,24,26,.94);color:#fff;font-size:calc(12.5px*var(--fs));
+  box-shadow:0 10px 30px rgba(0,0,0,.28);opacity:0;transform:translateY(14px);transition:.24s}
+.zika-upd-bar.show{opacity:1;transform:none}
+.zika-upd-bar .zi{color:#D9D4DA}
+.zika-upd-bar b{color:#fff;font-weight:700;text-decoration:underline;cursor:pointer}
+.zika-upd-bar .zz{margin-left:auto;font-style:normal;opacity:.6;padding:0 4px;cursor:pointer}
+.zrow{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid rgba(17,18,20,.06);
+  font-size:calc(13.5px*var(--fs));color:var(--ink)}
+.zrow b{font-weight:600;font-variant-numeric:tabular-nums}
+.zrow .ztog{padding:3px 12px;border-radius:99px;background:#EFECEE;cursor:pointer}
+.zrow .ztog[data-on="1"]{background:#111214;color:#fff}
+.zhint{padding:10px 16px 4px;font-size:calc(11.5px*var(--fs));color:#A99F99;line-height:1.6}
+.zbtns{display:flex;gap:10px;padding:12px 16px 6px}
+.zbtns .zbtn{flex:1;height:38px;border:none;border-radius:11px;background:#111214;color:#fff;
+  font-family:inherit;font-size:calc(13.5px*var(--fs));font-weight:600;cursor:pointer}
+.zbtns .zbtn.ghost{background:#EFECEE;color:#111214}
+.pig-id .bio{cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.pig-id .bio .bio-edit{font-style:normal;font-size:calc(10.5px*var(--fs));color:#8A8078;
+  border:1px solid rgba(17,18,20,.14);border-radius:6px;padding:0 5px;line-height:16px}
+.bio-wrap{padding:12px 16px 4px}
+.bio-wrap textarea{width:100%;border:1px solid rgba(17,18,20,.12);border-radius:12px;padding:10px 12px;
+  font:inherit;font-size:calc(13.5px*var(--fs));line-height:1.6;outline:none;resize:none;background:#fff}
+.bio-n{text-align:right;font-size:calc(11px*var(--fs));color:#A99F99;padding:4px 2px 0}
+.bio-btns{padding:10px 16px 12px}
+.bio-btns button{height:38px;border-radius:11px;border:none;font-family:inherit;font-size:calc(13.5px*var(--fs));cursor:pointer;flex:1}
+.bio-btns .ok{background:#111214;color:#fff;font-weight:600}
+.bio-btns .no{background:#EFECEE;color:#111214}
+.bio-btns{display:flex;gap:10px}
 </style>
 </head>
 <body>
@@ -9653,7 +9684,7 @@ var BACKUP_CATS=[
  {k:'chat',      n:'聊天记录',          d:'各联系人的文字和媒体消息',     keys:['messages','nextInit','nextCallDue','nextInviteDue']},
  {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet','mySaves','pollLog','surveys']},
  {k:'cards',     n:'字卡库',            d:'分组、字卡、固定字卡',         keys:['cards','cardCats','statusCards','moodCards','patCards','diaryCards','writerCards','_smDeleted','currentStatus','currentMood']},
- {k:'moments',   n:'朋友圈',            d:'动态、封面、访客',             keys:['posts','feedEvents','nextPostDue','nextVisitDue','visitorCount','profileBox','profileFollowed']},
+ {k:'moments',   n:'朋友圈',            d:'动态、封面、访客',             keys:['posts','feedEvents','nextPostDue','nextVisitDue','visitorCount','lastVisit','profileBox','profileFollowed','savedPosts','highlights']},
  {k:'mail',      n:'信箱',              d:'信件、收发状态',               keys:['letters','nextLetterDue']},
  {k:'diary',     n:'日记',              d:'日记内容与互动',               keys:['diary','dailyPosts','diaryDue']},
  {k:'tarot',     n:'塔罗',              d:'抽牌记录与每日运势',           keys:['tarotLog','tarotDaily','_tarotLast']},
@@ -9679,6 +9710,7 @@ function backupCatOfPath(p){
   if(p.indexOf('messages.')===0)return 'chat';
   if(p.indexOf('stickers.')===0)return 'stickers';
   if(p.indexOf('posts.')===0)return 'moments';
+  if(p.indexOf('highlights.')===0)return 'moments';
   return '';
 }
 function cloneJSON(v){try{return JSON.parse(JSON.stringify(v))}catch(e){return v}}
@@ -17033,17 +17065,12 @@ function roomShop() {
 /* ===== PWA：注册 Service Worker（离线 + 桌面图标） ===== */
 (function () {
   if (!('serviceWorker' in navigator)) return;
-  try {
-    navigator.serviceWorker.getRegistrations().then(function (rs) { for (var i = 0; i < rs.length; i++) { try { rs[i].unregister() } catch (e) { } } }).catch(function () { });
-    if (window.caches && caches.keys) { caches.keys().then(function (ks) { for (var i = 0; i < ks.length; i++) { if (/^zika-v/.test(ks[i])) { try { caches.delete(ks[i]) } catch (e) { } } } }).catch(function () { }); }
-  } catch (e) { }
-  if (0) {
+  try{ if(state.settings&&state.settings.offlineBoost===false) return }catch(e){}
   var _h=location.hostname;
   var _secure=(location.protocol==='https:')||(_h==='localhost')||(_h==='127.0.0.1')||(_h==='[::1]');
   if (!_secure && location.protocol !== 'file:') return;
-  }
-  if (0) window.addEventListener('load', function () {
-    Promise.reject(new Error('nosw')).then(function (r) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).then(function (r) {
       /* 有新 SW 在等：直接让它接管（配合页面的版本检测，刷新即可拿到新版） */
       r.addEventListener('updatefound', function () {
         var w = r.installing;
@@ -21729,7 +21756,8 @@ function openApp(k) {
       + '<div data-pig="fol"><b>' + esc(bigNum(fol)) + '</b><span>关注</span></div>'
       + '</div></div>';
     h += '<div class="pig-id"><b>' + esc(c.name) + '</b><div class="hh">' + esc(state.settings.profileHandle || '@lu.chen') + '</div>'
-      + '<div class="bio">' + esc(state.settings.profileBio || '让一切自由') + '</div></div>';
+      + '<div class="bio" data-pig="editbio">' + esc(state.settings.profileBio || '让一切自由')
+      + '<i class="bio-edit">改</i></div></div>';
     h += '<div class="pig-btns"><button class="fu' + (folOn ? ' on' : '') + '" data-pig="follow">' + (folOn ? '已关注' : '关注') + '</button>'
       + '<button class="dm" data-pig="dm">私信</button><button class="dot" data-pig="more">⋯</button></div>';
     /* 圆环 */
@@ -21794,6 +21822,25 @@ function openApp(k) {
     var v = document.getElementById('view'); if (!v) return;
     v.innerHTML = render();
   };
+
+  /* ---------- 简介编辑 ---------- */
+  function editBio() {
+    var cur = (state.settings && state.settings.profileBio) || '';
+    sheet('<h3>简介</h3>'
+      + '<div class="bio-wrap"><textarea id="bioTa" rows="3" maxlength="60" placeholder="写一句">' + esc(cur) + '</textarea>'
+      + '<div class="bio-n"><span id="bioN">' + cur.length + '</span>/60</div></div>'
+      + '<div class="row2 bio-btns"><button class="ok" data-pig="savebio">保存</button><button class="no" data-pig="close">取消</button></div>');
+    setTimeout(function () {
+      var ta = document.getElementById('bioTa'), n = document.getElementById('bioN');
+      if (ta && n) ta.addEventListener('input', function () { n.textContent = ta.value.length });
+    }, 30);
+  }
+  function saveBio() {
+    var ta = document.getElementById('bioTa');
+    if (!ta) return;
+    state.settings.profileBio = ta.value.trim();
+    save(); closeSheet(); renderProfile(); toast('简介已更新');
+  }
 
   /* ---------- 浮层 ---------- */
   function el() { return document.getElementById('pigSheet') }
@@ -21868,7 +21915,8 @@ function openApp(k) {
     if (act === 'close') { closeSheet(); return }
     if (act === 'avatar') { if (typeof sheetContact === 'function') sheetContact(activeContact().id); return }
     if (act === 'dm') { closeSheet(); goView('chat'); return }
-    if (act === 'more') { toast('更多操作还没做'); return }
+    if (act === 'more') { if (typeof pwaSheet === 'function') pwaSheet(); else toast('面板还没加载好'); return }
+    if (act === 'editbio') { editBio(); return }
     if (act === 'follow') {
       state.profileFollowed = !(state.profileFollowed !== false);
       save(); renderProfile(); toast(state.profileFollowed ? '已关注' : '已取消关注'); return;
@@ -21906,6 +21954,7 @@ function openApp(k) {
       return;
     }
     if (act === 'editcap') { var b = document.getElementById('pigEdit'); if (b) b.classList.add('on'); return }
+    if (act === 'savebio') { saveBio(); return }
     if (act === 'savecap') {
       var ta = document.getElementById('pigCap');
       var idx = _postIdx;
@@ -21993,6 +22042,167 @@ function openApp(k) {
   }
 
   window.profileIGRefresh = function () { try { renderProfile() } catch (e) { } };
+})();
+
+/* ================= 版本更新提示（2026-10-28） =================
+   做两件事，都不依赖后端：
+     ① 页面显示后，后台拉 version.json（几十字节）跟页面里的 x-build 比；
+        不一样 → 底部弹一条「有新版 · 点我更新」。
+     ② 设置入口（主页右上 ⋯）里能看到当前版本、开关「离线加速」、手动检查。
+   为什么用 version.json 而不是比 HTML：
+     GitHub Pages 会给 HTML 缓存约 10 分钟，比 HTML 永远慢一步；
+     version.json 带 ?t= 时间戳 + no-store，永远拿最新的。
+   「点我更新」的正确顺序（跟 SW 配合）：
+     先 postMessage PRECACHE_NOW 让 SW 把新版写进缓存 → 收到 PRECACHE_DONE（最多等 20 秒）
+     → 再 location.reload()。少了这一步，刷新又命中旧缓存，用户会觉得"点了没用"。
+*/
+(function () {
+  if (window.__zikaPWA) return; window.__zikaPWA = 1;
+
+  function curBuild() {
+    try {
+      var m = document.querySelector('meta[name="x-build"]');
+      return (m && m.getAttribute('content')) || '';
+    } catch (e) { return '' }
+  }
+  function host() {
+    var h = location.hostname || '';
+    return (location.protocol === 'https:') || h === 'localhost' || h === '127.0.0.1';
+  }
+
+  /* ---------- 版本检测 ---------- */
+  var _latest = null, _checked = 0;
+  function check(silent) {
+    if (!host()) { if (!silent) toast('本地打开无法检查更新'); return Promise.resolve(null) }
+    var mine = curBuild();
+    return fetch('version.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null })
+      .then(function (j) {
+        _checked = Date.now();
+        if (!j || !j.build) return null;
+        _latest = j;
+        if (mine && j.build && j.build !== mine) { showBanner(j); return j }
+        if (!silent) toast('已经是最新版');
+        return null;
+      })
+      .catch(function () { if (!silent) toast('检查更新失败（网络？）'); return null });
+  }
+
+  /* ---------- 底部更新条 ---------- */
+  var _banner = null;
+  function showBanner(j) {
+    if (document.getElementById('zikaUpdBar')) return;
+    var bar = document.createElement('div');
+    bar.id = 'zikaUpdBar';
+    bar.className = 'zika-upd-bar';
+    bar.innerHTML = '<span class="zi">新版本已发布</span>'
+      + '<b>点我更新</b>'
+      + '<i class="zz" id="zikaUpdX">✕</i>';
+    document.body.appendChild(bar);
+    _banner = bar;
+    setTimeout(function () { if (bar && bar.parentNode) bar.classList.add('show') }, 40);
+    bar.querySelector('b').addEventListener('click', function () { doUpdate(); });
+    document.getElementById('zikaUpdX').addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      bar.classList.remove('show');
+      setTimeout(function () { try { bar.parentNode.removeChild(bar) } catch (e) { } }, 220);
+    });
+  }
+
+  /* ---------- 更新：先落缓存再刷新 ---------- */
+  function doUpdate() {
+    var done = false;
+    function go() {
+      if (done) return; done = true;
+      var b = document.querySelector('#zikaUpdBar b');
+      if (b) b.textContent = '正在更新…';
+      setTimeout(function () { try { location.reload() } catch (e) { } }, 120);
+    }
+    try {
+      var ctl = navigator.serviceWorker && navigator.serviceWorker.controller;
+      if (ctl) {
+        var t = setTimeout(go, 20000);           /* SW 没回执也要能刷 */
+        navigator.serviceWorker.addEventListener('message', function onMsg(e) {
+          if (e.data && e.data.type === 'PRECACHE_DONE') {
+            clearTimeout(t);
+            navigator.serviceWorker.removeEventListener('message', onMsg);
+            go();
+          }
+        });
+        ctl.postMessage({ type: 'PRECACHE_NOW', urls: ['./index.html'] });
+      } else {
+        /* 没有 SW：清掉本项目缓存再刷 */
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) {
+            return Promise.all(ks.filter(function (k) { return /^zika-w-/.test(k) }).map(function (k) { return caches.delete(k) }));
+          }).then(go).catch(go);
+        } else go();
+      }
+    } catch (e) { go() }
+  }
+
+  /* ---------- 离线加速开关 ---------- */
+  function swOn() {
+    try { return !(state.settings && state.settings.offlineBoost === false) } catch (e) { return true }
+  }
+  function applySW() {
+    if (!('serviceWorker' in navigator) || !host()) return;
+    try {
+      if (swOn()) {
+        navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function () { });
+      } else {
+        navigator.serviceWorker.getRegistrations().then(function (rs) {
+          for (var i = 0; i < rs.length; i++) { try { rs[i].unregister() } catch (e) { } }
+        }).catch(function () { });
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (ks) {
+            for (var i = 0; i < ks.length; i++) if (/^zika-w-/.test(ks[i])) caches.delete(ks[i]);
+          }).catch(function () { });
+        }
+      }
+    } catch (e) { }
+  }
+
+  /* ---------- 给主页「⋯」用的面板 ---------- */
+  window.pwaSheet = function () {
+    var mine = curBuild() || '未知';
+    var on = swOn();
+    var html = '<h3>这个站</h3>'
+      + '<div class="zrow"><span>当前版本</span><b>' + mine.slice(0, 10) + '</b></div>'
+      + '<div class="zrow"><span>线上版本</span><b>' + (_latest ? String(_latest.build).slice(0, 10) : '未检查') + '</b></div>'
+      + '<div class="zrow"><span>离线加速</span><b class="ztog" id="zikaSwTog" data-on="' + (on ? 1 : 0) + '">' + (on ? '开' : '关') + '</b></div>'
+      + '<div class="zhint">关掉后每次打开都走网络：永远是最新版，但没网打不开、打开会慢一点。</div>'
+      + '<div class="zbtns"><button class="zbtn" id="zikaChk">检查更新</button><button class="zbtn ghost" id="zikaRel">重新加载</button></div>';
+    if (typeof openSheet === 'function') openSheet(html);
+    setTimeout(function () {
+      var tg = document.getElementById('zikaSwTog');
+      if (tg) tg.addEventListener('click', function () {
+        var now = tg.getAttribute('data-on') === '1';
+        state.settings.offlineBoost = !now;
+        try { save() } catch (e) { }
+        tg.setAttribute('data-on', now ? '0' : '1');
+        tg.textContent = now ? '关' : '开';
+        applySW();
+        toast(now ? '已关闭离线加速（下次打开会走网络）' : '已开启离线加速');
+      });
+      var ck = document.getElementById('zikaChk');
+      if (ck) ck.addEventListener('click', function () { ck.textContent = '检查中…'; check(false).then(function () { ck.textContent = '检查更新' }) });
+      var rl = document.getElementById('zikaRel');
+      if (rl) rl.addEventListener('click', function () { location.reload() });
+    }, 30);
+  };
+
+  /* ---------- 启动 ---------- */
+  function boot() {
+    applySW();
+    setTimeout(function () { check(true) }, 2500);            /* 不抢首屏 */
+    setInterval(function () { check(true) }, 10 * 60 * 1000); /* 每 10 分钟看一次 */
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible' && Date.now() - _checked > 5 * 60 * 1000) check(true);
+    });
+  }
+  if (document.readyState === 'complete') boot();
+  else window.addEventListener('load', function () { setTimeout(boot, 1200) });
 })();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
