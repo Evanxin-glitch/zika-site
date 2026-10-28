@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="e6ce362628">
+<meta name="x-build" content="c803f90d26">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -2974,6 +2974,20 @@ body.room-mode .bd-board{flex:0 0 auto;max-height:34vh;overflow-y:auto}
 .pig-sheet .cmts{padding:2px 16px 10px;border-top:1px solid rgba(17,18,20,.06);margin-top:6px}
 .pig-sheet .cmt{font-size:calc(13px*var(--fs));line-height:1.6;padding:4px 0}
 .pig-sheet .cmt b{font-weight:600;margin-right:6px}
+/* 弹层里的列表行（日常/收藏/帖子评论）：和主页内容区同一套排版 + 更松 */
+.pig-sheet .row{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid rgba(17,18,20,.06)}
+.pig-sheet .row .ic{width:42px;height:42px;border-radius:13px;background:#F4F0EC;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}
+.pig-sheet .row .tx{flex:1;min-width:0}
+.pig-sheet .row .tx b{display:block;font-size:calc(14.5px*var(--fs));font-weight:600;line-height:1.5;white-space:normal}
+.pig-sheet .row .tx span{display:block;font-size:calc(12.5px*var(--fs));color:var(--sub);margin-top:4px;line-height:1.5;white-space:normal}
+.pig-sheet .ppanel{max-height:90dvh}
+.pig-sheet h3{font-size:calc(16px*var(--fs));padding:12px 16px 12px}
+.pig-sheet .phd .del{margin-left:auto;font-size:calc(12.5px*var(--fs));color:#C0392B;padding:0 10px;cursor:pointer}
+.pig-sheet .phd .dots{margin-left:0}
+/* 帖子文案编辑：保存按钮固定在面板底部，手机上永远够得着 */
+.pig-sheet .ebox{position:relative}
+.pig-sheet .ebox .row2{position:sticky;bottom:0;background:#FDFBFA;padding:10px 0 6px;margin-top:8px;
+  box-shadow:0 -8px 12px rgba(253,251,250,.9)}
 </style>
 </head>
 <body>
@@ -21794,14 +21808,18 @@ function openApp(k) {
   function openPost(i) {
     var ph = flatPhotos(), x = ph[i]; if (!x) return;
     var p = x.post; _post = p; _postIdx = i;
+    var mine = !p.contactId;                 /* 你上传的帖子：显示成他发的，但你可以删 */
+    var who = (activeContact() || {}).name || '陆沉';
     var sd = pigSeed(p);
     var nLike = sd.l + (p.liked ? 1 : 0) + (p.heLiked ? 1 : 0);
     var nCmt = sd.c + (p.comments || []).length;
     var nRep = sd.r;
     var sp = (state.savedPosts || []);
     var saved = sp.indexOf(p.id) >= 0;
-    sheet('<div class="phd"><div class="bk" data-pig="close">‹</div><div class="who"><b>' + esc(activeContact().name) + '</b><span>'
-      + (p.ts ? hm(p.ts) : '') + '</span></div><div class="dots" data-pig="close">✕</div></div>'
+    sheet('<div class="phd"><div class="bk" data-pig="close">‹</div><div class="who"><b>' + esc(who) + '</b><span>'
+      + (p.ts ? hm(p.ts) : '') + '</span></div>'
+      + (mine ? '<div class="del" data-pig="delpost" data-i="' + i + '">删除</div>' : '')
+      + '<div class="dots" data-pig="close">✕</div></div>'
       + '<div class="pimg" style="background-image:url(\'' + x.url + '\')"></div>'
       + '<div class="acts">'
       + '<span class="ic' + (p.liked ? ' on' : '') + '" data-pig="like" data-i="' + i + '">' + I_HEART + '<b>' + nLike + '</b></span>'
@@ -21811,16 +21829,17 @@ function openApp(k) {
       + '<span class="save' + (saved ? ' on' : '') + '" data-pig="save" data-i="' + i + '">' + I_BOOK + '</span>'
       + '</div>'
       + (nLike ? '<div class="likes">' + fmt(nLike) + ' 次赞</div>' : '<div class="likes"></div>')
-      + '<div class="cap" data-pig="editcap"><b>' + esc(activeContact().name) + '</b>'
+      + '<div class="cap" data-pig="editcap"><b>' + esc(who) + '</b>'
       + (p.text ? esc(String(p.text)) : '<span class="hollow">写点什么…</span>') + '</div>'
       + '<div class="tm">' + (p.ts ? hm(p.ts) + ' · ' : '') + '查看翻译</div>'
-      + '<div class="ebox" id="pigEdit"><textarea id="pigCap" rows="3" placeholder="给这张图写点什么…">' + esc(p.text || '') + '</textarea>'
+      + '<div class="ebox" id="pigEdit"><textarea id="pigCap" rows="3" placeholder="写点什么…">' + esc(p.text || '') + '</textarea>'
       + '<div class="row2"><button class="ok" data-pig="savecap">保存</button><button class="no" data-pig="close">取消</button></div></div>'
       + (nCmt ? '<div class="cmts">' + (p.comments || []).map(function (c) {
           return '<div class="cmt"><b>' + esc(c.name || (c.contactId ? '陆沉' : '我')) + '</b>' + esc(String(c.text || '')) + '</div>';
         }).join('') + '</div>' : '')
       + '<div class="pig-end">点文案可以改这段话</div>');
   }
+
 
   function openFeed() {
     sheet('<h3>日常</h3>' + feedRows().map(function (r) {
@@ -21889,8 +21908,20 @@ function openApp(k) {
     if (act === 'editcap') { var b = document.getElementById('pigEdit'); if (b) b.classList.add('on'); return }
     if (act === 'savecap') {
       var ta = document.getElementById('pigCap');
+      var idx = _postIdx;
       if (_post && ta) { _post.text = ta.value.trim(); save(); }
-      closeSheet(); renderProfile(); toast('已保存'); return;
+      closeSheet(); renderProfile();
+      if (idx >= 0) openPost(idx);
+      toast('已保存'); return;
+    }
+    if (act === 'delpost') {
+      var di = +el2.getAttribute('data-i'), dp = (flatPhotos()[di] || {}).post;
+      if (!dp) return;
+      if (!confirm('删掉这条动态？删了就找不回来了')) return;
+      for (var qi = (state.posts || []).length - 1; qi >= 0; qi--) {
+        if (state.posts[qi] && state.posts[qi].id === dp.id) { state.posts.splice(qi, 1); break }
+      }
+      save(); closeSheet(); renderProfile(); toast('已删除这条动态'); return;
     }
     if (act === 'newhl') {
       var nm = prompt('给这个合集起个名字', '合照'); if (!nm) return;
@@ -21907,6 +21938,8 @@ function openApp(k) {
   function pigUpload(collIdx) {
     var f = document.createElement('input');
     f.type = 'file'; f.accept = 'image/*'; f.multiple = true;
+    f.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';
+    document.body.appendChild(f);
     f.onchange = function () {
       var files = [].slice.call(f.files || []);
       if (!files.length) return;
@@ -21944,7 +21977,8 @@ function openApp(k) {
       }
       next();
     };
-    f.click();
+    setTimeout(function () { try { f.click() } catch (e) { } }, 30);
+    setTimeout(function () { try { if (f.parentNode) f.parentNode.removeChild(f) } catch (e) { } }, 120000);
   }
   function pigDel(ci, k) {
     var hl = highlights()[ci]; if (!hl || !hl.imgs || !hl.imgs[k]) return;
