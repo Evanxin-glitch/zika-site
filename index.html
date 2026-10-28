@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="5229b8a827">
+<meta name="x-build" content="e6ce362628">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -2842,6 +2842,138 @@ body.room-mode .bd-board{flex:0 0 auto;max-height:34vh;overflow-y:auto}
   input,textarea{font-size:max(16px,calc(16px*var(--fs)))}
   .moment .pc-in input,.pc-in input{font-size:max(16px,calc(13px*var(--fs)))}
 }
+/* ===== 聊天输入栏：iMessage 风（整条透明，壁纸铺到最底，胶囊浮在上面） ===== */
+.chat-input{background:transparent!important;border-top:none!important;box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  gap:8px!important;align-items:flex-end!important;padding:6px 10px calc(10px + env(safe-area-inset-bottom))!important}
+.chat-input .ci-pill{flex:1;min-width:0;display:flex;align-items:flex-end;gap:2px;padding:3px 4px 3px 14px;border-radius:20px;
+  background:rgba(255,255,255,.60);border:1px solid rgba(17,18,20,.10);
+  -webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 4px 14px rgba(90,70,60,.10)}
+.chat-input .ci-pill textarea{flex:1;min-width:0;background:transparent!important;border:none!important;box-shadow:none!important;
+  padding:8px 0!important;min-height:32px;max-height:96px;font-size:16px;line-height:1.35;color:var(--ink)}
+.chat-input .ci-pill textarea::placeholder{color:#9A9AA0}
+.chat-input .ci-mic,.chat-input .ci-send{width:30px!important;height:30px!important;min-width:0!important;min-height:30px!important;
+  border-radius:50%!important;padding:0!important;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-bottom:3px}
+.chat-input .ci-mic,.chat-input .ci-send{cursor:pointer}
+.chat-input .ci-mic{background:transparent!important;border:none!important;box-shadow:none!important;color:#8E8E93!important}
+.chat-input .ci-send{background:#0A84FF!important;border:none!important;color:#fff!important;
+  box-shadow:0 2px 8px rgba(10,132,255,.35)!important;display:none}
+.chat-input.has-text .ci-send{display:flex}
+.chat-input.has-text .ci-mic{display:none}
+.chat-input .tool-btn{width:32px!important;height:32px!important;min-width:0!important;min-height:32px!important;border-radius:50%!important;
+  background:rgba(255,255,255,.50)!important;border:1px solid rgba(255,255,255,.55)!important;
+  box-shadow:0 2px 8px rgba(90,70,60,.10)!important;color:#3A3B3F!important;margin-bottom:3px}
+.chat-input .ci-plus{background:rgba(255,255,255,.50)!important;border:1px solid rgba(255,255,255,.55)!important;color:#3A3B3F!important;box-shadow:0 2px 8px rgba(90,70,60,.10)!important}
+.chat-input .ci-plus svg{width:17px!important;height:17px!important}
+/* ===== 主页 IG 风（64-profileIG.js） ===== */
+.pig{padding:0 0 24px}
+.pig-hd{display:flex;align-items:center;gap:18px;padding:6px 18px 0}
+.pig-ring{width:86px;height:86px;border-radius:50%;padding:2.5px;flex:0 0 auto;cursor:pointer;
+  background:conic-gradient(from 210deg,#111214,#8D8A93,#D9D4DA,#111214)}
+.pig-ring>span{display:block;width:100%;height:100%;border-radius:50%;background:#FCFAF9;padding:2px;overflow:hidden}
+.pig-ring .avatar,.pig-ring img,.pig-ring svg{width:100%!important;height:100%!important;border-radius:50%;display:block;object-fit:cover}
+.pig-ring i{width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:50%;
+  font-style:normal;font-size:30px;font-weight:700;color:#fff}
+.pig-stats{flex:1;display:flex;justify-content:space-around}
+.pig-stats>div{text-align:center;cursor:pointer}
+.pig-stats b{display:block;font-size:calc(15px*var(--fs));font-weight:700}
+.pig-stats span{display:block;font-size:calc(11px*var(--fs));color:var(--sub);margin-top:2px}
+.pig-id{padding:12px 18px 0}
+.pig-id b{font-size:calc(16px*var(--fs));font-weight:700}
+.pig-id .hh{font-size:calc(13px*var(--fs));color:var(--sub);margin-top:2px}
+.pig-id .bio{font-size:calc(13.5px*var(--fs));line-height:1.5;margin-top:6px}
+.pig-btns{display:flex;gap:8px;padding:12px 18px 0}
+.pig-btns button{flex:1;height:32px;border-radius:9px;font-size:calc(13px*var(--fs));font-family:inherit;border:none;cursor:pointer}
+.pig-btns .fu{background:#EFECEE;color:#111214;font-weight:600}
+.pig-btns .fu.on{background:#111214;color:#fff}
+.pig-btns .dm{background:#EFECEE;color:#111214;font-weight:600}
+.pig-btns .dot{flex:0 0 32px;width:32px;background:#EFECEE;color:#111214;font-weight:700}
+.pig-hl{display:flex;gap:16px;padding:16px 18px 8px;overflow-x:auto;justify-content:center;scrollbar-width:none}
+.pig-hl::-webkit-scrollbar{display:none}
+.pig-hl .it{width:62px;text-align:center;flex:0 0 auto;cursor:pointer}
+.pig-hl .it .c{width:62px;height:62px;border-radius:50%;padding:2px;background:rgba(17,18,20,.10);position:relative}
+.pig-hl .it .c>span{display:block;width:100%;height:100%;border-radius:50%;background:#fff;padding:2px}
+.pig-hl .it .in{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:#F3EFEA;border:1px solid rgba(17,18,20,.06);overflow:hidden}
+.pig-hl .it .in.thumb{background-size:cover;background-position:center;background-repeat:no-repeat}
+.pig-hl .it .c.new{background:conic-gradient(from 200deg,#111214,#9C97A0,#111214)}
+.pig-hl .it .c .dot{position:absolute;right:0;top:0;width:10px;height:10px;border-radius:50%;background:#E0245E;box-shadow:0 0 0 2px #FCFAF9}
+.pig-hl .it .c.addc{background:transparent;border:1px dashed rgba(17,18,20,.28);padding:0}
+.pig-hl .it .c.addc>span{background:transparent;padding:0}
+.pig-hl .it .c.addc .in{background:transparent;border:none;font-size:20px;color:#8A8078}
+.pig-hl .it em{display:block;font-style:normal;font-size:calc(10.5px*var(--fs));color:var(--sub);margin-top:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pig-tabs{display:flex;margin-top:12px;border-top:1px solid var(--line)}
+.pig-tabs>div{flex:1;text-align:center;padding:11px 0 9px;font-size:calc(13px*var(--fs));color:var(--sub);position:relative;cursor:pointer}
+.pig-tabs>div.on{color:var(--ink);font-weight:700}
+.pig-tabs>div.on:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1.5px;background:currentColor}
+.pig-body{padding-bottom:10px}
+.pig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.pig-grid .t{position:relative;aspect-ratio:1/1;background-size:cover;background-position:center;background-color:#F4F1F0}
+.pig-grid .t.add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  background:#F1EEEC;border:1px dashed rgba(17,18,20,.16);color:#8A8078;font-size:calc(11px*var(--fs));cursor:pointer}
+.pig-grid .t.add b{font-size:22px;font-weight:300;line-height:1}
+.pig-empty{text-align:center;font-size:calc(13px*var(--fs));color:#8A8078;padding:26px 18px;line-height:1.8}
+.pig-empty span{font-size:calc(11.5px*var(--fs));color:#A99F99}
+.pig-end{text-align:center;font-size:calc(11.5px*var(--fs));color:#A99F99;padding:12px}
+.pig-body .row{display:flex;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(17,18,20,.06)}
+.pig-body .row .ic{width:40px;height:40px;border-radius:12px;background:#F4F0EC;display:flex;align-items:center;justify-content:center;font-size:19px;flex:0 0 auto}
+.pig-body .row .tx{flex:1;min-width:0}
+.pig-body .row .tx b{display:block;font-size:calc(13.5px*var(--fs));font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pig-body .row .tx span{display:block;font-size:calc(12px*var(--fs));color:var(--sub);margin-top:2px}
+.pig-tl{position:relative;padding:10px 16px 4px}
+.pig-tl:before{content:"";position:absolute;left:21px;top:16px;bottom:22px;width:1px;background:rgba(17,18,20,.14)}
+.pig-tl .e{position:relative;padding:0 0 18px 26px}
+.pig-tl .e:before{content:"";position:absolute;left:1px;top:5px;width:9px;height:9px;border-radius:50%;background:#111214;box-shadow:0 0 0 3px #FBF9F8}
+.pig-tl .e b{display:block;font-size:calc(13.5px*var(--fs));font-weight:600}
+.pig-tl .e em{font-style:normal;font-size:calc(11px*var(--fs));color:#A99F99;display:block;margin-top:3px}
+
+/* 浮层：帖子 / 合集 / 日常 */
+.pig-sheet{position:fixed;inset:0;z-index:60;display:none}
+.pig-sheet.on{display:block}
+.pig-sheet .pmask{position:absolute;inset:0;background:rgba(24,20,22,.42)}
+.pig-sheet .ppanel{position:absolute;left:0;right:0;bottom:0;max-height:86dvh;overflow-y:auto;
+  background:#FDFBFA;border-radius:18px 18px 0 0;padding:6px 0 14px;animation:pigup .2s ease}
+@keyframes pigup{from{transform:translateY(14px);opacity:.6}to{transform:none;opacity:1}}
+.pig-sheet h3{font-size:calc(15px*var(--fs));padding:10px 16px 10px;border-bottom:1px solid rgba(17,18,20,.06)}
+.pig-sheet .phd{display:flex;align-items:center;gap:10px;padding:8px 14px 10px}
+.pig-sheet .phd .bk{width:30px;height:30px;border-radius:50%;background:#F4F1F0;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer}
+.pig-sheet .phd .who b{display:block;font-size:calc(13.5px*var(--fs));font-weight:600}
+.pig-sheet .phd .who span{display:block;font-size:calc(11px*var(--fs));color:var(--sub)}
+.pig-sheet .phd .dots{margin-left:auto;font-size:16px;color:#3A3B3F;padding-left:8px;cursor:pointer}
+.pig-sheet .pimg{width:100%;aspect-ratio:1/1;background-size:cover;background-position:center;background-color:#F2EFEC}
+.pig-sheet .likes{padding:8px 16px 0;font-size:calc(12px*var(--fs));color:#A99F99}
+.pig-sheet .cap{padding:6px 16px 0;font-size:calc(13.5px*var(--fs));line-height:1.6;cursor:pointer}
+.pig-sheet .cap b{font-weight:600;margin-right:6px}
+.pig-sheet .cap .hollow{color:#A99F99}
+.pig-sheet .ebox{display:none;padding:10px 16px 6px}
+.pig-sheet .ebox.on{display:block}
+.pig-sheet .ebox textarea{width:100%;border:1px solid rgba(17,18,20,.12);border-radius:12px;padding:10px 12px;
+  font:inherit;font-size:calc(13.5px*var(--fs));line-height:1.55;outline:none;resize:vertical;background:#fff}
+.pig-sheet .ebox .row2{display:flex;gap:10px;margin-top:10px}
+.pig-sheet .ebox button{flex:1;height:36px;border-radius:10px;border:none;font-family:inherit;font-size:calc(13.5px*var(--fs));cursor:pointer}
+.pig-sheet .ebox .ok{background:#111214;color:#fff;font-weight:600}
+.pig-sheet .ebox .no{background:#EFECEE;color:#111214}
+.pig-sheet .cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.pig-sheet .cgrid .ct{position:relative;aspect-ratio:1/1;background-size:cover;background-position:center}
+.pig-sheet .cgrid .ct .x,.pig-sheet .cgrid .ct .star{position:absolute;top:5px;width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px;cursor:pointer;
+  background:rgba(20,20,22,.72);color:#fff}
+.pig-sheet .cgrid .ct .x{right:5px}
+.pig-sheet .cgrid .ct .star{left:5px;color:#FFD166}
+.pig-sheet .acts{display:flex;align-items:center;gap:16px;padding:10px 16px 2px}
+.pig-sheet .acts .ic{display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--ink);font-size:calc(12.5px*var(--fs))}
+.pig-sheet .acts .ic b{font-weight:600}
+.pig-sheet .acts .ic.on{color:#E0245E}
+.pig-sheet .acts .ic.on svg{fill:#E0245E;stroke:#E0245E}
+.pig-sheet .acts .save{margin-left:auto;cursor:pointer;color:var(--ink)}
+.pig-sheet .acts .save.on{color:#111214}
+.pig-sheet .acts .save.on svg{fill:#111214}
+.pig-sheet .tm{padding:6px 16px 12px;font-size:calc(11px*var(--fs));color:#A99F99}
+.pig-sheet .cmts{padding:2px 16px 10px;border-top:1px solid rgba(17,18,20,.06);margin-top:6px}
+.pig-sheet .cmt{font-size:calc(13px*var(--fs));line-height:1.6;padding:4px 0}
+.pig-sheet .cmt b{font-weight:600;margin-right:6px}
 </style>
 </head>
 <body>
@@ -7309,7 +7441,26 @@ function renderChat(){
     body+='<div class="quote-bar"><span class="txt">回复：'+esc(trunc(msgText(_quoteId),26))+'</span><button data-act="quote-cancel">取消</button></div>';
   }
   body+=multiBarHtml();
-  body+='<div class="chat-input"><button class="tool-btn" data-act="qk-menu" title="更多">'+ICON_MORE+'</button><button class="tool-btn" data-act="tools">'+ICON_PLUS+'</button><textarea id="chatText" rows="1" placeholder="说点什么…"></textarea><button class="tool-btn" data-act="emoji">'+ICON_EMOJI+'</button><button data-act="send-chat">发送</button></div></div>';
+  /* ★ 输入栏改成 iMessage 风（2026-10-28）：
+     整条不再有白底/边框 —— 壁纸一直铺到屏幕最底，输入框是浮在壁纸上的玻璃胶囊。
+     顺序：［＋圆钮］［胶囊：文字＋麦克风/蓝色发送］［表情］［更多］ */
+  var MIC_SVG='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.6 11a6.4 6.4 0 0 0 12.8 0"/><path d="M12 17.6V21"/></svg>';
+  var SEND_SVG='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></svg>';
+  body+='<div class="chat-input"><button class="tool-btn ci-plus" data-act="tools" title="聊天工具">'+ICON_PLUS+'</button>'
+    +'<div class="ci-pill"><textarea id="chatText" rows="1" placeholder="iMessage 信息"></textarea>'
+    +'<span class="ci-mic" data-act="mic-soon" title="语音">'+MIC_SVG+'</span>'
+    +'<span class="ci-send" data-act="send-chat" title="发送">'+SEND_SVG+'</span></div>'
+    +'<button class="tool-btn" data-act="emoji" title="表情">'+ICON_EMOJI+'</button>'
+    +'<button class="tool-btn" data-act="qk-menu" title="更多">'+ICON_MORE+'</button></div></div>';
+  /* 有字 → 麦克风换成蓝色发送；没字 → 反过来 */
+  function chatBarState(){
+    try{
+      var bar=document.querySelector('.chat-input'), ta=document.getElementById('chatText');
+      if(!bar||!ta)return;
+      bar.classList.toggle('has-text', !!String(ta.value||'').trim());
+    }catch(e){}
+  }
+  window.chatBarState=chatBarState;
   /* ★ 重绘前先记住"离底部多少像素"。
      以前重绘后不做任何恢复：列表重建 → scrollTop 回到 0 → 你正翻着旧消息（比如在填问卷），
      点一下选项就被甩到很久以前那批消息上（用户报的）。
@@ -7396,7 +7547,7 @@ function renderChat(){
   }
   var ta=$('#chatText');
   if(ta){
-    ta.addEventListener('input',function(){ta.style.height='auto';ta.style.height=Math.min(96,ta.scrollHeight)+'px'});
+    ta.addEventListener('input',function(){ta.style.height='auto';ta.style.height=Math.min(96,ta.scrollHeight)+'px';try{chatBarState()}catch(e){}});
     ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat()}});
   }
   try{chatPinTop()}catch(e){}
@@ -7702,7 +7853,7 @@ function sendChat(){
   if(_quoteId)m.replyTo=_quoteId;
   _quoteId=null;
   state.messages.push(m);
-  ta.value='';ta.style.height='auto';
+  ta.value='';ta.style.height='auto';try{chatBarState()}catch(e){}
   if((state.settings&&state.settings.savedOn!==false)&&Math.random()*100<((state.settings&&state.settings.savePct)!=null?state.settings.savePct:15)){
     state.savedMsgs.push({id:uid(),text:text,ts:now()});
     save();
@@ -11762,6 +11913,7 @@ document.addEventListener('click',function(e){
     else if(act==='me-jump')meJumpTo(btn.getAttribute('data-to'))
     else if(act==='pct-save')pctSave()
     else if(act==='stk-tab'){sheetStickers(btn.getAttribute('data-t'))}
+    else if(act==='mic-soon')toast('语音消息还没做，先用文字吧')
     else if(act==='post-img'){var _pif=document.getElementById('postImgFile');if(_pif)_pif.click()}
     else if(act==='post-img-del')postImgDel(btn.getAttribute('data-i'))
     else if(act==='post-comment')postCommentOpen(id);
@@ -21469,6 +21621,344 @@ function openApp(k) {
   }, 180000);
 
   window.renderRoomApp = renderBedroom;
+})();
+
+/* ================= 主页（IG 风）—— 2026-10-28 =================
+   把主页换成 IG 结构：story ring 头像 / 三格数字 / 精选圆环 / 四个 tab / 九宫格。
+   全部接真实数据：
+     · 头像 = 设置里陆沉的头像（点头像 → 打开他的资料，能换头像）
+     · 粉丝 / 关注 = state.settings.profileFans / profileFollowing（点数字就能改）
+     · 私信 = 真跳到聊天
+     · 日常 = 真的来访次数 / 今天的消息 / 朋友圈 / 塔罗
+     · 九宫格 = 朋友圈里所有照片（他的 + 你的），第一格是上传
+     · 精选 = 图片合集（state.highlights，可加图 / 删图 / 换封面）
+   不改老文件：包一层 renderProfile()。 */
+(function () {
+  if (window.__profileIG) return; window.__profileIG = 1;
+  if (typeof renderProfile !== 'function') return;
+
+  var _rp = renderProfile;
+  var _tab = 'grid';
+  var I_HEART='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.2-4.6-7.2-9.6A4.2 4.2 0 0 1 12 7.4a4.2 4.2 0 0 1 7.2 3c0 5-7.2 9.6-7.2 9.6z"/></svg>';
+  var I_CMT='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M20.5 11.6c0 4.2-3.8 7.6-8.5 7.6-1 0-2-.16-2.9-.45L4.5 20l1.1-3.4A7.1 7.1 0 0 1 3.5 11.6C3.5 7.4 7.3 4 12 4s8.5 3.4 8.5 7.6z"/></svg>';
+  var I_REP='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 8h11l-2.6-2.6M20 16H9l2.6 2.6"/></svg>';
+  var I_SEND='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M21 4 3 11l6.5 2.2L12 20z"/></svg>';
+  var I_BOOK='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4.2-6 4.2z"/></svg>';
+  var PHOTO_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A8078" stroke-width="1.6" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4 4 3 3-3 4 4"/></svg>';
+  var MOON = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3A3B3F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14.5A7.6 7.6 0 0 1 9.5 5a7.8 7.8 0 1 0 9.5 9.5z"/></svg>';
+
+  function rndInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a }
+  function pigSeed(p) {
+    if (!p._pigSeed) {
+      p._pigSeed = { l: rndInt(1200, 9600), c: rndInt(120, 980), r: rndInt(80, 760) };
+      try { save() } catch (e) { }
+    }
+    return p._pigSeed;
+  }
+  function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',') }
+  function hm(ts) { var d = new Date(+ts || Date.now()); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) }
+  function dayStart() { var d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime() }
+  function bigNum(n) { n = +n || 0; return n >= 10000 ? (n / 10000).toFixed(1).replace('.0', '') + '万' : fmt(n) }
+
+  function myPosts() {
+    var c = activeContact(); if (!c) return [];
+    return (state.posts || []).filter(function (p) {
+      return p && p.imgs && p.imgs.length && (p.contactId === c.id || !p.contactId);
+    }).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0) });
+  }
+  function flatPhotos() {
+    var out = [];
+    myPosts().forEach(function (p) {
+      (p.imgs || []).forEach(function (ref) {
+        if (mediaDead(ref)) return;
+        var u = mediaUrlSync(ref); if (!u) return;
+        out.push({ post: p, ref: ref, url: u });
+      });
+    });
+    return out;
+  }
+  function highlights() {
+    if (!state.highlights || !state.highlights.length) state.highlights = [{ k: '精选', imgs: [] }];
+    return state.highlights;
+  }
+
+  /* ---------- 日常（真实事件） ---------- */
+  function feedRows() {
+    var c = activeContact() || {}; var rows = []; var t0 = dayStart();
+    if (state.visitorCount) rows.push(['👣', '陆沉 来过主页 · 第 ' + state.visitorCount + ' 次', state.lastVisit ? ('最近一次 ' + hm(state.lastVisit)) : '']);
+    var msgs = (state.messages || []).filter(function (m) { return m && m.contactId === c.id && (m.ts || 0) >= t0 });
+    if (msgs.length) rows.push(['💬', '今天有 ' + msgs.length + ' 条消息来往', msgs.slice(-4).map(function (m) { return hm(m.ts) }).join(' / ')]);
+    var posts = (state.posts || []).filter(function (p) { return p && (p.ts || 0) >= t0 }).sort(function (a, b) { return b.ts - a.ts });
+    if (posts.length) rows.push(['📷', '发了 ' + posts.length + ' 条朋友圈', String(posts[0].text || '').slice(0, 22) || hm(posts[0].ts)]);
+    if (c.status) rows.push(['☕', '现在：' + c.status, c.mood ? ('心情：' + c.mood) : '']);
+    var td = state.tarotDaily || {};
+    if (td && td.date && td.hisIdx != null && td.hisIdx >= 0) rows.push(['🌙', '抽了今天的塔罗', '']);
+    if (!rows.length) rows.push(['·', '今天他还没动静', '再等等']);
+    return rows;
+  }
+
+  /* ---------- 主页 ---------- */
+  function render() {
+    var c = activeContact(); if (!c) return '';
+    var ph = flatPhotos(), hl = highlights();
+    var gifts = (typeof profileGifts === 'function') ? profileGifts() : [];
+    var fans = state.settings.profileFans || 0, fol = state.settings.profileFollowing || 0;
+    var folOn = state.profileFollowed !== false;
+    var h = '';
+    h += '<div class="page-top"><button class="back" data-view="home">' + (typeof ICON_BACK !== 'undefined' ? ICON_BACK : '‹') + '</button>'
+      + '<span class="pt">' + esc(c.name) + '</span><span class="pr"><button class="pig-more" data-pig="more">⋯</button></span></div>';
+    h += '<div class="pig">';
+    h += '<div class="pig-hd"><div class="pig-ring" data-pig="avatar"><span>' + avatarHtml(c, 86) + '</span></div>'
+      + '<div class="pig-stats">'
+      + '<div data-pig="tab" data-t="grid"><b>' + ph.length + '</b><span>动态</span></div>'
+      + '<div data-pig="fans"><b>' + esc(bigNum(fans)) + '</b><span>粉丝</span></div>'
+      + '<div data-pig="fol"><b>' + esc(bigNum(fol)) + '</b><span>关注</span></div>'
+      + '</div></div>';
+    h += '<div class="pig-id"><b>' + esc(c.name) + '</b><div class="hh">' + esc(state.settings.profileHandle || '@lu.chen') + '</div>'
+      + '<div class="bio">' + esc(state.settings.profileBio || '让一切自由') + '</div></div>';
+    h += '<div class="pig-btns"><button class="fu' + (folOn ? ' on' : '') + '" data-pig="follow">' + (folOn ? '已关注' : '关注') + '</button>'
+      + '<button class="dm" data-pig="dm">私信</button><button class="dot" data-pig="more">⋯</button></div>';
+    /* 圆环 */
+    h += '<div class="pig-hl"><div class="it" data-pig="feed"><div class="c new"><span><div class="in">' + MOON + '</div></span><i class="dot"></i></div><em>日常</em></div>';
+    hl.forEach(function (x, i) {
+      var cv = (x.imgs && x.imgs.length) ? mediaUrlSync(x.imgs[0]) : '';
+      var inner = cv ? '<div class="in thumb" style="background-image:url(\'' + cv + '\')"></div>'
+        : '<div class="in">' + PHOTO_ICON + '</div>';
+      h += '<div class="it" data-pig="hl" data-i="' + i + '"><div class="c"><span>' + inner + '</span></div><em>' + esc(x.k) + '</em></div>';
+    });
+    h += '<div class="it" data-pig="newhl"><div class="c addc"><span><div class="in">＋</div></span></div><em>新建</em></div></div>';
+    /* tab */
+    h += '<div class="pig-tabs">' + tb('grid', '动态') + tb('saved', '收藏') + tb('gifts', '礼物') + tb('track', '足迹') + '</div>';
+    h += '<div class="pig-body">' + body() + '</div></div>';
+    h += '<div class="pig-sheet" id="pigSheet"></div>';
+    return h;
+
+    function tb(k, n) { return '<div class="' + (_tab === k ? 'on' : '') + '" data-pig="tab" data-t="' + k + '">' + n + '</div>' }
+
+    function body() {
+      if (_tab === 'grid') {
+        var cells = ph.map(function (x, i) {
+          return '<div class="t img" data-pig="photo" data-i="' + i + '" style="background-image:url(\'' + x.url + '\')"></div>';
+        }).join('');
+        return '<div class="pig-grid"><div class="t add" data-pig="upload"><b>＋</b>上传</div>' + cells + '</div>'
+          + (ph.length ? '<div class="pig-end">共 ' + ph.length + ' 张照片</div>' : '<div class="pig-empty">还没有照片<br><span>点第一格「＋上传」，或者让他发条朋友圈</span></div>');
+      }
+      if (_tab === 'saved') {
+        var sv = (state.savedMsgs || []).slice().sort(function (a, b) { return (b.ts || 0) - (a.ts || 0) });
+        var sp3 = (state.savedPosts || []).map(function (id) { return byId(state.posts || [], id) }).filter(Boolean);
+        if (!sv.length && !sp3.length) return '<div class="pig-empty">还没有收藏<br><span>聊天里长按消息、或帖子右上角收藏</span></div>';
+        return sp3.map(function (p) {
+          return '<div class="row"><div class="ic">🖼</div><div class="tx"><b>' + esc(String(p.text || '（没有文案）').slice(0, 40)) + '</b><span>'
+            + (p.ts ? hm(p.ts) : '') + ' · 来自帖子</span></div></div>';
+        }).join('') + sv.map(function (m) {
+          return '<div class="row"><div class="ic">💬</div><div class="tx"><b>' + esc(String(m.text || '').slice(0, 40)) + '</b><span>'
+            + (m.ts ? hm(m.ts) : '') + '</span></div></div>';
+        }).join('');
+      }
+      if (_tab === 'gifts') {
+        if (!gifts.length) return '<div class="pig-empty">还没有礼物<br><span>去商城挑一个送他</span></div>';
+        return gifts.map(function (g) {
+          return '<div class="row"><div class="ic">' + esc(g.emoji || '🎁') + '</div><div class="tx"><b>' + esc(g.name || '礼物') + '</b>'
+            + '<span>' + (g.price ? ('¥' + g.price + ' · ') : '') + (g.dir === 'in' ? '他送的' : '你送的') + '</span></div></div>';
+        }).join('');
+      }
+      var rows = [];
+      if (state.visitorCount) rows.push(['👣', '陆沉 来过主页 · 第 ' + state.visitorCount + ' 次', state.lastVisit ? hm(state.lastVisit) : '']);
+      var cnt = (state.messages || []).filter(function (m) { return m && m.dir === 'out' }).length;
+      if (cnt) rows.push(['💬', '你一共发了 ' + fmt(cnt) + ' 条消息', '']);
+      var trs = (state.transfers || []).filter(function (t) { return t && t.contactId === c.id });
+      if (trs.length) rows.push(['💸', '转账 ' + trs.length + ' 次', trs[trs.length - 1].amount ? ('最近 ¥' + trs[trs.length - 1].amount) : '']);
+      if (!rows.length) return '<div class="pig-empty">还没有足迹<br><span>他来主页、你发消息都会记在这</span></div>';
+      return '<div class="pig-tl">' + rows.map(function (r) {
+        return '<div class="e"><b>' + esc(r[1]) + '</b><em>' + esc(r[2]) + '</em></div>';
+      }).join('') + '</div>';
+    }
+  }
+
+  renderProfile = function () {
+    if (state.settings && state.settings.profileIG === false) return _rp.apply(null, arguments);
+    var v = document.getElementById('view'); if (!v) return;
+    v.innerHTML = render();
+  };
+
+  /* ---------- 浮层 ---------- */
+  function el() { return document.getElementById('pigSheet') }
+  function sheet(html) {
+    var s = el(); if (!s) return;
+    s.innerHTML = '<div class="pmask" data-pig="close"></div><div class="ppanel">' + html + '</div>';
+    s.classList.add('on');
+  }
+  function closeSheet() { var s = el(); if (s) { s.classList.remove('on'); s.innerHTML = '' } }
+
+  var _post = null, _postIdx = -1;
+  function openPost(i) {
+    var ph = flatPhotos(), x = ph[i]; if (!x) return;
+    var p = x.post; _post = p; _postIdx = i;
+    var sd = pigSeed(p);
+    var nLike = sd.l + (p.liked ? 1 : 0) + (p.heLiked ? 1 : 0);
+    var nCmt = sd.c + (p.comments || []).length;
+    var nRep = sd.r;
+    var sp = (state.savedPosts || []);
+    var saved = sp.indexOf(p.id) >= 0;
+    sheet('<div class="phd"><div class="bk" data-pig="close">‹</div><div class="who"><b>' + esc(activeContact().name) + '</b><span>'
+      + (p.ts ? hm(p.ts) : '') + '</span></div><div class="dots" data-pig="close">✕</div></div>'
+      + '<div class="pimg" style="background-image:url(\'' + x.url + '\')"></div>'
+      + '<div class="acts">'
+      + '<span class="ic' + (p.liked ? ' on' : '') + '" data-pig="like" data-i="' + i + '">' + I_HEART + '<b>' + nLike + '</b></span>'
+      + '<span class="ic" data-pig="cmt">' + I_CMT + '<b>' + nCmt + '</b></span>'
+      + '<span class="ic" data-pig="repost">' + I_REP + '<b>' + nRep + '</b></span>'
+      + '<span class="ic" data-pig="send">' + I_SEND + '</span>'
+      + '<span class="save' + (saved ? ' on' : '') + '" data-pig="save" data-i="' + i + '">' + I_BOOK + '</span>'
+      + '</div>'
+      + (nLike ? '<div class="likes">' + fmt(nLike) + ' 次赞</div>' : '<div class="likes"></div>')
+      + '<div class="cap" data-pig="editcap"><b>' + esc(activeContact().name) + '</b>'
+      + (p.text ? esc(String(p.text)) : '<span class="hollow">写点什么…</span>') + '</div>'
+      + '<div class="tm">' + (p.ts ? hm(p.ts) + ' · ' : '') + '查看翻译</div>'
+      + '<div class="ebox" id="pigEdit"><textarea id="pigCap" rows="3" placeholder="给这张图写点什么…">' + esc(p.text || '') + '</textarea>'
+      + '<div class="row2"><button class="ok" data-pig="savecap">保存</button><button class="no" data-pig="close">取消</button></div></div>'
+      + (nCmt ? '<div class="cmts">' + (p.comments || []).map(function (c) {
+          return '<div class="cmt"><b>' + esc(c.name || (c.contactId ? '陆沉' : '我')) + '</b>' + esc(String(c.text || '')) + '</div>';
+        }).join('') + '</div>' : '')
+      + '<div class="pig-end">点文案可以改这段话</div>');
+  }
+
+  function openFeed() {
+    sheet('<h3>日常</h3>' + feedRows().map(function (r) {
+      return '<div class="row"><div class="ic">' + r[0] + '</div><div class="tx"><b>' + esc(r[1]) + '</b><span>' + esc(r[2]) + '</span></div></div>';
+    }).join('') + '<div class="pig-end">点空白处关闭</div>');
+  }
+  function openColl(i) {
+    var hl = highlights(), x = hl[i]; if (!x) return;
+    var cells = (x.imgs || []).map(function (ref, k) {
+      var u = mediaUrlSync(ref); if (!u) return '';
+      return '<div class="ct" style="background-image:url(\'' + u + '\')">'
+        + '<i class="x" data-pig="cdel" data-i="' + i + '" data-k="' + k + '">✕</i>'
+        + '<i class="star" data-pig="ccover" data-i="' + i + '" data-k="' + k + '">★</i></div>';
+    }).join('');
+    sheet('<div class="phd"><div class="bk" data-pig="close">‹</div><div class="who"><b>' + esc(x.k) + '</b><span>'
+      + ((x.imgs || []).length) + ' 张</span></div><div class="dots" data-pig="cadd" data-i="' + i + '">＋</div></div>'
+      + (cells ? '<div class="cgrid">' + cells + '</div><div class="pig-end">✕ 删除 · ★ 设为封面</div>'
+        : '<div class="pig-empty">这个合集还没有图<br><span>点右上角「＋」加图，可以一次选多张</span></div>'));
+  }
+
+  /* ---------- 点击 ---------- */
+  document.addEventListener('click', function (e) {
+    var el2 = e.target && e.target.closest ? e.target.closest('[data-pig]') : null;
+    if (!el2) return;
+    var act = el2.getAttribute('data-pig');
+    if (act === 'close') { closeSheet(); return }
+    if (act === 'avatar') { if (typeof sheetContact === 'function') sheetContact(activeContact().id); return }
+    if (act === 'dm') { closeSheet(); goView('chat'); return }
+    if (act === 'more') { toast('更多操作还没做'); return }
+    if (act === 'follow') {
+      state.profileFollowed = !(state.profileFollowed !== false);
+      save(); renderProfile(); toast(state.profileFollowed ? '已关注' : '已取消关注'); return;
+    }
+    if (act === 'fans' || act === 'fol') {
+      var isFans = act === 'fans';
+      var old = isFans ? (state.settings.profileFans || 0) : (state.settings.profileFollowing || 0);
+      var v = prompt(isFans ? '粉丝数改成多少？' : '关注数改成多少？', String(old));
+      if (v === null) return;
+      var n = Math.max(0, parseInt(v, 10) || 0);
+      if (isFans) state.settings.profileFans = n; else state.settings.profileFollowing = n;
+      save(); renderProfile(); toast('已改成 ' + n); return;
+    }
+    if (act === 'tab') { _tab = el2.getAttribute('data-t'); renderProfile(); return }
+    if (act === 'feed') { openFeed(); return }
+    if (act === 'photo') { openPost(+el2.getAttribute('data-i')); return }
+    if (act === 'upload') { pigUpload(null); return }
+    if (act === 'like') {
+      var li = +el2.getAttribute('data-i'), lp = (flatPhotos()[li] || {}).post;
+      if (lp) { lp.liked = !lp.liked; save(); }
+      if (lp) openPost(li);
+      return;
+    }
+    if (act === 'cmt') { toast('评论去朋友圈那条下面写'); return }
+    if (act === 'repost') { toast('转发还没做'); return }
+    if (act === 'send') { toast('发送给朋友还没做'); return }
+    if (act === 'save') {
+      var si = +el2.getAttribute('data-i'), sp2 = (flatPhotos()[si] || {}).post;
+      if (sp2) {
+        state.savedPosts = state.savedPosts || [];
+        var k2 = state.savedPosts.indexOf(sp2.id);
+        if (k2 >= 0) state.savedPosts.splice(k2, 1); else state.savedPosts.push(sp2.id);
+        save(); openPost(si); toast(k2 >= 0 ? '已取消收藏' : '已收藏这条');
+      }
+      return;
+    }
+    if (act === 'editcap') { var b = document.getElementById('pigEdit'); if (b) b.classList.add('on'); return }
+    if (act === 'savecap') {
+      var ta = document.getElementById('pigCap');
+      if (_post && ta) { _post.text = ta.value.trim(); save(); }
+      closeSheet(); renderProfile(); toast('已保存'); return;
+    }
+    if (act === 'newhl') {
+      var nm = prompt('给这个合集起个名字', '合照'); if (!nm) return;
+      var k = String(nm).trim().slice(0, 8); if (!k) return;
+      highlights().push({ k: k, imgs: [] }); save(); renderProfile(); return;
+    }
+    if (act === 'hl') { openColl(+el2.getAttribute('data-i')); return }
+    if (act === 'cadd') { pigUpload(+el2.getAttribute('data-i')); return }
+    if (act === 'cdel') { pigDel(+el2.getAttribute('data-i'), +el2.getAttribute('data-k')); return }
+    if (act === 'ccover') { pigCover(+el2.getAttribute('data-i'), +el2.getAttribute('data-k')); return }
+  }, true);
+
+  /* ---------- 上传（走站点现有的 mediaAdopt） ---------- */
+  function pigUpload(collIdx) {
+    var f = document.createElement('input');
+    f.type = 'file'; f.accept = 'image/*'; f.multiple = true;
+    f.onchange = function () {
+      var files = [].slice.call(f.files || []);
+      if (!files.length) return;
+      var refs = [], i = 0;
+      function done() {
+        if (!refs.length) { toast('没读到图片，换一张试试'); return }
+        if (collIdx != null && highlights()[collIdx]) {
+          var hh = highlights()[collIdx];
+          hh.imgs = (hh.imgs || []).concat(refs);
+        } else {
+          state.posts = state.posts || [];
+          state.posts.push({ id: uid(), contactId: null, text: '', imgs: refs, ts: now() });
+        }
+        save(); closeSheet(); renderProfile();
+        toast('已添加 ' + refs.length + ' 张');
+        if (collIdx != null) openColl(collIdx);
+      }
+      function next() {
+        if (i >= files.length) return done();
+        var file = files[i++];
+        var fr = new FileReader();
+        fr.onload = function () {
+          var img = new Image();
+          img.onload = function () {
+            try {
+              var data = encodeImg(img, 1400, { q: .92 });
+              mediaAdopt(data, 'post').then(function (ref) { if (ref) refs.push(ref); next() }).catch(function () { next() });
+            } catch (e2) { next() }
+          };
+          img.onerror = function () { next() };
+          img.src = fr.result;
+        };
+        fr.onerror = function () { next() };
+        fr.readAsDataURL(file);
+      }
+      next();
+    };
+    f.click();
+  }
+  function pigDel(ci, k) {
+    var hl = highlights()[ci]; if (!hl || !hl.imgs || !hl.imgs[k]) return;
+    if (!confirm('从「' + hl.k + '」里删掉这张图？')) return;
+    hl.imgs.splice(k, 1); save(); renderProfile(); openColl(ci); toast('已删除');
+  }
+  function pigCover(ci, k) {
+    var hl = highlights()[ci]; if (!hl || !hl.imgs || !hl.imgs[k]) return;
+    if (k === 0) { toast('这已经是封面了'); return }
+    var ref = hl.imgs.splice(k, 1)[0]; hl.imgs.unshift(ref);
+    save(); renderProfile(); openColl(ci); toast('已设为封面');
+  }
+
+  window.profileIGRefresh = function () { try { renderProfile() } catch (e) { } };
 })();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
