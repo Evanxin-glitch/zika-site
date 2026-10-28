@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="58c23b70bb">
+<meta name="x-build" content="8eaa23dfd8">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -3019,6 +3019,124 @@ body.room-mode .bd-board{flex:0 0 auto;max-height:34vh;overflow-y:auto}
 .bio-btns .ok{background:#111214;color:#fff;font-weight:600}
 .bio-btns .no{background:#EFECEE;color:#111214}
 .bio-btns{display:flex;gap:10px}
+/* ===== 查岗卡片 v2（黑白极简，一张卡） ===== */
+.ck2{width:100%;max-width:100%;background:#FDFCFB;border:1px solid #E2E0DD;border-radius:16px;overflow:hidden;
+  color:#141414;font-size:calc(13px*var(--fs))}
+.ck2-bar{display:flex;align-items:center;gap:8px;padding:13px 16px}
+.ck2-st{font-size:calc(10.5px*var(--fs));color:#141414;border:1px solid #141414;border-radius:99px;padding:2px 8px}
+.ck2-st.wait{color:#8C8C8C;border-color:#D6D4D0}
+.ck2-t{margin-left:auto;font-size:calc(10.5px*var(--fs));color:#A8A6A3;font-variant-numeric:tabular-nums}
+.ck2-hr{height:1px;background:#EDEBE8}
+.ck2-q{padding:15px 17px 13px}
+.ck2-q p{font-family:"Songti SC",Georgia,serif;font-size:calc(19px*var(--fs));line-height:1.55;font-weight:600}
+.ck2-q .ck2-note{margin-top:7px;font-size:calc(11px*var(--fs));color:#9A9793}
+.ck2-tl{padding:2px 17px 6px}
+.ck2-tl .r{display:flex;gap:11px;position:relative;padding-bottom:13px}
+.ck2-tl .r:last-child{padding-bottom:3px}
+.ck2-tl .d{width:7px;height:7px;border-radius:50%;flex:0 0 auto;margin-top:6px;position:relative;z-index:1;background:#141414}
+.ck2-tl .d.off{background:#FDFCFB;border:1px solid #B9B6B2}
+.ck2-tl .r:not(:last-child):after{content:"";position:absolute;left:3px;top:12px;bottom:0;width:1px;background:#E4E2DE}
+.ck2-tl .tx{flex:1;min-width:0}
+.ck2-tl .tx b{display:block;font-size:calc(12.5px*var(--fs));font-weight:600;line-height:1.5}
+.ck2-tl .tx b em{font-style:normal;font-weight:400;color:#6E6E6E}
+.ck2-tl .tx span{display:block;font-size:calc(10.5px*var(--fs));color:#A8A6A3;margin-top:2px}
+.ck2-tl .thumb{width:46px;height:46px;border-radius:8px;margin-top:8px;background-size:cover;background-position:center;
+  border:1px solid #E2E0DD;filter:grayscale(.7);cursor:pointer}
+.ck2-zk{margin:8px 16px 14px;padding:15px 15px 11px;background:#F6F5F3;border-radius:12px}
+.ck2-zk .who{display:flex;align-items:center;gap:7px;font-size:calc(10.5px*var(--fs));color:#8C8C8C}
+.ck2-zk .who .mood{border:1px solid #DDDBD7;border-radius:5px;padding:0 5px;color:#5E5C59}
+.ck2-zk .body{margin-top:10px;font-family:"Songti SC",Georgia,serif;font-size:calc(14.5px*var(--fs));line-height:1.85;color:#1B1B1B}
+.ck2-zk .foot2{margin-top:11px;padding-top:9px;border-top:1px solid #E6E4E1;display:flex;justify-content:space-between;
+  font-size:calc(9.5px*var(--fs));color:#A8A6A3;letter-spacing:.03em}
+.ck2-rep{border-top:1px solid #EDEBE8;padding:13px 16px 15px;background:#FBFAF9}
+.ck2-rep .h{font-size:calc(9.5px*var(--fs));color:#A8A6A3;letter-spacing:.1em;margin-bottom:8px}
+.ck2-rep .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:7px}
+.ck2-rep .chips button{font-family:inherit;font-size:calc(12px*var(--fs));padding:7px 11px;border-radius:8px;cursor:pointer;
+  border:1px solid #E2E0DD;background:#fff;color:#2A2A2A}
+.ck2-rep .chips button.on{background:#141414;border-color:#141414;color:#fff}
+.ck2-rep textarea.ck-in{width:100%;border:1px solid #E2E0DD;background:#fff;border-radius:10px;padding:10px 12px;
+  font:inherit;font-size:calc(13px*var(--fs));line-height:1.55;resize:none;outline:none;color:#1B1B1B;margin-top:2px}
+.ck2-rep .prev{display:flex;gap:8px;margin-top:9px}
+.ck2-rep .prev .th{width:52px;height:52px;border-radius:9px;background-size:cover;background-position:center;
+  border:1px solid #E2E0DD;filter:grayscale(.7)}
+.ck2-rep .prev .rm{width:20px;height:20px;border-radius:50%;border:1px solid #E2E0DD;background:#fff;color:#666;
+  font-size:11px;line-height:1;align-self:flex-start;cursor:pointer}
+.ck2-rep .foot{display:flex;align-items:center;gap:10px;margin-top:10px}
+.ck2-rep .photo{font-size:calc(12px*var(--fs));color:#4A4A4A;background:#fff;border:1px solid #E2E0DD;border-radius:9px;padding:8px 11px;cursor:pointer;font-family:inherit}
+.ck2-rep .later{margin-left:auto;font-size:calc(12px*var(--fs));color:#8C8C8C;background:none;border:none;padding:8px 2px;cursor:pointer;font-family:inherit}
+.ck2-rep .send{font-size:calc(12.5px*var(--fs));font-weight:700;color:#fff;background:#141414;border:none;border-radius:9px;
+  padding:10px 16px;cursor:pointer;font-family:inherit}
+.msg-row .ck2{flex:1;min-width:0}
+/* ===== 咖啡馆 App ===== */
+.cafe-shop{position:relative;margin:0 0 4px;padding:12px 18px 20px;
+  background:linear-gradient(180deg,#7B5236,#5E3D28);color:#F7EFE3}
+.cafe-awning{display:flex;height:8px;margin:-12px -18px 12px}
+.cafe-awning i{flex:1;background:#C8553D;border-right:1px solid rgba(0,0,0,.12)}
+.cafe-awning i:nth-child(2n){background:#F0E3D2}
+.cafe-h1{font-family:"Songti SC",Georgia,serif;font-size:calc(20px*var(--fs));letter-spacing:.06em}
+.cafe-line{font-family:"Songti SC",Georgia,serif;font-size:calc(12.5px*var(--fs));opacity:.92;margin-top:6px}
+.cafe-sub{font-size:calc(10.5px*var(--fs));opacity:.72;margin-top:4px;letter-spacing:.06em}
+.cafe-shop:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:10px;
+  background:repeating-linear-gradient(90deg,#6E4A32 0 16px,#7E573A 16px 32px)}
+.cafe-sign{font-size:calc(10px*var(--fs));border:1px solid rgba(255,255,255,.4);border-radius:6px;padding:3px 8px;
+  background:transparent;color:#F7EFE3;font-family:inherit}
+.cafe-counter{padding:14px 18px 2px}
+.cafe-cups{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
+.cafe-cup{width:34px;height:42px;border-radius:4px 4px 10px 10px;background:linear-gradient(180deg,#FFF7EC,#E9D7C2);
+  border:1.5px solid #C4A98D;display:flex;align-items:flex-end;justify-content:center;font-size:9px;color:#7A5B42;
+  padding-bottom:4px;box-shadow:inset 0 -9px 0 rgba(120,80,50,.16)}
+.cafe-cup.his{box-shadow:inset 0 -14px 0 rgba(90,56,34,.6);border-color:#8A6244}
+.cafe-cup.mine{box-shadow:inset 0 -14px 0 rgba(150,110,70,.45)}
+.cafe-cup.empty{border-style:dashed;background:transparent;box-shadow:none;color:#C4B49C}
+.cafe-stat{margin-left:auto;text-align:right}
+.cafe-stat b{font-size:calc(21px*var(--fs))}
+.cafe-stat span{display:block;font-size:calc(10.5px*var(--fs));color:var(--sub)}
+.cafe-caprow{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:calc(11.5px*var(--fs));color:var(--sub)}
+.cafe-pill{margin-left:auto;background:#EFE2D1;border:1px solid rgba(110,74,50,.16);border-radius:99px;padding:4px 11px;cursor:pointer}
+.cafe-board{margin:12px 16px 14px;background:#FFFBF4;border:1px solid rgba(110,74,50,.16);border-radius:16px;padding:12px}
+.cafe-board h2{font-family:"Songti SC",Georgia,serif;font-size:calc(14.5px*var(--fs));letter-spacing:.1em;color:#5E3D28;display:flex;gap:8px;align-items:center}
+.cafe-board h2:after{content:"";flex:1;height:1px;background:rgba(110,74,50,.16)}
+.cafe-g{font-size:calc(10px*var(--fs));color:#A08469;letter-spacing:.12em;margin:12px 0 6px}
+.cafe-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.cafe-it{border:1px solid rgba(110,74,50,.16);border-radius:11px;padding:10px 11px;background:#FFFDF8;cursor:pointer;position:relative}
+.cafe-it b{font-size:calc(13px*var(--fs));display:block}
+.cafe-it span{font-size:calc(10.5px*var(--fs));color:var(--sub);display:block;margin-top:3px;line-height:1.45}
+.cafe-it i{position:absolute;right:9px;top:9px;font-style:normal;font-size:calc(9.5px*var(--fs));color:#A08469}
+.cafe-it.lock{opacity:.45}
+.cafe-row{display:flex;justify-content:space-between;padding:7px 2px;border-bottom:1px solid rgba(110,74,50,.10);
+  font-size:calc(12.5px*var(--fs));color:#4A3527}
+.cafe-row em{font-style:normal;color:#A08469;font-size:calc(11px*var(--fs))}
+.cafe-make{padding:0 16px 18px}
+.cafe-mk-sub{font-size:calc(10.5px*var(--fs));color:#A08469;margin-bottom:10px}
+.cafe-step{background:#FFFBF4;border:1px solid rgba(110,74,50,.16);border-radius:13px;padding:12px 13px;margin-bottom:9px}
+.cafe-step.dim{opacity:.5}
+.cafe-step h3{font-size:calc(12px*var(--fs));color:#5E3D28;display:flex;gap:7px;align-items:center}
+.cafe-step h3 em{font-style:normal;font-size:calc(9.5px*var(--fs));color:#A08469}
+.cafe-bar{height:6px;background:#EDE0D0;border-radius:99px;margin-top:9px;overflow:hidden}
+.cafe-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8A6244,#4E3322);border-radius:99px;transition:width .2s linear}
+.cafe-opt{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.cafe-opt button{font-family:inherit;font-size:calc(11.5px*var(--fs));padding:6px 10px;border-radius:8px;
+  border:1px solid rgba(110,74,50,.16);background:#fff;color:#4A3527;cursor:pointer}
+.cafe-opt button.on{background:#5E3D28;border-color:#5E3D28;color:#fff}
+.cafe-pour{display:flex;justify-content:center;padding:8px 0 2px}
+.cafe-big{width:58px;height:70px;border-radius:6px 6px 15px 15px;border:2px solid #C4A98D;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#FFF9F0,#EFE0CC)}
+.cafe-fill{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(180deg,#8B5E3C,#3E2718);transition:height .2s}
+.cafe-foam{position:absolute;left:0;right:0;bottom:0;height:0;background:#F8EBD9;transition:height .2s}
+.cafe-btnrow{display:flex;gap:9px;margin-top:10px}
+.cafe-btnrow button{flex:1;font-family:inherit;font-size:calc(13.5px*var(--fs));font-weight:700;padding:12px;border-radius:12px;border:none;cursor:pointer}
+.cafe-btnrow .go{background:#5E3D28;color:#FFF6EA}
+.cafe-btnrow .go:disabled{background:#DCCBB6;color:#9A8570}
+.cafe-btnrow .alt{background:#EFE2D1;color:#6E4A32}
+.cafe-hint{font-size:calc(10.5px*var(--fs));color:#A08469;text-align:center;margin:10px 16px 0;line-height:1.6}
+
+/* 聊天里的咖啡馆小卡 */
+.msg-row .cafe-card{background:#FFFDF8;border:1px solid rgba(110,74,50,.20);border-radius:12px;padding:11px 12px;max-width:74%}
+.cafe-card .ct1{font-size:calc(9.5px*var(--fs));color:#A08469;letter-spacing:.06em}
+.cafe-card .ct2{font-size:calc(12.5px*var(--fs));font-weight:600;margin-top:4px;color:#2A1F17}
+.cafe-card .ct3{font-size:calc(10.5px*var(--fs));color:#8A7461;margin-top:3px}
+.cafe-card .cgo{margin-top:8px;font-size:calc(10.5px*var(--fs));color:#5E3D28;border-bottom:1px solid #D8C4AC;display:inline-block;cursor:pointer}
+.msg-row.out .cafe-card{background:#F3E7D8;border-color:rgba(138,98,68,.28)}
 </style>
 </head>
 <body>
@@ -7445,6 +7563,19 @@ function chatTryAppendLast(msgs, contact){
   }catch(e){ return false }
 }
 
+
+/* 查岗卡片：待发图片暂存（选完图先预览，点「回复」才真正写进消息） */
+var _ckPreview={};
+/** 他的情绪标签：没存就按字卡内容猜一个，保证卡片不空 */
+function ckMoodOf(m){
+  var s=String((m&&(m.hisCard||m.hisReply))||'');
+  if(/别太累|注意|早点|照顾|身体/.test(s))return '心疼';
+  if(/想|惦记|等你|回来/.test(s))return '惦记';
+  if(/笑|哈哈|好玩|可爱/.test(s))return '被逗到';
+  if(/忙|开会|工作/.test(s))return '在忙';
+  return '平静';
+}
+
 function renderChat(){
   var _inSnap=inputSnapshot();
 
@@ -7740,39 +7871,61 @@ function bubbleHtml(m,c){
       +'</div></div>';
   }
   if(m.kind==='checkin'){
+    /* ===== 查岗卡片（2026-10-29 换新：一张卡、黑白极简、回复框在卡上） =====
+       结构：状态 → 问题 → 时间轴（查岗 / 回复： / 已读 / 他回了）→ 回复区（只在等你回时出现）→ 他的字卡
+       方向不写在顶栏：有「回复：」= 他问的；有「他回了」= 你问的。 */
     var isIn=(m.dir==='in');
+    var answered=!!m.myReply;
+    var done=!!(m.hisReply||m.hisCard);
+    var stTxt, stCls;
+    if(isIn){ stTxt=answered?'已回复':'待回复'; stCls=answered?'wait':''; }
+    else    { stTxt=done?'已答复':'等回复';      stCls=done?'wait':''; }
     var q=String(m.text||'').replace(/^查岗[:：]\s*/,'');
-    var head='<div class="gc-head"><span class="gc-tag">查岗</span><span class="gc-time">'+fmtTime(m.ts)+'</span></div>';
-    var quote='<div class="gc-title">'+esc(q)+'</div>';
-    if(isIn){
-      var answered=!!m.myReply;
-      var reply='';
-      if(answered){
-        reply='<div class="ck-replied"><span>你已回复</span><b>'+esc(m.myReply)+'</b><i class="ck-done">已完成</i></div>';
-        if(m.hisReply){
-          reply+='<div class="ck-replied"><span>'+esc(c.name)+' 回复</span><b>'+esc(m.hisReply)+'</b></div>';
-        }
-      }else{
-        reply='<div class="ck-reply"><textarea class="ck-in" rows="1" placeholder="告诉对方你现在的状态……" data-ck="'+m.id+'"></textarea>'
-          +'<div class="ck-chips">'
-          +'<button data-act="ck-send" data-id="'+m.id+'" data-txt="在工作">在工作</button>'
-          +'<button data-act="ck-send" data-id="'+m.id+'" data-txt="正在吃饭">正在吃饭</button>'
-          +'<button data-act="ck-send" data-id="'+m.id+'" data-txt="回家路上">回家路上</button>'
-          +'<button data-act="ck-send" data-id="'+m.id+'" data-txt="也在想你">也在想你</button>'
-          +'</div>'
-          +'<div class="ck-actions"><button class="ck-later" data-act="ck-later" data-id="'+m.id+'">稍后回复</button>'
-          +'<button class="ck-send" data-act="ck-send" data-id="'+m.id+'">回复并发送</button></div></div>';
-      }
-      return '<div class="msg-row in"><span class="bubble-av">'+cAvatar(c)+'</span>'
-        +'<div class="gcard c-pink in">'+head+quote+reply+'</div></div>';
+    var H='';
+    H+='<div class="ck2">';
+    H+='<div class="ck2-bar"><span class="ck2-st '+stCls+'">'+stTxt+'</span><span class="ck2-t">'+fmtTime(m.ts)+'</span></div>';
+    H+='<div class="ck2-hr"></div>';
+    H+='<div class="ck2-q"><p>'+esc(q)+'</p>'+(m.note?'<div class="ck2-note">'+esc(m.note)+'</div>':'')+'</div>';
+    /* 时间轴 */
+    H+='<div class="ck2-tl">';
+    H+='<div class="r"><i class="d"></i><div class="tx"><b>查岗</b><span>'+fmtTime(m.ts)+'</span></div></div>';
+    if(answered){
+      H+='<div class="r"><i class="d off"></i><div class="tx"><b>回复：<em>'+esc(m.myReply)+'</em></b><span>'+fmtTime(m.replyAt||m.ts)+'</span>';
+      if(m.myImg&&!mediaDead(m.myImg))H+='<div class="thumb" data-act="ck-photo-view" data-ref="'+esc(m.myImg)+'" style="background-image:url(\''+mediaUrlSync(m.myImg)+'\')"></div>';
+      H+='</div></div>';
     }
-    return '<div class="msg-row out"><span class="bubble-av">'+meAvatar()+'</span>'
-      +'<div class="gcard c-pink out">'+head+quote
-      +(m.hisReply?'<div class="ck-replied"><span>'+esc(c.name)+' 回复</span><b>'+esc(m.hisReply)
-          +(m.hisCard?'<i class="ck-more">'+esc(m.hisCard)+'</i>':'')
-          +'</b><i class="ck-done">已答复</i></div>'
-        :(m.myReply?'<div class="ck-replied"><span>已回复</span><b>'+esc(m.myReply)+'</b><i class="ck-done">已完成</i></div>':'<div class="gc-note">等'+esc(c.name)+'回复（TA 会直接在这张卡上回你）</div>'))
-      +'</div></div>';
+    if(m.readAt)H+='<div class="r"><i class="d off"></i><div class="tx"><b>已读</b><span>'+fmtTime(m.readAt)+'</span></div></div>';
+    if(done)H+='<div class="r"><i class="d off"></i><div class="tx"><b>他回了</b><span>'+fmtTime(m.hisReplyTs||m.readAt||m.ts)+'</span></div></div>';
+    H+='</div>';
+    /* 他的字卡回执 */
+    if(done){
+      H+='<div class="ck2-zk"><div class="who">'+esc(c.name)+'<span class="mood">'+esc(m.hisMood||ckMoodOf(m))+'</span></div>'
+        +'<div class="body">'+esc(m.hisCard||m.hisReply||'')+'</div>'
+        +'<div class="foot2"><span>字卡库</span><span>'+fmtTime(m.hisReplyTs||m.ts)+'</span></div></div>';
+    }
+    /* 回复区：只在「他问你、你还没回」时出现 */
+    if(isIn&&!answered){
+      H+='<div class="ck2-rep">';
+      H+='<div class="h">状态</div><div class="chips" data-ckgroup="st">'
+        +['在工作','在吃饭','回家路上','准备睡了'].map(function(x){return '<button data-act="ck-chip" data-id="'+m.id+'" data-txt="'+esc(x)+'">'+esc(x)+'</button>'}).join('')
+        +'</div>';
+      H+='<div class="h">心情</div><div class="chips" data-ckgroup="mo">'
+        +['在想你','有点累','心情不错','别提了'].map(function(x){return '<button data-act="ck-chip" data-id="'+m.id+'" data-txt="'+esc(x)+'">'+esc(x)+'</button>'}).join('')
+        +'</div>';
+      H+='<textarea class="ck-in" rows="1" data-ck="'+m.id+'" placeholder="或者自己说一句"></textarea>';
+      H+='<div class="prev" id="ckprev-'+m.id+'">'+(_ckPreview[m.id]?'<div class="th" style="background-image:url(\''+mediaUrlSync(_ckPreview[m.id])+'\')"></div><button class="rm" data-act="ck-photo-rm" data-id="'+m.id+'">✕</button>':'')+'</div>';
+      H+='<div class="foot"><button class="photo" data-act="ck-photo" data-id="'+m.id+'">＋ 图</button>'
+        +'<button class="later" data-act="ck-later" data-id="'+m.id+'">稍后</button>'
+        +'<button class="send" data-act="ck-send" data-id="'+m.id+'">回复</button></div>';
+      H+='</div>';
+    }
+    if(isIn&&answered){
+      H+='<div class="ck2-rep" style="padding:11px 16px"><div class="foot" style="margin:0">'
+        +'<span style="font-size:calc(12px*var(--fs));color:#8C8C8C">你已经回了</span>'
+        +'<button class="later" style="margin-left:auto" data-act="ck-again" data-id="'+m.id+'">再补一句</button></div></div>';
+    }
+    H+='</div>';
+    return '<div class="msg-row '+m.dir+'"><span class="bubble-av">'+(isIn?cAvatar(c):meAvatar())+'</span>'+H+'</div>';
   }
   if(m.kind==='gift'){
     var isInG=(m.dir==='in');
@@ -9088,7 +9241,7 @@ function renderMe(){
   html+='<div class="me-sec" id="sec-acct"><h3>聊天账户</h3><div class="card" style="padding:0">';
   for(var i2=0;i2<state.contacts.length;i2++){
     var cc=state.contacts[i2];
-    html+='<div class="contact-item">'+avatarHtml(cc,34)+'<div class="info"><b>'+esc(cc.name)+'</b><span>回复 '+fmtDur(cc.replyMin)+'–'+fmtDur(cc.replyMax)+' · 主动 '+fmtDur(cc.initMin)+'–'+fmtDur(cc.initMax)+'</span></div>'+(cc.id===c.id?'<span class="on-tag">当前</span>':'')+'<button class="btn small ghost" data-act="contact-edit" data-id="'+cc.id+'">设置</button></div>';
+    html+='<div class="contact-item">'+avatarHtml(cc,34)+'<div class="info"><b>'+esc(cc.name)+'</b><span>'+(cc.id===c.id?'正在聊这一位':'点「设置」调节奏和概率')+'</span></div>'+(cc.id===c.id?'<span class="on-tag">当前</span>':'')+'<button class="btn small ghost" data-act="contact-edit" data-id="'+cc.id+'">设置</button></div>';
   }
   html+='</div><button class="btn" style="width:100%;margin-top:10px" data-act="contact-add">新建联系人</button></div>';
   html+='<div class="me-sec" id="sec-stats"><h3>数据</h3><div class="stats">';
@@ -9152,6 +9305,19 @@ function renderMe(){
     +'</div>';
   html+='<p class="meta" style="margin-top:10px">当前对象自己的概率（已读不回 / 朋友圈回复 / 来电 / 转账 / 邀请）在 设置 → 节奏 → 当前对象 里调</p>';
   html+='<div style="margin-top:10px"><button class="btn" style="width:100%" data-act="pct-save">保存概率</button></div></div></div>';
+  html+='<div class="pct-sub">邀请一起专注</div>'+invitePanelHtml();
+  html+='<div style="margin-top:8px"><button class="btn" style="width:100%" data-act="save-allpct">保存全部概率</button></div>';
+  html+='<div class="me-sec" id="sec-inter"><h3>交互</h3><div class="card">';
+  html+='<div class="sw-row"><div><b>引用回复</b><span>点消息可引用原消息</span></div><div class="switch'+(state.settings.quoteOn?' on':'')+'" data-act="st-sw" data-key="quoteOn"></div></div>';
+  html+='<div class="sw-row"><div><b>已读回执</b><span>显示我方消息已读状态</span></div><div class="switch'+(state.settings.readReceipt?' on':'')+'" data-act="st-sw" data-key="readReceipt"></div></div>';
+  html+='<div class="sw-row"><div><b>正在输入的拟态</b><span>回复前显示三点输入</span></div><div class="switch'+(state.settings.typingOn?' on':'')+'" data-act="st-sw" data-key="typingOn"></div></div>';
+  html+='<div class="sw-row"><div><b>欲言又止</b><span>小概率打了又删</span></div><div class="switch'+(state.settings.stopTyping?' on':'')+'" data-act="st-sw" data-key="stopTyping"></div></div>';
+  html+='<div class="sw-row"><div><b>消息操作菜单</b><span>气泡旁显示 ⋮ 可复制删除</span></div><div class="switch'+(state.settings.msgMenu?' on':'')+'" data-act="st-sw" data-key="msgMenu"></div></div>';
+  html+='<div class="sw-row"><div><b>交流情绪</b><span>气泡下方显示他的情绪标签（按字卡分类判定）</span></div><div class="switch'+(state.settings.moodChainOn!==false?' on':'')+'" data-act="st-sw" data-key="moodChainOn"></div></div>';
+  html+='<div class="sw-row"><div><b>他收藏我的消息</b><span>发消息后他有一定概率收藏</span></div>'+sw2('savedOn',state.settings.savedOn!==false)+'</div>';
+  html+='<div class="sw-row"><div><b>拍一拍</b><span>双击头像拍一拍</span></div><div class="switch'+(state.settings.patOn?' on':'')+'" data-act="st-sw" data-key="patOn"></div></div>';
+  html+='<div class="sw-row"><div><b>每日一句</b><span>每次打开网站自动更新一句</span></div><div class="switch'+(state.settings.dailyOn?' on':'')+'" data-act="st-sw" data-key="dailyOn"></div></div>';
+  html+='</div></div>';
 
 
 
@@ -9187,26 +9353,9 @@ function renderMe(){
     +'<div class="inl"><label>最多拼几张（1–5）</label><input id="setPuzzleMax2" type="number" min="1" max="5" value="'+((state.settings&&state.settings.puzzleMax)!=null?state.settings.puzzleMax:3)+'"></div></div>'
     +'<button class="btn" style="width:100%;margin-top:10px" data-act="puzzle-save">保存拼字卡设置</button>'
     +'</div></div>';
-  html+='<div class="me-group-title">通知与互动</div>';
-  html+='<div class="me-sec" id="sec-ntf"><h3>通知与互动</h3>'+ntfPanelHtml();
-  html+='<div class="card" style="margin-top:10px">';
-  html+='<div class="sw-row"><div><b>他收藏我的消息</b><span>发消息后他有一定概率收藏</span></div>'+sw2('savedOn',state.settings.savedOn!==false)+'</div>';
-  html+='<div class="sw-row"><div><b>拍一拍</b><span>双击头像拍一拍</span></div><div class="switch'+(state.settings.patOn?' on':'')+'" data-act="st-sw" data-key="patOn"></div></div>';
-  html+='<div class="sw-row"><div><b>每日一句</b><span>每次打开网站自动更新一句</span></div><div class="switch'+(state.settings.dailyOn?' on':'')+'" data-act="st-sw" data-key="dailyOn"></div></div>';
-
-
-  html+='<button class="btn" style="width:100%;margin-top:8px" data-act="save-allpct">保存全部概率</button>';
-  html+='<div class="me-sec" id="sec-inter"><h3>交互</h3><div class="card">';
-  html+='<div class="sw-row"><div><b>引用回复</b><span>点消息可引用原消息</span></div><div class="switch'+(state.settings.quoteOn?' on':'')+'" data-act="st-sw" data-key="quoteOn"></div></div>';
-  html+='<div class="sw-row"><div><b>已读回执</b><span>显示我方消息已读状态</span></div><div class="switch'+(state.settings.readReceipt?' on':'')+'" data-act="st-sw" data-key="readReceipt"></div></div>';
-  html+='<div class="sw-row"><div><b>正在输入的拟态</b><span>回复前显示三点输入</span></div><div class="switch'+(state.settings.typingOn?' on':'')+'" data-act="st-sw" data-key="typingOn"></div></div>';
-  html+='<div class="sw-row"><div><b>欲言又止</b><span>小概率打了又删</span></div><div class="switch'+(state.settings.stopTyping?' on':'')+'" data-act="st-sw" data-key="stopTyping"></div></div>';
-  /* ★ 这个输入框以前漏了：保存代码要读 #setStopPct，但模板里没有，
-     于是 .value 抛错、整段保存中断（自查抓到的）。 */
-
-  html+='<div class="sw-row"><div><b>消息操作菜单</b><span>气泡旁显示 ⋮ 可复制删除</span></div><div class="switch'+(state.settings.msgMenu?' on':'')+'" data-act="st-sw" data-key="msgMenu"></div></div>';
-  /* ★ 交流情绪：他回完一条时，气泡下面挂「情绪 / 心意 / 交流意图」 */
-  html+='<div class="sw-row"><div><b>交流情绪</b><span>气泡下方显示他的情绪标签（按字卡分类判定）</span></div><div class="switch'+(state.settings.moodChainOn!==false?' on':'')+'" data-act="st-sw" data-key="moodChainOn"></div></div>';
+  html+='<div class="me-group-title">通知</div>';
+  html+='<div class="me-sec" id="sec-ntf"><h3>通知</h3>'+ntfPanelHtml();
+  html+='</div>';
   html+='<div class="me-group-title">美化</div>';
   /* ★ 网站名称：用户可以自己输入（默认"沉与昕之恋"） */
   html+='<div class="me-sec" id="sec-sitename"><h3>网站名称</h3><div class="card">'
@@ -9684,7 +9833,7 @@ var BACKUP_CATS=[
  {k:'chat',      n:'聊天记录',          d:'各联系人的文字和媒体消息',     keys:['messages','nextInit','nextCallDue','nextInviteDue']},
  {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet','mySaves','pollLog','surveys']},
  {k:'cards',     n:'字卡库',            d:'分组、字卡、固定字卡',         keys:['cards','cardCats','statusCards','moodCards','patCards','diaryCards','writerCards','_smDeleted','currentStatus','currentMood']},
- {k:'moments',   n:'朋友圈',            d:'动态、封面、访客',             keys:['posts','feedEvents','nextPostDue','nextVisitDue','visitorCount','lastVisit','profileBox','profileFollowed','savedPosts','highlights']},
+ {k:'moments',   n:'朋友圈',            d:'动态、封面、访客',             keys:['posts','feedEvents','nextPostDue','nextVisitDue','visitorCount','lastVisit','profileBox','profileFollowed','savedPosts','highlights','pigPosts']},
  {k:'mail',      n:'信箱',              d:'信件、收发状态',               keys:['letters','nextLetterDue']},
  {k:'diary',     n:'日记',              d:'日记内容与互动',               keys:['diary','dailyPosts','diaryDue']},
  {k:'tarot',     n:'塔罗',              d:'抽牌记录与每日运势',           keys:['tarotLog','tarotDaily','_tarotLast']},
@@ -9693,7 +9842,7 @@ var BACKUP_CATS=[
  {k:'tide',      n:'潮汐',              d:'潮汐记录',                     keys:['tide']},
  /* ★ 这两个以前没进任何分类：换手机/清缓存时歌单和商城记录会丢（自查扫出来的） */
  {k:'music',     n:'音乐',              d:'歌单与播放状态',               keys:['music']},
- {k:'shop',      n:'商城',              d:'商品、购买与代买记录',         keys:['shop']}
+ {k:'shop',      n:'商城',              d:'商品、购买与代买记录',         keys:['shop','cafe','cafeHard']}
 ];
 function backupCatKeys(k){
   for(var i=0;i<BACKUP_CATS.length;i++)if(BACKUP_CATS[i].k===k)return BACKUP_CATS[i].keys;
@@ -10188,6 +10337,9 @@ function replyChat(m){
     m.hisReply=ckAnswer(m.text);
     /* 混搭：贴题的短答 + 一句你字卡里的句子（没字卡时就只回短答） */
     m.hisCard=ckCardLine();
+    m.readAt=m.readAt||now();
+    m.hisCard=m.hisCard||ckCardLine();
+    m.hisMood=m.hisMood||ckMoodOf(m);
     m.hisReplyTs=now();
     save();
     try{if(location.hash.replace('#','')==='chat')renderChat()}catch(e){}
@@ -10775,31 +10927,43 @@ function checkinCardInput(id){
 function checkinReply(id,preset){
   var m=byId(state.messages,id);
   if(!m||m.myReply)return;
-  var txt=preset||checkinCardInput(id);
-  if(!txt){toast('写一句你现在在做什么');return}
-  m.myReply=txt;
+  /* 选中的快捷词（状态 + 心情 各一组，可多选） */
+  var sel=[];
+  try{
+    var box=document.querySelector('.ck2[data-ckcard="'+id+'"]');
+    if(!box)box=document.querySelector('.msg-row .ck2');
+    if(box){
+      var bs=box.querySelectorAll('[data-ckgroup] button.on');
+      for(var i=0;i<bs.length;i++)sel.push(bs[i].getAttribute('data-txt'));
+    }
+  }catch(e){}
+  var manual=preset||checkinCardInput(id);
+  var txt=sel.slice();
+  if(manual)txt.push(manual);
+  var out=txt.filter(Boolean).join(' · ');
+  if(!out){toast('选一个状态，或者写一句');return}
+  m.myReply=out;
   m.replyAt=now();
+  if(typeof _ckPreview!=='undefined'&&_ckPreview[id]){ m.myImg=_ckPreview[id]; delete _ckPreview[id]; }
   var c=contact(m.contactId)||activeContact();
-  /* ★ 按用户要求：回复查岗只写在卡片上，**不再**额外发一条聊天消息。
-     以前这里会 push 一条普通消息，聊天流里就多出一条重复的「准备睡觉」。 */
   save();renderChat();
   toast('已报备');
-  /* 他过一会儿在**卡片上**回一句（同样不进聊天流） */
+  /* 他过一会儿在卡片上回：先记「已读」，再从字卡库挑一张回你 */
   var mid=m.id;
   CLK.set(function(){
     var mm=byId(state.messages,mid);
     if(!mm)return;
-    /* ★ 原来这里是 push 一条普通消息，内容取自 pickChkReply 里写死的 6 句，
-       所以"我也在想你。"会突然出现在聊天记录里。现在改成写在卡片的回复行上。 */
-    mm.hisReply=pickChkReply(txt);
+    mm.readAt=now();
+    mm.hisReply=pickChkReply(mm.myReply);
+    mm.hisCard=ckCardLine()||mm.hisReply;
+    mm.hisMood=ckMoodOf(mm);
     mm.hisReplyTs=now();
     try{feedEvent(c.name+' 回复了你的报备','chat')}catch(e){}
     save();
     try{if(location.hash.replace('#','')==='chat')renderChat()}catch(e){}
     schedule();
   },rnd(4000,9000));
-}
-function pickChkReply(myTxt){
+}function pickChkReply(myTxt){
   var pool=['收到，那我放心了。','嗯，知道了，注意安全。','好，忙你的，我不打扰。','我也在想你。','记得吃饭。','早点回来。'];
   if(myTxt.indexOf('想你')>=0)return '我也想你，很快就能见到。';
   if(myTxt.indexOf('吃饭')>=0)return '那就好好吃，别对付。';
@@ -11540,17 +11704,6 @@ function ntfPanelHtml(){
   h+='<div class="sw-row"><div><b>强振动</b><span>到达时震得更长一点（三下），适合手机静音放兜里时</span></div>'+sw2('ntfStrong',st.ntfStrong===true)+'</div>';
   h+='<div class="sw-row"><div><b>应用角标</b><span>主屏图标上显示未读数字（支持的浏览器才会亮）</span></div>'+sw2('ntfBadge',st.ntfBadge!==false)+'</div>';
   h+='</div>';
-  h+='<div class="card ntf-card" style="margin-top:10px"><div class="sw-row"><div><b>邀请一起专注</b><span>陆沉会来邀请你去「陪伴」里一起学习 / 工作 / 运动</span></div>'+sw2('inviteOn',st.inviteOn!==false)+'</div>';
-  h+='<div class="ntf-block"><div class="nb-head"><b>邀请概率</b><span class="ntf-tag">'+((st.invitePct!=null?st.invitePct:30))+'%</span></div>';
-  h+='<span class="nb-desc">他每次"想起来"邀请你时，有多大概率真的发出邀请。下面还能设两次邀请之间大概隔多久。</span>';
-  h+='<div class="rhy-grid" style="margin-top:8px">'
-
-    +'<div class="inl"><label>最快间隔（分钟）</label><input id="setInviteMin" type="number" min="1" max="10080" value="'+((st.inviteMin!=null?st.inviteMin:60))+'"></div>'
-    +'<div class="inl"><label>最慢间隔（分钟）</label><input id="setInviteMax" type="number" min="1" max="10080" value="'+((st.inviteMax!=null?st.inviteMax:240))+'"></div>'
-    +'</div>'
-    +'<div class="nb-btns"><button class="btn small" data-act="invite-save">保存邀请设置</button><button class="btn small ghost" data-act="invite-test">立刻发一条邀请</button></div>'
-    +'<p class="meta" style="margin-top:8px">每个联系人还能单独设：设置 → 聊天账户 → 他的「设置」→ 邀请一起专注概率%。</p>'
-    +'</div>';
   h+='<p class="meta" style="margin-top:10px">iPhone 说明：Safari 只有把网站"添加到主屏幕"并从图标打开后才支持系统通知；息屏期间网页被系统冻结，<b>完全关闭网页时无法收到消息</b>（那需要服务器推送）。想尽量不断档，可在下面把"后台保活"开到"一直"。</p>';
   h+='</div>';
   return h;
@@ -11707,6 +11860,23 @@ function syncCatchUp(){
   else toast('补发完成：离线期间的新消息已同步');
 }
 
+/** 邀请一起专注面板（从「通知」挪到「概率」里用） */
+function invitePanelHtml(){
+  var st=state.settings||{}; var s='';
+  s+='<div class="card ntf-card" style="margin-top:10px"><div class="sw-row"><div><b>邀请一起专注</b><span>陆沉会来邀请你去「陪伴」里一起学习 / 工作 / 运动</span></div>'+sw2('inviteOn',st.inviteOn!==false)+'</div>';
+  s+='<div class="ntf-block"><div class="nb-head"><b>邀请概率</b><span class="ntf-tag">'+((st.invitePct!=null?st.invitePct:30))+'%</span></div>';
+  s+='<span class="nb-desc">他每次"想起来"邀请你时，有多大概率真的发出邀请。下面还能设两次邀请之间大概隔多久。</span>';
+  s+='<div class="rhy-grid" style="margin-top:8px">'
+
+    +'<div class="inl"><label>最快间隔（分钟）</label><input id="setInviteMin" type="number" min="1" max="10080" value="'+((st.inviteMin!=null?st.inviteMin:60))+'"></div>'
+    +'<div class="inl"><label>最慢间隔（分钟）</label><input id="setInviteMax" type="number" min="1" max="10080" value="'+((st.inviteMax!=null?st.inviteMax:240))+'"></div>'
+    +'</div>'
+    +'<div class="nb-btns"><button class="btn small" data-act="invite-save">保存邀请设置</button><button class="btn small ghost" data-act="invite-test">立刻发一条邀请</button></div>'
+    +'<p class="meta" style="margin-top:8px">每个联系人还能单独设：设置 → 聊天账户 → 他的「设置」→ 邀请一起专注概率%。</p>'
+    +'</div>';
+  return s;
+}
+
 /* ================= 弹层 ================= */
 function openSheet(html){
   var m=$('#sheet-mask');
@@ -11815,6 +11985,11 @@ document.addEventListener('click',function(e){
     else if(act==='invite-accept')inviteAccept(id)
     else if(act==='invite-decline')inviteDecline(id)
     else if(act==='ck-send')checkinReply(id,btn.getAttribute('data-txt'))
+  else if(act==='ck-chip')ckChip(btn)
+  else if(act==='ck-photo')ckPickPhoto(id)
+  else if(act==='ck-photo-rm'){delete _ckPreview[id];renderChat()}
+  else if(act==='ck-photo-view')openPhotoView(btn.getAttribute('data-ref'))
+  else if(act==='ck-again')ckAgain(id)
     else if(act==='ck-later')checkinLater(id)
     else if(act==='checkin-add')sheetCheckinAdd();
     else if(act==='checkin-add-save')checkinAddSave();
@@ -12126,6 +12301,54 @@ window.addEventListener('load',function(){
    这里不要再定义一份，否则会覆盖掉上面那份（函数声明提升，后定义的生效）。 */
 
 /* ===== v7：主页主题 ===== */
+
+/* ===== 查岗卡片交互（2026-10-29） ===== */
+function ckChip(btn){
+  var id=btn.getAttribute('data-id');
+  var box=document.querySelector('.ck2[data-ckcard="'+id+'"]')||btn.closest('.ck2');
+  if(!box)return;
+  var grp=btn.parentNode;
+  /* 同一组里单选，再点一次取消 */
+  var on=btn.classList.contains('on');
+  var bs=grp.querySelectorAll('button');
+  for(var i=0;i<bs.length;i++)bs[i].classList.remove('on');
+  if(!on)btn.classList.add('on');
+}
+function ckPickPhoto(id){
+  var f=document.createElement('input');
+  f.type='file'; f.accept='image/*';
+  f.style.cssText='position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';
+  document.body.appendChild(f);
+  f.onchange=function(){
+    if(!f.files||!f.files[0])return;
+    pickImageFile(f,function(img){
+      var data=encodeImg(img,1400,{q:.9});
+      mediaAdopt(data,'post').then(function(ref){
+        _ckPreview[id]=ref;
+        try{renderChat()}catch(e){}
+        toast('图已经挂上了，点「回复」一起发');
+      }).catch(function(){toast('图片没存上，再试一次')});
+    });
+  };
+  setTimeout(function(){try{f.click()}catch(e){}},30);
+  setTimeout(function(){try{if(f.parentNode)f.parentNode.removeChild(f)}catch(e){}},120000);
+}
+function openPhotoView(ref){
+  if(!ref||mediaDead(ref))return;
+  var u=mediaUrlSync(ref); if(!u)return;
+  if(typeof openSheet==='function'){
+    openSheet('<h3>图片</h3><div style="padding:0 0 10px"><img src="'+u+'" style="width:100%;display:block" alt=""></div>'
+      +'<div class="zbtns"><button class="zbtn" data-act="sheet-close">关闭</button></div>');
+  }
+}
+function ckAgain(id){
+  var m=byId(state.messages,id); if(!m)return;
+  /* 再补一句：把已回复状态收回成待回复，让你能再补一条（不覆盖上一条） */
+  m.myReply=''; m.replyAt=0; delete m.myImg;
+  save(); try{renderChat()}catch(e){}
+  toast('可以再补一句了');
+}
+
 var THEMES={
   bw:{bg:'#F3F3F1',card:'#FFFFFF',ink:'#262626',sub:'#8A8A8A',line:'#E2E2DF',green:'#555555',orange:'#7C7C7C',blue:'#6F6F6F',brown:'#636363',gold:'#A8A8A8',gs:'#EFEFEF',os:'#F3F3F0',g1:'#F5F5F3',g2:'#ECECEA',s1:'rgba(210,210,210,.32)',s2:'rgba(235,235,235,.36)',s3:'rgba(190,190,190,.26)',s4:'rgba(215,215,215,.3)',s5:'rgba(230,230,230,.24)',s6:'rgba(205,205,205,.28)'},
   fog:{bg:'#EDF3F8',card:'#FBFDFF',ink:'#2E3A44',sub:'#7E8C98',line:'#D8E4EE',green:'#5C87A8',orange:'#7E9FB8',blue:'#6E94B8',brown:'#7A8CA0',gold:'#A8B8C8',gs:'#E7EEF5',os:'#EDF3F8',g1:'#F0F5FA',g2:'#E4EDF5',s1:'rgba(170,200,235,.4)',s2:'rgba(190,215,245,.36)',s3:'rgba(160,195,230,.3)',s4:'rgba(200,225,250,.32)',s5:'rgba(180,210,240,.26)',s6:'rgba(170,200,235,.3)'},
@@ -16488,36 +16711,82 @@ function pgSetLastFromSheet(offset) {
       + btns + '</div></div>';
   }
 
-  /* ③ 查岗 */
+  /* ③ 查岗：一张卡、黑白极简、回复框在卡上（2026-10-29 重做） */
   function checkinCard(m, c) {
     var isIn = (m.dir === 'in');
+    var answered = !!m.myReply;
+    var done = !!(m.hisReply || m.hisCard);
+    var stTxt, stCls;
+    if (isIn) { stTxt = answered ? '已回复' : '待回复'; stCls = answered ? 'wait' : ''; }
+    else { stTxt = done ? '已答复' : '等回复'; stCls = done ? 'wait' : ''; }
     var q = String(m.text || '').replace(/^查岗[:：]\s*/, '');
-    var body = '';
-    if (isIn) {
-      if (m.myReply) {
-        body = '<div class="ccd-row"><span>你已回复</span><b>' + esc(m.myReply) + '</b></div>';
-        if (m.hisReply) body += '<div class="ccd-row"><span>' + esc(c.name) + ' 回复</span><b>' + esc(m.hisReply) + '</b></div>';
-      } else {
-        var chips = ['在工作', '正在吃饭', '回家路上', '也在想你'];
-        body = '<div class="ccd-opts">';
-        for (var i = 0; i < chips.length; i++) {
-          body += '<button class="ccd-opt" data-act="ck-send" data-id="' + m.id + '" data-txt="' + esc(chips[i]) + '">' + esc(chips[i]) + '</button>';
-        }
-        body += '</div>';
-        body += '<div class="ccd-reply"><textarea class="ccd-in" rows="1" placeholder="或者自己说一句……" data-ck="' + m.id + '"></textarea></div>';
-        body += '<div class="ccd-acts"><button class="ccd-main" data-act="ck-send" data-id="' + m.id + '">回复并发送</button>'
-          + '<button class="ccd-sub" data-act="ck-later" data-id="' + m.id + '">稍后</button></div>'
-          + '<div class="ccd-wait"><span class="ccd-dots"><i></i><i></i><i></i></span>他正在等你的回答</div>';
+    var H = '';
+    H += '<div class="ck2" data-ckcard="' + m.id + '">';
+    H += '<div class="ck2-bar"><span class="ck2-st ' + stCls + '">' + stTxt + '</span>'
+      + '<span class="ck2-t">' + fmtTime(m.ts) + '</span></div>';
+    H += '<div class="ck2-hr"></div>';
+    H += '<div class="ck2-q"><p>' + esc(q) + '</p>'
+      + (m.note ? '<div class="ck2-note">' + esc(m.note) + '</div>' : '') + '</div>';
+    /* 时间轴 */
+    H += '<div class="ck2-tl">';
+    H += '<div class="r"><i class="d"></i><div class="tx"><b>查岗</b><span>' + fmtTime(m.ts) + '</span></div></div>';
+    if (answered) {
+      H += '<div class="r"><i class="d off"></i><div class="tx"><b>回复：<em>' + esc(m.myReply) + '</em></b><span>'
+        + fmtTime(m.replyAt || m.ts) + '</span>';
+      if (m.myImg && !mediaDead(m.myImg)) {
+        H += '<div class="thumb" data-act="ck-photo-view" data-ref="' + esc(m.myImg)
+          + '" style="background-image:url(\'' + mediaUrlSync(m.myImg) + '\')"></div>';
       }
-    } else {
-      body = '<div class="ccd-row"><span>你的查岗</span><b>' + esc(q) + '</b></div>';
-      if (m.hisReply) body += '<div class="ccd-row"><span>' + esc(c.name) + ' 回复</span><b>' + esc(m.hisReply) + '</b></div>';
-          if (m.hisCard) body += '<div class="ccd-row"><span>又补了一句</span><b>' + esc(m.hisCard) + '</b></div>';
+      H += '</div></div>';
     }
+    if (m.readAt) H += '<div class="r"><i class="d off"></i><div class="tx"><b>已读</b><span>' + fmtTime(m.readAt) + '</span></div></div>';
+    if (done) H += '<div class="r"><i class="d off"></i><div class="tx"><b>他回了</b><span>'
+      + fmtTime(m.hisReplyTs || m.readAt || m.ts) + '</span></div></div>';
+    H += '</div>';
+    /* 他的字卡回执 */
+    if (done) {
+      H += '<div class="ck2-zk"><div class="who">' + esc(c.name)
+        + '<span class="mood">' + esc(m.hisMood || (typeof ckMoodOf === 'function' ? ckMoodOf(m) : '')) + '</span></div>'
+        + '<div class="body">' + esc(m.hisCard || m.hisReply || '') + '</div>'
+        + '<div class="foot2"><span>字卡库</span><span>' + fmtTime(m.hisReplyTs || m.ts) + '</span></div></div>';
+    }
+    /* 回复区：他问你、你还没回 */
+    if (isIn && !answered) {
+      var sts = ['在工作', '在吃饭', '回家路上', '准备睡了'];
+      var mos = ['在想你', '有点累', '心情不错', '别提了'];
+      H += '<div class="ck2-rep">';
+      H += '<div class="h">状态</div><div class="chips" data-ckgroup="st">';
+      sts.forEach(function (x) { H += '<button data-act="ck-chip" data-id="' + m.id + '" data-txt="' + esc(x) + '">' + esc(x) + '</button>' });
+      H += '</div><div class="h">心情</div><div class="chips" data-ckgroup="mo">';
+      mos.forEach(function (x) { H += '<button data-act="ck-chip" data-id="' + m.id + '" data-txt="' + esc(x) + '">' + esc(x) + '</button>' });
+      H += '</div>';
+      H += '<textarea class="ck-in" rows="1" data-ck="' + m.id + '" placeholder="或者自己说一句"></textarea>';
+      var pv = (typeof _ckPreview !== 'undefined' && _ckPreview) ? _ckPreview[m.id] : null;
+      H += '<div class="prev" id="ckprev-' + m.id + '">' + (pv
+        ? '<div class="th" style="background-image:url(\'' + mediaUrlSync(pv) + '\')"></div>'
+          + '<button class="rm" data-act="ck-photo-rm" data-id="' + m.id + '">✕</button>' : '') + '</div>';
+      H += '<div class="foot"><button class="photo" data-act="ck-photo" data-id="' + m.id + '">＋ 图</button>'
+        + '<button class="later" data-act="ck-later" data-id="' + m.id + '">稍后</button>'
+        + '<button class="send" data-act="ck-send" data-id="' + m.id + '">回复</button></div>';
+      H += '</div>';
+    }
+    if (isIn && answered) {
+      H += '<div class="ck2-rep" style="padding:11px 16px"><div class="foot" style="margin:0">'
+        + '<span style="font-size:calc(12px*var(--fs));color:#8C8C8C">你已经回了</span>'
+        + '<button class="later" style="margin-left:auto" data-act="ck-again" data-id="' + m.id + '">再补一句</button></div></div>';
+    }
+    H += '</div>';
+    return '<div class="msg-row ' + m.dir + '"><span class="bubble-av">' + av(c, m) + '</span>' + H + '</div>';
+  }
+
+  /* ④ 咖啡馆小卡（他自制 / 你递给他） */
+  function cafeCard(m, c) {
     return '<div class="msg-row ' + m.dir + '"><span class="bubble-av">' + av(c, m) + '</span>'
-      + '<div class="ccd"><span class="ccd-tag">查岗</span>'
-      + '<div class="ccd-q">' + esc(q) + '</div>'
-      + body + '</div></div>';
+      + '<div class="cafe-card" data-act="cafe-open">'
+      + '<div class="ct1">咖啡馆</div>'
+      + '<div class="ct2">' + esc(m.text || '') + '</div>'
+      + '<div class="ct3">' + esc(m.sub || '') + '</div>'
+      + '<span class="cgo">去咖啡馆看看 ›</span></div></div>';
   }
 
   window.bubbleHtml = function (m, c) {
@@ -16525,6 +16794,7 @@ function pgSetLastFromSheet(offset) {
       if (m && m.kind === 'invite') return inviteCard(m, c);
       if (m && m.kind === 'transfer') return transferCard(m, c);
       if (m && m.kind === 'checkin') return checkinCard(m, c);
+      if (m && m.kind === 'cafe') return cafeCard(m, c);
     } catch (e) { }
     return origBubble.apply(null, arguments);
   };
@@ -18246,7 +18516,7 @@ window.mengxiEnsure=mx;
     /* 第 2 页 8：陪伴/梦隙/塔罗/日程 + 备忘录/音乐/潮汐/游戏 */
     var P1 = ['companion', 'mengxi', 'tarot', 'schedule', 'memo', 'music', 'period', 'game'];
     /* 第 3 页 6 */
-    var P2 = ['wallet', 'room', 'pet', 'guide', 'me', 'shop', 'hisphone'];
+    var P2 = ['wallet', 'room', 'pet', 'guide', 'me', 'shop', 'hisphone', 'cafe'];
     var ap = {}, i;
     for (i = 0; i < P0.length; i++) ap[P0[i]] = { p: 0, r: 4 + (i >> 2), c: i & 3 };
     for (i = 0; i < P1.length; i++) ap[P1[i]] = { p: 1, r: 3 + (i >> 2), c: i & 3 };   /* 第2页多了一行「每日一句」 */
@@ -21701,12 +21971,22 @@ function openApp(k) {
   function dayStart() { var d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime() }
   function bigNum(n) { n = +n || 0; return n >= 10000 ? (n / 10000).toFixed(1).replace('.0', '') + '万' : fmt(n) }
 
-  function myPosts() {
-    var c = activeContact(); if (!c) return [];
-    return (state.posts || []).filter(function (p) {
-      return p && p.imgs && p.imgs.length && (p.contactId === c.id || !p.contactId);
-    }).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0) });
+  /* 主页的帖子＝「你假装他发的」，自己存在 state.pigPosts 里，和朋友圈完全不联动。
+     老数据只在第一次升级时搬一次（以前上传的图当时进了朋友圈）。 */
+  function pigPosts() {
+    if (!Array.isArray(state.pigPosts)) state.pigPosts = [];
+    if (!state._pigMigrated) {
+      state._pigMigrated = 1;
+      (state.posts || []).forEach(function (p) {
+        if (p && !p.contactId && p.imgs && p.imgs.length) {
+          state.pigPosts.push({ id: p.id || ('pp' + Math.random().toString(36).slice(2, 8)), text: p.text || '', imgs: p.imgs.slice(), ts: p.ts || now() });
+        }
+      });
+      try { save() } catch (e) { }
+    }
+    return state.pigPosts.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0) });
   }
+  function myPosts() { return pigPosts(); }
   function flatPhotos() {
     var out = [];
     myPosts().forEach(function (p) {
@@ -21967,8 +22247,9 @@ function openApp(k) {
       var di = +el2.getAttribute('data-i'), dp = (flatPhotos()[di] || {}).post;
       if (!dp) return;
       if (!confirm('删掉这条动态？删了就找不回来了')) return;
-      for (var qi = (state.posts || []).length - 1; qi >= 0; qi--) {
-        if (state.posts[qi] && state.posts[qi].id === dp.id) { state.posts.splice(qi, 1); break }
+      var arr = pigPosts();
+      for (var qi = arr.length - 1; qi >= 0; qi--) {
+        if (arr[qi] && arr[qi].id === dp.id) { arr.splice(qi, 1); break }
       }
       save(); closeSheet(); renderProfile(); toast('已删除这条动态'); return;
     }
@@ -21999,8 +22280,7 @@ function openApp(k) {
           var hh = highlights()[collIdx];
           hh.imgs = (hh.imgs || []).concat(refs);
         } else {
-          state.posts = state.posts || [];
-          state.posts.push({ id: uid(), contactId: null, text: '', imgs: refs, ts: now() });
+          pigPosts().push({ id: uid(), text: '', imgs: refs, ts: now() });
         }
         save(); closeSheet(); renderProfile();
         toast('已添加 ' + refs.length + ' 张');
@@ -22203,6 +22483,509 @@ function openApp(k) {
   }
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', function () { setTimeout(boot, 1200) });
+})();
+
+/* ================= 后台保活 v2（2026-10-28） =================
+   借鉴「言字卡」做对的三件事，但保留我们自己的做法：
+     ① 双通道：默认还是 WebAudio 静音通道（不抢媒体控制、不打断你听歌）；
+        另给一档【锁屏保活】用 <audio loop> 播近静音音频 —— iOS 只有承认"正在放音频"
+        才不会冻结页面，锁屏/灵动岛也会出现「与沉 · 后台保活」的播放条（可暂停）。
+     ② 注册 MediaSession：锁屏可见、能暂停，用户知道它到底有没有在跑。
+     ③ 保活测试：点一下立刻告诉你"在跑 / 没在跑"，不用猜。
+   三档：关 / 智能（默认，静音通道）/ 锁屏保活（媒体元素）。
+   音频是内嵌的 1 秒近静音 WAV（振幅 ±2/255），不发请求、听不见但系统认。 */
+(function () {
+  if (window.__zikaKA) return; window.__zikaKA = 1;
+  var KA_SRC = 'data:audio/wav;base64,UklGRmQfAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUAfAACAgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGCgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgoGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYKBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGCgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgoGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYKBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGCgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgoGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYKBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGCgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgoGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYKBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGCgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgoGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYKBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGCgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgoGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f3+AgICAgIGBgYGBgYGBgYKBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f3+AgICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgIGBgYGBgYGBgYGBgYGBgYGBgYGAgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgH9/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/fn5+fn5+fn5+fn5+fn5+fn5+fn9/f39/gICAgICBgYGBgYGBgYGCgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/gICAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICBgYGBgYGBgYGBgYGBgYGBgYGBgICAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgIB/f39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f35+fn5+fn5+fn5+fn5+fn5+fn5/f39/f4CAgICAgYGBgYGBgYGBgoGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/f4CAgICAgYGBgYGBgYGBgYGBgYGBgYGBgYCAgICAf39/f39+fn5+fn5+fn5+fn5+fn5+fn5+f39/fw==';
+  var _au = null, _info = { mode: '', playing: false, at: 0 };
+
+  function mode() {
+    try {
+      var v = (state.settings && state.settings.keepAlive) || 'smart';
+      return (v === 'off' || v === 'media') ? v : 'smart';
+    } catch (e) { return 'smart' }
+  }
+  function vol() {
+    try {
+      var v = (state.settings && state.settings.keepVol) || 'light';
+      return v === 'loud' ? 0.06 : (v === 'faint' ? 0.006 : 0.02);
+    } catch (e) { return 0.02 }
+  }
+  function ensureAu() {
+    if (_au) return _au;
+    try {
+      _au = new Audio(KA_SRC);
+      _au.loop = true;
+      _au.volume = vol();
+      _au.setAttribute('playsinline', '');
+      _au.preload = 'auto';
+      _au.addEventListener('pause', function () { _info.playing = false });
+      _au.addEventListener('play', function () { _info.playing = true });
+    } catch (e) { _au = null }
+    return _au;
+  }
+  function setSession(on) {
+    try {
+      if (!('mediaSession' in navigator)) return;
+      if (!on) { navigator.mediaSession.metadata = null; return }
+      if (window.MediaMetadata) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: '与沉 · 后台保活',
+          artist: (state.settings && state.settings.siteName) || '与沉',
+          album: '让消息按时到达',
+          artwork: [{ src: './icon-192.png', sizes: '192x192', type: 'image/png' }]
+        });
+      }
+      navigator.mediaSession.setActionHandler('play', function () { kaOn() });
+      navigator.mediaSession.setActionHandler('pause', function () { kaOff(true) });
+    } catch (e) { }
+  }
+
+  function kaOn() {
+    var m = mode();
+    _info.mode = m; _info.at = Date.now();
+    if (m === 'off') { kaOff(); return }
+    if (m === 'smart') {
+      try { if (_au) _au.pause() } catch (e) { }   /* 切回智能档时别再占着媒体通道 */
+      setSession(false);
+      if (typeof kaStart === 'function') kaStart();   /* 原来那套静音通道 */
+      _info.playing = true;
+      return;
+    }
+    /* media：<audio> + MediaSession */
+    try { if (typeof kaStop === 'function') kaStop() } catch (e) { }
+    var a = ensureAu(); if (!a) return;
+    a.volume = vol();
+    var p = a.play();
+    if (p && p.catch) p.catch(function () { _info.playing = false });
+    setSession(true);
+    _info.playing = true;
+  }
+  function kaOff(manual) {
+    try { if (typeof kaStop === 'function') kaStop() } catch (e) { }
+    try { if (_au) _au.pause() } catch (e) { }
+    if (manual) setSession(false);
+    _info.playing = false;
+  }
+
+  /* 首次交互就起（iOS 必须在有用户手势时开始播，切后台才保得住） */
+  function firstGesture() {
+    /* 不摘监听：用户在「智能」档时点过屏幕也还要能随时切到锁屏保活 */
+    if (mode() === 'media' && !_info.playing) kaOn();
+  }
+  document.addEventListener('touchstart', firstGesture, true);
+  document.addEventListener('click', firstGesture, true);
+
+  /* 切后台/回前台：媒体档继续播，智能档只在后台播 */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) kaOn();
+    else { if (mode() !== 'media') kaOff(); }
+  });
+  window.addEventListener('focus', function () { if (mode() === 'media') kaOn() });
+
+  /* ---------- 设置页：补一档 + 保活测试 ---------- */
+  function inject() {
+    var sec = document.querySelector('#sec-keep');
+    if (!sec || sec.querySelector('.ka-v2')) return;
+    var row = document.createElement('div');
+    row.className = 'ka-row ka-v2';
+    var m = mode();
+    row.innerHTML = '<button class="ka-mode' + (m === 'smart' ? ' on' : '') + '" data-ka2="smart">智能（默认）</button>'
+      + '<button class="ka-mode' + (m === 'media' ? ' on' : '') + '" data-ka2="media">锁屏保活</button>'
+      + '<button class="ka-mode" data-ka2="test">保活测试</button>';
+    var host = sec.querySelector('.card') || sec;
+    host.appendChild(row);
+    var note = document.createElement('p');
+    note.className = 'meta';
+    note.style.margin = '8px 0';
+    note.textContent = '智能＝静音通道，不抢媒体控制、不打断你听歌；锁屏保活＝用 <audio> 播近静音音频，锁屏／灵动岛会显示「与沉 · 后台保活」并可以暂停，切走也能收到消息。';
+    host.appendChild(note);
+    row.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-ka2]'); if (!b) return;
+      var k = b.getAttribute('data-ka2');
+      if (k === 'test') { doTest(); return }
+      state.settings.keepAlive = k;
+      try { save() } catch (x) { }
+      if (k === 'off') kaOff(true); else kaOn();
+      try { renderMe() } catch (x) { }
+      toast(k === 'media' ? '已切到锁屏保活（锁屏会显示播放条）' : (k === 'off' ? '已关闭后台保活' : '已切到智能保活'));
+    });
+  }
+  try {
+    if (typeof renderMe === 'function') {
+      var _rm = renderMe;
+      renderMe = function () { var r = _rm.apply(this, arguments); setTimeout(inject, 0); return r };
+    }
+  } catch (e) { }
+
+  /* ---------- 保活测试 ---------- */
+  function doTest() {
+    kaOn();
+    var m = mode();
+    setTimeout(function () {
+      var lines = [];
+      lines.push('方式：' + (m === 'media' ? '锁屏保活（<audio>）' : (m === 'off' ? '已关闭' : '智能（静音通道）')));
+      if (m === 'media') {
+        var a = _au;
+        lines.push('音频元素：' + (a ? (a.paused ? '没在播（可能被系统拦了）' : '正在播放') : '创建失败'));
+        lines.push('锁屏信息：' + (('mediaSession' in navigator) ? '已注册（锁屏应显示「与沉 · 后台保活」）' : '这台设备不支持'));
+      } else if (m === 'off') {
+        lines.push('保活是关的：切后台不会保，但回前台会自动补发错过的消息');
+      } else {
+        lines.push('静音通道已启动（不占媒体控制）');
+      }
+      if (typeof openSheet === 'function') {
+        openSheet('<h3>保活测试</h3><div style="padding:14px 16px;font-size:calc(13px*var(--fs));line-height:1.8">'
+          + lines.join('<br>') + '<br><br><span style="color:#A99F99;font-size:calc(11.5px*var(--fs))">'
+          + '真实保活效果：切到别的 App 或锁屏 1 分钟，再回来看看有没有补发到点的消息。</span></div>'
+          + '<div class="zbtns"><button class="zbtn" data-act="sheet-close">知道了</button></div>');
+      } else toast(lines.join(' / '));
+    }, 600);
+  }
+
+  window.kaTest = doTest;
+  window.kaInfo = function () { return { mode: mode(), playing: _info.playing, hasAudio: !!_au, paused: _au ? _au.paused : null } };
+
+  /* 启动：等 state 就绪后按当前档位起 */
+  setTimeout(function () {
+    if (mode() === 'media') kaOn();
+  }, 1500);
+})();
+
+/* ================= 咖啡馆 App（2026-10-29） =================
+   规则（已和用户对齐）：
+     · 共享一个池：他自制的 + 你递的，都算「每天最多几杯」里；上限可改 1~6
+     · 概率锁死不让用户改：早 70% / 午后 40% / 深夜 20%，再按他的状态加减，最高 95%
+     · 到上限他会拒绝；可以硬塞（记一杯，他明天心情差）
+     · 通知都进聊天（kind:'cafe'）：当天第一杯详细，之后合并；你递的也有一张
+     · 制作是四步：选豆 → 磨豆 → 萃取 → 加奶（美式/手冲没有加奶）
+   数据只存 state.cafe，随备份走（备份分类见 shop 组）。
+   位置：首页第三页 r4 c3 那一格。 */
+(function () {
+  if (window.__zikaCafe) return;
+  window.__zikaCafe = 1;
+
+  var MENU = [
+    { g: '浓缩 · 基础', items: [
+      { n: '美式', d: '浓缩 + 热水 · 苦得干脆', milk: false, t: 5 },
+      { n: '浓缩', d: '一口下去 · 他眼皮都不动', milk: false, t: 2 },
+      { n: '康宝蓝', d: '浓缩 + 一球奶泡', milk: true, t: 5 },
+      { n: '玛奇朵', d: '浓缩 + 一点奶泡 · 只在表面', milk: true, t: 4 }
+    ]},
+    { g: '奶咖', items: [
+      { n: '拿铁', d: '浓缩 + 蒸奶 · 温柔', milk: true, t: 7 },
+      { n: '卡布奇诺', d: '厚奶泡 · 甜一点', milk: true, t: 7 },
+      { n: '澳白', d: '双份浓缩 + 薄奶', milk: true, t: 6 },
+      { n: '短笛', d: '小杯拿铁 · 三口喝完', milk: true, t: 5 },
+      { n: '生椰拿铁', d: '椰乳代替牛奶 · 甜得直白', milk: true, t: 6 },
+      { n: '燕麦拿铁', d: '燕麦奶 · 有谷物的味道', milk: true, t: 6 },
+      { n: '桂花拿铁', d: '糖桂花挂杯 · 秋天限定', milk: true, t: 8 },
+      { n: '焦糖玛奇朵', d: '焦糖网格 · 他嫌甜还是会喝', milk: true, t: 9 }
+    ]},
+    { g: '特调 · 冷饮', items: [
+      { n: '摩卡', d: '巧克力 + 奶 · 像哄人', milk: true, t: 9 },
+      { n: 'Dirty', d: '冰奶 + 热浓缩 · 一口分层', milk: true, t: 4 },
+      { n: '手冲', d: '一圈一圈 · 他在看', milk: false, t: 10 },
+      { n: '维也纳', d: '冰咖啡 + 冷奶油顶 · 晚上限定', milk: true, t: 7, night: true },
+      { n: '冷萃', d: '要泡 12 小时（明天才有）', milk: false, t: 0, lock: true }
+    ]}
+  ];
+
+  var REACTS = [
+    '谢谢小姑娘，我很喜欢。',
+    '味道很好，辛苦兔子小姐了。',
+    '是特意为我做的吗？看来今天的咖啡，比平时更值得期待了。',
+    '明明只是一杯咖啡，却让我开始期待下一次了。',
+    '是特意为我做的？看来今天很幸运。',
+    '嗯？这么期待我的评价？当然很好喝。',
+    '如果每天都有你亲手做的咖啡，我大概会越来越贪心。',
+    '比起咖啡，我更喜欢为我做咖啡的你。',
+    '谢谢你。今天的咖啡，连心意都是甜的。'
+  ];
+  var REFUSE = [
+    '亲爱的，今天的咖啡已经超额了。',
+    '不可以了，明天再陪你喝，好吗？',
+    '今天就到这里，乖。',
+    '咖啡限量了，给你的偏爱可没有。',
+    '再喝就要影响睡眠了，听话。',
+    '今天不能再喝了，换杯温水陪我吧。',
+    '嗯？还想给我做？明天也留一杯给我，好不好？',
+    '今天的咖啡时间结束了，来陪陪我吧。',
+    '兔子小姐，明天再给我做好不好？'
+  ];
+
+  function dayKey() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function hm(ts) { var d = new Date(+ts || Date.now()); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+  function C() {
+    if (!state.cafe || typeof state.cafe !== 'object') state.cafe = {};
+    var c = state.cafe;
+    if (typeof c.cap !== 'number') c.cap = 3;
+    if (!Array.isArray(c.cups)) c.cups = [];
+    if (!c.rolled || typeof c.rolled !== 'object') c.rolled = {};
+    if (c.day !== dayKey()) { c.day = dayKey(); c.cups = []; c.rolled = {}; }
+    return c;
+  }
+  function left() { return C().cap - C().cups.length; }
+  function hisCount() { return C().cups.filter(function (x) { return x.who === 'his'; }).length; }
+  function statusText() { try { return (state.currentStatus && state.currentStatus.text) || ''; } catch (e) { return ''; } }
+  function moodText() { try { return (state.currentMood && state.currentMood.text) || ''; } catch (e) { return ''; } }
+
+  function slotOf() {
+    var h = new Date().getHours();
+    if (h >= 6 && h < 11) return { k: 'morning', p: .70 };
+    if (h >= 11 && h < 18) return { k: 'noon', p: .40 };
+    if (h >= 21 && h < 24) return { k: 'night', p: .20 };
+    return { k: 'off', p: 0 };
+  }
+  function boost() {
+    var s = statusText(), mo = moodText(), add = 0;
+    if (/加班|开会|赶|忙/.test(s)) add += .40;
+    if (/睡醒|刚起|起床/.test(s)) add += .25;
+    if (/心情不错|开心/.test(mo)) add += .10;
+    if (/累|烦|低落/.test(mo)) add -= .10;
+    return add;
+  }
+
+  function cafeMsg(dir, title, sub) {
+    var c = activeContact(); if (!c) return;
+    state.messages.push({ id: uid(), contactId: c.id, dir: dir, kind: 'cafe', text: title, sub: sub || '', ts: now() });
+  }
+
+  function hisBrew() {
+    var c = C(), sl = slotOf();
+    if (sl.k === 'off' || c.rolled[sl.k]) return;
+    c.rolled[sl.k] = 1;
+    var p = Math.max(0, Math.min(.95, sl.p + boost()));
+    if (Math.random() >= p) { try { save(); } catch (e) { } return; }
+    if (left() <= 0) {
+      cafeMsg('in', '他想喝，但今天到上限了', '他自己把杯子放回去了');
+      try { save(); } catch (e) { }
+      try { if (location.hash.replace('#', '') === 'chat') renderChat(); } catch (e) { }
+      return;
+    }
+    var pool = [];
+    MENU.forEach(function (g) { g.items.forEach(function (x) { if (!x.lock && !x.night) pool.push(x); }); });
+    var drink = pick(pool);
+    c.cups.push({ who: 'his', name: drink.n, ts: now() });
+    var first = hisCount() === 1;
+    cafeMsg('in', '陆沉给自己煮了杯' + drink.n, hm(now()) + ' · 今天第 ' + c.cups.length + ' 杯' + (first ? '' : '（合并通知）'));
+    try { save(); } catch (e) { }
+    try { if (location.hash.replace('#', '') === 'chat') renderChat(); } catch (e) { }
+    try { schedule(); } catch (e) { }
+  }
+
+  setTimeout(function () { try { hisBrew(); } catch (e) { } }, 6000);
+  setInterval(function () { try { hisBrew(); } catch (e) { } }, 60000);
+
+  /* ---------------- 界面 ---------------- */
+  var M = { on: false, drink: null, step: 0, bean: '中深烘', grind: '中', milk: '少奶', gp: 0, bp: 0, mp: 0 };
+
+  function shopHtml() {
+    var c = C(), cups = '', i;
+    for (i = 0; i < c.cap; i++) {
+      var x = c.cups[i];
+      cups += x
+        ? '<div class="cafe-cup ' + (x.who === 'his' ? 'his' : 'mine') + '">' + (x.who === 'his' ? '他' : '你') + '</div>'
+        : '<div class="cafe-cup empty">空</div>';
+    }
+    var menu = '';
+    MENU.forEach(function (g) {
+      menu += '<div class="cafe-g">' + g.g + '</div><div class="cafe-grid">';
+      g.items.forEach(function (it) {
+        var h = new Date().getHours();
+        var lock = it.lock || (it.night && (h < 21 && h >= 6));
+        menu += '<div class="cafe-it' + (lock ? ' lock' : '') + '" data-act="cafe-pick" data-n="' + esc(it.n) + '">'
+          + '<b>' + esc(it.n) + '</b><span>' + esc(it.d) + '</span><i>' + (lock ? '锁定' : it.t + ' min') + '</i></div>';
+      });
+      menu += '</div>';
+    });
+    var rows = c.cups.slice().reverse().map(function (y) {
+      return '<div class="cafe-row"><span>' + (y.who === 'his' ? '他自己' : '你递给他') + ' · ' + esc(y.name) + '</span><em>' + hm(y.ts) + '</em></div>';
+    }).join('');
+    return '<div class="page-top"><button class="back" data-view="home">' + (typeof ICON_BACK !== 'undefined' ? ICON_BACK : '‹') + '</button>'
+      + '<span class="pt">咖啡馆</span><span class="pr"><span class="cafe-sign">今日营业</span></span></div>'
+      + '<div class="cafe-shop"><div class="cafe-awning"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'
+      + '<div class="cafe-h1">陆沉的咖啡馆</div>'
+      + '<div class="cafe-line">一杯美式，一杯拿铁，谢谢。</div>'
+      + '<div class="cafe-sub">OPEN 06:30 — 24:00 · 只招待你</div></div>'
+      + '<div class="cafe-counter"><div class="cafe-cups">' + cups
+      + '<div class="cafe-stat"><b>' + c.cups.length + '/' + c.cap + '</b><span>今天已喝</span></div></div>'
+      + '<div class="cafe-caprow"><span>他：' + esc(statusText() || '在忙') + ' · ' + esc(moodText() || '还行') + '</span>'
+      + '<span class="cafe-pill" data-act="cafe-cap">每天最多 ' + c.cap + ' 杯（点改）</span></div></div>'
+      + '<div class="cafe-board"><h2>菜单</h2>' + menu + '</div>'
+      + (rows ? '<div class="cafe-board"><h2>今天</h2>' + rows + '</div>' : '')
+      + '<div class="cafe-hint">共享一个池：他自制的 + 你递的，都算在这 ' + c.cap + ' 杯里<br>'
+      + '概率固定：早 70% / 午后 40% / 深夜 20%，再按他的状态加减</div>';
+  }
+
+  function makeHtml() {
+    var d = M.drink;
+    if (!d) return shopHtml();
+    var ready = M.bp >= 100 && (!d.milk || M.mp >= 100);
+    var h = '<div class="page-top"><button class="back" data-act="cafe-back">' + (typeof ICON_BACK !== 'undefined' ? ICON_BACK : '‹') + '</button>'
+      + '<span class="pt">' + esc(d.n) + '</span><span class="pr"></span></div>'
+      + '<div class="cafe-make"><div class="cafe-mk-sub">' + esc(d.d) + ' · 预计 ' + d.t + ' 分钟</div>'
+      + '<div class="cafe-step"><h3>① 选豆 <em>' + esc(M.bean) + '</em></h3><div class="cafe-opt">'
+      + ['中深烘', '浅烘', '拼配'].map(function (x) { return '<button class="' + (M.bean === x ? 'on' : '') + '" data-act="cafe-bean" data-v="' + x + '">' + x + '</button>'; }).join('')
+      + '</div></div>'
+      + '<div class="cafe-step' + (M.step < 1 ? ' dim' : '') + '"><h3>② 磨豆 <em>研磨度 ' + esc(M.grind) + '</em></h3>'
+      + '<div class="cafe-bar"><i style="width:' + M.gp + '%"></i></div><div class="cafe-opt">'
+      + ['粗', '中', '细'].map(function (x) { return '<button class="' + (M.grind === x ? 'on' : '') + '" data-act="cafe-grind" data-v="' + x + '">' + x + '</button>'; }).join('')
+      + '<button data-act="cafe-run" data-k="grind" class="' + (M.gp >= 100 ? 'on' : '') + '">' + (M.gp >= 100 ? '已磨好' : '开始磨') + '</button>'
+      + '</div></div>'
+      + '<div class="cafe-step' + (M.gp < 100 ? ' dim' : '') + '"><h3>③ 萃取 <em>浓缩 2 份</em></h3>'
+      + '<div class="cafe-bar"><i style="width:' + M.bp + '%"></i></div>'
+      + '<div class="cafe-pour"><div class="cafe-big">'
+      + '<div class="cafe-fill" style="height:' + Math.min(52, M.bp * .52) + '%"></div>'
+      + '<div class="cafe-foam" style="height:' + (M.mp * .34) + '%"></div></div></div>'
+      + '<div class="cafe-opt"><button data-act="cafe-run" data-k="brew" class="' + (M.bp >= 100 ? 'on' : '') + '"' + (M.gp < 100 ? ' disabled' : '') + '>'
+      + (M.bp >= 100 ? '已萃取' : '开始萃取') + '</button></div></div>';
+    if (d.milk) {
+      h += '<div class="cafe-step' + (M.bp < 100 ? ' dim' : '') + '"><h3>④ 加奶 / 拉花 <em>' + esc(M.milk) + '</em></h3>'
+        + '<div class="cafe-bar"><i style="width:' + M.mp + '%"></i></div><div class="cafe-opt">'
+        + ['不要奶', '少奶', '多奶', '厚奶泡'].map(function (x) { return '<button class="' + (M.milk === x ? 'on' : '') + '" data-act="cafe-milk" data-v="' + x + '">' + x + '</button>'; }).join('')
+        + '<button data-act="cafe-run" data-k="milk" class="' + (M.mp >= 100 ? 'on' : '') + '"' + (M.bp < 100 ? ' disabled' : '') + '>'
+        + (M.mp >= 100 ? '完成' : '打发') + '</button></div></div>';
+    }
+    h += '<div class="cafe-btnrow"><button class="alt" data-act="cafe-back">重来</button>'
+      + '<button class="go" data-act="cafe-serve"' + (ready ? '' : ' disabled') + '>递给陆沉 · ' + esc(d.n) + '</button></div>'
+      + '<div class="cafe-hint">' + (left() > 0 ? '今天还剩 ' + left() + ' 杯额度' : '今天已经满了（' + C().cups.length + '/' + C().cap + '）——递过去他会拒绝') + '</div>'
+      + '</div>';
+    return h;
+  }
+
+  function renderCafe() {
+    var v = document.getElementById('view'); if (!v) return;
+    v.innerHTML = M.on ? makeHtml() : shopHtml();
+  }
+
+  function runBar(k) {
+    var iv = setInterval(function () {
+      if (k === 'grind') M.gp = Math.min(100, M.gp + 8);
+      if (k === 'brew') M.bp = Math.min(100, M.bp + 7);
+      if (k === 'milk') M.mp = Math.min(100, M.mp + 9);
+      var bars = document.querySelectorAll('.cafe-bar i');
+      if (bars[0]) bars[0].style.width = M.gp + '%';
+      if (bars[1]) bars[1].style.width = M.bp + '%';
+      if (bars[2]) bars[2].style.width = M.mp + '%';
+      var f = document.querySelector('.cafe-fill'), fm = document.querySelector('.cafe-foam');
+      if (f) f.style.height = Math.min(52, M.bp * .52) + '%';
+      if (fm) fm.style.height = (M.mp * .34) + '%';
+      var done = (k === 'grind' && M.gp >= 100) || (k === 'brew' && M.bp >= 100) || (k === 'milk' && M.mp >= 100);
+      if (done) {
+        clearInterval(iv);
+        M.step = Math.max(M.step, k === 'grind' ? 1 : (k === 'brew' ? 2 : 3));
+        renderCafe();
+      }
+    }, 90);
+  }
+
+  function serve() {
+    var d = M.drink; if (!d) return;
+    var c = C();
+    if (left() <= 0) {
+      if (!confirm('他拒绝了：「' + pick(REFUSE) + '」\n\n还要硬塞给他吗？（会记一杯，但他明天心情差）')) { M.on = false; renderCafe(); return; }
+      c.cups.push({ who: 'mine', name: d.n, ts: now(), hard: 1 });
+      cafeMsg('out', '你硬塞给他一杯' + d.n, hm(now()) + ' · 今天第 ' + c.cups.length + ' 杯 · 他明天心情会差');
+      try { state.cafeHard = (state.cafeHard || 0) + 1; } catch (e) { }
+      try { save(); } catch (e) { }
+      M.on = false; renderCafe(); return;
+    }
+    c.cups.push({ who: 'mine', name: d.n, ts: now() });
+    cafeMsg('out', '你递给他一杯' + d.n, hm(now()) + ' · 今天第 ' + c.cups.length + ' 杯 · 「' + pick(REACTS) + '」');
+    try { save(); } catch (e) { }
+    M.on = false; renderCafe();
+    try { toast('他接过去了'); } catch (e) { }
+    try { if (location.hash.replace('#', '') === 'chat') renderChat(); } catch (e) { }
+  }
+
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('[data-act^="cafe-"]') : null;
+    if (!el) return;
+    var act = el.getAttribute('data-act');
+    if (act === 'cafe-pick') {
+      var n = el.getAttribute('data-n'), it = null;
+      MENU.forEach(function (g) { g.items.forEach(function (x) { if (x.n === n) it = x; }); });
+      if (!it) return;
+      if (it.lock) { toast('冷萃要提前 12 小时泡，明天才有'); return; }
+      var h = new Date().getHours();
+      if (it.night && h < 21 && h >= 6) { toast('维也纳是晚上限定'); return; }
+      M.on = true; M.drink = it; M.step = 0; M.gp = 0; M.bp = 0; M.mp = 0;
+      M.bean = '中深烘'; M.grind = '中'; M.milk = '少奶';
+      renderCafe(); return;
+    }
+    if (act === 'cafe-back') { M.on = false; renderCafe(); return; }
+    if (act === 'cafe-bean') { M.bean = el.getAttribute('data-v'); renderCafe(); return; }
+    if (act === 'cafe-grind') { M.grind = el.getAttribute('data-v'); renderCafe(); return; }
+    if (act === 'cafe-milk') { M.milk = el.getAttribute('data-v'); renderCafe(); return; }
+    if (act === 'cafe-run') { runBar(el.getAttribute('data-k')); return; }
+    if (act === 'cafe-serve') { serve(); return; }
+    if (act === 'cafe-cap') {
+      var v = prompt('每天最多几杯？（1–6，他和你共用一个池）', C().cap);
+      if (v === null) return;
+      C().cap = Math.max(1, Math.min(6, parseInt(v, 10) || 3));
+      try { save(); } catch (e) { }
+      renderCafe(); return;
+    }
+  }, true);
+
+  /* ---------- 注册：视图 + 首页那一格 ---------- */
+  try { if (typeof VIEWS !== 'undefined' && VIEWS.indexOf('cafe') < 0) VIEWS.push('cafe'); } catch (e) { }
+
+  try {
+    if (typeof render === 'function') {
+      var _r = render;
+      render = function (v) {
+        v = v || location.hash.replace('#', '') || 'home';
+        if (v === 'cafe') { renderCafe(); try { schedule(); } catch (e) { } return; }
+        return _r.apply(this, arguments);
+      };
+      window.render = render;
+    }
+  } catch (e) { }
+
+  try {
+    if (typeof appListDefs === 'function') {
+      var _ad = appListDefs;
+      appListDefs = function () {
+        var list = _ad.apply(this, arguments) || [];
+        if (!list.some(function (x) { return x.v === 'cafe'; })) {
+          list.push({
+            v: 'cafe', n: '咖啡馆', c: '#6E4A32',
+            ic: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'
+              + '<path d="M4.5 8h13v6.5a5.5 5.5 0 0 1-5.5 5.5H10a5.5 5.5 0 0 1-5.5-5.5z"/>'
+              + '<path d="M17.5 9.5h1.6a2.4 2.4 0 0 1 0 4.8h-1.6"/><path d="M7 4.6c.6.7.6 1.3 0 2M10.5 4.6c.6.7.6 1.3 0 2"/></svg>'
+          });
+        }
+        return list;
+      };
+      try { APPS = appListDefs(); } catch (e) { }
+    }
+  } catch (e) { }
+
+  function ensureHomeSlot() {
+    try {
+      if (!state.appPos || typeof state.appPos !== 'object') return;
+      if (!Array.isArray(state.appOrder)) state.appOrder = [];
+      var changed = false;
+      if (state.appOrder.indexOf('cafe') < 0) { state.appOrder.push('cafe'); changed = true; }
+      if (!state.appPos.cafe) { state.appPos.cafe = { p: 2, r: 4, c: 3 }; changed = true; }
+      if (changed) { try { save(); } catch (e) { } }
+    } catch (e) { }
+  }
+  window.cafeEnsureSlot = ensureHomeSlot;
+  try {
+    if (typeof renderHome === 'function') {
+      var _rh = renderHome;
+      renderHome = function () { ensureHomeSlot(); return _rh.apply(this, arguments); };
+      window.renderHome = renderHome;
+    }
+  } catch (e) { }
+  setTimeout(ensureHomeSlot, 2500);
+
+  window.cafeDebug = function () { return { day: C().day, cups: C().cups, cap: C().cap, rolled: C().rolled, slot: slotOf(), boost: boost() }; };
 })();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
