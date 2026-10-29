@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="8eaa23dfd8">
+<meta name="x-build" content="b19e285b75">
+<meta name="x-build-ts" content="1793213764595">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -3137,6 +3138,85 @@ body.room-mode .bd-board{flex:0 0 auto;max-height:34vh;overflow-y:auto}
 .cafe-card .ct3{font-size:calc(10.5px*var(--fs));color:#8A7461;margin-top:3px}
 .cafe-card .cgo{margin-top:8px;font-size:calc(10.5px*var(--fs));color:#5E3D28;border-bottom:1px solid #D8C4AC;display:inline-block;cursor:pointer}
 .msg-row.out .cafe-card{background:#F3E7D8;border-color:rgba(138,98,68,.28)}
+/* ===== 私人影院 App ===== */
+.cn-live{font-size:calc(10px*var(--fs));color:#8C8074;border:1px solid #E0D6C8;border-radius:99px;padding:2px 8px}
+.cn-room{padding:10px 14px 0;background:radial-gradient(120% 70% at 50% 0%,#241C17 0%,#0C0B0A 70%);color:#F2EBDF}
+.cn-bar{display:flex;align-items:center;gap:8px;font-size:calc(11px*var(--fs));color:#8C8074}
+.cn-bar .dot{width:5px;height:5px;border-radius:50%;background:#E0A458}
+.cn-bar .r{margin-left:auto}
+.cn-screen{position:relative;margin-top:10px;border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#171310,#0E0C0B);
+  border:1px solid #2C231D;box-shadow:0 0 0 5px #1B1613,0 18px 34px rgba(0,0,0,.55);aspect-ratio:16/9;
+  display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cn-screen .beam{position:absolute;inset:0;background:radial-gradient(60% 80% at 50% 0%,rgba(224,164,88,.16),transparent 70%)}
+.cn-screen .t{font-family:"Songti SC",Georgia,serif;font-size:calc(15px*var(--fs));letter-spacing:.05em;z-index:1}
+.cn-screen .m{font-size:calc(10px*var(--fs));color:#8C8074;margin-top:5px;z-index:1}
+.cn-screen .play{position:absolute;width:48px;height:48px;border-radius:50%;background:rgba(244,238,226,.92);color:#171310;
+  display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;z-index:2}
+.cn-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.cn-seats{display:flex;align-items:flex-end;justify-content:space-between;padding:14px 4px 12px}
+.cn-seat{width:96px;text-align:center;position:relative}
+.cn-seat .sofa{height:40px;border-radius:10px 10px 6px 6px;background:linear-gradient(180deg,#31261F,#221A16);
+  border:1px solid #3A2E26;box-shadow:inset 0 -6px 12px rgba(0,0,0,.45)}
+.cn-seat .who{margin-top:-24px;display:flex;justify-content:center}
+.cn-seat .av{width:32px;height:32px;border-radius:50%;background:#3B3029;border:2px solid #4A3B31;color:#D8C9B4;
+  display:flex;align-items:center;justify-content:center;font-size:calc(11px*var(--fs))}
+.cn-seat .av.his{background:#4E5A4A;border-color:#63705B;color:#EAF0E6}
+.cn-seat.empty .av{background:transparent;border:1px dashed #4A3B31;color:#6B5F54}
+.cn-seat .nm{font-size:calc(10px*var(--fs));color:#8C8074;margin-top:5px}
+.cn-seat .lamp{position:absolute;left:50%;transform:translateX(-50%);top:-6px;width:34px;height:3px;border-radius:3px;
+  background:linear-gradient(90deg,transparent,#E0A458,transparent);opacity:.45}
+.cn-seat.on .lamp{opacity:1;box-shadow:0 0 12px rgba(224,164,88,.6)}
+.cn-shelf{margin:0 14px 12px;background:#15110F;border:1px solid #2C231D;border-radius:14px;padding:11px;color:#F2EBDF}
+.cn-shelf h2{font-size:calc(12px*var(--fs));color:#C9BBA8;letter-spacing:.08em;display:flex;gap:8px;align-items:center}
+.cn-shelf h2:after{content:"";flex:1;height:1px;background:#2C231D}
+.cn-paste{display:flex;gap:8px;margin-top:10px}
+.cn-paste input{flex:1;background:#0F0C0B;border:1px solid #2C231D;border-radius:9px;padding:9px 11px;color:#E8DFD1;
+  font-family:inherit;font-size:calc(11.5px*var(--fs));outline:none}
+.cn-paste input::placeholder{color:#6B5F54}
+.cn-paste button{background:#E0A458;border:none;color:#1B1410;font-weight:700;font-size:calc(11.5px*var(--fs));
+  border-radius:9px;padding:9px 12px;cursor:pointer;font-family:inherit}
+.cn-film{display:flex;gap:9px;align-items:center;margin-top:9px;padding:8px;border:1px solid #2C231D;border-radius:10px;cursor:pointer}
+.cn-film.on{border-color:#6B4E2E;background:#1A1512}
+.cn-film .po{width:52px;height:36px;border-radius:6px;background:linear-gradient(135deg,#3A2E26,#1F1815);
+  border:1px solid #3A2E26;display:flex;align-items:center;justify-content:center;font-size:12px;color:#7A6B5C;flex:0 0 auto}
+.cn-film b{font-size:calc(12px*var(--fs));display:block;color:#EFE6D8}
+.cn-film span{font-size:calc(10px*var(--fs));color:#7A6B5C;display:block;margin-top:2px}
+.cn-film i{font-style:normal;margin-left:auto;font-size:calc(9.5px*var(--fs));color:#6B5F54}
+.cn-note{font-size:calc(10px*var(--fs));color:#6B5F54;margin-top:8px;line-height:1.6}
+.cn-invite{display:flex;gap:9px;margin:0 14px 12px}
+.cn-invite button{flex:1;font-family:inherit;font-size:calc(13px*var(--fs));font-weight:700;padding:12px;border-radius:11px;border:none;cursor:pointer}
+.cn-invite .go{background:#E0A458;color:#1B1410}
+.cn-invite .dim{background:#221B17;color:#8C8074}
+.cn-chat{background:#0F0C0B;border-top:1px solid #2C231D;padding:10px 12px 12px;color:#F2EBDF}
+.cn-head{font-size:calc(10px*var(--fs));color:#6B5F54;margin-bottom:8px}
+.cn-pace{display:flex;align-items:center;gap:7px;font-size:calc(10px*var(--fs));color:#8C8074;margin-bottom:9px;flex-wrap:wrap}
+.cn-pace label{display:flex;align-items:center;gap:4px;background:#171310;border:1px solid #2C231D;border-radius:8px;padding:3px 6px}
+.cn-pace input{width:32px;background:transparent;border:none;color:#E8DFD1;font-family:inherit;font-size:calc(11px*var(--fs));text-align:center;outline:none}
+.cn-pace button{background:#E0A458;border:none;color:#1B1410;font-weight:700;font-size:calc(10px*var(--fs));border-radius:7px;padding:5px 9px;cursor:pointer;font-family:inherit}
+.cn-log{max-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding-right:2px;-webkit-overflow-scrolling:touch}
+.cn-log::-webkit-scrollbar{width:3px}
+.cn-log::-webkit-scrollbar-thumb{background:#3A2E26;border-radius:3px}
+.cn-me{align-self:flex-end;background:#2A211C;color:#EFE6D8;border:1px solid #3A2E26;border-radius:11px;
+  padding:7px 10px;font-size:calc(11.5px*var(--fs));max-width:80%;line-height:1.5}
+.cn-his{align-self:flex-start;background:#F4EEE2;color:#2A211C;font-family:"Songti SC",Georgia,serif;
+  font-size:calc(12.5px*var(--fs));border-radius:11px;padding:8px 10px;max-width:82%;line-height:1.6;
+  box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.cn-his .src{display:block;margin-top:5px;font-family:-apple-system,sans-serif;font-size:calc(9px*var(--fs));color:#9A8E80}
+.cn-sys{align-self:center;font-size:calc(10px*var(--fs));color:#6B5F54}
+.cn-type{align-self:flex-start;font-size:calc(10px*var(--fs));color:#6B5F54;padding:2px 4px}
+.cn-input{display:flex;gap:8px;margin-top:9px}
+.cn-input input{flex:1;background:#171310;border:1px solid #2C231D;border-radius:9px;padding:9px 11px;color:#E8DFD1;
+  font-family:inherit;font-size:calc(11.5px*var(--fs));outline:none}
+.cn-input button{background:#2A211C;color:#EFE6D8;border:1px solid #3A2E26;border-radius:9px;padding:0 12px;
+  font-family:inherit;font-size:calc(11.5px*var(--fs));cursor:pointer}
+#view .cn-room, #view .cn-chat{color:#F2EBDF}
+/* 影院里的输入框：压掉站点全局 input 的白底/边框 */
+#view .cn-paste input,#view .cn-pace input,#view .cn-input input{
+  background:#171310!important;border:1px solid #2C231D!important;color:#E8DFD1!important;
+  box-shadow:none!important;border-radius:9px!important;padding:9px 11px!important;
+  font-family:inherit!important;font-size:calc(11.5px*var(--fs))!important;outline:none!important}
+#view .cn-pace input{width:34px!important;padding:3px 4px!important;text-align:center!important}
+#view .cn-paste input::placeholder,#view .cn-input input::placeholder{color:#6B5F54!important}
 </style>
 </head>
 <body>
@@ -9842,7 +9922,7 @@ var BACKUP_CATS=[
  {k:'tide',      n:'潮汐',              d:'潮汐记录',                     keys:['tide']},
  /* ★ 这两个以前没进任何分类：换手机/清缓存时歌单和商城记录会丢（自查扫出来的） */
  {k:'music',     n:'音乐',              d:'歌单与播放状态',               keys:['music']},
- {k:'shop',      n:'商城',              d:'商品、购买与代买记录',         keys:['shop','cafe','cafeHard']}
+ {k:'shop',      n:'商城',              d:'商品、购买与代买记录',         keys:['shop','cafe','cafeHard','cinema']}
 ];
 function backupCatKeys(k){
   for(var i=0;i<BACKUP_CATS.length;i++)if(BACKUP_CATS[i].k===k)return BACKUP_CATS[i].keys;
@@ -22345,6 +22425,13 @@ function openApp(k) {
       return (m && m.getAttribute('content')) || '';
     } catch (e) { return '' }
   }
+  function curBuildTs() {
+    try { var m = document.querySelector('meta[name="x-build-ts"]'); return m ? (+m.getAttribute('content') || 0) : 0; }
+    catch (e) { return 0 }
+  }
+  function skipped(b) {
+    try { return localStorage.getItem('zikaUpdSkip') === String(b) } catch (e) { return false }
+  }
   function host() {
     var h = location.hostname || '';
     return (location.protocol === 'https:') || h === 'localhost' || h === '127.0.0.1';
@@ -22361,7 +22448,13 @@ function openApp(k) {
         _checked = Date.now();
         if (!j || !j.build) return null;
         _latest = j;
-        if (mine && j.build && j.build !== mine) { showBanner(j); return j }
+        /* 关键修正：只有在「线上构建时间 > 本页构建时间」时才提示。
+           网卡 / 反复上传 / CDN 还没同步时，两边时间一先一后，就不会一直弹。 */
+        var mineTs = curBuildTs();
+        var newer = mine && j.build && j.build !== mine;
+        if (newer && mineTs && j.ts && j.ts <= mineTs + 1000) newer = false;
+        if (newer && skipped(j.build)) { if (!silent) toast('这个版本你选择过忽略'); return null }
+        if (newer) { showBanner(j); return j }
         if (!silent) toast('已经是最新版');
         return null;
       })
@@ -22377,11 +22470,20 @@ function openApp(k) {
     bar.className = 'zika-upd-bar';
     bar.innerHTML = '<span class="zi">新版本已发布</span>'
       + '<b>点我更新</b>'
+      + '<u class="zi" id="zikaUpdSkip">忽略</u>'
       + '<i class="zz" id="zikaUpdX">✕</i>';
     document.body.appendChild(bar);
     _banner = bar;
     setTimeout(function () { if (bar && bar.parentNode) bar.classList.add('show') }, 40);
     bar.querySelector('b').addEventListener('click', function () { doUpdate(); });
+    var sk = document.getElementById('zikaUpdSkip');
+    if (sk) sk.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      try { localStorage.setItem('zikaUpdSkip', String(j.build)) } catch (e) { }
+      bar.classList.remove('show');
+      setTimeout(function () { try { bar.parentNode.removeChild(bar) } catch (e) { } }, 220);
+      toast('这次不再提示（下次有了更新的版本还会提示）');
+    });
     document.getElementById('zikaUpdX').addEventListener('click', function (ev) {
       ev.stopPropagation();
       bar.classList.remove('show');
@@ -22986,6 +23088,375 @@ function openApp(k) {
   setTimeout(ensureHomeSlot, 2500);
 
   window.cafeDebug = function () { return { day: C().day, cups: C().cups, cap: C().cap, rolled: C().rolled, slot: slotOf(), boost: boost() }; };
+})();
+
+/* ================= 私人影院 App（2026-10-30） =================
+   做什么：
+     · 只接 B 站：粘贴链接 → 取 BV 号 → 用官方播放器内嵌（player.bilibili.com）
+     · 邀请陆沉：75% 立刻来 / 15% 说"等一会"（最多五分钟，座位显示倒计时）/ 10% 拒绝
+     · 观影时可以在底部小框跟他说话：他回字卡（随机抽 + 按你的话回应）
+       · 回话节奏在 App 内可调（最快/最慢 秒），只作用于影院
+     · 时长按"你挂着的时间"算（暂停就停）
+     · 结束观影 → 记录 → 可生成一条主页动态（陆沉口吻 + 挑一张他的字卡；不进朋友圈）
+   数据：state.cinema（随备份走，见 shop 组）。 */
+(function () {
+  if (window.__zikaCinema) return;
+  window.__zikaCinema = 1;
+
+  var CARDS = [
+    '这一段你笑了。我看见了。',
+    '别缩成一团，靠过来一点。',
+    '这个镜头他拍得很耐心。',
+    '你手怎么这么凉。',
+    '先别说话，看完这段。',
+    '你眼睛比屏幕亮。',
+    '字幕跑太快了，要我念给你听吗。',
+    '你困了就说，我不勉强你。',
+    '这配乐……我想起上次你说过的话。',
+    '还有一半。我们慢慢看。',
+    '刚才那句台词，很像我们。',
+    '灯关了就看不见你。所以留一盏。'
+  ];
+  var REPLIES = [
+    { k: ['好看', '不错', '喜欢'], t: '嗯。你眼睛都没往旁边看。' },
+    { k: ['困', '睡', '累'], t: '那就靠着我睡。片尾我叫你。' },
+    { k: ['冷', '凉'], t: '过来。毯子在左边。' },
+    { k: ['抱', '牵手', '手'], t: '手给我。' },
+    { k: ['你呢', '你觉得'], t: '我在看你。' },
+    { k: ['怕', '吓'], t: '别怕。我在。' }
+  ];
+
+  function K() {
+    if (!state.cinema || typeof state.cinema !== 'object') state.cinema = {};
+    var c = state.cinema;
+    if (!Array.isArray(c.films)) c.films = [{ title: '海上钢琴师', bv: 'BV1xx411c7mD', dur: '2h49m' }];
+    if (!Array.isArray(c.log)) c.log = [];
+    if (typeof c.fast !== 'number') c.fast = 4;
+    if (typeof c.slow !== 'number') c.slow = 10;
+    if (typeof c.minutes !== 'number') c.minutes = 0;
+    if (typeof c.inviteState !== 'string') c.inviteState = 'none';
+    return c;
+  }
+  var UI = { film: null, playing: false, waitTimer: null, waitLeft: 0, typing: false, waitTxt: '', tick: null };
+
+  function nextDelay() {
+    var c = K(), a = Math.max(1, c.fast), b = Math.max(a, c.slow);
+    return Math.round(a + Math.random() * (b - a));
+  }
+  function esc4(s) { return esc(String(s == null ? '' : s)); }
+
+  function hisSay(text, tag) {
+    var c = K();
+    c.log.push({ who: 'his', text: text, tag: tag || '观影', ts: now() });
+    try { save(); } catch (e) { }
+    paint();
+  }
+
+  /* ---------- 影院界面 ---------- */
+  function paint() {
+    var v = document.getElementById('view');
+    if (!v) return;
+    if ((location.hash.replace('#', '') || 'home') !== 'cinema') return;
+    v.innerHTML = html();
+    setTimeout(function () {
+      var lg = document.getElementById('cnLog');
+      if (lg) lg.scrollTop = lg.scrollHeight;
+    }, 30);
+  }
+
+  function html() {
+    var c = K(), f = UI.film || c.films[0];
+    var seats = seatHtml();
+    var films = c.films.map(function (x, i) {
+      return '<div class="cn-film' + (UI.film && UI.film.bv === x.bv ? ' on' : '') + '" data-act="cn-play" data-i="' + i + '">'
+        + '<div class="po">▶</div><div><b>' + esc4(x.title) + '</b><span>' + esc4(x.bv || '') + '</span></div>'
+        + '<i>' + esc4(x.dur || '') + '</i></div>';
+    }).join('');
+    var log = c.log.slice(-40).map(function (m) {
+      if (m.who === 'sys') return '<div class="cn-sys">' + esc4(m.text) + '</div>';
+      if (m.who === 'me') return '<div class="cn-me">' + esc4(m.text) + '</div>';
+      return '<div class="cn-his">' + esc4(m.text) + '<span class="src">字卡 · ' + esc4(m.tag || '观影') + '</span></div>';
+    }).join('');
+    if (UI.typing) log += '<div class="cn-type">陆沉正在挑字卡…' + (UI.waitTxt ? '（' + esc4(UI.waitTxt) + '）' : '') + '</div>';
+
+    var screenInner;
+    if (UI.playing && f && f.bv) {
+      screenInner = '<iframe class="cn-frame" src="https://player.bilibili.com/player.html?bvid=' + encodeURIComponent(f.bv)
+        + '&autoplay=0&danmaku=0&high_quality=1" scrolling="no" frameborder="0" allowfullscreen></iframe>';
+    } else {
+      screenInner = '<div class="beam"></div>'
+        + (f ? '<div class="t">' + esc4(f.title) + '</div><div class="m">' + esc4(f.bv || '') + '</div>'
+          + '<div class="play" data-act="cn-ifplay">▶</div>'
+          : '<div class="t">幕布还空着</div><div class="m">从下面挑一部，或粘一条 B 站链接</div>');
+    }
+
+    return ''
+      + '<div class="page-top"><button class="back" data-view="home">' + (typeof ICON_BACK !== 'undefined' ? ICON_BACK : '‹') + '</button>'
+      + '<span class="pt">私人影院</span><span class="pr"><span class="cn-live">' + (UI.playing ? '放映中' : '待机') + '</span></span></div>'
+      + '<div class="cn-room">'
+      + '<div class="cn-bar"><span class="dot"></span><span>影厅</span><span class="r">'
+      + (c.inviteState === 'in' ? '陆沉在座' : (c.inviteState === 'coming' ? '他正在过来 · ' + UI.waitLeft + 's' : '他还没来')) + '</span></div>'
+      + '<div class="cn-screen' + (UI.playing ? ' playing' : '') + '">' + screenInner + '</div>'
+      + '<div class="cn-seats">' + seats + '</div></div>'
+      + '<div class="cn-shelf"><h2>片单</h2>'
+      + '<div class="cn-paste"><input id="cnUrl" placeholder="粘贴 B 站链接（含 BV 号）"><button data-act="cn-add">加入</button></div>'
+      + films
+      + '<div class="cn-note">只接 B 站：自动取 BV 号，用官方播放器内嵌。抖音不支持内嵌，所以这里不放。</div></div>'
+      + (c.inviteState === 'in'
+        ? '<div class="cn-invite"><button class="dim" data-act="cn-end">结束观影</button><button class="go" data-act="cn-toggle">'
+        + (UI.playing ? '暂停' : '继续') + '</button></div>'
+        : '<div class="cn-invite"><button class="go" data-act="cn-invite">邀请陆沉一起看</button></div>')
+      + '<div class="cn-chat"><div class="cn-head">观影时说话 · 他会用字卡回你</div>'
+      + '<div class="cn-pace"><span>他回话的节奏</span>'
+      + '<label>最快<input id="cnFast" type="number" min="1" max="90" value="' + c.fast + '">秒</label>'
+      + '<label>最慢<input id="cnSlow" type="number" min="1" max="120" value="' + c.slow + '">秒</label>'
+      + '<button data-act="cn-pace">存</button></div>'
+      + '<div class="cn-log" id="cnLog">' + (log || '<div class="cn-sys">还没人说话</div>') + '</div>'
+      + '<div class="cn-input"><input id="cnChat" placeholder="说点什么…"><button data-act="cn-send">发</button></div></div>';
+  }
+
+  function seatHtml() {
+    var c = K();
+    var mine = '<div class="cn-seat"><div class="sofa"></div><div class="who"><div class="av">你</div></div><div class="nm">你</div></div>';
+    var his;
+    if (c.inviteState === 'in') his = '<div class="cn-seat on"><div class="lamp"></div><div class="sofa"></div><div class="who"><div class="av his">陆</div></div><div class="nm">陆沉</div></div>';
+    else if (c.inviteState === 'coming') his = '<div class="cn-seat on"><div class="lamp"></div><div class="sofa"></div><div class="who"><div class="av his">陆</div></div><div class="nm">正在过来 · ' + UI.waitLeft + 's</div></div>';
+    else his = '<div class="cn-seat empty"><div class="sofa"></div><div class="who"><div class="av">＋</div></div><div class="nm">还没人</div></div>';
+    return mine + his;
+  }
+
+  /* ---------- 计时（按挂着的时间） ---------- */
+  function startClock() {
+    stopClock();
+    UI.tick = setInterval(function () {
+      if (UI.playing) { K().minutes = (K().minutes || 0) + 1 / 60; }
+    }, 1000);
+  }
+  function stopClock() { if (UI.tick) { clearInterval(UI.tick); UI.tick = null; } }
+
+  /* ---------- 邀请 ---------- */
+  function invite() {
+    var c = K();
+    if (c.inviteState === 'coming' || c.inviteState === 'in') return;
+    c.log.push({ who: 'sys', text: '你邀请了陆沉', ts: now() });
+    var roll = Math.random();
+    if (roll < 0.75) {
+      c.inviteState = 'in';
+      try { save(); } catch (e) { }
+      paint();
+      setTimeout(function () {
+        hisSay('进来吧。坐我旁边，灯我来关。', '回应');
+        UI.playing = true; startClock(); paint();
+      }, 1200);
+    } else if (roll < 0.90) {
+      c.inviteState = 'coming';
+      UI.waitLeft = 30 + Math.floor(Math.random() * 271);      /* 30s ~ 5 分钟 */
+      try { save(); } catch (e) { }
+      hisSay('等我一下，我处理完就过来，不会超过五分钟。', '回应');
+      clearInterval(UI.waitTimer);
+      UI.waitTimer = setInterval(function () {
+        UI.waitLeft--;
+        if (UI.waitLeft <= 0) {
+          clearInterval(UI.waitTimer);
+          var cc = K(); cc.inviteState = 'in';
+          try { save(); } catch (e) { }
+          hisSay('来了。灯关了，从刚才那分钟开始看。', '回应');
+          UI.playing = true; startClock(); paint();
+        } else paint();
+      }, 1000);
+    } else {
+      c.inviteState = 'none';
+      try { save(); } catch (e) { }
+      hisSay('今晚恐怕不行。片子留着，明天我陪你从头看。', '回应');
+    }
+  }
+
+  /* ---------- 生成主页动态（海报 + 陆沉口吻） ---------- */
+  function posterRef(f, minutes, cards, cb) {
+    try {
+      var W = 900, H = 900, cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      var g = cv.getContext('2d');
+      var bg = g.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, '#1B1410'); bg.addColorStop(1, '#080706');
+      g.fillStyle = bg; g.fillRect(0, 0, W, H);
+      var glow = g.createRadialGradient(W / 2, 120, 40, W / 2, 120, 620);
+      glow.addColorStop(0, 'rgba(224,164,88,.34)'); glow.addColorStop(1, 'rgba(224,164,88,0)');
+      g.fillStyle = glow; g.fillRect(0, 0, W, H * .7);
+      g.fillStyle = 'rgba(200,168,126,.9)'; g.font = '22px -apple-system,sans-serif';
+      g.fillText('PRIVATE SCREENING', 72, 640);
+      g.fillStyle = '#F4EEE2'; g.font = '600 62px "Songti SC",serif';
+      var title = String(f.title || '私人放映').slice(0, 12);
+      g.fillText(title, 72, 730);
+      g.fillStyle = 'rgba(170,154,136,.95)'; g.font = '24px -apple-system,sans-serif';
+      g.fillText('一起 ' + Math.max(1, Math.round(minutes)) + ' 分钟 · 他说了 ' + cards + ' 张字卡', 72, 784);
+      var data = cv.toDataURL('image/jpeg', 0.9);
+      mediaAdopt(data, 'post').then(function (ref) { cb(ref || '') }).catch(function () { cb('') });
+    } catch (e) { cb(''); }
+  }
+
+  function finish() {
+    var c = K(), f = UI.film || c.films[0] || {};
+    var cards = c.log.filter(function (x) { return x.who === 'his' && x.tag !== '回应'; }).length;
+    var mins = Math.max(1, Math.round(c.minutes || 0));
+    if (!confirm('这次和陆沉看了 ' + mins + ' 分钟，他说了 ' + cards + ' 张字卡。\n\n生成一条主页动态吗？（不生成就只留记录）')) {
+      endSession(); return;
+    }
+    var lastCard = null;
+    for (var i = c.log.length - 1; i >= 0; i--) {
+      if (c.log[i].who === 'his' && c.log[i].tag !== '回应') { lastCard = c.log[i].text; break; }
+    }
+    posterRef(f, mins, cards, function (ref) {
+      try {
+        if (!Array.isArray(state.pigPosts)) state.pigPosts = [];
+        var text = '陪你看了《' + (f.title || '') + '》。' + mins + ' 分钟，你眼睛一次都没离开屏幕。';
+        var pp = { id: uid(), text: text, imgs: ref ? [ref] : [], ts: now(), cine: { mins: mins, cards: cards, card: lastCard || '' } };
+        state.pigPosts.unshift(pp);
+        save();
+        toast('已生成一条主页动态');
+      } catch (e) { toast('生成失败：' + e.message); }
+      endSession();
+    });
+  }
+  function endSession() {
+    UI.playing = false; stopClock();
+    var c = K(); c.inviteState = 'none';
+    try { save(); } catch (e) { }
+    paint();
+  }
+
+  /* ---------- 交互 ---------- */
+  document.addEventListener('click', function (e) {
+    var el = e.target && e.target.closest ? e.target.closest('[data-act^="cn-"]') : null;
+    if (!el) return;
+    var c = K(), act = el.getAttribute('data-act');
+
+    if (act === 'cn-add') {
+      var inp = document.getElementById('cnUrl');
+      var url = inp ? inp.value.trim() : '';
+      if (!url) return;
+      var m = url.match(/BV[0-9A-Za-z]{10}/);
+      var bv = m ? m[0] : '';
+      if (!bv) { toast('没认出 BV 号，发一个 B 站视频链接试试'); return; }
+      c.films.unshift({ title: 'B站视频 ' + bv.slice(2, 8), bv: bv, dur: '待读' });
+      try { save(); } catch (err) { }
+      UI.film = c.films[0]; paint(); toast('加进片单了');
+      return;
+    }
+    if (act === 'cn-play') {
+      var i = +el.getAttribute('data-i');
+      UI.film = c.films[i]; UI.playing = true;
+      c.minutes = 0; startClock(); paint(); return;
+    }
+    if (act === 'cn-ifplay') { UI.playing = true; startClock(); paint(); return; }
+    if (act === 'cn-toggle') { UI.playing = !UI.playing; paint(); return; }
+    if (act === 'cn-invite') { invite(); return; }
+    if (act === 'cn-end') { finish(); return; }
+    if (act === 'cn-pace') {
+      var f1 = document.getElementById('cnFast'), f2 = document.getElementById('cnSlow');
+      var a = Math.max(1, Math.min(90, parseInt(f1.value, 10) || 4));
+      var b = Math.max(a, Math.min(120, parseInt(f2.value, 10) || 10));
+      c.fast = a; c.slow = b;
+      try { save(); } catch (err) { }
+      paint(); toast('节奏已存：' + a + '–' + b + ' 秒'); return;
+    }
+    if (act === 'cn-send') {
+      var box = document.getElementById('cnChat');
+      var v = box ? box.value.trim() : '';
+      if (!v) return;
+      if (box) box.value = '';
+      c.log.push({ who: 'me', text: v, ts: now() });
+      try { save(); } catch (err) { }
+      paint();
+      var d = nextDelay();
+      UI.typing = true; UI.waitTxt = '约 ' + d + ' 秒'; paint();
+      setTimeout(function () {
+        UI.typing = false;
+        var hit = null;
+        for (var q = 0; q < REPLIES.length; q++) {
+          for (var w = 0; w < REPLIES[q].k.length; w++) if (v.indexOf(REPLIES[q].k[w]) >= 0) { hit = REPLIES[q].t; break; }
+          if (hit) break;
+        }
+        hisSay(hit || CARDS[Math.floor(Math.random() * CARDS.length)], hit ? '回应' : '观影');
+      }, d * 1000);
+      return;
+    }
+  }, true);
+
+  /* ---------- 注册 ---------- */
+  try { if (typeof VIEWS !== 'undefined' && VIEWS.indexOf('cinema') < 0) VIEWS.push('cinema'); } catch (e) { }
+  try {
+    if (typeof render === 'function') {
+      var _r = render;
+      render = function (v) {
+        v = v || location.hash.replace('#', '') || 'home';
+        if (v === 'cinema') {
+          var c = K();
+          if (!UI.film) UI.film = c.films[0] || null;
+          if (c.inviteState === 'in') { /* 已经在一起看 */ }
+          var host = document.getElementById('view');
+          if (host) host.innerHTML = html();
+          return;
+        }
+        return _r.apply(this, arguments);
+      };
+      window.render = render;
+    }
+  } catch (e) { }
+  try {
+    if (typeof appListDefs === 'function') {
+      var _ad = appListDefs;
+      appListDefs = function () {
+        var list = _ad.apply(this, arguments) || [];
+        if (!list.some(function (x) { return x.v === 'cinema'; })) {
+          list.push({
+            v: 'cinema', n: '影院', c: '#1B1410',
+            ic: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'
+              + '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M2.5 10h19M7 6v4M17 6v4"/></svg>'
+          });
+        }
+        return list;
+      };
+      try { APPS = appListDefs(); } catch (e) { }
+    }
+  } catch (e) { }
+  /* 摆位：第二页第三行（雷达右边那一格）。雷达也钉在同一行，保证"雷达在左、影院在右"。 */
+  function ensureSlot() {
+    try {
+      if (!state.appPos || typeof state.appPos !== 'object') return;
+      if (!Array.isArray(state.appOrder)) state.appOrder = [];
+      var changed = false;
+
+      /* 雷达先占这一行第一格 */
+      var rd = state.appPos.radar;
+      if (!rd || rd.p !== 1 || rd.r !== 5 || rd.c !== 0) {
+        state.appPos.radar = { p: 1, r: 5, c: 0 }; changed = true;
+      }
+      /* 影院紧挨着它 */
+      var ci = state.appPos.cinema;
+      if (!ci || ci.p !== 1 || ci.r !== 5 || ci.c !== 1) {
+        state.appPos.cinema = { p: 1, r: 5, c: 1 }; changed = true;
+      }
+      /* 顺序也要对：影院必须排在雷达后面，否则会顶到第一格 */
+      var o = state.appOrder.filter(function (k) { return k !== 'cinema'; });
+      if (o.indexOf('radar') < 0) o.push('radar');
+      o.splice(o.indexOf('radar') + 1, 0, 'cinema');
+      if (o.join(',') !== state.appOrder.join(',')) { state.appOrder = o; changed = true; }
+
+      if (changed) { try { save(); } catch (e) { } }
+    } catch (e) { }
+  }
+  window.cinemaEnsureSlot = ensureSlot;
+  try {
+    if (typeof renderHome === 'function') {
+      var _rh = renderHome;
+      renderHome = function () { ensureSlot(); return _rh.apply(this, arguments); };
+      window.renderHome = renderHome;
+    }
+  } catch (e) { }
+  setTimeout(ensureSlot, 2600);
+
+  window.cinemaDebug = function () { return { c: K(), ui: { playing: UI.playing, film: UI.film } }; };
 })();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
