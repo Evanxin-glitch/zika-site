@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="b19e285b75">
-<meta name="x-build-ts" content="1793213764595">
+<meta name="x-build" content="d3939890f4">
+<meta name="x-build-ts" content="1793254290314">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -3217,6 +3217,80 @@ body.room-mode .bd-board{flex:0 0 auto;max-height:34vh;overflow-y:auto}
   font-family:inherit!important;font-size:calc(11.5px*var(--fs))!important;outline:none!important}
 #view .cn-pace input{width:34px!important;padding:3px 4px!important;text-align:center!important}
 #view .cn-paste input::placeholder,#view .cn-input input::placeholder{color:#6B5F54!important}
+/* 影院输入框：iOS 上 input 字号 <16px 会在聚焦时把整页放大，这里钉死 16px */
+#view .cn-paste input,#view .cn-input input,#view .cn-pace input{
+  font-size:16px!important;line-height:1.3!important}
+#view .cn-pace input{font-size:16px!important}
+/* ===== 雷达 v2 · 暗紫罗盘 ===== */
+#view.rd2-mode{background:radial-gradient(120% 55% at 50% 0%,#241C3E 0%,#141026 45%,#0A0814 100%);color:#EDE9F4}
+.rd2-page{min-height:100vh;background:radial-gradient(120% 55% at 50% 0%,#241C3E 0%,#141026 45%,#0A0814 100%);color:#EDE9F4}
+.rd2-top{display:flex;align-items:center;gap:10px;padding:12px 14px;color:#EDE9F4}
+.rd2-top .back{color:#CFC6E6}
+.rd2-top .pt{font-size:calc(14.5px*var(--fs));font-weight:600;letter-spacing:.06em}
+.rd2-top .pr{margin-left:auto;font-size:calc(10px*var(--fs));color:#A79EC0;border:1px solid #33294E;border-radius:99px;padding:3px 9px}
+.rd2-wrap{padding:0 0 18px;min-height:calc(100vh - 60px);background:radial-gradient(120% 55% at 50% 0%,#241C3E 0%,#141026 45%,#0A0814 100%)}
+.rd2-scope{position:relative;width:100%;aspect-ratio:1/1;max-width:390px;margin:0 auto;padding:14px}
+.rd2-scope .ring{position:absolute;inset:14px;border-radius:50%;border:1px solid rgba(142,124,195,.22)}
+.rd2-scope .ring.r2{inset:48px;border-color:rgba(142,124,195,.16)}
+.rd2-scope .ring.r3{inset:84px;border-color:rgba(142,124,195,.13)}
+.rd2-scope .ring.r4{inset:120px;border-color:rgba(142,124,195,.10)}
+.rd2-scope .cross{position:absolute;inset:14px;border-radius:50%;
+  background:linear-gradient(90deg,transparent calc(50% - .5px),rgba(142,124,195,.16) calc(50% - .5px),rgba(142,124,195,.16) calc(50% + .5px),transparent calc(50% + .5px)),
+    linear-gradient(0deg,transparent calc(50% - .5px),rgba(142,124,195,.16) calc(50% - .5px),rgba(142,124,195,.16) calc(50% + .5px),transparent calc(50% + .5px))}
+.rd2-scope .ticks{position:absolute;inset:14px}
+.rd2-scope .ticks i{position:absolute;left:50%;top:0;width:1px;background:rgba(201,164,106,.35)}
+.rd2-scope .dirs span{position:absolute;font-size:calc(10px*var(--fs));letter-spacing:.2em;color:rgba(200,192,220,.55)}
+.rd2-scope .dirs .n{left:50%;top:2px;transform:translateX(-50%)}
+.rd2-scope .dirs .s{left:50%;bottom:2px;transform:translateX(-50%)}
+.rd2-scope .dirs .w{left:8px;top:50%;transform:translateY(-50%)}
+.rd2-scope .dirs .e{right:8px;top:50%;transform:translateY(-50%)}
+.rd2-scope .sweep{position:absolute;inset:14px;border-radius:50%;overflow:hidden;opacity:0;transition:opacity .3s;pointer-events:none}
+.rd2-scope .sweep.on{opacity:1}
+.rd2-scope .sweep i{position:absolute;left:50%;top:50%;width:50%;height:50%;transform-origin:0 0;
+  background:conic-gradient(from 0deg,rgba(142,124,195,.42),rgba(142,124,195,0) 62%);animation:rd2spin 1.6s linear infinite}
+@keyframes rd2spin{to{transform:rotate(360deg)}}
+.rd2-scope .pulse{position:absolute;left:50%;top:50%;width:16px;height:16px;margin:-8px;border-radius:50%;
+  border:1px solid rgba(201,164,106,.6);opacity:0}
+.rd2-scope.scanning .pulse{animation:rd2pl 1.8s ease-out infinite}
+@keyframes rd2pl{0%{transform:scale(1);opacity:.8}100%{transform:scale(16);opacity:0}}
+.rd2-scope .me{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#E8C7A0,#8A6244);box-shadow:0 0 0 5px rgba(201,164,106,.12),0 0 22px rgba(201,164,106,.35);
+  display:flex;align-items:center;justify-content:center;font-size:calc(11px*var(--fs));color:#2A1B12;font-weight:700;z-index:3}
+.rd2-scope .his{position:absolute;width:44px;height:44px;margin:-22px;border-radius:50%;overflow:hidden;
+  border:2px solid rgba(217,143,168,.85);box-shadow:0 0 0 6px rgba(217,143,168,.10),0 0 26px rgba(217,143,168,.45);
+  background:#3A2F4E;display:flex;align-items:center;justify-content:center;color:#F6E9EE;
+  transition:left .9s cubic-bezier(.2,.8,.2,1),top .9s cubic-bezier(.2,.8,.2,1),opacity .4s;cursor:pointer;z-index:4}
+.rd2-scope .his img,.rd2-scope .his svg{width:100%!important;height:100%!important;border-radius:50%;display:block;object-fit:cover}
+.rd2-scope .his.hide{opacity:0;pointer-events:none}
+.rd2-line{margin:2px 16px 0;text-align:center;font-family:"Songti SC",Georgia,serif;font-size:calc(13px*var(--fs));
+  color:#E8D9C6;letter-spacing:.03em}
+.rd2-stat{margin:12px 16px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.rd2-stat div{background:rgba(255,255,255,.045);border:1px solid #262040;border-radius:12px;padding:10px 8px;text-align:center}
+.rd2-stat b{display:block;font-size:calc(14.5px*var(--fs));color:#F0EAF8;font-variant-numeric:tabular-nums}
+.rd2-stat span{display:block;font-size:calc(9.5px*var(--fs));color:#8A82A2;margin-top:4px;letter-spacing:.08em}
+.rd2-act{margin:12px 16px 0;display:flex;gap:9px}
+.rd2-act button{flex:1;font-family:inherit;font-size:calc(13px*var(--fs));font-weight:700;padding:12px;border-radius:12px;border:none;cursor:pointer;
+  background:linear-gradient(120deg,#E8C27A,#D98FA8);color:#1A1330}
+.rd2-act button.ghost{background:rgba(255,255,255,.06);border:1px solid #2A2340;color:#CFC6E6;font-weight:500}
+.rd2-hist{margin:16px 16px 0}
+.rd2-hist h3{font-size:calc(11px*var(--fs));color:#8A82A2;letter-spacing:.16em;display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.rd2-hist h3:after{content:"";flex:1;height:1px;background:#262040}
+.rd2-hist .hrow{display:flex;align-items:center;gap:10px;padding:9px 10px;background:rgba(255,255,255,.035);
+  border:1px solid #221C38;border-radius:10px;margin-bottom:7px;font-size:calc(11.5px*var(--fs));color:#CFC6E6}
+.rd2-hist .hrow .t{color:#8A82A2;font-variant-numeric:tabular-nums}
+.rd2-hist .hrow .d{color:#E8C7A0}
+.rd2-hist .hrow .a{color:#B9AED4}
+.rd2-hist .hrow .l{margin-left:auto;font-size:calc(10px*var(--fs));color:#7E759A}
+.rd2-hist .hrow.best{border-color:rgba(201,164,106,.45);background:rgba(201,164,106,.08)}
+.rd2-hist .hrow.best .l{color:#C9A46A}
+.rd2-best{margin:12px 16px 0;padding:11px 12px;border-radius:12px;border:1px dashed rgba(201,164,106,.35);
+  font-size:calc(11.5px*var(--fs));color:#CBB9A0;line-height:1.7}
+.rd2-best b{color:#F0DFC4}
+.rd2-rw{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(17,18,20,.08);font-size:calc(12.5px*var(--fs))}
+.rd2-rw span{color:#8A8078}
+.rd2-rw b{font-weight:600}
+.rd2-say{margin-top:12px;padding:12px;border-radius:12px;background:#FBF3E4;border:1px solid rgba(201,164,106,.35);
+  font-family:"Songti SC",Georgia,serif;font-size:calc(14px*var(--fs));line-height:1.8;color:#4A3B60}
 </style>
 </head>
 <body>
@@ -8170,7 +8244,8 @@ function renderMoments(){
   for(var i=0;i<posts.length;i++){
     var p=posts[i],c=p.contactId?contact(p.contactId):null;
     var nm=c?c.name:meNm;
-    var av=c?avatarHtml(c,40):avatarHtml({name:meNm,color:meCl},40);
+    /* ★ 我发的动态也要用我真正的头像（以前这里只传了名字和颜色 → 永远显示首字「我」） */
+    var av=c?avatarHtml(c,40):avatarHtml({name:meNm,color:meCl,avatarType:(state.me&&state.me.avatarType)||'char',avatarImg:(state.me&&state.me.avatarImg)||''},40);
     html+='<div class="moment"><div class="p-row"><div class="p-av">'+av+'</div><div class="p-main"><div class="nm">'+esc(nm)+'</div>';
     /* 他发的表情包动态：先贴图，再（可选）跟一句字卡文字 */
     if(p.sticker){
@@ -8545,7 +8620,7 @@ function renderMail(){
   for(var i=0;i<show.length;i++){
     var l=show[i],lc=l.contactId?contact(l.contactId):null;
     var nm=lc?lc.name:meNm;
-    var av=lc?avatarHtml(lc,40):avatarHtml({name:meNm,color:meCl},40);
+    var av=lc?avatarHtml(lc,40):avatarHtml({name:meNm,color:meCl,avatarType:(state.me&&state.me.avatarType)||'char',avatarImg:(state.me&&state.me.avatarImg)||''},40);
     /* ★ 收件箱里"是回信"的那封，标一个小绿标「回信」，并写清是回给哪封的
        —— 这样就能一眼分清"他回我的"和"他主动写给我的"。 */
     var _rt=(_mailTab==='in')?mailRepliedTo(l):null;
@@ -16094,7 +16169,9 @@ function pgSetLastFromSheet(offset) {
     { n: '状态', pool: 'statusCards' },
     { n: '心情', pool: 'moodCards' },
     { n: '拍一拍', pool: 'patCards' },
-    { n: '日记', pool: 'diaryCards' }
+    { n: '日记', pool: 'diaryCards' },
+    /* 观影专用：固定分类、不能删、不参与聊天室（只给影院抽） */
+    { n: '观影', pool: 'cineCards', label: '观影' }
   ];
   var cur = '全部';       /* 当前分类（默认看全部聊天字卡） */
   var selMode = false;    /* 批量选择模式 */
@@ -16203,7 +16280,8 @@ function pgSetLastFromSheet(offset) {
       + '<div style="height:30px"></div></div>';
     $('#view').innerHTML = h;
     syncSelBar();
-    if (mgrOpen) openManage();
+    /* ★ 一次性：以前这里不清标记，关掉弹窗后每次重绘又弹出来（用户报的「点哪都弹管理分类」） */
+    if (mgrOpen) { mgrOpen = false; openManage(); }
   };
 
   function msg(t) { var el = document.getElementById('ccMsg'); if (el) el.textContent = t || '' }
@@ -21505,177 +21583,258 @@ function openApp(k) {
   window.chatLockSync = sync;
 })();
 
-/* ================= 雷达（灵体罗盘）=================
-   罗盘扫描 → 判定「在/不在」(30% 不在) → 距离(连续, 米, 0.4~10m 偶发远→近)
-   → 方位 + 趋势 + 动作 + 链接程度 + 联动最近聊天热度。
-   数据存 state.radar，进备份；点陆沉头像看详情卡。 */
+/* ================= 雷达 · 灵体罗盘 v2（2026-10-30 重做） =================
+   视觉：暗紫罗盘（四层同心圈 + 36 格刻度 + 扇形扫描 + 波纹）＋ 头像绕圈移动
+   功能：判定在/不在（约 22% 不在）· 距离连续 0.4~10m · 方位按角度算 · 链接程度 · 趋势 · 动作 · 他的一句话
+        最近探测最多 6 条（没扫到也记一条）· 他离你最近的一次 · 点头像看详情卡
+   数据：state.radar（本体）/ state.radarHist（历史）/ state.radarBest（最近的一次） */
 (function () {
-  if (window.__radar) return; window.__radar = 1;
+  if (window.__radar) return;
+  window.__radar = 1;
 
-  var ACTS = ['在牵你的手','亲亲你的脸','碰了下你的小拇指','玩你的手指','在轻轻碰你的发尾','在整理你的衣领',
-    '在替你拉一下被子','在揉你的头','搂着你的肩','在给你暖手','在捏你的脸','在把下巴搁在你肩上',
-    '在和你一起看手机','陪你学习','陪你工作','陪你发呆','陪你熬夜','陪你吃饭','陪你散步',
-    '在听你说话','在数你的呼吸','在学你说话的语气',
-    '在看你','盯着你发呆','在偷偷看你笑','在看你发呆','在看你写东西','在看你侧脸',
-    '在看你咬嘴唇','在从镜子里看你','在偷看你睡着的样子',
-    '在门边等你','在窗边','在替你挡风','在挡在你和风之间','在给你留灯','在等你回头',
-    '在守着你','在你睡着时守着','在替你注意身后','在看着你睡',
-    '在等你醒','在你一步外站着','在数你今天笑了几次','在记你今天说过的话','在你旁边静静待着',
-    '在听你房间里的声音','在看着窗外的雨','在替你留意时间'];
-  var DIRS = ['左前方','右前方','正前方','左手边','右手边','你身后','你头顶上方','门口','窗边','你旁边'];
-  var NEAR = ['在你身边','你左手边','你右手边','抬头就能看见我','就在你眼前','近得能碰到'];
-  var SAYS = ['我在这边。','别回头，我在你左边。','抬头就能看见我。','我就在你一步之外。','你手有点凉，想牵吗。','我看到你在看手机了。','我在门口，等你开门。','别怕，我在。','呼吸放轻一点，别把我吓走。','你找到我了。','我站你旁边，别侧过头。'];
-  var GONE = ['这一侧暂时没有回应。','他大概在更高的一层。','信号散在风里了，等一等。','现在别找，他在更远的地方。'];
+  var ACTS = ['在牵你的手', '亲亲你的脸', '碰了下你的小拇指', '玩你的手指', '在轻轻碰你的发尾', '在整理你的衣领',
+    '在替你拉一下被子', '在揉你的头', '搂着你的肩', '在给你暖手', '在捏你的脸', '在把下巴搁在你肩上',
+    '在和你一起看手机', '陪你学习', '陪你工作', '陪你发呆', '陪你熬夜', '陪你吃饭', '陪你散步',
+    '在听你说话', '在数你的呼吸', '在学你说话的语气',
+    '在看你', '盯着你发呆', '在偷偷看你笑', '在看你发呆', '在看你写东西', '在看你侧脸',
+    '在看你咬嘴唇', '在从镜子里看你', '在偷看你睡着的样子',
+    '在门边等你', '在窗边', '在替你挡风', '在挡在你和风之间', '在给你留灯', '在等你回头',
+    '在守着你', '在你睡着时守着', '在替你注意身后', '在看着你睡',
+    '在等你醒', '在你一步外站着', '在数你今天笑了几次', '在记你今天说过的话', '在你旁边静静待着',
+    '在听你房间里的声音', '在看着窗外的雨', '在替你留意时间'];
+  var NEAR = ['在你身边', '你左手边', '你右手边', '抬头就能看见我', '就在你眼前', '近得能碰到'];
+  var SAYS = ['我在这边。', '别回头，我在你左边。', '抬头就能看见我。', '我就在你一步之外。', '你手有点凉，想牵吗。',
+    '我看到你在看手机了。', '我在门口，等你开门。', '别怕，我在。', '呼吸放轻一点，别把我吓走。', '你找到我了。',
+    '我站你旁边，别侧过头。'];
+  var GONE = ['这一侧暂时没有回应。', '他大概在更高的一层。', '信号散在风里了，等一等。', '现在别找，他在更远的地方。'];
 
   function pick(a) { return a[Math.floor(Math.random() * a.length)] }
   function rnd(a, b) { return a + Math.random() * (b - a) }
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
   function now() { return Date.now() }
-  function R() { state.radar = state.radar || { present: true, dist: 5, angle: 210, link: 78, ts: 0, lastSeen: 0, trend: '静止', dir: '你旁边', look: '在看你', say: '', dist_prev: 5 }; return state.radar }
+  function hm(ts) { var d = new Date(+ts || Date.now()); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) }
+
+  function R() {
+    state.radar = state.radar || { present: true, dist: 5, angle: 210, link: 78, ts: 0, lastSeen: 0, trend: '静止', dir: '你旁边', look: '在看你', say: '', dist_prev: 5 };
+    return state.radar;
+  }
+  function H() { if (!Array.isArray(state.radarHist)) state.radarHist = []; return state.radarHist }
   function levelOf(v) { return v >= 85 ? '如临身侧' : v >= 65 ? '清晰' : v >= 45 ? '微弱' : '若即若离' }
 
   /* 最近聊天热度：条数 + 最近时间，越近越热 */
   function chatHeat() {
     try {
-      var msgs = state.messages || []; var now2 = now(); var n = 0, hot = 0;
+      var msgs = state.messages || []; var t = now(); var n = 0, hot = 0;
       for (var i = msgs.length - 1; i >= 0 && n < 50; i--) {
         var m = msgs[i]; if (!m || m.kind === 'transfer' || m.kind === 'gift') continue;
-        n++; var age = now2 - (m.ts || 0);
+        n++; var age = t - (m.ts || 0);
         if (age < 3600e3) hot += 2; else if (age < 6 * 3600e3) hot += 1;
       }
       return { n: n, hot: Math.min(12, hot) };
     } catch (e) { return { n: 0, hot: 0 } }
   }
 
+  /* 角度 → 八方位：屏幕坐标 0°=右、90°=下 */
+  function dirOf(a) {
+    a = ((a % 360) + 360) % 360;
+    return ['东', '东南', '南', '西南', '西', '西北', '北', '东北'][Math.round(a / 45) % 8];
+  }
+  function fmtDist(d) { return d < 1.2 ? '身边' : (d < 10 ? d.toFixed(1) + ' m' : Math.round(d) + ' m') }
+
   function scan() {
-    var r = R(); var heat = chatHeat();
-    /* 在不在：30% 不在；但刚判定"在"的 1~3 小时内保持"在"（他停留） */
+    var r = R(), heat = chatHeat();
     var stay = (r.lastSeen && (now() - r.lastSeen < (r.stayMs || 3600e3)));
     if (stay) r.present = true;
-    else r.present = Math.random() > 0.30;
+    else r.present = Math.random() > 0.22;
 
     if (!r.present) {
       r.link = Math.max(20, r.link - rnd(6, 18));
       r.trend = '暂无回应'; r.dir = '未知'; r.look = '—'; r.say = pick(GONE);
       r.ts = now();
+      pushHist(r);
       return r;
     }
     r.lastSeen = now();
     r.stayMs = rnd(3600e3, 3 * 3600e3);
 
-    /* 距离连续：偶发"刚到这侧"远→近；聊天越热越近 */
-    var justArrived = Math.random() < 0.22;
-    if (justArrived) r.dist = rnd(12, 22);
+    var justArrived = Math.random() < 0.30;
+    if (justArrived) r.dist = rnd(8, 20);
     else {
-      var pull = heat.hot * 0.25; /* 热度把距离拉近 */
+      var pull = heat.hot * 0.25;
       r.dist = Math.max(0.4, Math.min(10, r.dist + rnd(-1.4, 1.4) - pull));
     }
-    r.trend = r.dist < r.dist_prev - 0.5 ? '正在靠近' : (r.dist > r.dist_prev + 0.5 ? '正在走远' : '就在原地');
+    r.trend = r.dist < (r.dist_prev || r.dist) - 0.5 ? '正在靠近' : (r.dist > (r.dist_prev || r.dist) + 0.5 ? '正在走远' : '就在原地');
     r.dist_prev = r.dist;
-    r.angle = (r.angle + rnd(-46, 46) + 360) % 360;
-    r.dir = r.dist < 1.2 ? pick(NEAR) : pick(DIRS);
+    /* 方位：刚"到达"时换一个全新方位，平时大幅走动 —— 以前只在 210°±46° 打转，头像永远在左边 */
+    if (justArrived) r.angle = Math.round(Math.random() * 360);
+    else r.angle = (r.angle + rnd(-100, 100) + 360) % 360;
+    r.dir = dirOf(r.angle);
     r.look = pick(ACTS);
     r.say = pick(SAYS);
     r.link = Math.max(20, Math.min(98, (r.dist < 1.2 ? r.link + rnd(2, 7) : r.link + rnd(-3, 3))));
     r.ts = now();
-    try { save() } catch (e) { }
+    pushHist(r);
     return r;
   }
 
+  function pushHist(r) {
+    var h = H();
+    var rec = { ts: now(), dist: r.present ? r.dist : -1, dir: r.dir, link: r.link, present: !!r.present };
+    h.push(rec);
+    while (h.length > 6) h.shift();
+    if (rec.present && (!state.radarBest || rec.dist < state.radarBest.dist)) {
+      state.radarBest = { ts: rec.ts, dist: rec.dist, dir: rec.dir };
+    }
+    try { save() } catch (e) { }
+  }
+
+  /* ---------------- 界面 ---------------- */
   function renderRadar() {
     var r = R();
-    var h = '<div class="page-top"><button class="back" data-view="home">' + (typeof ICON_BACK !== 'undefined' ? ICON_BACK : '‹') + '</button><span class="pt">雷达</span></div>';
-    h += '<div class="radar-wrap">'
-      + '<div class="rd-status" id="rdStatus">正在感应他的频段…</div>'
-      + '<div class="rd-compass"><svg viewBox="0 0 320 320">'
-      + '<circle cx="160" cy="160" r="152" fill="rgba(20,18,30,.5)" stroke="rgba(180,170,210,.22)"/>'
-      + '<circle cx="160" cy="160" r="120" fill="none" stroke="rgba(180,170,210,.14)"/>'
-      + '<circle cx="160" cy="160" r="84" fill="none" stroke="rgba(180,170,210,.12)"/>'
-      + '<circle cx="160" cy="160" r="44" fill="none" stroke="rgba(180,170,210,.1)"/>'
-      + '<g stroke="rgba(180,170,210,.3)"><line x1="160" y1="8" x2="160" y2="26"/><line x1="160" y1="294" x2="160" y2="312"/><line x1="8" y1="160" x2="26" y2="160"/><line x1="294" y1="160" x2="312" y2="160"/></g>'
-      + '<g fill="rgba(237,233,244,.7)" font-size="12" text-anchor="middle"><text x="160" y="42">北</text><text x="160" y="302">南</text><text x="272" y="165">东</text><text x="48" y="165">西</text></g>'
-      + '<circle cx="160" cy="160" r="3" fill="rgba(201,164,106,.8)"/></svg>'
-      + '<div class="rd-sweep" id="rdSweep"></div>'
-      + '<div class="rd-core" id="rdCore"><div class="rd-big">未开始</div><div class="rd-sub">点下方开始扫描</div></div>'
-      + '<div class="rd-avatar" id="rdAvatar" style="display:none"><span class="rd-face">陆</span></div>'
+    var h = '<div class="rd2-page">'
+      + '<div class="rd2-top"><button class="back" data-view="home">' + (typeof ICON_BACK !== 'undefined' ? ICON_BACK : '‹') + '</button>'
+      + '<span class="pt">雷达</span><span class="pr" id="rd2Chip">—</span></div>'
+      + '<div class="rd2-wrap">'
+      + '<div class="rd2-scope' + (r.present ? '' : ' off') + '" id="rd2Scope">'
+      + '<div class="ring"></div><div class="ring r2"></div><div class="ring r3"></div><div class="ring r4"></div>'
+      + '<div class="cross"></div><div class="ticks" id="rd2Ticks"></div>'
+      + '<div class="dirs"><span class="n">北</span><span class="s">南</span><span class="w">西</span><span class="e">东</span></div>'
+      + '<div class="sweep" id="rd2Sweep"><i></i></div>'
+      + '<div class="pulse"></div><div class="pulse" style="animation-delay:.7s"></div><div class="pulse" style="animation-delay:1.4s"></div>'
+      + '<div class="me">你</div>'
+      + '<div class="his hide" id="rd2His">陆</div>'
       + '</div>'
-      + '<button class="rd-btn" id="rdBtn" data-act="rd-scan">开始扫描</button>'
-      + '<div class="rd-hint" id="rdHint">扫一次约 4 秒 · 他可能刚好不在</div></div>';
-
+      + '<div class="rd2-line" id="rd2Line">等着感应</div>'
+      + '<div class="rd2-stat">'
+      + '<div><b id="rd2Dist">—</b><span>距离</span></div>'
+      + '<div><b id="rd2Dir">—</b><span>方位</span></div>'
+      + '<div><b id="rd2Link">—</b><span>链接程度</span></div>'
+      + '</div>'
+      + '<div class="rd2-act"><button id="rd2Btn" data-act="rd2-scan">开始扫描</button>'
+      + '<button class="ghost" data-act="rd2-clear">清空记录</button></div>'
+      + '<div class="rd2-hist"><h3>最近探测</h3><div id="rd2List"></div></div>'
+      + '<div class="rd2-best" id="rd2Best"></div>'
+      + '</div></div>';
     var view = document.getElementById('view');
     if (view) view.innerHTML = h;
-    /* 头像用设置里能换的陆沉头像（和聊天/联系人联动） */
-    try {
-      var _av = document.getElementById('rdAvatar');
-      if (_av && typeof avatarHtml === 'function' && typeof activeContact === 'function') {
-        _av.innerHTML = avatarHtml(activeContact(), 34);
-        _av.classList.add('rd-hasimg');
-      }
-    } catch (e) { }
+    initTicks();
     paint(r);
   }
 
+  function initTicks() {
+    var box = document.getElementById('rd2Ticks'); if (!box) return;
+    var sc = document.getElementById('rd2Scope');
+    var radius = Math.max(80, ((sc ? sc.clientWidth : 360) - 28) / 2);
+    var h = '';
+    for (var i = 0; i < 36; i++) {
+      var major = (i % 3 === 0);
+      h += '<i style="height:' + (major ? 10 : 5) + 'px;opacity:' + (major ? '.5' : '.26')
+        + ';transform-origin:50% ' + radius + 'px;transform:rotate(' + (i * 10) + 'deg)"></i>';
+    }
+    box.innerHTML = h;
+  }
+
   function paint(r) {
-    var st = document.getElementById('rdStatus'), core = document.getElementById('rdCore');
-    var av = document.getElementById('rdAvatar'), hint = document.getElementById('rdHint');
-    if (!st) return;
-    if (!r.present) {
-      st.textContent = '没有捕捉到';
-      core.innerHTML = '<div class="rd-big">暂无回应</div><div class="rd-sub">这一侧空空的</div>';
-      if (av) { av.style.display = 'block'; av.style.left = '50%'; av.style.top = '50%'; av.style.opacity = '.5' }
-      if (hint) hint.textContent = r.say;
+    var sc = document.getElementById('rd2Scope'), his = document.getElementById('rd2His');
+    var chip = document.getElementById('rd2Chip');
+    var line = document.getElementById('rd2Line');
+    var dEl = document.getElementById('rd2Dist'), dirEl = document.getElementById('rd2Dir'), lkEl = document.getElementById('rd2Link');
+    if (!sc) return;
+
+    if (chip) chip.textContent = S_scanning ? '扫描中…' : (r.present ? '他在' : '没有回应');
+    if (dEl) dEl.textContent = r.present ? fmtDist(r.dist) : '—';
+    if (dirEl) dirEl.textContent = r.present ? r.dir : '未知';
+    if (lkEl) lkEl.textContent = r.present ? (Math.round(r.link) + '%') : '—';
+    if (line) {
+      line.textContent = !r.present ? '这一侧是空的'
+        : ('他在' + r.dir + '面 · ' + fmtDist(r.dist) + ' · ' + (r.link > 70 ? '信号很强' : '信号稳定'));
+    }
+    /* 头像位置：方位 + 距离 */
+    if (his) {
+      if (!r.present) { his.classList.add('hide') }
+      else {
+        his.classList.remove('hide');
+        var w = sc.clientWidth, c = w / 2;
+        var rr = (w * 0.5 - 26) * Math.max(.22, Math.min(1, 0.28 + r.dist / 12));
+        var rad = r.angle * Math.PI / 180;
+        his.style.left = (c + rr * Math.cos(rad)) + 'px';
+        his.style.top = (c + rr * Math.sin(rad)) + 'px';
+        if (typeof avatarHtml === 'function' && typeof activeContact === 'function') {
+          his.innerHTML = avatarHtml(activeContact(), 40);
+        }
+      }
+    }
+    /* 历史 */
+    var list = document.getElementById('rd2List');
+    if (list) {
+      var arr = H(), out = '';
+      if (!arr.length) out = '<div class="hrow"><span>还没有记录</span></div>';
+      else {
+        arr.slice().reverse().forEach(function (x) {
+          var best = state.radarBest && x.ts === state.radarBest.ts;
+          out += '<div class="hrow' + (best ? ' best' : '') + '">'
+            + '<span class="t">' + hm(x.ts) + '</span>'
+            + '<span class="d">' + (x.present ? fmtDist(x.dist) : '没捕捉到') + '</span>'
+            + '<span class="a">' + esc(x.dir) + '</span>'
+            + '<span class="l">' + (best ? '最近的一次' : (x.present ? '链接 ' + Math.round(x.link) + '%' : '—')) + '</span></div>';
+        });
+      }
+      list.innerHTML = out;
+    }
+    var bestEl = document.getElementById('rd2Best');
+    if (bestEl) {
+      bestEl.innerHTML = state.radarBest
+        ? '他离你最近的一次：<b>' + fmtDist(state.radarBest.dist) + '</b> · ' + hm(state.radarBest.ts) + ' · ' + esc(state.radarBest.dir)
+        : '他离你最近的一次：<b>还没有记录</b>';
+    }
+  }
+
+  var S_scanning = false;
+  function doScan() {
+    if (S_scanning) return;
+    S_scanning = true;
+    var btn = document.getElementById('rd2Btn'), sweep = document.getElementById('rd2Sweep'), sc = document.getElementById('rd2Scope');
+    if (btn) { btn.disabled = true; btn.textContent = '扫描中…' }
+    if (sweep) sweep.classList.add('on');
+    if (sc) sc.classList.add('scanning');
+    var chip = document.getElementById('rd2Chip'); if (chip) chip.textContent = '扫描中…';
+    setTimeout(function () {
+      S_scanning = false;
+      var r = scan();
+      if (btn) { btn.disabled = false; btn.textContent = '再扫一次' }
+      if (sweep) sweep.classList.remove('on');
+      if (sc) sc.classList.remove('scanning');
+      paint(r);
+    }, 3400);
+  }
+
+  /* 详情卡 */
+  function openDetail() {
+    var r = R(); if (!r.present) return;
+    var html = '<h3>陆沉 · 雷达</h3>'
+      + '<div class="rd2-rw"><span>状态</span><b>在 · ' + (r.link > 70 ? '信号很强' : '信号稳定') + '</b></div>'
+      + '<div class="rd2-rw"><span>距离</span><b>' + fmtDist(r.dist) + '</b></div>'
+      + '<div class="rd2-rw"><span>方位</span><b>' + esc(r.dir) + '</b></div>'
+      + '<div class="rd2-rw"><span>链接程度</span><b>' + Math.round(r.link) + '% · ' + levelOf(r.link) + '</b></div>'
+      + '<div class="rd2-rw"><span>动作</span><b>' + esc(r.look) + '</b></div>'
+      + '<div class="rd2-say">“' + esc(r.say) + '”</div>'
+      + '<div class="zbtns"><button class="zbtn" data-act="sheet-close">收起</button></div>';
+    if (typeof openSheet === 'function') openSheet(html);
+  }
+
+  /* ---------------- 交互 ---------------- */
+  document.addEventListener('click', function (e) {
+    var t = e.target && e.target.closest ? e.target.closest('[data-act="rd2-scan"],[data-act="rd2-clear"],#rd2His') : null;
+    if (!t) return;
+    if (t.id === 'rd2His') { openDetail(); return }
+    var act = t.getAttribute('data-act');
+    if (act === 'rd2-scan') { doScan(); return }
+    if (act === 'rd2-clear') {
+      state.radarHist = []; state.radarBest = null;
+      try { save() } catch (err) { }
+      paint(R());
       return;
     }
-    var dist = r.dist, txt = dist < 1.2 ? r.dir : (dist < 10 ? dist.toFixed(1) : Math.round(dist)) + ' 米';
-    st.textContent = dist > 10 ? '他刚到这一侧，正在走近' : '信号确认 · 他在';
-    core.innerHTML = '<div class="rd-big">' + esc(txt) + '</div><div class="rd-sub">' + esc(r.dir) + ' · ' + esc(r.trend) + '</div>';
-    if (av) {
-      var compass = av.parentNode, w = compass.clientWidth || 320, c = w / 2;
-      var rr = (w * 0.5 - 30) * (0.3 + 0.7 * Math.min(1, dist / 8));
-      var rad = r.angle * Math.PI / 180;
-      av.style.display = 'block'; av.style.opacity = '1';
-      av.style.left = (c + rr * Math.cos(rad)) + 'px'; av.style.top = (c + rr * Math.sin(rad)) + 'px';
-    }
-    if (hint) hint.textContent = '点他的头像，看看他在做什么';
-  }
-
-  function openDetail() {
-    var r = R();
-    var title = document.getElementById('view');
-    if (title) {
-      var d = document.createElement('div'); d.id = 'rdCard';
-      var linkHtml = r.present ? (Math.round(r.link) + '% · ' + levelOf(r.link)) : levelOf(r.link);
-      var distTxt = !r.present ? '未知' : (r.dist < 1.2 ? '在你身边' : (r.dist < 10 ? r.dist.toFixed(1) : Math.round(r.dist)) + ' 米');
-      d.innerHTML = '<div class="rd-card">'
-        + '<h3>陆沉 · 雷达</h3>'
-        + '<div class="row"><span class="lb">状态</span><span class="val">' + (r.present ? '在 · ' + r.trend : '不在 · 这一侧没有回应') + '</span></div>'
-        + '<div class="row"><span class="lb">链接程度</span><span class="val">' + esc(linkHtml) + '</span></div>'
-        + '<div class="row"><span class="lb">方位</span><span class="val">' + esc(r.dir) + (r.present && r.dist >= 1.2 ? ' · 约 ' + distTxt : '') + '</span></div>'
-        + '<div class="row"><span class="lb">动作</span><span class="val">' + esc(r.look) + '</span></div>'
-        + '<div class="row"><span class="lb">他说</span><span class="val">“' + esc(r.say) + '”</span></div>'
-        + '<button class="rd-close" data-act="rd-close">收起</button></div>';
-      document.body.appendChild(d);
-      d.addEventListener('click', function (e) { if (e.target.closest('[data-act="rd-close"]')) d.remove() });
-    }
-  }
-
-  function doScan() {
-    var btn = document.getElementById('rdBtn'), sweep = document.getElementById('rdSweep');
-    if (btn) { btn.textContent = '扫描中…'; btn.disabled = true }
-    if (sweep) sweep.classList.add('fast');
-    var st = document.getElementById('rdStatus'); if (st) st.textContent = '正在捕捉他的频段…';
-    setTimeout(function () {
-      var r = scan();
-      paint(r);
-      if (btn) { btn.disabled = false; btn.textContent = '再扫一次' }
-      if (sweep) sweep.classList.remove('fast');
-    }, 4200);
-  }
-
-  document.addEventListener('click', function (e) {
-    var t = e.target; if (!t || !t.closest) return;
-    if (t.closest('[data-act="rd-scan"]')) { doScan(); return }
-    if (t.closest('#rdAvatar')) { openDetail(); return }
   });
 
   window.renderRadar = renderRadar;
@@ -23126,6 +23285,20 @@ function openApp(k) {
     { k: ['怕', '吓'], t: '别怕。我在。' }
   ];
 
+  /* 影院说的话优先从「卡库 → 观影」分类里抽；那个分类不参与聊天 */
+  function cinePool() {
+    try {
+      if (!Array.isArray(state.cineCards)) state.cineCards = [];
+      var out = [];
+      state.cineCards.forEach(function (c) { if (c && String(c.text || '').trim()) out.push(String(c.text).trim()) });
+      return out;
+    } catch (e) { return [] }
+  }
+  function lineFromPool() {
+    var pool = cinePool();
+    if (pool.length) return pool[Math.floor(Math.random() * pool.length)];
+    return CARDS[Math.floor(Math.random() * CARDS.length)];
+  }
   function K() {
     if (!state.cinema || typeof state.cinema !== 'object') state.cinema = {};
     var c = state.cinema;
@@ -23377,7 +23550,7 @@ function openApp(k) {
           for (var w = 0; w < REPLIES[q].k.length; w++) if (v.indexOf(REPLIES[q].k[w]) >= 0) { hit = REPLIES[q].t; break; }
           if (hit) break;
         }
-        hisSay(hit || CARDS[Math.floor(Math.random() * CARDS.length)], hit ? '回应' : '观影');
+        hisSay(hit || lineFromPool(), hit ? '回应' : '观影');
       }, d * 1000);
       return;
     }
