@@ -4,14 +4,14 @@
      ② 一等就是几十秒，用户以为「装了 SW 才变慢」；
      ③ 缓存名写死 'zika-v3' → 更新后还是命中旧缓存，怎么刷都是旧版。
    这一版的规矩：
-     · 缓存名带构建戳 d3939890f4，每次构建都换新名 → 旧缓存自动作废；
+     · 缓存名带构建戳 576acf95c7，每次构建都换新名 → 旧缓存自动作废；
      · 打开页面【先给缓存，秒开】，同时在后台悄悄拉最新版写回缓存；
      · index.html 单独给 30 秒长超时（2.4MB 慢网 3.5 秒必然失败）；
      · version.json 一律不拦截，交给浏览器（不然版本检测永远超时）；
      · 首装预缓存分波 + 单文件超时，单个失败不拖住安装；
      · 页面点「更新」时先发 PRECACHE_NOW 把新版落进缓存，再刷新，才刷得动。
-   说明：d3939890f4 / 2026-10-29 14:11 由 build.js 每次构建替换。 */
-const CACHE = 'zika-w-d3939890f4';
+   说明：576acf95c7 / 2026-10-29 16:37 由 build.js 每次构建替换。 */
+const CACHE = 'zika-w-576acf95c7';
 const NAV_TIMEOUT = 30000;
 const NET_TIMEOUT = 3500;
 const PRECACHE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon.svg'];
@@ -79,7 +79,19 @@ self.addEventListener('fetch', e => {
   if (u.origin !== self.location.origin) return;
   if (/\/version\.json$/.test(u.pathname) || /\/notice\.json$/.test(u.pathname)) return;
 
-  if (req.mode === 'navigate') {
+  /* ★ 关键：iframe 打开 read.html 也属于 navigate。
+     以前这里把「所有 navigate」都当成"打开首页"，直接返回缓存的 index.html，
+     于是站内「阅读」的 iframe 加载出来的是整个小站（还带开屏动画）。
+     现在只有 根路径 / index.html 才返回外壳，其它 .html 当普通文件处理。 */
+  const _isShell = (function () {
+    const p2 = u.pathname;
+    if (/\/index\.html$/.test(p2)) return true;
+    if (p2.endsWith('/')) return true;
+    if (/\.html?$/i.test(p2)) return false;
+    return true;
+  })();
+
+  if (req.mode === 'navigate' && _isShell) {
     e.respondWith((async () => {
       try {
         const c = await caches.open(CACHE);
