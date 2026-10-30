@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="576acf95c7">
-<meta name="x-build-ts" content="1793263038632">
+<meta name="x-build" content="8f620981d9">
+<meta name="x-build-ts" content="1793282035824">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -2156,6 +2156,34 @@ html,body{background:#FFFFFF !important;background-image:none !important}
 body{background:#FFFFFF !important;color:#111214}
 /* 页面底：白（#home 的壁纸保持不动，所以你上传的壁纸仍是彩色） */
 #view{background:transparent}
+
+/* ===== 整页固定，只有内容区滚动（2026-10-30） =====
+   以前是 document 整页滚动：标题栏跟着走、页面本身会上下动、下拉还会露底。
+   现在 html/body 锁死高度、禁止滚动，#view 自己当滚动容器：
+   标题栏 sticky 不动，页面本身不动，只有里面那层内容在滚。 */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+/* iOS 上只写 overflow:hidden 仍会橡皮筋整页乱动，把 body 直接钉死最稳 */
+/* 后面还有 body{position:absolute} 之类的老规则会把它覆盖掉，这里必须 !important */
+body{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;overflow:hidden!important;overscroll-behavior:none!important}
+#view{height:100dvh;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;scrollbar-width:none}
+#view::-webkit-scrollbar{width:0;height:0}
+/* 主页是横向分页器，自身不需要纵向滚动条 */
+#view.home-view{overflow:hidden}
+/* 聊天页本来就是整屏 flex，保留它自己的布局 */
+body.chat-mode #view{overflow:hidden}
+/* 房间/影院/雷达这种整屏页面也不要外层滚动条 */
+body.room-mode #view{overflow:hidden}
+
+/* ===== 壁纸只在主页透出来（2026-10-30 修「下滑漏底图」） =====
+   以前 #view 是 transparent，壁纸层(body::before)固定在后面，
+   其它页面滚动时就会从内容缝隙里露出来（用户反馈"下滑出现底图"）。
+   现在：主页保持透明（壁纸照常），其余页面铺一版不透明纸色。 */
+#view:not(.home-view){background:var(--bg)}
+#view:not(.home-view) .page-top{background:var(--bg);border-bottom:1px solid rgba(0,0,0,.045)}
+/* 这些页面自己整页铺满（暗色），不要被纸色盖住 */
+body.room-mode #view,body.wlt-mode #view{background:var(--bg)}
+#view .rd2-page,#view .cn-room{background-color:#0A0814}
 .screen,.chat-wrap,.mm-wrap{background:transparent}
 /* 卡片/组件：白色实底 + 1px 细边 + 几乎没有阴影，去掉毛玻璃 */
 /* 有用户底图的容器：只改底色，保留 --wbg / background-image（你上传的底图照常显示） */
@@ -3291,6 +3319,11 @@ body.room-mode .bd-board{flex:0 0 auto;max-height:34vh;overflow-y:auto}
 .rd2-rw b{font-weight:600}
 .rd2-say{margin-top:12px;padding:12px;border-radius:12px;background:#FBF3E4;border:1px solid rgba(201,164,106,.35);
   font-family:"Songti SC",Georgia,serif;font-size:calc(14px*var(--fs));line-height:1.8;color:#4A3B60}
+/* 暗色页面（影院 / 咖啡馆 / 雷达）的标题栏跟着变暗 */
+body.dark-page #view{background:#0E0C18}
+body.dark-page .page-top{background:#0E0C18!important;border-bottom:1px solid rgba(255,255,255,.06)!important;color:#EDE9F4}
+body.dark-page .page-top .pt{color:#EDE9F4}
+body.dark-page .page-top .back{color:#CFC6E6}
 </style>
 </head>
 <body>
@@ -5686,6 +5719,8 @@ function render(v){
     document.body.classList.toggle('chat-mode',v==='chat');
     document.body.classList.toggle('wlt-mode',v==='wallet');
     document.body.classList.toggle('room-mode',v==='room');
+    /* 影院/咖啡馆/雷达是暗色整页，标题栏要跟着变暗，不然白条压在黑页上很割裂 */
+    document.body.classList.toggle('dark-page',(v==='cinema'||v==='cafe'||v==='radar'));
   }catch(e){}
   if(v==='home')renderHome();
   else if(v==='profile')renderProfile();
@@ -7331,6 +7366,7 @@ var _timer=null,_typing=null,_ntfSilent=false,_ntfTimer=null;
 var _blpBound=false,_cldBound=false;
 /* 聊天区是否贴在底部：翻历史时不要被新消息拽走 */
 var _chatAtBottom=true;
+var _schedTok=0;
 var _schedSpin=0,_schedSpinAt=0;
 var _replyTimer=null;
 /* ★ 朋友圈访客：设置里写的是"哥会来逛并留字卡留言"，
@@ -7351,6 +7387,11 @@ function visitLeaveCard(){
   }catch(e){}
 }
 function schedule(){
+  /* ★ 每次重排都递增一个代号，旧计时器醒来发现代号变了就直接退出。
+     以前：邀请任务的 fn 结尾自己调了一次 schedule()，计时器回调外面又调了一次，
+     于是同一时刻挂着两条链 → 到点后各发一次邀请，再各自长出两条 → 邀请卡越积越多
+     （用户报的"第二次进聊天室又收到一遍专注邀请"）。 */
+  var _tok = (++_schedTok);
   if(_timer){CLK.clear(_timer);_timer=null}
   var items=[],t=now();
   for(var i=0;i<state.messages.length;i++){
@@ -7488,7 +7529,7 @@ function schedule(){
   var wait=nx.ts-now();
   if(wait>0){
     _schedSpin=0;
-    _timer=CLK.set(function(){nx.fn();schedule()},Math.min(wait,2147483000));
+    _timer=CLK.set(function(){ if(_tok!==_schedTok)return; nx.fn(); if(_tok===_schedTok)schedule() },Math.min(wait,2147483000));
   }else{
     /* ★ 这里原来是 {nx.fn();schedule()} —— 当场执行、当场再调用自己。
        只要回调又造出一个"已到点"的任务（比如回复之后又产生新的待回消息），
@@ -7500,7 +7541,7 @@ function schedule(){
     if(_tn-_schedSpinAt>1000){_schedSpinAt=_tn;_schedSpin=0}
     _schedSpin++;
     var _sd=_schedSpin>40?300:0;
-    _timer=CLK.set(function(){nx.fn();schedule()},_sd);
+    _timer=CLK.set(function(){ if(_tok!==_schedTok)return; nx.fn(); if(_tok===_schedTok)schedule() },_sd);
   }
 }
 /* ===== 回到前台就重新排期（手机后台会暂停定时器） ===== */
@@ -7929,6 +7970,7 @@ function chatPinTop(){
     if(!y&&bd)y=bd.scrollTop||0;
     if(y>0){
       try{window.scrollTo(0,0)}catch(e0){}
+      try{var _vw0=document.getElementById('view');if(_vw0)_vw0.scrollTop=0}catch(e0){}
       if(de)de.scrollTop=0;
       if(bd)bd.scrollTop=0;
     }
@@ -7999,7 +8041,7 @@ function bubbleHtml(m,c){
       +'<div class="bubble bubble-survey">'+surveyCardHtml(findSurvey(m.surveyId),m.dir==='out')+'</div></div>';
   }
   if(m.kind==='pat'){
-    return '<div class="pat-row"><span class="pat-in"><span class="pat-ic">👋</span><b>'+esc(c?c.name:'他')+'</b> 拍了拍你 · '+esc(m.text||'')+'</span></div>';
+    return '<div class="pat-row"><span class="pat-in"><b>'+esc(c?c.name:'他')+'</b> 拍了拍你 · '+esc(m.text||'')+'</span></div>';
   }
   if(m.kind==='memo'){
     return '<div class="msg-row '+m.dir+'"><span class="bubble-av">'+cAvatar(c)+'</span>'
@@ -9190,6 +9232,13 @@ function beginInvite(){
   var pct=(c.invitePct!=null?c.invitePct:(st.invitePct!=null?st.invitePct:30));
   if(Math.random()*100>=pct)return;
   var mo=invitePickMode();if(!mo)return;
+  /* ② 已经有没回应的邀请（30 分钟内）就不再发第二张，避免一进聊天室就多一张 */
+  var _pend=false;
+  for(var _i2=state.messages.length-1;_i2>=0&&_i2>state.messages.length-60;_i2--){
+    var _m2=state.messages[_i2];
+    if(_m2&&_m2.kind==='invite'&&_m2.dir==='in'&&!_m2.accepted&&(now()-(_m2.ts||0))<30*60000){_pend=true;break}
+  }
+  if(_pend)return;
   var mins=mo.mins||25;
   state.messages.push({id:uid(),contactId:c.id,dir:'in',kind:'invite',modeId:mo.id,modeName:mo.name,mins:mins,text:'',ts:now()});
   save();
@@ -22635,6 +22684,12 @@ function openApp(k) {
     _banner = bar;
     setTimeout(function () { if (bar && bar.parentNode) bar.classList.add('show') }, 40);
     bar.querySelector('b').addEventListener('click', function () { doUpdate(); });
+    /* 条子任意位置都能点（以前只有"点我更新"四个字能点，点别处像没反应） */
+    bar.addEventListener('click', function (ev) {
+      var tg = ev.target;
+      if (tg && (tg.id === 'zikaUpdX' || tg.id === 'zikaUpdSkip')) return;
+      doUpdate();
+    });
     var sk = document.getElementById('zikaUpdSkip');
     if (sk) sk.addEventListener('click', function (ev) {
       ev.stopPropagation();
@@ -22650,36 +22705,51 @@ function openApp(k) {
     });
   }
 
-  /* ---------- 更新：先落缓存再刷新 ---------- */
+  /* ---------- 更新：清缓存 + 注销 SW + 硬刷 ----------
+     以前：postMessage 让 SW 先把新 index 写进缓存，收不到回执就等 20 秒再刷。
+     问题：① 只在「点我更新」那几个字上绑了点击，点条子别处没反应；
+           ② 控制器为空（首次加载 / SW 刚装好）时那 20 秒白等；
+           ③ 刷完仍可能命中旧缓存 → 用户感觉"点了没用"。
+     现在：点条子任意位置都能触发；直接注销 SW + 删本项目的缓存 + 带 ?v= 硬刷，
+           保证这次拿到的是服务器上的真文件，SW 下次访问会自己重新装。 */
   function doUpdate() {
-    var done = false;
-    function go() {
-      if (done) return; done = true;
-      var b = document.querySelector('#zikaUpdBar b');
-      if (b) b.textContent = '正在更新…';
-      setTimeout(function () { try { location.reload() } catch (e) { } }, 120);
-    }
-    try {
-      var ctl = navigator.serviceWorker && navigator.serviceWorker.controller;
-      if (ctl) {
-        var t = setTimeout(go, 20000);           /* SW 没回执也要能刷 */
-        navigator.serviceWorker.addEventListener('message', function onMsg(e) {
-          if (e.data && e.data.type === 'PRECACHE_DONE') {
-            clearTimeout(t);
-            navigator.serviceWorker.removeEventListener('message', onMsg);
-            go();
-          }
+    var b = document.querySelector('#zikaUpdBar b');
+    if (b) b.textContent = '正在更新…';
+    var bar = document.getElementById('zikaUpdBar');
+    if (bar) bar.style.pointerEvents = 'none';
+
+    var goHard = function () {
+      try {
+        var u = location.pathname + '?v=' + Date.now() + (location.hash || '');
+        location.replace(u);
+      } catch (e) { try { location.reload() } catch (e2) { } }
+    };
+    var killCaches = function () {
+      try {
+        if (!(window.caches && caches.keys)) return Promise.resolve();
+        return caches.keys().then(function (ks) {
+          return Promise.all(ks.map(function (k) { return caches.delete(k).catch(function () { }) }));
         });
-        ctl.postMessage({ type: 'PRECACHE_NOW', urls: ['./index.html'] });
-      } else {
-        /* 没有 SW：清掉本项目缓存再刷 */
-        if (window.caches && caches.keys) {
-          caches.keys().then(function (ks) {
-            return Promise.all(ks.filter(function (k) { return /^zika-w-/.test(k) }).map(function (k) { return caches.delete(k) }));
-          }).then(go).catch(go);
-        } else go();
-      }
-    } catch (e) { go() }
+      } catch (e) { return Promise.resolve() }
+    };
+    var killSW = function () {
+      try {
+        if (!navigator.serviceWorker || !navigator.serviceWorker.getRegistrations) return Promise.resolve();
+        return navigator.serviceWorker.getRegistrations().then(function (rs) {
+          return Promise.all(rs.map(function (r) { return r.unregister().catch(function () { }) }));
+        });
+      } catch (e) { return Promise.resolve() }
+    };
+
+    /* 最多等 1.8 秒，不管成功与否都硬刷（绝不再"没反应"） */
+    var fired = false;
+    var fire = function () { if (fired) return; fired = true; goHard() };
+    var guard = setTimeout(fire, 1800);
+    Promise.all([killSW(), killCaches()]).then(function () {
+      clearTimeout(guard); fire();
+    }).catch(function () {
+      clearTimeout(guard); fire();
+    });
   }
 
   /* ---------- 离线加速开关 ---------- */
