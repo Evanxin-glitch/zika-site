@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="cdc795d274">
-<meta name="x-build-ts" content="1793449788359">
+<meta name="x-build" content="7f3f855df2">
+<meta name="x-build-ts" content="1793455497118">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -1997,7 +1997,9 @@ body.wlt-mode #view{background:#F2F2F3}
 /* 每一页的网格至少撑满一屏：空白处也能拖进去（第 3 页那种只有一两个 App 的页） */
 
 
-#home{display:flex;flex-direction:column;height:100%;min-height:0}
+/* 2026-10-31：首页也跟着内容长高（以前 height:100% 把每一页钉死一屏、超出的裁掉）。
+   下面 #view.home-view #home 的 min-height:100dvh 保证内容不够一屏时也铺满。 */
+#home{display:flex;flex-direction:column;height:auto;min-height:100dvh}
 .home-pages{flex:1 1 auto;min-height:0}
 .home-page{display:flex;flex-direction:column;min-height:0}
 .home-grid{flex:1 1 auto;min-height:0}
@@ -2157,17 +2159,45 @@ body{background:#FFFFFF !important;color:#111214}
 /* 页面底：白（#home 的壁纸保持不动，所以你上传的壁纸仍是彩色） */
 #view{background:transparent}
 
-/* ===== 整页固定，只有内容区滚动（2026-10-30） =====
-   以前是 document 整页滚动：标题栏跟着走、页面本身会上下动、下拉还会露底。
-   现在 html/body 锁死高度、禁止滚动，#view 自己当滚动容器：
-   标题栏 sticky 不动，页面本身不动，只有里面那层内容在滚。 */
-/* 2026-10-31 重建「整页固定」：本次只有这一套定高机制，
-   旧的两层开关锁（home-lock / lock-all 对主页）已删，不会再反复切高度。
-   聊天/小屋保留它们自己的整屏规则（选择器更具体，会覆盖这里）。 */
-html,body{height:100%!important;overflow:hidden!important;overscroll-behavior:none!important;position:static!important}
-#app{height:100%!important;min-height:0!important;overflow:hidden!important}
-#view{height:100%!important;min-height:0!important;max-height:100%!important;overflow-y:auto!important;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;scrollbar-width:none}
-#view::-webkit-scrollbar{width:0;height:0}
+/* ===== 自然滚动：整页滚，标题栏吸顶（2026-10-31 定稿，替换「整页固定」） =====
+   上一版是「html/body 锁死 + #view 自己滚」：iOS 上 dvh 与 100% 不相等，
+   页面会跳、地址栏伸缩留缝、主页最底下那排 App 名字被裁掉。
+   现在回到最朴素的浏览器行为：
+     · html/body 不锁高、不锁 overflow → 整页跟着内容长、整页滚
+     · #view 高度 auto，跟着内容长，不再当滚动容器
+     · .page-top / .chat-top / .sp-top 自己的 position:sticky 负责吸顶
+   整屏自管页（聊天 / 小屋）用更具体的选择器（body.chat-mode #view、
+   html.lock-all #view、body.room-mode #view）覆盖这里，行为保持不变。
+   注意：这里故意不加 !important —— #view:has(.chat-top) 那条要用更高的
+   优先级保住排版，加了 !important 会把它压掉。 */
+/* overscroll-behavior 保持 none：整页滚了以后，往下拉还是会触发安卓 Chrome 的"下拉刷新"
+   （一刷新就重开、开场动画重播），所以这里照旧关掉回弹/刷新，只关"越界的甩动"，不影响正常滚动 */
+html,body{height:auto;overflow:visible;overscroll-behavior:none;position:static}
+/* ★ #app 原来有 backdrop-filter:blur(26px)。blur 会让 #app 变成"fixed 后代的包含块"，
+   以前 #app 正好一屏高，所以看不出问题；现在 #app 跟着内容长高，
+   里面的 position:fixed 元素（备忘录/信箱的悬浮按钮、字卡卡面…）就会跑到整篇文档的底部去。
+   这一层毛玻璃在现在的配色下本来也看不见（#home / #view 各自都有不透明底），所以直接去掉。 */
+#app{height:auto;min-height:100dvh;overflow:visible;backdrop-filter:none;-webkit-backdrop-filter:none}
+#view{height:auto;min-height:100dvh;max-height:none;overflow:visible}
+/* 整页滚了以后滚动条会跑到窗口最右边，手机上虽然看不见，桌面/多窗时太扎眼，统一隐藏 */
+html{scrollbar-width:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0}
+/* ★ 视口高度一律用 svh（＝地址栏展开时的高度，滚动过程中不变）。
+   用 dvh 的话 iOS 地址栏一收一展，页面高度就跟着变，滑到一半会抖一下——
+   这正是交接说明里记的那个坑。老浏览器没有 svh 就退回上面的 dvh/vh。 */
+@supports (min-height:100svh){
+  #app{min-height:100svh}
+  #view{min-height:100svh}
+  #home,#view.home-view #home{min-height:100svh}
+  .home-pages{min-height:calc(100svh - 120px)}
+}
+
+/* ★ 聊天室 / 小屋是「高度=视口」的自管页，必须让 height 说话：
+   键盘弹起时 --vvh（visualViewport 实测）会比一屏矮，上面那条 min-height:100svh
+   会把 #view 又撑回一屏高 → 输入栏被顶到键盘下面，iOS 只好把整页往上推，
+   结果就是「键盘一开，上面一大片空白、输入框跑到顶上」（2026-10-31 用户截图）。
+   这里把最低高度清零，聊天/小屋回到「高度=--vvh」的老行为。 */
+body.chat-mode #view,body.room-mode #view,html.lock-all #view{min-height:0!important}
 
 /* ===== 壁纸只在主页透出来（2026-10-30 修「下滑漏底图」） =====
    以前 #view 是 transparent，壁纸层(body::before)固定在后面，
@@ -3246,7 +3276,10 @@ body.room-mode .bd-board{flex:0 0 auto;max-height:34vh;overflow-y:auto}
 /* ===== 雷达 v2 · 暗紫罗盘 ===== */
 #view.rd2-mode{background:radial-gradient(120% 55% at 50% 0%,#241C3E 0%,#141026 45%,#0A0814 100%);color:#EDE9F4}
 .rd2-page{min-height:100vh;background:radial-gradient(120% 55% at 50% 0%,#241C3E 0%,#141026 45%,#0A0814 100%);color:#EDE9F4}
-.rd2-top{display:flex;align-items:center;gap:10px;padding:12px 14px;color:#EDE9F4}
+.rd2-top{display:flex;align-items:center;gap:10px;padding:12px 14px;color:#EDE9F4;
+  position:sticky;top:0;z-index:9;
+  background:linear-gradient(180deg,#241C3E 0%,#191331 100%);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .rd2-top .back{color:#CFC6E6}
 .rd2-top .pt{font-size:calc(14.5px*var(--fs));font-weight:600;letter-spacing:.06em}
 .rd2-top .pr{margin-left:auto;font-size:calc(10px*var(--fs));color:#A79EC0;border:1px solid #33294E;border-radius:99px;padding:3px 9px}
@@ -5706,6 +5739,17 @@ function render(v){
   try{ var _vv=document.getElementById('view'); if(_vv&&v!=='home')_vv.classList.remove('home-view') }catch(e){}
   var _inSnap=inputSnapshot();   /* ★ 其它页面同理：重绘不打断正在输入的内容 */
   v=v||location.hash.replace('#','')||'home';
+  /* ★ 换成「整页滚」以后，滚动位置记在 document 上（以前记在被整个替换掉的 #view 上，
+     所以旧版重绘后自动回到顶部）。这里显式处理：只有"真的换了一页"才滚回顶部，
+     同一页内的重绘（发表评论、勾选、发消息…）保持当前位置，不把用户弹回顶上。 */
+  try{
+    if(window.__lastRenderView!==v){
+      window.__lastRenderView=v;
+      try{window.scrollTo(0,0)}catch(e1){}
+      try{var _d=document.documentElement;if(_d)_d.scrollTop=0}catch(e2){}
+      try{var _b=document.body;if(_b)_b.scrollTop=0}catch(e3){}
+    }
+  }catch(e){}
   /* ★ 适配：老浏览器（Safari<15.4、部分微信内核）不支持 CSS 的 :has()，
      以前聊天页的高度/滚动、钱包的灰底都靠 :has() 撑着 → 那些机器上会退化。
      这里在 body 上打个 class，样式表里有一份等价的 class 版本兜底。 */
@@ -18586,9 +18630,10 @@ window.mengxiEnsure=mx;
       '.home-grid>.app-item .app-icon{width:calc(56px*var(--hk))!important;height:calc(56px*var(--hk))!important;border-radius:calc(17px*var(--hk))!important;margin-bottom:calc(7px*var(--hk))!important}',
       '.home-grid>.app-item .app-icon svg{width:calc(26px*var(--hk))!important;height:calc(26px*var(--hk))!important}',
       '.home-grid>.app-item span{font-size:calc(13px*var(--hk))!important}',
-      /* 页面高度写死，不竖向滚动 */
-      '.home-pages{overflow-y:hidden!important;align-items:flex-start!important}',
-      '.home-page{height:100%!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}',
+      /* 2026-10-31 改成「自然滚动」：页面不再写死一屏高、也不再裁掉超出的内容，
+         内容比屏幕高就整页往下滚（用户要的：最底下那排 App 名字能滑出来看全）。 */
+      '.home-pages{overflow-y:visible!important;align-items:flex-start!important}',
+      '.home-page{height:auto!important;overflow:visible!important;display:flex!important;flex-direction:column!important}',
       '.home-page .home-grid{flex:0 0 auto}',
       /* 去掉「＋ 添加组件」 */
       '.wd-add{display:none!important}',
@@ -18686,15 +18731,15 @@ window.mengxiEnsure=mx;
     document.head.appendChild(s);
   }
 
-  /* ---------- ④ 等比缩小：按屏高算 --hk ---------- */
+  /* ---------- ④ 尺寸：固定 1 倍，不再按屏高缩放 ----------
+     旧做法：k = (可视高 - 92) / 700，再把整套图标/组件乘上 k。
+     问题是 iOS 地址栏一伸缩、切个 App 回来，可视高就变 → k 变 → 图标"放大一下又缩小"，
+     而且缩到 0.62 还是放不下时，底部那排就被裁掉了（用户报的）。
+     现在恒定 1 倍：图标大小永远一致，放不下就整页往下滑。 */
   function fitScale() {
     try {
-      var h = (window.visualViewport ? window.visualViewport.height : window.innerHeight) || 852;
-      /* 852 是设计基准；留 90px 给标题/日期/底部点 */
-      var k = (h - 92) / 700;
-      k = Math.max(0.62, Math.min(1, k));
-      document.documentElement.style.setProperty('--hk', k.toFixed(3));
-      document.documentElement.style.setProperty('--fs', Math.max(0.82, Math.min(1, 0.55 + k * 0.45)).toFixed(3));
+      document.documentElement.style.setProperty('--hk', '1');
+      document.documentElement.style.setProperty('--fs', '1');
     } catch (e) { }
   }
 
@@ -21350,15 +21395,13 @@ function openApp(k) {
   window.wdUnifyApply = applyAll;
 })();
 
-/* ================= 首页「锁高 + 自动等比缩放」 =================
-   目标：不竖滑、不挤压、不裁切。
-   做法：
-     · 底部小圆点（.page-dots）改成绝对定位，不再占高度
-     · 首页时锁住 <html>/<body> 的滚动（其它页面照旧能滚）
-     · 打开首页先按 --hk=1 量一次"内容自然高度"，算出 可用/内容 的比例，
-       写进 --hk（下限 0.8，上限 1），再校正一次
-     · 内容最多缩到 80%；还放不下就裁掉底部（极少见），并在控制台留一条提示
-   只动首页尺寸与滚动，不改任何组件样式。 */
+/* ================= 首页：翻页 + 底部圆点（2026-10-31 改版） =================
+   原来的这一段做两件事：① 锁住整页高度不滚；② 按屏高把内容等比缩小到刚好一屏。
+   两件事都被撤掉了（锁高会让 iOS 跳、缩小会把底部那排 App 名字裁掉）：
+     · 现在首页跟别的页面一样自然滚动，内容比屏幕高就往下滑
+     · 图标大小恒定 1 倍（--hk 固定 1），不再按可视高度重算 → 切回主页不跳
+     · 底下那两个小圆点改成浮在视口底部，滑到哪儿都能看到自己在第几页
+   保留的只有"左右翻页自己接管滑动手势"这一块（以前靠它才能在 iOS 上翻页）。 */
 (function () {
   if (window.__homeFit) return; window.__homeFit = 1;
 
@@ -21366,18 +21409,18 @@ function openApp(k) {
     if (document.getElementById('homeFitCss')) return;
     var s = document.createElement('style'); s.id = 'homeFitCss';
     s.textContent = [
-      /* 圆点浮起来，把高度还给内容 */
       '#view .cbg{position:relative!important}',
-      '.page-dots{position:absolute!important;left:0;right:0;bottom:2px!important;margin:0!important;z-index:6}',
-      /* 首页的横向翻页容器保持站点原样，这里不覆盖它的 overflow/touch-action */
-      '.home-page{height:100%!important;overflow:hidden!important}',
+      /* 圆点：吸在可视区底部（首页内容再长也不会把它推到很远的地方） */
+      '.page-dots{position:fixed!important;left:0;right:0;bottom:calc(2px + env(safe-area-inset-bottom))!important;margin:0!important;z-index:6;pointer-events:auto}',
+      /* 首页每一页都可以比一屏高（自然长高，不再 height:100% + overflow:hidden） */
+      '.home-page{height:auto!important;overflow:visible!important}',
       '.home-grid{align-content:start!important}'
     ].join('\n');
     document.head.appendChild(s);
   }
 
   function isHome() {
-    /* 先看路由，再看首页 DOM 是否真的可见（换到别的页面时必须解除锁滚动） */
+    /* 先看路由，再看首页 DOM 是否真的可见 */
     var v = (location.hash || '').replace('#', '');
     if (v && v !== 'home') return false;
     var hv = document.querySelector('.home-view') || document.getElementById('homePages');
@@ -21385,66 +21428,21 @@ function openApp(k) {
     return !!(hv.offsetWidth || hv.offsetHeight);
   }
 
-  function lockScroll() {
-    /* 2026-10-31 取消锁高：自然滚动，不再切 home-lock（图标跳的主因） */
-  }
-
-  var _lastW = 0, _lastHK = 0;
-function fit() {
-  /* ★ 以前：每次 resize / visualViewport 变化都重算，而且先把 --hk 重置成 1 再算，
-     于是 iOS 地址栏一伸缩、切后台再回来，App 图标就"放大一下又缩小"。
-     现在：① 可见高度变化不到 24px 直接跳过；② 算出来和上次差不到 1.2% 就沿用上次值。 */
-  try {
-    var _w = Math.round(window.innerWidth || 0);
-    if (_lastW && _w === _lastW) {
-      if (_lastHK) document.documentElement.style.setProperty('--hk', _lastHK.toFixed(3));
-      return;
-    }
-    _lastW = _w;
-  } catch (e) {}
+  /* 不再测量、不再缩放：--hk 固定 1（尺寸恒定，切页面不会变） */
+  function fit() {
     try {
       css();
-      var hp = document.getElementById('homePages');
-      if (!hp) return;
-      var page = hp.querySelector('.home-page');
-      if (!page) return;
-      var root = document.documentElement;
-
-      /* 第一遍：回到 1 倍，量自然高度 */
-      void page.offsetHeight;
-      var avail = hp.clientHeight || Math.round(hp.getBoundingClientRect().height);
-      var need = page.scrollHeight || Math.round(page.getBoundingClientRect().height);
-      if (!avail || !need) return;
-      var k = 1;
-      if (need > avail + 1) k = Math.max(0.8, avail / need);
-      if (_lastHK && Math.abs(_lastHK - k) < 0.012) k = _lastHK;   /* 微小差异不重排 */
-      _lastHK = k;
-      root.style.setProperty('--hk', k.toFixed(3));
-
-      /* 第二遍：缩放后重新量一次，避免"缩了还是差一点" */
-      requestAnimationFrame(function () {
-        try {
-          var avail2 = hp.clientHeight, need2 = page.scrollHeight;
-          if (need2 > avail2 + 1) {
-            var k2 = Math.max(0.8, k * (avail2 / need2));
-            root.style.setProperty('--hk', k2.toFixed(3));
-            if (k2 <= 0.8001) {
-              try { console.warn('[首页] 内容超出屏幕，已缩到最小 80%，底部会裁掉一点。可用高度 ' + avail2 + 'px，需要 ' + need2 + 'px'); } catch (e) { }
-            }
-          }
-          lockScroll();
-        } catch (e) { }
-      });
+      document.documentElement.style.setProperty('--hk', '1');
     } catch (e) { }
   }
 
-  /* 每次渲染首页 / 换页面 / 旋转屏幕 都重新适配 */
+  /* 每次渲染首页 / 换页面 都补一次样式（幂等） */
   if (typeof goView === 'function' && !window.__homeFitGoView) {
     window.__homeFitGoView = 1;
     var _gv = goView;
     goView = function () {
       var r = _gv.apply(this, arguments);
-      setTimeout(fit, 60); setTimeout(fit, 420);
+      setTimeout(fit, 60);
       return r;
     };
   }
@@ -21459,10 +21457,7 @@ function fit() {
   }
 
   try {
-    window.addEventListener('hashchange', function () { lockScroll(); setTimeout(lockScroll, 80) });
-    window.addEventListener('resize', function () { setTimeout(fit, 120) });
-    window.addEventListener('orientationchange', function () { setTimeout(fit, 300) });
-    if (window.visualViewport) window.visualViewport.addEventListener('resize', function () { setTimeout(fit, 150) });
+    window.addEventListener('hashchange', function () { setTimeout(fit, 60) });
   } catch (e) { }
   try { setTimeout(fit, 300); setTimeout(fit, 900); } catch (e) { }
 
@@ -23706,4 +23701,4 @@ function fit() {
 </body>
 </html>
 
-<!-- __ZIKA_EOF__ cdc795d274 -->
+<!-- __ZIKA_EOF__ 7f3f855df2 -->
