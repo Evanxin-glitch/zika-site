@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="8f620981d9">
-<meta name="x-build-ts" content="1793282035824">
+<meta name="x-build" content="0ee2f2dcd6">
+<meta name="x-build-ts" content="1793441683202">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -115,7 +115,7 @@ input:focus,textarea:focus{border-color:var(--green)}
    用户的自定义气泡 CSS（渐变/挂件/overflow:hidden/深色底）都碰不到它，颜色跟页面主题走。 */
 .zkm-line{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:4px;padding:0 2px;max-width:100%}
 .msg-row.out .zkm-line{justify-content:flex-end}
-.zkm-chip{display:inline-flex;align-items:center;gap:4px;font-size:calc(10px*var(--fs));line-height:1.4;color:var(--sub);background:rgba(0,0,0,.045);border-radius:99px;padding:1.5px 7px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.zkm-chip{display:inline-flex;align-items:center;gap:4px;font-size:calc(10px*var(--fs));line-height:1.4;color:#5A5148;background:rgba(255,255,255,.66);border:1px solid rgba(90,70,50,.12);border-radius:99px;padding:1.5px 7px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .zkm-chip i{font-style:normal;font-size:calc(9px*var(--fs));font-weight:700;color:var(--green);opacity:.95;flex:0 0 auto}
 /* 壁纸/深色背景下也能看清：给一点点描边 */
 .chat-wrap .zkm-chip{box-shadow:0 1px 3px rgba(0,0,0,.06)}
@@ -252,7 +252,7 @@ background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
 .bubble.out{background:var(--green);border-bottom-right-radius:5px;color:#fff}
 .bubble.out .t{color:rgba(255,255,255,.72)}
 .bubble.in{background:var(--glass-strong);border:1px solid var(--glass-brd);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom-left-radius:5px}
-.bubble .t{display:block;font-size:calc(10.5px*var(--fs));color:var(--sub);margin-top:4px;text-align:right;white-space:nowrap}
+.bubble .t{display:block;font-size:calc(10.5px*var(--fs));color:#6E685E;margin-top:4px;text-align:right;white-space:nowrap}
 .bubble .st.gray{opacity:.5}
 .bubble.out .quote-box{background:rgba(0,0,0,.16);color:#fff}
 .bubble.in.typing{min-width:56px;min-height:36px;display:flex;align-items:center;justify-content:center}
@@ -382,7 +382,7 @@ background:rgba(255,255,255,.8);border:1px solid var(--line);min-height:58px}
 .bubble.in{background:linear-gradient(145deg,rgba(255,233,240,.94),rgba(255,219,229,.8));border:1px solid rgba(255,255,255,.78);color:#8A4A5C;box-shadow:0 4px 16px rgba(244,143,177,.16),inset 0 1px 0 rgba(255,255,255,.78);border-bottom-left-radius:9px}
 .bubble.out{background:linear-gradient(145deg,#F9AEC2,#F28FB0);color:#fff;box-shadow:0 6px 18px rgba(244,143,177,.28),inset 0 1px 0 rgba(255,255,255,.4);border-bottom-right-radius:9px}
 .bubble.out .t{color:rgba(255,255,255,.82)}
-.bubble.recalled{background:rgba(255,255,255,.45)!important;color:#B9A68F;font-size:calc(13px*var(--fs));border:1px dashed rgba(180,160,140,.4);box-shadow:none!important}
+.bubble.recalled{background:rgba(255,255,255,.8)!important;color:#6B6152;font-size:calc(13px*var(--fs));border:1px dashed rgba(180,160,140,.4);box-shadow:none!important}
 .bubble .st{color:#7FA8D9;font-size:calc(11px*var(--fs))}
 .bubble .st.gray{color:#C9B4BB;font-weight:400}
 .bubble.out .st{color:rgba(255,255,255,.92)}
@@ -2847,8 +2847,8 @@ body.room-mode .bd-board{flex:0 0 auto;max-height:34vh;overflow-y:auto}
 .stk-hint{font-size:calc(11px*var(--fs));color:var(--sub);text-align:center;padding:8px 0 2px}
 
 /* ================= 拍一拍：透明，不要底板 ================= */
-.pat-in{background:transparent!important;padding:0!important;border-radius:0!important;
-  color:var(--sub)!important;font-size:calc(12.5px*var(--fs))}
+.pat-in{background:rgba(255,255,255,.62)!important;padding:5px 11px!important;border-radius:999px!important;
+  color:#4F4A42!important;font-size:calc(12.5px*var(--fs))}
 .pat-in b{color:var(--ink);font-weight:600}
 .pat-row{margin:8px 0}
 
@@ -15448,7 +15448,7 @@ function qkBatch() {
     if (!ta || !cnt) return;
     var upd = function () {
       var n = String(ta.value || '').split('\n').filter(function (x) { return x.trim() }).length;
-      cnt.textContent = n + ' 条 · 每条间隔 0.5 秒';
+      cnt.textContent = n + ' 条 · 每条间隔 0.5 秒' + (n > 5 ? '（最多 5 条）' : '');
     };
     ta.addEventListener('input', upd); upd();
   }, 60);
@@ -15457,32 +15457,38 @@ function qkBatchSend() {
   var ta = document.getElementById('qkLines');
   var lines = String((ta && ta.value) || '').split('\n').map(function (x) { return x.trim() }).filter(function (x) { return x });
   if (!lines.length) { toast('先写几条'); return }
-  if (lines.length > 20) lines = lines.slice(0, 20);
+  if (lines.length > 5) lines = lines.slice(0, 5);   /* 用户要求：一次最多 5 条 */
   var c = activeContact(); if (!c) { closeSheet(); return }
   closeSheet();
   var sent = [];
   lines.forEach(function (txt, i) {
     CLK.set(function () {
-      var m = { id: uid(), contactId: c.id, dir: 'out', text: txt, ts: now() };
+      /* ★ 补上 readDue：以前批量发的消息没有这个字段，所以永远不标已读（用户反馈：批量发送没有已读） */
+      var m = { id: uid(), contactId: c.id, dir: 'out', text: txt, ts: now(), readDue: now() + 4200 + i * 350 };
       state.messages.push(m);
       sent.push(m.id);
       try { save() } catch (e) { }
       try { renderChat() } catch (e) { }
       if (i === lines.length - 1) {
         /* 最后一条发完后，他随机引用其中一条回一句 */
-        CLK.set(function () {
+        /* 他挑 1 条回；45% 再补一条（回另一条）。以前只回一条，而且很容易被错过 */
+        var pickOne = function () {
           var pickId = sent[Math.floor(Math.random() * sent.length)];
           var src = null;
           for (var k = 0; k < state.messages.length; k++) if (state.messages[k].id === pickId) src = state.messages[k];
           var reply = '';
           try { reply = composeText(c, src ? src.text : null) } catch (e) { reply = '' }
           if (!reply) reply = '嗯，我看到了。';
-          var useQuote=(state.settings&&state.settings.quoteOn!==false);
-          pushIn(c.id, reply, now(), useQuote?pickId:null);
+          var useQuote = (state.settings && state.settings.quoteOn !== false);
+          pushIn(c.id, reply, now(), useQuote ? pickId : null);
           try { save() } catch (e) { }
           try { renderChat() } catch (e) { }
           try { schedule() } catch (e) { }
-        }, 1400 + Math.random() * 800);
+        };
+        CLK.set(function () {
+          pickOne();
+          if (Math.random() < 0.45) CLK.set(pickOne, 2600 + Math.random() * 2000);
+        }, 1200 + Math.random() * 700);
       }
     }, i * 500);
   });
@@ -21391,7 +21397,19 @@ function openApp(k) {
     try { document.documentElement.classList.toggle('home-lock', isHome()); } catch (e) { }
   }
 
-  function fit() {
+  var _lastVH = 0, _lastHK = 0;
+function fit() {
+  /* ★ 以前：每次 resize / visualViewport 变化都重算，而且先把 --hk 重置成 1 再算，
+     于是 iOS 地址栏一伸缩、切后台再回来，App 图标就"放大一下又缩小"。
+     现在：① 可见高度变化不到 24px 直接跳过；② 算出来和上次差不到 1.2% 就沿用上次值。 */
+  try {
+    var _vh = Math.round(window.innerHeight || 0);
+    if (_lastVH && Math.abs(_vh - _lastVH) < 24 && _lastHK) {
+      document.documentElement.style.setProperty('--hk', _lastHK.toFixed(3));
+      return;
+    }
+    _lastVH = _vh;
+  } catch (e) {}
     try {
       css();
       var hp = document.getElementById('homePages');
@@ -21401,13 +21419,14 @@ function openApp(k) {
       var root = document.documentElement;
 
       /* 第一遍：回到 1 倍，量自然高度 */
-      root.style.setProperty('--hk', '1');
       void page.offsetHeight;
       var avail = hp.clientHeight || Math.round(hp.getBoundingClientRect().height);
       var need = page.scrollHeight || Math.round(page.getBoundingClientRect().height);
       if (!avail || !need) return;
       var k = 1;
       if (need > avail + 1) k = Math.max(0.8, avail / need);
+      if (_lastHK && Math.abs(_lastHK - k) < 0.012) k = _lastHK;   /* 微小差异不重排 */
+      _lastHK = k;
       root.style.setProperty('--hk', k.toFixed(3));
 
       /* 第二遍：缩放后重新量一次，避免"缩了还是差一点" */
