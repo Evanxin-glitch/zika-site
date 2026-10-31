@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="57e7ae1189">
-<meta name="x-build-ts" content="1793447602303">
+<meta name="x-build" content="cdc795d274">
+<meta name="x-build-ts" content="1793449788359">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./2014.pic">
 <link rel="manifest" href="./manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F6F1E8">
@@ -2161,11 +2161,13 @@ body{background:#FFFFFF !important;color:#111214}
    以前是 document 整页滚动：标题栏跟着走、页面本身会上下动、下拉还会露底。
    现在 html/body 锁死高度、禁止滚动，#view 自己当滚动容器：
    标题栏 sticky 不动，页面本身不动，只有里面那层内容在滚。 */
-/* 2026-10-31 取消「整页固定」：iOS 上坑太多（咖啡馆/影院划不动、图标跳、白屏），
-   回到自然文档滚动。标题栏仍 sticky；聊天页/小屋仍用它们自己的整屏规则。 */
-html,body{height:auto!important;overflow:visible!important;overscroll-behavior:auto!important;position:static!important}
-#app{min-height:100dvh!important;height:auto!important;overflow:visible!important}
-#view{height:auto;min-height:100dvh;max-height:none;overflow:visible}
+/* 2026-10-31 重建「整页固定」：本次只有这一套定高机制，
+   旧的两层开关锁（home-lock / lock-all 对主页）已删，不会再反复切高度。
+   聊天/小屋保留它们自己的整屏规则（选择器更具体，会覆盖这里）。 */
+html,body{height:100%!important;overflow:hidden!important;overscroll-behavior:none!important;position:static!important}
+#app{height:100%!important;min-height:0!important;overflow:hidden!important}
+#view{height:100%!important;min-height:0!important;max-height:100%!important;overflow-y:auto!important;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;scrollbar-width:none}
+#view::-webkit-scrollbar{width:0;height:0}
 
 /* ===== 壁纸只在主页透出来（2026-10-30 修「下滑漏底图」） =====
    以前 #view 是 transparent，壁纸层(body::before)固定在后面，
@@ -23704,4 +23706,4 @@ function fit() {
 </body>
 </html>
 
-<!-- __ZIKA_EOF__ 57e7ae1189 -->
+<!-- __ZIKA_EOF__ cdc795d274 -->
