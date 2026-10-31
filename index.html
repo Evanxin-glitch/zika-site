@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="7f3f855df2">
-<meta name="x-build-ts" content="1793455497118">
+<meta name="x-build" content="c914619e1d">
+<meta name="x-build-ts" content="1793457197588">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -17732,11 +17732,23 @@ function homeSeedV6(s){
     var f=activeField(m);
     if(sheet&&f)scrollIntoSheet(sheet,f);
   }
-  /* 聊天输入栏抬起来（只在"键盘盖住"的模式下用） */
+  /* 聊天输入栏抬起来（只在"键盘盖住、但布局没跟着缩"的模式下用） */
   function chatLift(kb){
     var bar=document.querySelector('.chat-input');
     if(!bar)return;
-    var want=kb>80?('calc('+kb+'px - env(safe-area-inset-bottom))'):'';
+    /* ★ 2026-10-31 修「键盘一开、输入框跑到屏幕上方、下面一大片空白」：
+       以前只要键盘高度 > 80 就无条件给输入栏加 margin-bottom = 键盘高度。
+       可聊天室的 #view 高度本来就等于 --vvh（visualViewport 实测高度，键盘弹起时
+       852→516 会自己缩），再抬一次就变成"双重抬高"：
+         #view 516 → 减掉 336 的 margin → 输入栏被顶到 y≈119，列表被压成 54px，
+         剩下 336px 空白全露在输入栏下面（用户截图就是这样，实测能复现）。
+       正确判据：只有在「#view 还没缩下去」（安卓部分机型只看视觉视口、不改布局）
+       的时候才需要抬，抬的高度就是被盖住的高度。 */
+    var v=document.getElementById('view');
+    var viewH=v?v.clientHeight:0;
+    var lifted=kb;
+    if(viewH&&kb>80&&viewH<=window.innerHeight-kb+40)lifted=0;   /* 布局已经缩到键盘上面了，别再抬 */
+    var want=lifted>80?('calc('+lifted+'px - env(safe-area-inset-bottom))'):'';
     if(want){ if(bar.style.marginBottom!==want) bar.style.marginBottom=want }
     else if(bar.style.marginBottom){ bar.style.marginBottom='' }
   }
@@ -23701,4 +23713,4 @@ function openApp(k) {
 </body>
 </html>
 
-<!-- __ZIKA_EOF__ 7f3f855df2 -->
+<!-- __ZIKA_EOF__ c914619e1d -->
