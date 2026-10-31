@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="c914619e1d">
-<meta name="x-build-ts" content="1793457197588">
+<meta name="x-build" content="c6247cf37e">
+<meta name="x-build-ts" content="1793458268071">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -17690,6 +17690,9 @@ function homeSeedV6(s){
     try{
       var vv=window.visualViewport;
       if(!vv)return 0;
+      /* 键盘动画期间 iOS 会瞬时报 height=0；照减会算出"整屏都是键盘"的假高度，
+         接着给输入栏加一个 712px 的 margin → 输入栏被顶到屏幕最上面。这种值直接当没有键盘。 */
+      if(!vv.height||vv.height<200)return 0;
       var h=Math.round(window.innerHeight-vv.height-(vv.offsetTop||0));
       return h>0?h:0;
     }catch(e){ return 0 }
@@ -17739,15 +17742,19 @@ function homeSeedV6(s){
     /* ★ 2026-10-31 修「键盘一开、输入框跑到屏幕上方、下面一大片空白」：
        以前只要键盘高度 > 80 就无条件给输入栏加 margin-bottom = 键盘高度。
        可聊天室的 #view 高度本来就等于 --vvh（visualViewport 实测高度，键盘弹起时
-       852→516 会自己缩），再抬一次就变成"双重抬高"：
+       852→516 会自己缩），再抬一次就是"双重抬高"：
          #view 516 → 减掉 336 的 margin → 输入栏被顶到 y≈119，列表被压成 54px，
          剩下 336px 空白全露在输入栏下面（用户截图就是这样，实测能复现）。
-       正确判据：只有在「#view 还没缩下去」（安卓部分机型只看视觉视口、不改布局）
-       的时候才需要抬，抬的高度就是被盖住的高度。 */
+       现在的判据是「量出来的」，不是「猜的」：
+         ① 只有 #view 还没缩下去（说明这台机器的布局没跟着键盘变）才需要抬；
+         ② 抬多少不能超过 #view 高度减去"顶栏+输入栏+一点列表"的安全值，
+            也就是不管 --vvh 取到什么值，输入栏都不可能被推出屏幕。 */
     var v=document.getElementById('view');
     var viewH=v?v.clientHeight:0;
+    var SAFE=140;                                  /* 顶栏 65 + 输入栏 61 + 一点列表 */
     var lifted=kb;
     if(viewH&&kb>80&&viewH<=window.innerHeight-kb+40)lifted=0;   /* 布局已经缩到键盘上面了，别再抬 */
+    if(viewH&&lifted>SAFE)lifted=Math.min(lifted,Math.max(0,viewH-SAFE));   /* 上限：绝不把输入栏顶出屏幕 */
     var want=lifted>80?('calc('+lifted+'px - env(safe-area-inset-bottom))'):'';
     if(want){ if(bar.style.marginBottom!==want) bar.style.marginBottom=want }
     else if(bar.style.marginBottom){ bar.style.marginBottom='' }
@@ -21581,15 +21588,27 @@ function openApp(k) {
       'body.chat-mode{height:100%!important;overflow:hidden!important}',
       'body.chat-mode #view{height:var(--vvh,100dvh)!important;max-height:var(--vvh,100dvh)!important;',
       'overflow:hidden!important;overscroll-behavior:none!important}',
-      'body.chat-mode .chat-body{overscroll-behavior-y:contain}'
+      'body.chat-mode .chat-body{overscroll-behavior-y:contain}',
+      /* ★ 可视区被 iOS 平移时（html.vv-pan），把聊天/小屋的内容按平移量挪回来，
+         这样"整页被顶上去"不会留下空白；没平移（offsetTop=0）时这条完全不生效。 */
+      'html.vv-pan body.chat-mode #view,html.vv-pan body.room-mode #view{transform:translateY(var(--vvtop,0px))}'
     ].join('\n');
     document.head.appendChild(s);
   }
 
   function readVVH() {
     try {
-      var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight || 0;
-      if (h) document.documentElement.style.setProperty('--vvh', Math.round(h) + 'px');
+      var vv = window.visualViewport;
+      var h = (vv && vv.height) || 0;
+      var ih = window.innerHeight || 0;
+      /* ★ 2026-10-31 加护栏：iOS 键盘动画期间 visualViewport.height 会瞬时报 0 或几十像素，
+         以前照抄进 --vvh，聊天页 #view 就被压成几乎 0 高 → 整屏空白、只剩键盘（用户截图）。
+         现在：小于 200 的一律丢弃（沿用上一次的有效值），比布局高还大的夹到布局高。 */
+      if (!h || h < 200) return;
+      if (ih && h > ih) h = ih;
+      document.documentElement.style.setProperty('--vvh', Math.round(h) + 'px');
+      /* 有键盘（可视区明显小于布局高）时标记一下，给 CSS 兜底用 */
+      try { document.documentElement.classList.toggle('kb-open', !!ih && h < ih - 80) } catch (e) { }
     } catch (e) { }
   }
 
@@ -21616,6 +21635,51 @@ function openApp(k) {
       css();
       readVVH();
       document.documentElement.classList.toggle('lock-all', isChat() || isRoom());   /* 2026-10-31 取消主页锁：主页也自然滚动，别再锁 html/body（图标跳、划不动都跟锁高有关） */
+    } catch (e) { }
+  }
+
+  /* ================= 键盘的自愈（2026-10-31） =================
+     用户报的：点输入框 → 键盘弹起 → 整页像被顶上去、只剩一大片空白。
+     两个原因叠在一起：
+       ① iOS 会把"可视区"整块往上平移（visualViewport.offsetTop 变正），
+          页面自己是 overflow:hidden，滚不回来 → 顶上去那截就永远露白；
+       ② 输入栏又被 43-sheetKeyboard 按键盘高度抬了一次（双重抬高）。
+     这里每 400ms 自查一次（只在聊天/小屋跑），把三件事拉回正确状态：
+       · --vvh（视口高度，拒绝键盘动画期间的 0/几十像素假值）
+       · --vvtop（可视区被平移了多少）+ html.vv-pan 类：CSS 用 translateY 把内容挪回原位
+       · 输入栏多余的 margin-bottom（布局已经等于视口高时就不该抬）
+       · document 被滚动（另一种"被顶上去"）→ 归零
+     任何一步算错都只是"没生效"，不会把页面推得更远（平移量永远等于实测 offsetTop）。 */
+  function heal() {
+    try {
+      if (!(isChat() || isRoom())) return;
+      var vv = window.visualViewport;
+      if (!vv) return;
+      var vh = Math.round(vv.height || 0);
+      var root = document.documentElement;
+      if (vh >= 200) {
+        var cur = parseFloat(root.style.getPropertyValue('--vvh')) || 0;
+        if (Math.abs(cur - vh) > 2) root.style.setProperty('--vvh', vh + 'px');
+        var top = Math.round(vv.offsetTop || 0);
+        if (top < 0) top = 0;
+        var curTop = parseFloat(root.style.getPropertyValue('--vvtop')) || 0;
+        if (Math.abs(curTop - top) > 1) root.style.setProperty('--vvtop', top + 'px');
+        try { root.classList.toggle('vv-pan', top > 1) } catch (e) { }
+      }
+      /* 输入栏多余的抬高：布局已经等于可视高度（没东西被盖住）就清掉 */
+      var bar = document.querySelector('.chat-input');
+      if (bar && bar.style.marginBottom) {
+        var v = document.getElementById('view');
+        var viewH = v ? v.clientHeight : 0;
+        if (vh >= 200 && viewH && Math.abs(viewH - vh) <= 2) bar.style.marginBottom = '';
+      }
+      /* document 被滚动了（另一种"整页被顶上去"）→ 聊天/小屋本来就该停在 0 */
+      if (window.scrollY > 0 || (document.documentElement && document.documentElement.scrollTop > 0) ||
+        (document.body && document.body.scrollTop > 0)) {
+        try { window.scrollTo(0, 0) } catch (e) { }
+        try { document.documentElement.scrollTop = 0 } catch (e) { }
+        try { document.body.scrollTop = 0 } catch (e) { }
+      }
     } catch (e) { }
   }
 
@@ -21647,7 +21711,18 @@ function openApp(k) {
     };
   }
   try { setTimeout(sync, 120); setTimeout(sync, 600); } catch (e) { }
+  /* 自愈：400ms 一次（只在聊天/小屋真正干活），键盘动画每一帧报什么值都不会被长期沿用 */
+  try {
+    setInterval(heal, 400);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', function () { setTimeout(heal, 0); setTimeout(heal, 120) });
+      window.visualViewport.addEventListener('scroll', function () { setTimeout(heal, 0) });
+    }
+    document.addEventListener('focusin', function () { setTimeout(heal, 60); setTimeout(heal, 300); setTimeout(heal, 700) }, true);
+    document.addEventListener('focusout', function () { setTimeout(heal, 120) }, true);
+  } catch (e) { }
   window.chatLockSync = sync;
+  window.chatLockHeal = heal;
 })();
 
 /* ================= 雷达 · 灵体罗盘 v2（2026-10-30 重做） =================
@@ -23713,4 +23788,4 @@ function openApp(k) {
 </body>
 </html>
 
-<!-- __ZIKA_EOF__ c914619e1d -->
+<!-- __ZIKA_EOF__ c6247cf37e -->
