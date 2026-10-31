@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="c6247cf37e">
-<meta name="x-build-ts" content="1793458268071">
+<meta name="x-build" content="a5ba2aa467">
+<meta name="x-build-ts" content="1793469034229">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -3351,6 +3351,58 @@ body.dark-page #view{background:#0E0C18}
 body.dark-page .page-top{background:#0E0C18!important;border-bottom:1px solid rgba(255,255,255,.06)!important;color:#EDE9F4}
 body.dark-page .page-top .pt{color:#EDE9F4}
 body.dark-page .page-top .back{color:#CFC6E6}
+
+/* ===== 自由造句（2026-11-01 · 第一批） =====
+   只作用于 .zj-* 和 #zjPctBox，不改任何现有规则。
+   分格气泡：一格一个零件；虚线边表示"这是拼的"。 */
+.zj-glyph{display:inline-flex;flex-wrap:wrap;gap:3px;align-items:center;padding:7px 10px;
+  border:1.4px dashed rgba(17,18,20,.42);border-radius:16px;background:var(--card,#fff);max-width:100%}
+.zj-tile{background:rgba(17,18,20,.045);border-radius:7px;padding:4px 8px;line-height:1.35;
+  font-size:calc(15px*var(--fs));color:var(--ink,#111214)}
+.zj-sep{color:rgba(17,18,20,.28);font-size:calc(12px*var(--fs));padding:0 1px}
+.zj-line{margin-top:5px}
+.zj-tag{display:inline-block;font-size:calc(10px*var(--fs));color:var(--sub,#6B6D72);
+  background:rgba(17,18,20,.05);border-radius:5px;padding:1px 6px}
+/* 设置里那一行（塞进 .rhy-grid 的一个 .inl 里） */
+#zjPctBox .zj-setrow{display:flex;align-items:center;gap:8px}
+#zjPctBox .zj-setrow input{width:76px;flex:0 0 76px;text-align:center}
+#zjPctBox .zj-u{font-size:calc(12px*var(--fs));color:var(--sub,#6B6D72)}
+.zj-sw{width:42px;height:24px;border-radius:99px;background:#E2E2E4;position:relative;
+  flex:0 0 auto;display:inline-block;transition:.16s}
+.zj-sw.on{background:#111214}
+.zj-sw i{position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;
+  background:#fff;transition:.16s}
+.zj-sw.on i{left:21px}
+.zj-hint2{font-size:calc(10.5px*var(--fs));color:var(--sub,#6B6D72);margin-top:4px;line-height:1.5}
+
+/* ===== 自由造句 · 字卡库区块（第一批附带的第二批） ===== */
+#zjLib{margin:12px 0 6px;padding:12px 0 4px;border-top:1px solid rgba(17,18,20,.08)}
+.zj-libhead{display:flex;align-items:baseline;gap:8px;font-size:calc(13.5px*var(--fs));font-weight:700;color:var(--ink,#111214)}
+.zj-libsub{margin-left:auto;font-weight:400;font-size:calc(10.5px*var(--fs));color:var(--sub,#6B6D72)}
+.zj-rowline{display:flex;align-items:center;gap:10px;padding:9px 0 4px;font-size:calc(12.5px*var(--fs));color:#3A3B3F}
+.zj-seg2{display:flex;gap:6px;margin-left:auto}
+.zj-seg2 button{border:1px solid rgba(17,18,20,.12);background:#fff;border-radius:9px;padding:5px 10px;
+  font-size:calc(11.5px*var(--fs));color:#3A3B3F;font-family:inherit}
+.zj-seg2 button.on{background:#111214;color:#fff;border-color:#111214;font-weight:600}
+.zj-note{font-size:calc(10.5px*var(--fs));color:var(--sub,#6B6D72);padding:2px 0 8px;line-height:1.5}
+.zj-catrow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(17,18,20,.06);
+  font-size:calc(13px*var(--fs));color:#2A2B2F;cursor:pointer}
+.zj-catrow .n{flex:1;min-width:0}
+.zj-catrow .n i{font-style:normal;color:#9A9AA0;font-size:calc(11px*var(--fs));margin-left:6px}
+.zj-catrow .c{font-size:calc(11px*var(--fs));color:#9A9AA0;background:#F5F5F6;border-radius:6px;padding:1px 7px}
+.zj-catrow .ar{color:#C8C8CC;font-size:calc(12px*var(--fs))}
+.zj-catrow.open{background:#FAFAFA}
+.zj-catbody{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0 6px}
+.zj-wd{border:1px solid rgba(17,18,20,.12);background:#fff;border-radius:99px;padding:4px 10px;
+  font-size:calc(12px*var(--fs));color:#2A2B2F;font-family:inherit;position:relative}
+.zj-wd.off{opacity:.35;text-decoration:line-through}
+.zj-wd.mine{border-color:rgba(17,18,20,.45);background:#F7F7F8;padding-right:17px}
+.zj-wd.mine u{position:absolute;right:4px;top:0;font-size:9px;color:#9A9AA0;text-decoration:none}
+.zj-addrow{display:flex;gap:8px;width:100%;padding-top:4px}
+.zj-addrow input{flex:1;min-width:0;border:1px dashed rgba(17,18,20,.22);border-radius:10px;padding:8px 10px;
+  font-size:calc(13px*var(--fs));font-family:inherit;background:#FCFCFC;color:#111214}
+.zj-addrow button{border:1px solid #111214;background:#111214;color:#fff;border-radius:10px;padding:8px 14px;
+  font-size:calc(12.5px*var(--fs));font-family:inherit;flex:0 0 auto}
 </style>
 </head>
 <body>
@@ -4431,6 +4483,14 @@ function migrate(s){
   if(s.settings.keepVol===undefined)s.settings.keepVol='light';
   if(s.settings.tarotRevPct===undefined)s.settings.tarotRevPct=50;
   if(s.settings.tarotDailyPct===undefined)s.settings.tarotDailyPct=40;
+  /* 自由造句（第一批）：默认关、概率 15、只出短句。词表和"关掉的词"也在这里，
+     所以备份/导入会自动带上，不用改备份代码。 */
+  if(s.settings.zaojuOn===undefined)s.settings.zaojuOn=false;
+  if(s.settings.zaojuPct===undefined)s.settings.zaojuPct=15;
+  if(s.settings.zaojuLen===undefined)s.settings.zaojuLen='short';
+  if(s.settings.zaojuCount===undefined)s.settings.zaojuCount=0;
+  if(!s.settings.zaojuMine||typeof s.settings.zaojuMine!=='object'||Array.isArray(s.settings.zaojuMine))s.settings.zaojuMine={};
+  if(!s.settings.zaojuOff||typeof s.settings.zaojuOff!=='object'||Array.isArray(s.settings.zaojuOff))s.settings.zaojuOff={};
   if(s.settings.emojiPct===undefined)s.settings.emojiPct=15;
   if(s.settings.quotePct===undefined)s.settings.quotePct=40;
   if(s.settings.checkinPct===undefined)s.settings.checkinPct=25;
@@ -23783,9 +23843,483 @@ function openApp(k) {
 
   window.cinemaDebug = function () { return { c: K(), ui: { playing: UI.playing, film: UI.film } }; };
 })();
+
+/* ================= 自由造句（第一批） =================
+   玩家自己填「零件」，他按骨架拼成一句话发给你。
+   这一批只做三件事，全部是"包一层"，不改任何现有函数体：
+
+     ① 回复（replyChat）：命中概率时，把"这一条回复"换成造句
+        · 先显示「正在输入」，跟普通回复一样
+        · 吃他 10 分钟 5 条的总配额（不会刷屏）
+        · 不带引用、不连发、这一轮就只发这一条
+        · 连续最多 2 条、最近 5 条最多 3 条（概率调高也不会满屏都是）
+     ② 气泡（bubbleHtml）：造句消息画成"一格一个零件"，时间/已读/⋮ 照旧
+     ③ 设置（renderMe）：「概率 → 塔罗 / 字卡」里补一行「自由造句 [开关] [15%]」
+
+   开关默认关。关掉以后，行为和没有这个文件完全一致。
+   词表和开关都存在 state.settings.zaoju* → 备份/导入自动带着，不用改备份代码。
+   骨架 8 短 + 4 长；短句只接受 3–6 字，长句 7–12 字；开了长句按 短 7 : 长 3 混发。
+   ======================================================= */
+(function () {
+  if (window.__zaoju) return; window.__zaoju = 1;
+  var V = 'v1';
+
+  /* ---------- 1. 内置词（7 个子分类） ---------- */
+  var BUILTIN = {
+    who: ['我', '你', '他', '她', '我们', '你们', '大家', '朋友', '同事', '自己'],
+    doo: ['抱抱你', '陪你', '想你', '看月亮', '散步', '喝咖啡', '发呆', '加班', '睡觉', '吃饭',
+      '回家', '出门', '打电话', '等你', '夸你', '摸你头', '送花', '听歌', '看剧', '晒太阳'],
+    deg: ['有点', '很', '真', '超', '特别', '一直', '偷偷', '慢慢', '刚刚'],
+    mood: ['开心', '累', '难过', '孤单', '安心', '无聊', '紧张', '困', '委屈', '高兴', '平静',
+      '香', '安静', '暖', '甜'],
+    thing: ['咖啡', '月亮', '花', '雨', '歌', '家', '公园', '公司', '路上', '家里', '阳台', '沙发', '海边', '超市', '厨房', '被窝'],
+    time: ['今晚', '今天', '早上', '周末', '半夜', '刚刚'],
+    tone: ['呀', '啦', '哦', '呢', '嘛', '哟', '哈']
+  };
+  var CATS = [['who', '谁'], ['doo', '干什么'], ['deg', '程度'], ['mood', '心情'],
+    ['thing', '东西·地点'], ['time', '时间'], ['tone', '语气']];
+  /* 同类词内部再分小池：不是所有词都能塞进同一个骨架 */
+  var ADJ_WORDS = ['香', '安静', '暖', '甜'];      /* 心情里"能形容东西"的那几个 */
+  var VERB_DEG = ['一直', '偷偷', '慢慢', '刚刚'];  /* 程度里"能配动作"的那几个 */
+
+  /* ---------- 2. 设置 ---------- */
+  function S() {
+    try {
+      if (!state.settings || typeof state.settings !== 'object') state.settings = {};
+      var s = state.settings;
+      if (s.zaojuOn === undefined) s.zaojuOn = false;
+      if (s.zaojuPct == null) s.zaojuPct = 15;
+      if (s.zaojuLen === undefined) s.zaojuLen = 'short';
+      if (!s.zaojuMine || typeof s.zaojuMine !== 'object' || Array.isArray(s.zaojuMine)) s.zaojuMine = {};
+      if (!s.zaojuOff || typeof s.zaojuOff !== 'object' || Array.isArray(s.zaojuOff)) s.zaojuOff = {};
+      return s;
+    } catch (e) { return {} }
+  }
+  function isOn() { try { return S().zaojuOn === true } catch (e) { return false } }
+  function pct() {
+    try { var p = Number(S().zaojuPct); return isFinite(p) ? Math.max(0, Math.min(40, p)) : 15 }
+    catch (e) { return 15 }
+  }
+  function wordsOf(cat) {
+    var s = S(), out = (s.zaojuMine[cat] || []).slice();
+    (BUILTIN[cat] || []).forEach(function (w) {
+      if ((s.zaojuOff[cat] || []).indexOf(w) < 0) out.push(w);
+    });
+    return out;
+  }
+  function poolOf(spec) {
+    var a = String(spec).split('.'), cat = a[0], sub = a[1];
+    var base = wordsOf(cat);
+    if (!sub) return base;
+    if (cat === 'mood') return base.filter(function (w) { return sub === 'adj' ? ADJ_WORDS.indexOf(w) >= 0 : ADJ_WORDS.indexOf(w) < 0 });
+    if (cat === 'deg') return base.filter(function (w) { return sub === 'verb' ? VERB_DEG.indexOf(w) >= 0 : VERB_DEG.indexOf(w) < 0 });
+    return base;
+  }
+  function allWords() { var n = 0; CATS.forEach(function (c) { n += wordsOf(c[0]).length }); return n }
+
+  /* ---------- 3. 骨架 ---------- */
+  var F_SHORT = [
+    ['who', 'deg.adj', 'mood.emo', 'tone'],   /* 我有点累啦 */
+    ['who', 'deg.adj', 'mood.emo'],           /* 我很开心 */
+    ['who', 'doo'],                           /* 我抱抱你 */
+    ['who', 'deg.verb', 'doo'],               /* 他一直发呆 */
+    ['thing', 'deg.adj', 'mood.adj'],         /* 咖啡很香 */
+    ['deg.adj', 'mood.emo', 'tone'],          /* 有点孤单呢 */
+    ['time', 'who', 'deg.adj', 'mood.emo'],   /* 今晚我有点累 */
+    ['time', 'who', 'doo']                    /* 周末同事送花 */
+  ];
+  var F_LONG = [
+    ['time', 'who', 'deg.verb', 'doo', 'tone'],       /* 今晚我一直加班呀 */
+    ['time', 'thing', 'deg.adj', 'mood.adj', 'tone'], /* 今晚咖啡很香呢 */
+    ['time', 'who', 'deg.adj', 'mood.emo', 'tone'],   /* 今晚我有点累啦 */
+    ['who', 'deg.verb', 'doo', 'tone']                /* 他一直发呆呀 */
+  ];
+  var _lastFrame = -1;
+
+  function pick(a) { return a[Math.floor(Math.random() * a.length)] }
+  function charLen(s) { return String(s == null ? '' : s).replace(/[\s\u200B]/g, '').length }
+  function oneFrame(frames, lo, hi) {
+    var idx = Math.floor(Math.random() * frames.length);
+    for (var g = 0; g < 4 && idx === _lastFrame && frames.length > 1; g++) idx = Math.floor(Math.random() * frames.length);
+    _lastFrame = idx;
+    var frame = frames[idx], parts = [], used = {}, whoPart = '';
+    for (var i = 0; i < frame.length; i++) {
+      var pool = poolOf(frame[i]);
+      /* 主语是"你/你们"时，动作不能再自带"你"，否则会拼出「你陪你」「你抱抱你」 */
+      if (frame[i] === 'doo' && /^你/.test(whoPart)) {
+        pool = pool.filter(function (x) { return String(x).indexOf('你') < 0 });
+      }
+      if (!pool.length) return null;
+      var w = '', t = 0;
+      do { w = pick(pool); t++ } while ((used[w] || (i && w === parts[i - 1])) && t < 6);
+      used[w] = 1; parts.push(w);
+      if (frame[i] === 'who') whoPart = w;
+    }
+    var text = parts.join('');
+    var n = charLen(text);
+    if (n < lo || n > hi) return null;
+    return { text: text, parts: parts, parallel: false };
+  }
+  function parallel(lo, hi) {
+    /* 兜底：两个不同分类的词 + 语气（不分类/拼不出骨架时也有句子） */
+    var ci = Math.floor(Math.random() * CATS.length);
+    var cj = (ci + 1 + Math.floor(Math.random() * (CATS.length - 1))) % CATS.length;
+    var pa = poolOf(CATS[ci][0]), pb = poolOf(CATS[cj][0]), tn = wordsOf('tone');
+    if (!pa.length || !pb.length || !tn.length) return null;
+    var a = pick(pa), b = pick(pb), t = pick(tn);
+    var text = a + ' ' + b + ' ' + t;
+    var n = charLen(text);
+    if (n < lo || n > hi) return null;
+    return { text: text, parts: [a, b, t], parallel: true };
+  }
+  function build() {
+    try {
+      if (!isOn()) return null;
+      if (allWords() < 6) return null;              /* 词太少就不硬拼 */
+      var longOn = S().zaojuLen === 'long';
+      var wantLong = longOn && Math.random() < 0.3;  /* 开了长句：短 7 : 长 3 混发 */
+      var g = null, i;
+      if (wantLong) for (i = 0; i < 8 && !g; i++) g = oneFrame(F_LONG, 7, 12);
+      for (i = 0; i < 10 && !g; i++) g = oneFrame(F_SHORT, 3, 6);
+      for (i = 0; i < 4 && !g; i++) g = parallel(3, 8);
+      return g;
+    } catch (e) { return null }
+  }
+  window.zaojuBuild = build;
+
+  /* ---------- 4. 防刷屏：连续 2 条、最近 5 条最多 3 条 ---------- */
+  function taReplies(cid, n) {
+    var out = [];
+    try {
+      for (var i = state.messages.length - 1; i >= 0 && out.length < n; i--) {
+        var m = state.messages[i];
+        if (!m || m.contactId !== cid || m.dir !== 'in') continue;
+        if (m.kind) continue;                       /* 转账/决策/查岗这些卡片不算进来 */
+        if (m.recalled) continue;
+        out.push(m);
+      }
+    } catch (e) { }
+    return out;
+  }
+  function allowed() {
+    try {
+      var c = (typeof activeContact === 'function') ? activeContact() : null;
+      if (!c) return true;
+      var r = taReplies(c.id, 5);
+      var isZ = function (m) { return !!(m && m.glyph && m.glyph.length) };
+      if (r.length >= 2 && isZ(r[0]) && isZ(r[1])) return false;
+      var z = 0;
+      for (var i = 0; i < r.length; i++) if (isZ(r[i])) z++;
+      if (r.length >= 5 && z >= 3) return false;
+      return true;
+    } catch (e) { return true }
+  }
+
+  /* ---------- 5. 回复：命中就换成造句（拼字卡在没命中时照常生效） ---------- */
+  var _replyChat = window.replyChat;
+  if (typeof _replyChat === 'function') {
+    window.replyChat = function (m) {
+      try {
+        var okKind = !m || !m.kind || m.kind === 'text';
+        if (m && !m.answered && okKind && isOn() && pct() > 0 && allowed() && Math.random() * 100 < pct()) {
+          var c = (typeof contact === 'function' && contact(m.contactId)) ||
+            (typeof activeContact === 'function' && activeContact());
+          if (c && (typeof hisQuota !== 'function' || hisQuota(c.id) > 0)) {
+            var g = build();
+            if (g) {
+              m.answered = true;                     /* 不会再被调度器回一次 */
+              var cid = c.id;
+              /* 先"正在输入"，跟普通回复的观感一致 */
+              try { _typing = { contactId: cid, ts: now(), hold: true }; renderChat(); } catch (e) { }
+              setTimeout(function () {
+                try {
+                  _typing = null;
+                  if (typeof pushIn !== 'function') { try { renderChat() } catch (x) { } return }
+                  pushIn(cid, g.text, now());
+                  var last = state.messages[state.messages.length - 1];
+                  if (last && last.dir === 'in' && last.contactId === cid) {
+                    /* ★ 故意不写 m.kind：站里 msgSave/复制/菜单都是按 `m.kind ? 卡片 : 正文` 分支的，
+                       写了 kind 收藏进去就会变成「[卡片]」。只加一个 glyph 字段，其它一律当普通文字消息。 */
+                    last.glyph = g.parts;
+                    if (g.parallel) last.parallel = 1;
+                  }
+                  try { S().zaojuCount = (Number(S().zaojuCount) || 0) + 1 } catch (e) { }
+                  try { save() } catch (e) { }
+                  try { if ((location.hash.replace('#', '') || 'home') === 'chat') renderChat() } catch (e) { }
+                  try { schedule() } catch (e) { }
+                } catch (e) { try { _typing = null; renderChat() } catch (x) { } }
+              }, (typeof rnd === 'function' ? rnd(900, 1800) : 1200));
+              return;
+            }
+          }
+        }
+      } catch (e) { }
+      return _replyChat.apply(this, arguments);
+    };
+  }
+
+  /* ---------- 6. 气泡：一格一个零件 ---------- */
+  var _bubbleHtml = window.bubbleHtml;
+  if (typeof _bubbleHtml === 'function') {
+    window.bubbleHtml = function (m, c) {
+      try {
+        if (m && !m.recalled && m.glyph && m.glyph.length) {
+          var tiles = '';
+          for (var i = 0; i < m.glyph.length; i++) {
+            if (m.parallel && i > 0) tiles += '<span class="zj-sep">·</span>';
+            tiles += '<span class="zj-tile">' + esc(String(m.glyph[i])) + '</span>';
+          }
+          var av = (m.dir === 'out')
+            ? (typeof meAvatar === 'function' ? meAvatar() : '')
+            : (typeof cAvatar === 'function' ? cAvatar(c) : '');
+          /* 时间/已读/⋮ 跟普通消息完全一致，别自己造一套 */
+          var meta = '<div class="msg-meta">'
+            + (m.catchup ? '<span class="cu">补发</span>' : '')
+            + '<span class="t">' + fmtTime(m.ts) + '</span>'
+            + ((m.dir === 'out' && !(state.settings && state.settings.readReceipt === false))
+              ? '<span class="st' + (m.read ? '' : ' gray') + '">' + (m.read ? '✓✓' : '✓') + '</span>' : '')
+            + ((state.settings && state.settings.msgMenu !== false)
+              ? '<button class="msg-menu-btn" data-act="msg-menu" data-id="' + m.id + '" title="消息操作">⋮</button>' : '')
+            + '</div>';
+          return '<div class="msg-row ' + m.dir + '">'
+            + '<span class="bubble-av">' + av + '</span>'
+            + '<div class="msg-col">'
+            + '<div class="zj-glyph" data-act="quote" data-id="' + m.id + '">' + tiles + '</div>'
+            + '<div class="zj-line"><span class="zj-tag">' + (m.parallel ? '自由造句 · 并列' : '自由造句') + '</span></div>'
+            + meta
+            + '</div></div>';
+        }
+      } catch (e) { }
+      return _bubbleHtml.apply(this, arguments);
+    };
+  }
+
+  /* ---------- 7. 设置里那一行（概率 → 塔罗 / 字卡） ---------- */
+  function hint() {
+    try {
+      var p = pct();
+      var every = p > 0 ? Math.max(2, Math.round(100 / p)) : 0;
+      var n = allWords();
+      var t = n + ' 个可用词';
+      if (n < 6) t += '（少于 6 个不造句）';
+      else if (p > 0) t += ' · 大概每 ' + every + ' 条来 1 条';
+      t += ' · 连续最多 2 条';
+      return t;
+    } catch (e) { return '' }
+  }
+  function injectPct() {
+    try {
+      var sec = document.getElementById('sec-pct');
+      if (!sec) return;
+      var subs = sec.querySelectorAll('.pct-sub'), host = null, nextHead = null;
+      for (var i = 0; i < subs.length; i++) {
+        if (/塔罗|字卡/.test(subs[i].textContent || '')) { host = subs[i]; nextHead = subs[i + 1] || null; }
+      }
+      if (!host) return;
+      /* 插在「问卷」标题之前 = 落在「塔罗 / 字卡」那一格的最下面，不会跑到问卷旁边 */
+      var anchor = nextHead || (host.nextElementSibling && host.nextElementSibling.nextElementSibling) || null;
+      if (!anchor) return;
+      var box = document.getElementById('zjPctBox');
+      if (!box) {
+        box = document.createElement('div');
+        box.className = 'inl';
+        box.id = 'zjPctBox';
+        box.innerHTML = '<label>自由造句</label>'
+          + '<div class="zj-setrow"><label class="zj-sw" id="zjSw"><i></i></label>'
+          + '<input id="zjPctIn" type="number" min="0" max="40" step="1">'
+          + '<span class="zj-u">%</span></div>'
+          + '<div class="zj-hint2" id="zjHint"></div>';
+        anchor.parentNode.insertBefore(box, anchor);
+        bindPct();
+      }
+      syncPct();
+    } catch (e) { }
+  }
+  function syncPct() {
+    try {
+      var sw = document.getElementById('zjSw'), inp = document.getElementById('zjPctIn'), h = document.getElementById('zjHint');
+      if (sw) sw.className = 'zj-sw' + (isOn() ? ' on' : '');
+      if (inp) inp.value = pct();
+      if (h) h.textContent = hint();
+    } catch (e) { }
+  }
+  function bindPct() {
+    var sw = document.getElementById('zjSw'), inp = document.getElementById('zjPctIn');
+    if (sw) sw.onclick = function () {
+      try {
+        var s = S(); s.zaojuOn = !s.zaojuOn; save();
+        syncPct();
+        toast(s.zaojuOn ? '自由造句已开启' : '自由造句已关闭');
+      } catch (e) { }
+    };
+    if (inp) inp.onchange = function () {
+      try {
+        var v = Number(inp.value);
+        if (!isFinite(v)) v = 15;
+        v = Math.max(0, Math.min(40, Math.round(v)));
+        inp.value = v;
+        S().zaojuPct = v;
+        save(); syncPct();
+      } catch (e) { }
+    };
+  }
+  var _renderMe = window.renderMe;
+  if (typeof _renderMe === 'function') {
+    window.renderMe = function () {
+      var r = _renderMe.apply(this, arguments);
+      setTimeout(injectPct, 30); setTimeout(syncPct, 120);
+      return r;
+    };
+  }
+  try { setTimeout(function () { if ((location.hash.replace('#', '') || 'home') === 'me') injectPct() }, 800); } catch (e) { }
+
+  /* ================= 8. 字卡库里的「自由造句」区块（第二批） =================
+     放在字卡列表上方，是页面里的一段独立内容，不掺进你现有的分类 chip 体系
+     （chip 点下去会把 cur 切到不存在的分类，添加按钮还会往里塞普通字卡）。
+     每次 renderCards 之后重画一次；展开哪个子分类记在内存里，重绘不丢。 */
+  var _openCat = '';
+  function escq(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
+    })
+  }
+  function offList(cat) { var s = S(); return s.zaojuOff[cat] || [] }
+  function mineList(cat) { var s = S(); return s.zaojuMine[cat] || [] }
+
+  function libHtml() {
+    var total = allWords(), done = Number(S().zaojuCount) || 0;
+    var onOff = isOn() ? '已开启' : '未开启';
+    var h = '<div id="zjLib">'
+      + '<div class="zj-libhead"><b>自由造句</b>'
+      + '<span class="zj-libsub">' + total + ' 个词 · 已拼 ' + done + ' 句 · ' + onOff + '</span></div>'
+      + '<div class="zj-rowline"><span>句子长度</span>'
+      + '<span class="zj-seg2">'
+      + '<button data-zjlen="short" class="' + (S().zaojuLen !== 'long' ? 'on' : '') + '">短句 3–6</button>'
+      + '<button data-zjlen="long" class="' + (S().zaojuLen === 'long' ? 'on' : '') + '">长句 7–12</button>'
+      + '</span></div>'
+      + '<div class="zj-note">开关和概率在「设置 → 概率 → 塔罗 / 字卡」里；这里只管词。</div>';
+
+    for (var i = 0; i < CATS.length; i++) {
+      var key = CATS[i][0], name = CATS[i][1];
+      var list = wordsOf(key), open = _openCat === key;
+      var ex = list.slice(0, 3).join(' / ');
+      h += '<div class="zj-catrow' + (open ? ' open' : '') + '" data-zjcat="' + key + '">'
+        + '<span class="n">' + name + '<i>' + escq(ex) + '</i></span>'
+        + '<span class="c">' + list.length + '</span><span class="ar">' + (open ? '⌄' : '›') + '</span></div>';
+      if (open) {
+        h += '<div class="zj-catbody">';
+        (BUILTIN[key] || []).forEach(function (w) {
+          var off = offList(key).indexOf(w) >= 0;
+          h += '<button class="zj-wd' + (off ? ' off' : '') + '" data-zjoff="' + key + '" data-w="' + escq(w) + '">' + escq(w) + '</button>';
+        });
+        mineList(key).forEach(function (w) {
+          h += '<button class="zj-wd mine" data-zjdel="' + key + '" data-w="' + escq(w) + '">' + escq(w) + '<u>×</u></button>';
+        });
+        h += '<div class="zj-addrow"><input id="zjAdd_' + key + '" placeholder="加一个「' + name + '」的词" maxlength="12">'
+          + '<button data-zjadd="' + key + '">加</button></div></div>';
+      }
+    }
+    return h + '</div>';
+  }
+
+  function paintLib() {
+    try {
+      var host = document.getElementById('zjLib');
+      if (!host) return;
+      var tmp = document.createElement('div');
+      tmp.innerHTML = libHtml();
+      host.parentNode.replaceChild(tmp.firstChild, host);
+      bindLib();
+    } catch (e) { }
+  }
+
+  function bindLib() {
+    var box = document.getElementById('zjLib');
+    if (!box) return;
+    box.querySelectorAll('[data-zjcat]').forEach(function (row) {
+      row.onclick = function () {
+        var k = row.getAttribute('data-zjcat');
+        _openCat = (_openCat === k) ? '' : k;
+        paintLib();
+      };
+    });
+    box.querySelectorAll('[data-zjlen]').forEach(function (b) {
+      b.onclick = function () {
+        try {
+          S().zaojuLen = b.getAttribute('data-zjlen');
+          save(); paintLib();
+        } catch (e) { }
+      };
+    });
+    box.querySelectorAll('[data-zjoff]').forEach(function (b) {
+      b.onclick = function () {
+        try {
+          var cat = b.getAttribute('data-zjoff'), w = b.getAttribute('data-w');
+          var s = S(); s.zaojuOff[cat] = s.zaojuOff[cat] || [];
+          var i = s.zaojuOff[cat].indexOf(w);
+          if (i >= 0) s.zaojuOff[cat].splice(i, 1); else s.zaojuOff[cat].push(w);
+          save(); paintLib();
+        } catch (e) { }
+      };
+    });
+    box.querySelectorAll('[data-zjdel]').forEach(function (b) {
+      b.onclick = function () {
+        try {
+          var cat = b.getAttribute('data-zjdel'), w = b.getAttribute('data-w');
+          var s = S();
+          s.zaojuMine[cat] = (s.zaojuMine[cat] || []).filter(function (x) { return x !== w });
+          save(); paintLib();
+        } catch (e) { }
+      };
+    });
+    box.querySelectorAll('[data-zjadd]').forEach(function (b) {
+      b.onclick = function () {
+        try {
+          var cat = b.getAttribute('data-zjadd');
+          var inp = document.getElementById('zjAdd_' + cat);
+          var v = String((inp && inp.value) || '').replace(/\s+/g, '').slice(0, 12);
+          if (!v) { toast('先写一个词'); return }
+          var s = S();
+          s.zaojuMine[cat] = s.zaojuMine[cat] || [];
+          if (s.zaojuMine[cat].indexOf(v) < 0) s.zaojuMine[cat].push(v);
+          s.zaojuOff[cat] = (s.zaojuOff[cat] || []).filter(function (x) { return x !== v });
+          save(); paintLib();
+          toast('已加进「' + v + '」');
+        } catch (e) { }
+      };
+    });
+  }
+
+  function injectLib() {
+    try {
+      var wrap = document.querySelector('#view .cc-wrap');
+      if (!wrap) return;
+      if (document.getElementById('zjLib')) { paintLib(); return }
+      var anchor = wrap.querySelector('#ccMsg') || wrap.querySelector('.cc-list') || null;
+      var box = document.createElement('div');
+      box.innerHTML = libHtml();
+      var node = box.firstChild;
+      if (anchor && anchor.parentNode === wrap) wrap.insertBefore(node, anchor);
+      else wrap.appendChild(node);
+      bindLib();
+    } catch (e) { }
+  }
+
+  var _renderCards = window.renderCards;
+  if (typeof _renderCards === 'function') {
+    window.renderCards = function () {
+      var r = _renderCards.apply(this, arguments);
+      setTimeout(injectLib, 20);
+      return r;
+    };
+  }
+  try { setTimeout(function () { if ((location.hash.replace('#', '') || 'home') === 'cards') injectLib() }, 900); } catch (e) { }
+
+  try { console.log('[zaoju] loaded', V, 'words=' + allWords()); } catch (e) { }
+})();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
 </html>
 
-<!-- __ZIKA_EOF__ c6247cf37e -->
+<!-- __ZIKA_EOF__ a5ba2aa467 -->
