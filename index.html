@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="cf14a0b5de">
-<meta name="x-build-ts" content="1793443449135">
+<meta name="x-build" content="b908dca8a6">
+<meta name="x-build-ts" content="1793444885881">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -2165,7 +2165,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 /* iOS 上只写 overflow:hidden 仍会橡皮筋整页乱动，把 body 直接钉死最稳 */
 /* 后面还有 body{position:absolute} 之类的老规则会把它覆盖掉，这里必须 !important */
 /* iOS 上不用 position:fixed，改用 #app 定高 + #view 内滚（fixed 会让内部滚动失灵） */
-#view{height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+#view{height:100%;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
   overscroll-behavior-y:contain;scrollbar-width:none}
 #view::-webkit-scrollbar{width:0;height:0}
 /* 主页是横向分页器，自身不需要纵向滚动条 */
@@ -22702,7 +22702,6 @@ function fit() {
     document.body.appendChild(bar);
     _banner = bar;
     setTimeout(function () { if (bar && bar.parentNode) bar.classList.add('show') }, 40);
-    bar.querySelector('b').addEventListener('click', function () { doUpdate(); });
     /* 条子任意位置都能点（以前只有"点我更新"四个字能点，点别处像没反应） */
     bar.addEventListener('click', function (ev) {
       var tg = ev.target;
@@ -22737,39 +22736,29 @@ function fit() {
     var bar = document.getElementById('zikaUpdBar');
     if (bar) bar.style.pointerEvents = 'none';
 
-    var goHard = function () {
-      try {
-        var u = location.pathname + '?v=' + Date.now() + (location.hash || '');
-        location.replace(u);
-      } catch (e) { try { location.reload() } catch (e2) { } }
-    };
-    var killCaches = function () {
-      try {
-        if (!(window.caches && caches.keys)) return Promise.resolve();
-        return caches.keys().then(function (ks) {
-          return Promise.all(ks.map(function (k) { return caches.delete(k).catch(function () { }) }));
-        });
-      } catch (e) { return Promise.resolve() }
-    };
-    var killSW = function () {
-      try {
-        if (!navigator.serviceWorker || !navigator.serviceWorker.getRegistrations) return Promise.resolve();
-        return navigator.serviceWorker.getRegistrations().then(function (rs) {
-          return Promise.all(rs.map(function (r) { return r.unregister().catch(function () { }) }));
-        });
-      } catch (e) { return Promise.resolve() }
+    var done = false;
+    var finish = function () {
+      if (done) return; done = true;
+      try { location.reload() } catch (e) { }
     };
 
-    /* 最多等 1.8 秒，不管成功与否都硬刷（绝不再"没反应"） */
-    var fired = false;
-    var fire = function () { if (fired) return; fired = true; goHard() };
-    var guard = setTimeout(fire, 1800);
-    Promise.all([killSW(), killCaches()]).then(function () {
-      clearTimeout(guard); fire();
-    }).catch(function () {
-      clearTimeout(guard); fire();
+    /* 有 SW：先让 SW 把最新 index 拉进缓存（PRECACHE_NOW），收到回执就刷新；
+       6 秒没回执也刷新（不再等 20 秒），但【绝不删缓存、绝不注销 SW】→ 断网也有旧版兜底。 */
+    var ctl = navigator.serviceWorker && navigator.serviceWorker.controller;
+    if (!ctl) { setTimeout(finish, 250); return; }
+
+    var t = setTimeout(finish, 6000);
+    navigator.serviceWorker.addEventListener('message', function onMsg(e) {
+      if (e.data && e.data.type === 'PRECACHE_DONE') {
+        clearTimeout(t);
+        navigator.serviceWorker.removeEventListener('message', onMsg);
+        finish();
+      }
     });
+    try { ctl.postMessage({ type: 'PRECACHE_NOW', urls: ['./index.html'] }) }
+    catch (e) { clearTimeout(t); finish() }
   }
+
 
   /* ---------- 离线加速开关 ---------- */
   function swOn() {
@@ -22818,7 +22807,7 @@ function fit() {
       var ck = document.getElementById('zikaChk');
       if (ck) ck.addEventListener('click', function () { ck.textContent = '检查中…'; check(false).then(function () { ck.textContent = '检查更新' }) });
       var rl = document.getElementById('zikaRel');
-      if (rl) rl.addEventListener('click', function () { location.reload() });
+      if (rl) rl.addEventListener('click', function () { doUpdate() });
     }, 30);
   };
 
