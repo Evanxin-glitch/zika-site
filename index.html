@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="a5ba2aa467">
-<meta name="x-build-ts" content="1793469034229">
+<meta name="x-build" content="af0ce1724f">
+<meta name="x-build-ts" content="1793808137197">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -3403,6 +3403,31 @@ body.dark-page .page-top .back{color:#CFC6E6}
   font-size:calc(13px*var(--fs));font-family:inherit;background:#FCFCFC;color:#111214}
 .zj-addrow button{border:1px solid #111214;background:#111214;color:#fff;border-radius:10px;padding:8px 14px;
   font-size:calc(12.5px*var(--fs));font-family:inherit;flex:0 0 auto}
+
+/* ===== 字卡库：固定分类面板（交流情绪，跟以后的自由造句 chip 共用） ===== */
+.cc-wrap.zj-mode > *:not(.cc-cats):not(#zjPanel):not(#mcjPanel){display:none!important}
+#zjPanel,#mcjPanel{padding:6px 0 4px}
+.zj-top{display:flex;align-items:center;gap:8px;padding:4px 0 10px;flex-wrap:wrap}
+.zj-back{border:1px solid rgba(60,50,45,.14);background:#fff;border-radius:999px;padding:8px 14px;
+  font-size:12.5px;font-family:inherit;color:#3C372F}
+.zj-len{display:flex;gap:6px;margin-left:auto}
+.zj-row{display:flex;align-items:center;gap:8px;padding:13px 2px;border-bottom:1px solid rgba(60,50,45,.07);
+  font-size:14px;cursor:pointer}
+.zj-row .nm{flex:1;min-width:0}
+.zj-row .nm i{font-style:normal;font-size:11.5px;color:#9A9AA0;margin-left:7px}
+.zj-row .cnt{font-size:11px;color:#9A9AA0;background:#F5F5F6;border-radius:6px;padding:1px 7px}
+.zj-row .ar{color:#C8C8CC;font-size:13px}
+.zj-row.open{background:#FAFAFA}
+.zj-words{display:flex;flex-wrap:wrap;gap:7px;padding:12px 0 8px}
+.zj-add{display:flex;gap:8px;padding:2px 0 10px}
+.zj-add input{flex:1;min-width:0;border:1px dashed rgba(60,50,45,.22);border-radius:11px;padding:10px 12px;
+  font-size:13.5px;font-family:inherit;background:#FCFCFC}
+.zj-add button{border:1px solid #111214;background:#111214;color:#fff;border-radius:11px;padding:10px 16px;
+  font-size:13px;font-family:inherit}
+.zj-tip{font-size:11.5px;color:#8E8577;line-height:1.6;padding:2px 0 12px}
+.zj-len button{border:1px solid rgba(60,50,45,.14);background:#fff;border-radius:9px;padding:7px 10px;
+  font-size:11.5px;font-family:inherit;color:#3C372F;white-space:nowrap}
+.zj-len button.on{background:#111214;color:#fff;border-color:#111214;font-weight:600}
 </style>
 </head>
 <body>
@@ -3876,9 +3901,52 @@ function _moodPickW(list) {
   for (i = 0; i < list.length; i++) { r -= list[i][1]; if (r <= 0) return list[i][0] }
   return list[list.length - 1][0];
 }
+/* ===== 玩家自己加的「交流情绪」词（2026-11）=====
+   三层各自一个池子：情绪 emo / 心意 heart / 交流意图 intent。
+   · mine[tier]  = 自己加的词（不分组，直接进"通用池"）
+   · off[tier]   = 被关掉的内置词
+   抽取规则：这一层有自建词时，40% 从自建通用池抽、60% 从原来的"组池"抽；
+   这样玩家加的词一定会出现，又不会把「情绪→心意→意图」的连贯性打乱。 */
+function moodLib() {
+  try {
+    if (!state.moodChain || typeof state.moodChain !== 'object' || Array.isArray(state.moodChain)) state.moodChain = {};
+    var m = state.moodChain;
+    if (!m.mine || typeof m.mine !== 'object' || Array.isArray(m.mine)) m.mine = {};
+    if (!m.off || typeof m.off !== 'object' || Array.isArray(m.off)) m.off = {};
+    ['emo', 'heart', 'intent'].forEach(function (t) {
+      if (!Array.isArray(m.mine[t])) m.mine[t] = [];
+      if (!Array.isArray(m.off[t])) m.off[t] = [];
+    });
+    return m;
+  } catch (e) { return { mine: {}, off: {} } }
+}
+/* 某一层的内置词：摊平所有组，去重，减掉被关掉的 */
+function moodBuiltinFlat(tier) {
+  var groups = MOOD_CHAIN[tier] || {}, off = moodLib().off[tier] || [], seen = {}, out = [];
+  for (var g in groups) {
+    var arr = groups[g] || [];
+    for (var i = 0; i < arr.length; i++) {
+      var w = arr[i];
+      if (!w || seen[w]) continue;
+      seen[w] = 1;
+      if (off.indexOf(w) < 0) out.push(w);
+    }
+  }
+  return out;
+}
 /* 从词池里随机取，尽量不和已经用过的词撞 */
-function _moodWord(group, used) {
-  var pool = (MOOD_CHAIN.emo[group] || MOOD_CHAIN.heart[group] || MOOD_CHAIN.intent[group] || []);
+function _moodWord(tier, group, used) {
+  var lib = moodLib();
+  var custom = (lib.mine[tier] || []).slice();
+  var groupPool = (MOOD_CHAIN[tier] && MOOD_CHAIN[tier][group]) ? MOOD_CHAIN[tier][group].slice() : [];
+  /* 内置词里被关掉的剔掉 */
+  var off = lib.off[tier] || [];
+  if (off.length) groupPool = groupPool.filter(function (w) { return off.indexOf(w) < 0 });
+
+  var pool;
+  if (custom.length && (!groupPool.length || Math.random() < 0.4)) pool = custom;
+  else pool = groupPool;
+
   if (!pool.length) return '';
   var av = [];
   for (var i = 0; i < pool.length; i++) if (!used || used.indexOf(pool[i]) < 0) av.push(pool[i]);
@@ -3942,18 +4010,18 @@ function moodChainFor(text) {
   if (Math.random() > 0.7) return [];
   var emo = _moodPickW(groups.length ? groups : [['平静', 100]]);
   var used = [], out = [];
-  var w1 = _moodWord(emo, used); if (!w1) return [];
+  var w1 = _moodWord('emo', emo, used); if (!w1) return [];
   used.push(w1);
   out.push({ tag: '情绪', label: w1 });
   /* 3) 心意：45% 才有 */
   if (Math.random() > 0.45) return out;
   var heart = _moodPickW(MOOD_CHAIN.emoToHeart[emo] || [['陪伴', 100]]);
-  var w2b = _moodWord(heart, used);
+  var w2b = _moodWord('heart', heart, used);
   if (heart && w2b) { used.push(w2b); out.push({ tag: '心意', label: w2b }) }
   /* 4) 交流意图：40% 才有 */
   if (Math.random() > 0.40) return out;
   var itn = _moodPickW(MOOD_CHAIN.heartToIntent[heart] || [['回应', 100]]);
-  var w3 = _moodWord(itn, used);
+  var w3 = _moodWord('intent', itn, used);
   if (itn && w3) out.push({ tag: '交流意图', label: w3 });
   return out;
 }
@@ -4406,6 +4474,12 @@ function migrate(s){
     s.appOrder=flat;
   }
   if(!s._smDeleted||typeof s._smDeleted!=='object')s._smDeleted={};
+  /* 删过的字卡文本（墓碑）：抽卡池一律排除，防止换个数组/导回备份又冒出来 */
+  if(!Array.isArray(s.cardTombs))s.cardTombs=[];
+  /* 交流情绪：玩家自己加的 情绪/心意/交流意图 词 + 关掉的内置词（跟字卡库一起备份） */
+  if(!s.moodChain||typeof s.moodChain!=='object'||Array.isArray(s.moodChain))s.moodChain={mine:{},off:{}};
+  if(!s.moodChain.mine||typeof s.moodChain.mine!=='object')s.moodChain.mine={};
+  if(!s.moodChain.off||typeof s.moodChain.off!=='object')s.moodChain.off={};
   if(s.settings.puzzle===undefined)s.settings.puzzle=false;
   if(s.settings.puzzlePct===undefined)s.settings.puzzlePct=50;
   if(s.settings.puzzleMax===undefined)s.settings.puzzleMax=3;
@@ -4483,14 +4557,22 @@ function migrate(s){
   if(s.settings.keepVol===undefined)s.settings.keepVol='light';
   if(s.settings.tarotRevPct===undefined)s.settings.tarotRevPct=50;
   if(s.settings.tarotDailyPct===undefined)s.settings.tarotDailyPct=40;
-  /* 自由造句（第一批）：默认关、概率 15、只出短句。词表和"关掉的词"也在这里，
-     所以备份/导入会自动带上，不用改备份代码。 */
-  if(s.settings.zaojuOn===undefined)s.settings.zaojuOn=false;
-  if(s.settings.zaojuPct===undefined)s.settings.zaojuPct=15;
-  if(s.settings.zaojuLen===undefined)s.settings.zaojuLen='short';
-  if(s.settings.zaojuCount===undefined)s.settings.zaojuCount=0;
-  if(!s.settings.zaojuMine||typeof s.settings.zaojuMine!=='object'||Array.isArray(s.settings.zaojuMine))s.settings.zaojuMine={};
-  if(!s.settings.zaojuOff||typeof s.settings.zaojuOff!=='object'||Array.isArray(s.settings.zaojuOff))s.settings.zaojuOff={};
+  /* 自由造句：数据在顶层 state.zaoju（好让备份分类「字卡库」带着它一起走）。
+     老存档里它曾经放在 settings.zaoju* 下，这里一次性搬过来，搬完把旧字段删掉。 */
+  if(!s.zaoju||typeof s.zaoju!=='object'||Array.isArray(s.zaoju))s.zaoju={};
+  (function(z){
+    var st=s.settings||{};
+    if(z.on===undefined)z.on=(st.zaojuOn!==undefined)?st.zaojuOn:false;
+    if(z.pct==null)z.pct=(st.zaojuPct!=null)?st.zaojuPct:15;
+    if(z.len===undefined)z.len=st.zaojuLen||'mix';
+    if(!z.mine||typeof z.mine!=='object'||Array.isArray(z.mine))z.mine=(st.zaojuMine&&typeof st.zaojuMine==='object')?st.zaojuMine:{};
+    if(!z.off||typeof z.off!=='object'||Array.isArray(z.off))z.off=(st.zaojuOff&&typeof st.zaojuOff==='object')?st.zaojuOff:{};
+    if(z.count==null)z.count=(st.zaojuCount!=null)?st.zaojuCount:0;
+    if(s.settings){
+      delete s.settings.zaojuOn; delete s.settings.zaojuPct; delete s.settings.zaojuLen;
+      delete s.settings.zaojuMine; delete s.settings.zaojuOff; delete s.settings.zaojuCount;
+    }
+  })(s.zaoju);
   if(s.settings.emojiPct===undefined)s.settings.emojiPct=15;
   if(s.settings.quotePct===undefined)s.settings.quotePct=40;
   if(s.settings.checkinPct===undefined)s.settings.checkinPct=25;
@@ -7184,12 +7266,46 @@ function statusChip(){
 }
 
 /* ================= 字卡抽取 ================= */
+/** 删过的句子：文本级墓碑。只要记在这儿，就永远不会再被抽到
+    （哪怕它同时存在于别的数组里、或者从旧备份导回来了）。 */
+function cardTombs() {
+  if (!Array.isArray(state.cardTombs)) state.cardTombs = [];
+  return state.cardTombs;
+}
+/** 把一句话从墓碑里放出来：只在"你主动又把这张卡加回来"时调用。
+    否则删掉的句子会被永久拦住，连手动加回去都不出现。 */
+function cardUntomb(text) {
+  try {
+    var t = String(text || '').trim(); if (!t) return;
+    var a = cardTombs();
+    while (a.indexOf(t) >= 0) a.splice(a.indexOf(t), 1);   /* 可能存了多条重复，全删掉 */
+  } catch (e) { }
+}
 function drawCards(n,poolArr){
-  var pool=(poolArr||state.cards.concat(state.bearCards||[])).slice();
+  /* ★ 以前这里直接拿 state.cards + bearCards 抽，**完全不过滤**：
+     · 屏蔽（静音）的分类照样会被抽到（实测 200 次里中 38 次）
+     · 删掉的句子只要在别的数组里还留一份，也照样会被发出来
+     现在统一走 _chatCardPool()（它过滤 mutedCats / muted / 墓碑）。
+     注意：_chatCardPool() 给的是**字符串数组**，而 poolArr 可能是**对象数组**，
+     下面两种都认（以前只读 .text，直接把字符串那条路读成空）。 */
+  var tombs = cardTombs();
+  var pool;
+  if (poolArr) {
+    pool = poolArr.filter(function (c) {
+      var t = (typeof c === 'string') ? String(c).trim() : String((c && c.text) || '').trim();
+      return t && tombs.indexOf(t) < 0;
+    });
+  } else {
+    pool = (typeof _chatCardPool === 'function') ? _chatCardPool() : [];
+    if (!pool.length) pool = state.cards.concat(state.bearCards || []).slice();
+  }
   var out=[],k=0;
   while(pool.length&&out.length<n&&k<100){
     var i=Math.floor(Math.random()*pool.length);
-    out.push(pool.splice(i,1)[0].text);k++;
+    var it=pool.splice(i,1)[0];
+    var tx=(typeof it==='string') ? String(it).trim() : String((it&&it.text)||'').trim();
+    if(tx)out.push(tx);
+    k++;
   }
   return out;
 }
@@ -7210,6 +7326,7 @@ function _chatCardPool() {
       if (!c || !String(c.text || '').trim()) continue;
       if (c.muted) continue;
       if (c.tag && muted.indexOf(c.tag) >= 0) continue;
+      if (cardTombs().indexOf(String(c.text).trim()) >= 0) continue;   /* ★ 删过的句子永不回池 */
       out.push(String(c.text).trim());
     }
   }
@@ -7231,7 +7348,17 @@ function _refillBag() {
 function pickCardText(used) {
   var all = _chatCardPool();
   if (!all.length) return drawCardText();
-  var sig = all.length + ':' + all[0];
+  /* ★ 以前是 all.length + ':' + all[0] —— 删一张又加一张（数量不变、第一张也没变）时
+     签名不变，于是就继续发旧牌堆，里面还有已删的句子。现在改成内容指纹。 */
+  var sig = all.length + ':' + (function () {
+    var h = 0;
+    for (var i = 0; i < all.length; i++) {
+      var t = all[i];
+      for (var k = 0; k < t.length; k++) h = (h * 31 + t.charCodeAt(k)) | 0;
+      h = (h ^ i) | 0;
+    }
+    return h;
+  })();
   if (sig !== _cardBagSig) { _cardBagSig = sig; _cardBag = [] }
   for (var guard = 0; guard < 40; guard++) {
     if (!_cardBag.length) _refillBag();
@@ -9024,6 +9151,7 @@ function cardBatchSave(){
     if(_exists[tx]){skipped++;continue}
     _exists[tx]=1;
     state.cards.push({id:uid(),text:tx,tag:arr[i].tag,created:t+i});
+    try{cardUntomb(tx)}catch(e){}          /* 手动加回来的句子要解墓碑，否则永远抽不到 */
     if(arr[i].tag&&state.cardCats.indexOf(arr[i].tag)<0)state.cardCats.push(arr[i].tag);
     added++;
   }
@@ -9054,6 +9182,7 @@ function cardSave(){
   if(!text){toast('写点内容再保存');return}
   var tag=inpVal('cardTag').trim();
   state.cards.push({id:uid(),text:text,tag:tag,created:now()});
+  try{cardUntomb(text)}catch(e){}
   if(tag){
     state.cardCats=state.cardCats||[];
     if(state.cardCats.indexOf(tag)<0)state.cardCats.push(tag);
@@ -10134,7 +10263,7 @@ var BACKUP_CATS=[
  {k:'widgets',   n:'桌面小组件',        d:'组件内容、布局和媒体引用',     keys:['pets','petLog','room','period','memos','widgets','widgetsOn','widgetOrder','widgetSize','widgetPage','widgetPos','widgetImgs','widgetWeather','widgetCount','widgetProgress','widgetPhoto','widgetCalendar','widgetDaysLabel','widgetDaysUnit','widgetNote','widgetMusic','anniversaryDays']},
  {k:'chat',      n:'聊天记录',          d:'各联系人的文字和媒体消息',     keys:['messages','nextInit','nextCallDue','nextInviteDue']},
  {k:'chatx',     n:'聊天收藏与特殊功能',d:'收藏、查岗、邀请、转账',       keys:['savedMsgs','checkinPresets','transfers','receivedTotal','wallet','mySaves','pollLog','surveys']},
- {k:'cards',     n:'字卡库',            d:'分组、字卡、固定字卡',         keys:['cards','cardCats','statusCards','moodCards','patCards','diaryCards','writerCards','_smDeleted','currentStatus','currentMood']},
+ {k:'cards',     n:'字卡库',            d:'分组、字卡、固定字卡',         keys:['cards','cardCats','statusCards','moodCards','patCards','diaryCards','writerCards','_smDeleted','currentStatus','currentMood','zaoju','moodChain']},
  {k:'moments',   n:'朋友圈',            d:'动态、封面、访客',             keys:['posts','feedEvents','nextPostDue','nextVisitDue','visitorCount','lastVisit','profileBox','profileFollowed','savedPosts','highlights','pigPosts']},
  {k:'mail',      n:'信箱',              d:'信件、收发状态',               keys:['letters','nextLetterDue']},
  {k:'diary',     n:'日记',              d:'日记内容与互动',               keys:['diary','dailyPosts','diaryDue']},
@@ -13498,15 +13627,21 @@ var _wdRO=null;
 /* ===== 音乐 App 的按钮委托：自己一条，和别的功能互不干扰 ===== */
 (function(){
 document.addEventListener('click',function(e){
-  var b=(e.target&&e.target.closest)?e.target.closest('[data-mus]'):null;
+  /* ★ 首页音乐小组件的按键是 data-act="mus-toggle / mus-prev / mus-next / mus-mode / mus-loop"
+     （47-homeV8 里渲染的），但这套委托只认 data-mus —— 所以小组件那 5 个键点了完全没反应。
+     现在两种都认：data-mus 优先，没有就把 data-act 的 mus- 前缀去掉当动作名。 */
+  var b=(e.target&&e.target.closest)?e.target.closest('[data-mus],[data-act^="mus-"]'):null;
   if(!b)return;
   var a=b.getAttribute('data-mus');
+  if(!a){ a=String(b.getAttribute('data-act')||'').replace(/^mus-/,'') }
+  if(!a)return;
   if(a==='toggle'){e.preventDefault();musToggle();return}
   if(a==='play'){e.preventDefault();musPlayIdx(parseInt(b.getAttribute('data-i'),10)||0);return}
   if(a==='del'){e.preventDefault();e.stopPropagation();musDelSong(b.getAttribute('data-id'));return}
   if(a==='next'){e.preventDefault();musNext(false);return}
   if(a==='prev'){e.preventDefault();musPrev();return}
   if(a==='loop'){e.preventDefault();var m=musState();musSetLoop(m.loop==='list'?'one':(m.loop==='one'?'off':'list'));return}
+  if(a==='mode'){e.preventDefault();musToggleShuffle();return}   /* 小组件那个交叉箭头键 */
   if(a==='shuffle'){e.preventDefault();musToggleShuffle();return}
   if(a==='seek'){e.preventDefault();var r=b.getBoundingClientRect();if(r.width)musSeekRatio((e.clientX-r.left)/r.width);return}
   if(a==='sess-start'){e.preventDefault();musListenStart();return}
@@ -13653,7 +13788,30 @@ function musSeekRatio(r){
   try{a.currentTime=Math.max(0,Math.min(1,r))*d}catch(e){}
   musPaint();
 }
-function musEnded(){musSetWidgetMusic();save();musNext(true)}
+function musEnded(){
+  musSetWidgetMusic();save();
+  /* ★ 他点的歌：等这一首放完再切，不打断你正在听的。
+     以前这里直接 musNext(true)，于是他一点歌 / 一切歌，你这边就断。 */
+  try{
+    var m=musState();
+    if(m&&m.queued!=null&&m.songs&&m.songs[m.queued]){
+      var q=m.queued;m.queued=null;
+      try{save()}catch(e){}
+      musLoad(q,true);
+      /* iOS 上自动播可能被拦：1 秒还没响就告诉他去点播放 */
+      setTimeout(function(){
+        try{
+          if(!musPlaying()){
+            var nm=(m.songs[q]&&m.songs[q].name)||'那首';
+            toast('他想听《'+nm+'》，点播放就能听');
+          }
+        }catch(e){}
+      },1000);
+      return;
+    }
+  }catch(e){}
+  musNext(true);
+}
 /** 播放中每秒把"正在听"同步到小组件，并把状态存一下（不用每帧存） */
 function musWake(){
   musSetWidgetMusic();
@@ -13822,9 +13980,10 @@ function musSessAskSong(){
   if(n===i)return false;
   var sg=songs[n]; if(!sg)return false;
   /* ★ 用户定的：他"点一首"只**发一条消息**，不要自己去切歌。
-     以前这里说完话还会 setTimeout 调 musLoad(n,true) 真的跳过去 ——
-     结果用户那边正在放的歌被打断、跳过去之后还播不出来。
-     现在只留这句话，切不切、放哪首，由用户自己决定。 */
+     现在更进一步：**排队**。他点的这首存进 m.queued，等你正在听的这首放完，
+     由 musEnded() 自动接上；这样任何时候都不会打断你正在播的歌。 */
+  m.queued=n;
+  try{save()}catch(e){}
   musSessSay('我想听你那首《'+(sg.name||'未命名')+'》，放这个吧');
   return true;
 }
@@ -13844,18 +14003,15 @@ function musSessSongStart(){
       }, d);
     })(i);
   }
-  /* ★ 10% 概率切歌 / 12% 概率"点一首"（都写死；点一首每 3 首最多一次，切歌每 2 首最多一次，二者不叠加） */
+  /* ★ 12% 概率"点一首"（写死；每 3 首最多一次）。
+     以前还有 10% 概率他会**直接切歌**（musNext）——那个会打断你正在放的歌，
+     现在整条删掉了：他只会"点"，切歌一律等这首放完由 musEnded() 接。 */
   try{
     var playing=m.cur||0;
     var r=Math.random();
     if(r<0.12&&(m.songs||[]).length>=2&&(playing-MUS_LAST_ASK)>=3){
       MUS_LAST_ASK=playing;
       musSessAskSong();
-    }else if(r<0.22&&(playing-MUS_LAST_SKIP)>=2){
-      MUS_LAST_SKIP=playing;
-      CLK.set(function(){
-        try{ var m3=musState(); if(!m3||!m3.sess)return; musNext(false) }catch(e){}
-      }, rnd(6000,15000));
     }
   }catch(e){}
 }
@@ -15227,9 +15383,9 @@ function heditTapItem(el) {
 
 /* 拍一拍（他主动拍你）：概率写死在代码里
    - 打开聊天室：20%
-   - 在聊天室累计满 60 分钟：50%，每次进聊天室最多 1 次
+   - 在聊天室累计满 30 分钟：70%，每次进聊天室最多 1 次（2026-11 从 60 分钟 / 50% 调高）
    - 表现：居中的系统条「陆沉 拍了拍你 · 字卡」，无震动 */
-var PAT_IN_PCT = 20, PAT_HANG_PCT = 50, PAT_HANG_MS = 60 * 60 * 1000;
+var PAT_IN_PCT = 20, PAT_HANG_PCT = 70, PAT_HANG_MS = 30 * 60 * 1000;
 var _patSession = false, _patWasInChat = false, _patTicker = 0;
 /* 查岗：在聊天室累计满 60 分钟掷一次（概率取设置里的 checkinPct，默认 25） */
 var CK_MS = 30 * 60 * 1000   /* 查岗：聊天室累计满 30 分钟掷一次 */, _ckSession = false;
@@ -15559,14 +15715,29 @@ function qkBatchSend() {
   var c = activeContact(); if (!c) { closeSheet(); return }
   closeSheet();
   var sent = [];
+
+  /* ★ 只往列表里追加一条，不再整页重绘。
+     以前每条都 renderChat()（整个聊天区 innerHTML 重画一遍），5 条就是 5 次全量重绘，
+     图片/头像重新解码 + 滚动恢复逻辑打架 → 用户看到的就是"聊天界面闪跳"。 */
+  function qkAppendOne(m) {
+    var list = document.getElementById('chatList');
+    if (!list) { try { renderChat() } catch (e) { } return }
+    try {
+      list.insertAdjacentHTML('beforeend', bubbleHtml(m, c));
+      try { chatForceBottom() } catch (e) { }       /* 贴底由它统一处理，别自己摸 scrollTop */
+      try { if (typeof _chatAtBottom !== 'undefined') _chatAtBottom = true } catch (e) { }
+    } catch (e) { try { renderChat() } catch (x) { } }
+  }
+
   lines.forEach(function (txt, i) {
     CLK.set(function () {
       /* ★ 补上 readDue：以前批量发的消息没有这个字段，所以永远不标已读（用户反馈：批量发送没有已读） */
       var m = { id: uid(), contactId: c.id, dir: 'out', text: txt, ts: now(), readDue: now() + 4200 + i * 350 };
       state.messages.push(m);
       sent.push(m.id);
+      qkAppendOne(m);
       try { save() } catch (e) { }
-      try { renderChat() } catch (e) { }
+
       if (i === lines.length - 1) {
         /* 最后一条发完后，他随机引用其中一条回一句 */
         /* 他挑 1 条回；45% 再补一条（回另一条）。以前只回一条，而且很容易被错过 */
@@ -15577,16 +15748,54 @@ function qkBatchSend() {
           var reply = '';
           try { reply = composeText(c, src ? src.text : null) } catch (e) { reply = '' }
           if (!reply) reply = '嗯，我看到了。';
+          /* ★ 他的配额：10 分钟 5 条那套（其实是"这一轮 5 条"），批量发送以前完全绕开了它 */
+          if (typeof hisQuota === 'function' && hisQuota(c.id) <= 0) return;
           var useQuote = (state.settings && state.settings.quoteOn !== false);
           pushIn(c.id, reply, now(), useQuote ? pickId : null);
           try { save() } catch (e) { }
           try { renderChat() } catch (e) { }
           try { schedule() } catch (e) { }
         };
+
+        /* ★ 延迟用他自己的「最快 / 最慢」（以前写死 1200+随机700，所以他秒回） */
+        var lo = Math.max(1, Number(c.replyMin) || 15);
+        var hi = Math.max(lo, Number(c.replyMax) || 45);
+        var waitMs = lo * 1000 + Math.random() * (hi - lo) * 1000;
+
+        /* 先挂"正在输入"的三个点。
+           ★ 不能只设 _typing 再 renderChat：批量发的消息没有 replyDue，
+             renderChat 里那条自愈规则会立刻把 _typing 清掉（跟造句那个 bug 同源）。
+             所以这里直接把 typingRow 挂到列表末尾，回复时再摘掉。 */
+        function showQkTyping() {
+          try {
+            var list = document.getElementById('chatList');
+            if (!list || typeof typingRow !== 'function') return;
+            if (document.getElementById('qkTyping')) return;
+            var box = document.createElement('div');
+            box.id = 'qkTyping';
+            box.style.display = 'contents';
+            box.innerHTML = typingRow(c);
+            list.appendChild(box);
+            try { chatForceBottom() } catch (e) { }
+          } catch (e) { }
+        }
+        function hideQkTyping() {
+          try { var el = document.getElementById('qkTyping'); if (el && el.parentNode) el.parentNode.removeChild(el) } catch (e) { }
+        }
+        showQkTyping();
+
         CLK.set(function () {
+          try { if (typeof _typing !== 'undefined') _typing = null; } catch (e) { }
+          hideQkTyping();
+          if (typeof hisQuota === 'function' && hisQuota(c.id) <= 0) { try { renderChat() } catch (e) { } return }
           pickOne();
-          if (Math.random() < 0.45) CLK.set(pickOne, 2600 + Math.random() * 2000);
-        }, 1200 + Math.random() * 700);
+          if (Math.random() < 0.45) {
+            CLK.set(function () {
+              hideQkTyping();
+              pickOne();
+            }, 2600 + Math.random() * 2000);
+          }
+        }, waitMs);
       }
     }, i * 500);
   });
@@ -16472,6 +16681,17 @@ function pgSetLastFromSheet(offset) {
         arr.splice(i, 1); break;
       }
     }
+    /* ★ 记一条"墓碑"：删过的句子永远不再被抽到。
+       只从数组里 splice 是不够的 —— 同一句话可能还在 bearCards / 别的分类 /
+       导入的备份里；只要有这个文本级的记录，抽卡池就一律排除它。 */
+    try {
+      var tx = String(text || '').trim();
+      if (tx) {
+        if (!Array.isArray(state.cardTombs)) state.cardTombs = [];
+        if (state.cardTombs.indexOf(tx) < 0) state.cardTombs.push(tx);
+        if (state.cardTombs.length > 800) state.cardTombs = state.cardTombs.slice(-800);
+      }
+    } catch (e) { }
     /* 记一下"这个库我删过"：migrate 里靠它决定空库要不要补默认值 */
     if (d) {
       var K = { bearCards: 'bear', statusCards: 'status', moodCards: 'mood', patCards: 'pat', diaryCards: 'diary' };
@@ -18818,7 +19038,10 @@ window.mengxiEnsure=mx;
   function fitScale() {
     try {
       document.documentElement.style.setProperty('--hk', '1');
-      document.documentElement.style.setProperty('--fs', '1');
+      /* ★ 这里以前还写死了一句 --fs:'1'，把「设置 → 外观 → 字体大小」整天冲掉：
+         用户调成 130%，一进首页/一旋转/resize 就被打回 100%（实测过）。
+         现在只钉图标尺寸 --hk，字体大小交还给 applyFontScale()。 */
+      if (typeof applyFontScale === 'function') applyFontScale();
     } catch (e) { }
   }
 
@@ -23197,9 +23420,12 @@ function openApp(k) {
     if (typeof c.cap !== 'number') c.cap = 3;
     if (!Array.isArray(c.cups)) c.cups = [];
     if (!c.rolled || typeof c.rolled !== 'object') c.rolled = {};
-    if (c.day !== dayKey()) { c.day = dayKey(); c.cups = []; c.rolled = {}; }
+    if (c.day !== dayKey()) { c.day = dayKey(); c.cups = []; c.rolled = {}; c.coldReady = true; }   /* ★ 新的一天 = 昨晚泡的冷萃好了 */
     return c;
   }
+  /* ★ 冷萃：菜单里写死 lock:true，但**从来没有任何代码把它解开**，所以永远点不动。
+     现在改成"每天第一次打开咖啡馆它就是泡好的"，想喝一杯得等第二天（符合它自己那句"要泡 12 小时"）。 */
+  function coldReady() { try { return !!C().coldReady } catch (e) { return false } }
   function left() { return C().cap - C().cups.length; }
   function hisCount() { return C().cups.filter(function (x) { return x.who === 'his'; }).length; }
   function statusText() { try { return (state.currentStatus && state.currentStatus.text) || ''; } catch (e) { return ''; } }
@@ -23239,7 +23465,7 @@ function openApp(k) {
       return;
     }
     var pool = [];
-    MENU.forEach(function (g) { g.items.forEach(function (x) { if (!x.lock && !x.night) pool.push(x); }); });
+    MENU.forEach(function (g) { g.items.forEach(function (x) { if (x.n === '冷萃' ? coldReady() : (!x.lock && !x.night)) pool.push(x); }); });
     var drink = pick(pool);
     c.cups.push({ who: 'his', name: drink.n, ts: now() });
     var first = hisCount() === 1;
@@ -23268,9 +23494,9 @@ function openApp(k) {
       menu += '<div class="cafe-g">' + g.g + '</div><div class="cafe-grid">';
       g.items.forEach(function (it) {
         var h = new Date().getHours();
-        var lock = it.lock || (it.night && (h < 21 && h >= 6));
+        var lock = (it.n === '冷萃') ? !coldReady() : (it.lock || (it.night && (h < 21 && h >= 6)));
         menu += '<div class="cafe-it' + (lock ? ' lock' : '') + '" data-act="cafe-pick" data-n="' + esc(it.n) + '">'
-          + '<b>' + esc(it.n) + '</b><span>' + esc(it.d) + '</span><i>' + (lock ? '锁定' : it.t + ' min') + '</i></div>';
+          + '<b>' + esc(it.n) + '</b><span>' + esc(it.d) + '</span><i>' + (lock ? '锁定' : (it.n === '冷萃' ? '泡好了' : it.t + ' min')) + '</i></div>';
       });
       menu += '</div>';
     });
@@ -23382,12 +23608,18 @@ function openApp(k) {
       var n = el.getAttribute('data-n'), it = null;
       MENU.forEach(function (g) { g.items.forEach(function (x) { if (x.n === n) it = x; }); });
       if (!it) return;
-      if (it.lock) { toast('冷萃要提前 12 小时泡，明天才有'); return; }
+      if (it.n === '冷萃' ? !coldReady() : it.lock) { toast(it.n === '冷萃' ? '冷萃要泡 12 小时，明天才有' : '这个今天做不了'); return; }
       var h = new Date().getHours();
       if (it.night && h < 21 && h >= 6) { toast('维也纳是晚上限定'); return; }
       M.on = true; M.drink = it; M.step = 0; M.gp = 0; M.bp = 0; M.mp = 0;
       M.bean = '中深烘'; M.grind = '中'; M.milk = '少奶';
       renderCafe(); return;
+    }
+    /* ★ 聊天里那张咖啡卡片带的是 data-act=cafe-open，但这里以前没有这个分支 → 点了没反应 */
+    if (act === 'cafe-open') {
+      M.on = false;
+      try { if (typeof goView === 'function') goView('cafe'); else location.hash = 'cafe'; } catch (e) { location.hash = 'cafe' }
+      return;
     }
     if (act === 'cafe-back') { M.on = false; renderCafe(); return; }
     if (act === 'cafe-bean') { M.bean = el.getAttribute('data-v'); renderCafe(); return; }
@@ -23857,53 +24089,74 @@ function openApp(k) {
      ③ 设置（renderMe）：「概率 → 塔罗 / 字卡」里补一行「自由造句 [开关] [15%]」
 
    开关默认关。关掉以后，行为和没有这个文件完全一致。
-   词表和开关都存在 state.settings.zaoju* → 备份/导入自动带着，不用改备份代码。
-   骨架 8 短 + 4 长；短句只接受 3–6 字，长句 7–12 字；开了长句按 短 7 : 长 3 混发。
+   词表、开关、概率、长度都存在顶层 state.zaoju 里（备份分类「字卡库」带着它一起走）。
+   骨架 17 短 + 4 长；短句只接受 3–6 字，长句 7–12 字。长度三档：只短句 / 短+长混发（三成长）/ 只长句。
    ======================================================= */
 (function () {
   if (window.__zaoju) return; window.__zaoju = 1;
-  var V = 'v1';
+  var V = 'v2';
 
-  /* ---------- 1. 内置词（7 个子分类） ---------- */
+  /* ---------- 1. 内置词（10 个子分类，共 107 个词） ---------- */
   var BUILTIN = {
-    who: ['我', '你', '他', '她', '我们', '你们', '大家', '朋友', '同事', '自己'],
+    who: ['我', '你', '他', '她', '我们', '你们', '大家', '朋友', '同事'],
     doo: ['抱抱你', '陪你', '想你', '看月亮', '散步', '喝咖啡', '发呆', '加班', '睡觉', '吃饭',
       '回家', '出门', '打电话', '等你', '夸你', '摸你头', '送花', '听歌', '看剧', '晒太阳'],
     deg: ['有点', '很', '真', '超', '特别', '一直', '偷偷', '慢慢', '刚刚'],
     mood: ['开心', '累', '难过', '孤单', '安心', '无聊', '紧张', '困', '委屈', '高兴', '平静',
       '香', '安静', '暖', '甜'],
+    body: ['头疼', '腰疼', '手冷', '脚冷', '眼睛干', '嗓子疼', '困得慌', '饿了', '口渴'],
+    weather: ['下雨', '降温', '起风', '下雪', '打雷', '天晴', '很晒', '很闷'],
+    freq: ['每天', '每周', '常常', '偶尔', '有时候', '睡前', '下班后', '一整天'],
     thing: ['咖啡', '月亮', '花', '雨', '歌', '家', '公园', '公司', '路上', '家里', '阳台', '沙发', '海边', '超市', '厨房', '被窝'],
     time: ['今晚', '今天', '早上', '周末', '半夜', '刚刚'],
     tone: ['呀', '啦', '哦', '呢', '嘛', '哟', '哈']
   };
   var CATS = [['who', '谁'], ['doo', '干什么'], ['deg', '程度'], ['mood', '心情'],
+    ['body', '身体·感觉'], ['weather', '天气'], ['freq', '频率'],
     ['thing', '东西·地点'], ['time', '时间'], ['tone', '语气']];
   /* 同类词内部再分小池：不是所有词都能塞进同一个骨架 */
   var ADJ_WORDS = ['香', '安静', '暖', '甜'];      /* 心情里"能形容东西"的那几个 */
   var VERB_DEG = ['一直', '偷偷', '慢慢', '刚刚'];  /* 程度里"能配动作"的那几个 */
+  var W_EVENT = ['下雨', '降温', '起风', '下雪', '打雷', '天晴'];  /* 天气里"能自己成句"的 */
+  var W_ADJ = ['很晒', '很闷'];                                   /* 天气里"要接时间"的 */
 
-  /* ---------- 2. 设置 ---------- */
-  function S() {
+  /* ---------- 2. 数据 ----------
+     ★ 2026-11：从 state.settings.zaoju* 搬到顶层 state.zaoju。
+       原因：它属于「字卡库」（词是字卡的一部分），备份要跟字卡库一起走，
+       而不是捆在「全局设置与桌面」里跟主题壁纸一起被整块覆盖。
+       老存档里如果有 settings.zaoju*，这里会顺手搬过来（migrate 里也搬一次）。 */
+  function Z() {
     try {
-      if (!state.settings || typeof state.settings !== 'object') state.settings = {};
-      var s = state.settings;
-      if (s.zaojuOn === undefined) s.zaojuOn = false;
-      if (s.zaojuPct == null) s.zaojuPct = 15;
-      if (s.zaojuLen === undefined) s.zaojuLen = 'short';
-      if (!s.zaojuMine || typeof s.zaojuMine !== 'object' || Array.isArray(s.zaojuMine)) s.zaojuMine = {};
-      if (!s.zaojuOff || typeof s.zaojuOff !== 'object' || Array.isArray(s.zaojuOff)) s.zaojuOff = {};
-      return s;
+      if (!state.zaoju || typeof state.zaoju !== 'object' || Array.isArray(state.zaoju)) state.zaoju = {};
+      var z = state.zaoju, st = state.settings;
+      if (st && typeof st === 'object') {
+        if (z.on === undefined && st.zaojuOn !== undefined) z.on = st.zaojuOn;
+        if (z.pct === undefined && st.zaojuPct !== undefined) z.pct = st.zaojuPct;
+        if (z.len === undefined && st.zaojuLen !== undefined) z.len = st.zaojuLen;
+        if (!z.mine && st.zaojuMine) z.mine = st.zaojuMine;
+        if (!z.off && st.zaojuOff) z.off = st.zaojuOff;
+        if (z.count === undefined && st.zaojuCount !== undefined) z.count = st.zaojuCount;
+        delete st.zaojuOn; delete st.zaojuPct; delete st.zaojuLen;
+        delete st.zaojuMine; delete st.zaojuOff; delete st.zaojuCount;
+      }
+      if (z.on === undefined) z.on = false;
+      if (z.pct == null) z.pct = 15;
+      if (z.len === undefined) z.len = 'mix';          /* 默认：短+长混发 */
+      if (!z.mine || typeof z.mine !== 'object' || Array.isArray(z.mine)) z.mine = {};
+      if (!z.off || typeof z.off !== 'object' || Array.isArray(z.off)) z.off = {};
+      if (z.count == null) z.count = 0;
+      return z;
     } catch (e) { return {} }
   }
-  function isOn() { try { return S().zaojuOn === true } catch (e) { return false } }
+  function isOn() { try { return Z().on === true } catch (e) { return false } }
   function pct() {
-    try { var p = Number(S().zaojuPct); return isFinite(p) ? Math.max(0, Math.min(40, p)) : 15 }
+    try { var p = Number(Z().pct); return isFinite(p) ? Math.max(0, Math.min(40, p)) : 15 }
     catch (e) { return 15 }
   }
   function wordsOf(cat) {
-    var s = S(), out = (s.zaojuMine[cat] || []).slice();
+    var z = Z(), out = (z.mine[cat] || []).slice();
     (BUILTIN[cat] || []).forEach(function (w) {
-      if ((s.zaojuOff[cat] || []).indexOf(w) < 0) out.push(w);
+      if ((z.off[cat] || []).indexOf(w) < 0) out.push(w);
     });
     return out;
   }
@@ -23913,11 +24166,13 @@ function openApp(k) {
     if (!sub) return base;
     if (cat === 'mood') return base.filter(function (w) { return sub === 'adj' ? ADJ_WORDS.indexOf(w) >= 0 : ADJ_WORDS.indexOf(w) < 0 });
     if (cat === 'deg') return base.filter(function (w) { return sub === 'verb' ? VERB_DEG.indexOf(w) >= 0 : VERB_DEG.indexOf(w) < 0 });
+    /* 天气分两种：「下雨/降温」能自己成句，「很晒/很闷」必须接时间 */
+    if (cat === 'weather') return base.filter(function (w) { return sub === 'event' ? W_EVENT.indexOf(w) >= 0 : W_ADJ.indexOf(w) >= 0 });
     return base;
   }
   function allWords() { var n = 0; CATS.forEach(function (c) { n += wordsOf(c[0]).length }); return n }
 
-  /* ---------- 3. 骨架 ---------- */
+  /* ---------- 3. 骨架（短 17 / 长 4） ---------- */
   var F_SHORT = [
     ['who', 'deg.adj', 'mood.emo', 'tone'],   /* 我有点累啦 */
     ['who', 'deg.adj', 'mood.emo'],           /* 我很开心 */
@@ -23926,7 +24181,16 @@ function openApp(k) {
     ['thing', 'deg.adj', 'mood.adj'],         /* 咖啡很香 */
     ['deg.adj', 'mood.emo', 'tone'],          /* 有点孤单呢 */
     ['time', 'who', 'deg.adj', 'mood.emo'],   /* 今晚我有点累 */
-    ['time', 'who', 'doo']                    /* 周末同事送花 */
+    ['time', 'who', 'doo'],                   /* 周末同事送花 */
+    ['time', 'weather.event'],                /* 今天下雨 */
+    ['time', 'weather.event', 'tone'],        /* 今晚降温啦 */
+    ['weather.event', 'tone'],                /* 起风哦 */
+    ['time', 'weather.adj'],                  /* 今天很晒 */
+    ['freq', 'doo'],                          /* 每天想你 */
+    ['who', 'freq', 'doo'],                   /* 我每天加班 */
+    ['who', 'body'],                          /* 我腰疼 */
+    ['who', 'body', 'tone'],                  /* 你手冷呀 */
+    ['time', 'who', 'body', 'tone']           /* 今晚我手冷呀 */
   ];
   var F_LONG = [
     ['time', 'who', 'deg.verb', 'doo', 'tone'],       /* 今晚我一直加班呀 */
@@ -23976,8 +24240,9 @@ function openApp(k) {
     try {
       if (!isOn()) return null;
       if (allWords() < 6) return null;              /* 词太少就不硬拼 */
-      var longOn = S().zaojuLen === 'long';
-      var wantLong = longOn && Math.random() < 0.3;  /* 开了长句：短 7 : 长 3 混发 */
+      /* ★ 长度三档：short 只短句 / mix 短+长混发（三成长）/ long 只长句（拼不出就兜底成短句） */
+      var mode = Z().len;
+      var wantLong = (mode === 'long') || (mode === 'mix' && Math.random() < 0.3);
       var g = null, i;
       if (wantLong) for (i = 0; i < 8 && !g; i++) g = oneFrame(F_LONG, 7, 12);
       for (i = 0; i < 10 && !g; i++) g = oneFrame(F_SHORT, 3, 6);
@@ -24043,7 +24308,7 @@ function openApp(k) {
                     last.glyph = g.parts;
                     if (g.parallel) last.parallel = 1;
                   }
-                  try { S().zaojuCount = (Number(S().zaojuCount) || 0) + 1 } catch (e) { }
+                  try { Z().count = (Number(Z().count) || 0) + 1 } catch (e) { }
                   try { save() } catch (e) { }
                   try { if ((location.hash.replace('#', '') || 'home') === 'chat') renderChat() } catch (e) { }
                   try { schedule() } catch (e) { }
@@ -24147,9 +24412,9 @@ function openApp(k) {
     var sw = document.getElementById('zjSw'), inp = document.getElementById('zjPctIn');
     if (sw) sw.onclick = function () {
       try {
-        var s = S(); s.zaojuOn = !s.zaojuOn; save();
+        var z = Z(); z.on = !z.on; save();
         syncPct();
-        toast(s.zaojuOn ? '自由造句已开启' : '自由造句已关闭');
+        toast(z.on ? '自由造句已开启' : '自由造句已关闭');
       } catch (e) { }
     };
     if (inp) inp.onchange = function () {
@@ -24158,7 +24423,7 @@ function openApp(k) {
         if (!isFinite(v)) v = 15;
         v = Math.max(0, Math.min(40, Math.round(v)));
         inp.value = v;
-        S().zaojuPct = v;
+        Z().pct = v;
         save(); syncPct();
       } catch (e) { }
     };
@@ -24183,31 +24448,31 @@ function openApp(k) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
     })
   }
-  function offList(cat) { var s = S(); return s.zaojuOff[cat] || [] }
-  function mineList(cat) { var s = S(); return s.zaojuMine[cat] || [] }
+  function offList(cat) { var z = Z(); return z.off[cat] || [] }
+  function mineList(cat) { var z = Z(); return z.mine[cat] || [] }
 
-  function libHtml() {
-    var total = allWords(), done = Number(S().zaojuCount) || 0;
-    var onOff = isOn() ? '已开启' : '未开启';
-    var h = '<div id="zjLib">'
-      + '<div class="zj-libhead"><b>自由造句</b>'
-      + '<span class="zj-libsub">' + total + ' 个词 · 已拼 ' + done + ' 句 · ' + onOff + '</span></div>'
-      + '<div class="zj-rowline"><span>句子长度</span>'
-      + '<span class="zj-seg2">'
-      + '<button data-zjlen="short" class="' + (S().zaojuLen !== 'long' ? 'on' : '') + '">短句 3–6</button>'
-      + '<button data-zjlen="long" class="' + (S().zaojuLen === 'long' ? 'on' : '') + '">长句 7–12</button>'
-      + '</span></div>'
-      + '<div class="zj-note">开关和概率在「设置 → 概率 → 塔罗 / 字卡」里；这里只管词。</div>';
+  /* ---------- 8. 字卡库里的固定分类 chip（2026-11 从"页面里一块大白块"改成 chip） ---------- */
+  function panelHtml() {
+    var total = allWords(), done = Number(Z().count) || 0;
+    var h = '<div class="zj-top">'
+      + '<button class="zj-back" data-zj="close">‹ 全部字卡</button>'
+      + '<span class="zj-len">'
+      + '<button data-zjlen="short" class="' + (Z().len === 'short' ? 'on' : '') + '">只短句 3–6</button>'
+      + '<button data-zjlen="mix" class="' + (Z().len === 'mix' ? 'on' : '') + '">短+长混发</button>'
+      + '<button data-zjlen="long" class="' + (Z().len === 'long' ? 'on' : '') + '">只长句 7–12</button>'
+      + '</span></div>';
+    h += '<div class="zj-tip">固定分类，不能删。点一个分类看词、加自己的词；点内置词可以关掉（灰掉）。'
+      + '开关和概率在「设置 → 概率 → 塔罗 / 字卡」；现在共 <b>' + total + '</b> 个词，已拼 ' + done + ' 句。</div>';
 
     for (var i = 0; i < CATS.length; i++) {
       var key = CATS[i][0], name = CATS[i][1];
-      var list = wordsOf(key), open = _openCat === key;
+      var list = wordsOf(key), open = (_openCat === key);
       var ex = list.slice(0, 3).join(' / ');
-      h += '<div class="zj-catrow' + (open ? ' open' : '') + '" data-zjcat="' + key + '">'
-        + '<span class="n">' + name + '<i>' + escq(ex) + '</i></span>'
-        + '<span class="c">' + list.length + '</span><span class="ar">' + (open ? '⌄' : '›') + '</span></div>';
+      h += '<div class="zj-row' + (open ? ' open' : '') + '" data-zjcat="' + key + '">'
+        + '<span class="nm">' + name + '<i>' + escq(ex) + '</i></span>'
+        + '<span class="cnt">' + list.length + '</span><span class="ar">' + (open ? '⌄' : '›') + '</span></div>';
       if (open) {
-        h += '<div class="zj-catbody">';
+        h += '<div class="zj-words">';
         (BUILTIN[key] || []).forEach(function (w) {
           var off = offList(key).indexOf(w) >= 0;
           h += '<button class="zj-wd' + (off ? ' off' : '') + '" data-zjoff="' + key + '" data-w="' + escq(w) + '">' + escq(w) + '</button>';
@@ -24215,93 +24480,102 @@ function openApp(k) {
         mineList(key).forEach(function (w) {
           h += '<button class="zj-wd mine" data-zjdel="' + key + '" data-w="' + escq(w) + '">' + escq(w) + '<u>×</u></button>';
         });
-        h += '<div class="zj-addrow"><input id="zjAdd_' + key + '" placeholder="加一个「' + name + '」的词" maxlength="12">'
-          + '<button data-zjadd="' + key + '">加</button></div></div>';
+        h += '</div>';
+        h += '<div class="zj-add"><input id="zjAdd_' + key + '" maxlength="12" placeholder="加一个「' + name + '」的词">'
+          + '<button data-zjadd="' + key + '">加</button></div>';
       }
     }
-    return h + '</div>';
+    return h;
   }
 
-  function paintLib() {
-    try {
-      var host = document.getElementById('zjLib');
-      if (!host) return;
-      var tmp = document.createElement('div');
-      tmp.innerHTML = libHtml();
-      host.parentNode.replaceChild(tmp.firstChild, host);
-      bindLib();
-    } catch (e) { }
-  }
-
-  function bindLib() {
-    var box = document.getElementById('zjLib');
-    if (!box) return;
-    box.querySelectorAll('[data-zjcat]').forEach(function (row) {
-      row.onclick = function () {
-        var k = row.getAttribute('data-zjcat');
-        _openCat = (_openCat === k) ? '' : k;
-        paintLib();
-      };
-    });
-    box.querySelectorAll('[data-zjlen]').forEach(function (b) {
-      b.onclick = function () {
-        try {
-          S().zaojuLen = b.getAttribute('data-zjlen');
-          save(); paintLib();
-        } catch (e) { }
-      };
-    });
-    box.querySelectorAll('[data-zjoff]').forEach(function (b) {
-      b.onclick = function () {
-        try {
-          var cat = b.getAttribute('data-zjoff'), w = b.getAttribute('data-w');
-          var s = S(); s.zaojuOff[cat] = s.zaojuOff[cat] || [];
-          var i = s.zaojuOff[cat].indexOf(w);
-          if (i >= 0) s.zaojuOff[cat].splice(i, 1); else s.zaojuOff[cat].push(w);
-          save(); paintLib();
-        } catch (e) { }
-      };
-    });
-    box.querySelectorAll('[data-zjdel]').forEach(function (b) {
-      b.onclick = function () {
-        try {
-          var cat = b.getAttribute('data-zjdel'), w = b.getAttribute('data-w');
-          var s = S();
-          s.zaojuMine[cat] = (s.zaojuMine[cat] || []).filter(function (x) { return x !== w });
-          save(); paintLib();
-        } catch (e) { }
-      };
-    });
-    box.querySelectorAll('[data-zjadd]').forEach(function (b) {
-      b.onclick = function () {
-        try {
-          var cat = b.getAttribute('data-zjadd');
-          var inp = document.getElementById('zjAdd_' + cat);
-          var v = String((inp && inp.value) || '').replace(/\s+/g, '').slice(0, 12);
-          if (!v) { toast('先写一个词'); return }
-          var s = S();
-          s.zaojuMine[cat] = s.zaojuMine[cat] || [];
-          if (s.zaojuMine[cat].indexOf(v) < 0) s.zaojuMine[cat].push(v);
-          s.zaojuOff[cat] = (s.zaojuOff[cat] || []).filter(function (x) { return x !== v });
-          save(); paintLib();
-          toast('已加进「' + v + '」');
-        } catch (e) { }
-      };
-    });
-  }
-
-  function injectLib() {
+  function paintPanel() {
     try {
       var wrap = document.querySelector('#view .cc-wrap');
       if (!wrap) return;
-      if (document.getElementById('zjLib')) { paintLib(); return }
-      var anchor = wrap.querySelector('#ccMsg') || wrap.querySelector('.cc-list') || null;
-      var box = document.createElement('div');
-      box.innerHTML = libHtml();
-      var node = box.firstChild;
-      if (anchor && anchor.parentNode === wrap) wrap.insertBefore(node, anchor);
-      else wrap.appendChild(node);
-      bindLib();
+      var box = document.getElementById('zjPanel');
+      if (!box) { box = document.createElement('div'); box.id = 'zjPanel'; wrap.appendChild(box); }
+      box.innerHTML = panelHtml();
+      box.onclick = function (e) {
+        var t = e.target.closest('[data-zj],[data-zjcat],[data-zjoff],[data-zjdel],[data-zjadd],[data-zjlen]');
+        if (!t) return;
+        if (t.getAttribute('data-zj') === 'close') {
+          wrap.classList.remove('zj-mode'); _openCat = '';
+          try { renderCards() } catch (x) { }
+          return;
+        }
+        if (t.hasAttribute('data-zjcat')) {
+          var k = t.getAttribute('data-zjcat');
+          _openCat = (_openCat === k) ? '' : k;
+          paintPanel(); return;
+        }
+        if (t.hasAttribute('data-zjlen')) {
+          try { Z().len = t.getAttribute('data-zjlen'); save(); paintPanel() } catch (x) { }
+          return;
+        }
+        if (t.hasAttribute('data-zjoff')) {
+          try {
+            var c = t.getAttribute('data-zjoff'), w = t.getAttribute('data-w');
+            var z = Z(); z.off[c] = z.off[c] || [];
+            var i2 = z.off[c].indexOf(w);
+            if (i2 >= 0) z.off[c].splice(i2, 1); else z.off[c].push(w);
+            save(); paintPanel();
+          } catch (x) { }
+          return;
+        }
+        if (t.hasAttribute('data-zjdel')) {
+          try {
+            var c2 = t.getAttribute('data-zjdel'), w2 = t.getAttribute('data-w');
+            var z2 = Z();
+            z2.mine[c2] = (z2.mine[c2] || []).filter(function (x) { return x !== w2 });
+            save(); paintPanel();
+          } catch (x) { }
+          return;
+        }
+        if (t.hasAttribute('data-zjadd')) {
+          try {
+            var c3 = t.getAttribute('data-zjadd');
+            var inp = document.getElementById('zjAdd_' + c3);
+            var v = String((inp && inp.value) || '').replace(/\s+/g, '').slice(0, 12);
+            if (!v) { try { toast('先写一个词') } catch (x) { } return }
+            var z3 = Z();
+            z3.mine[c3] = z3.mine[c3] || [];
+            if (z3.mine[c3].indexOf(v) < 0) z3.mine[c3].push(v);
+            z3.off[c3] = (z3.off[c3] || []).filter(function (x) { return x !== v });
+            save(); paintPanel();
+            try { toast('已加进「' + v + '」') } catch (x) { }
+          } catch (x) { }
+          return;
+        }
+      };
+    } catch (e) { }
+  }
+
+  function injectChip() {
+    try {
+      var bar = document.querySelector('#view .cc-cats');
+      if (!bar) return;
+      if (bar.querySelector('[data-zjopen]')) return;
+      var b = document.createElement('button');
+      b.className = 'cc-chip';
+      b.setAttribute('data-zjopen', '1');
+      b.innerHTML = '自由造句<i class="cc-fxdot"></i>';
+      b.addEventListener('click', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        var wrap = document.querySelector('#view .cc-wrap');
+        if (!wrap) return;
+        wrap.classList.add('zj-mode');
+        _openCat = ''; paintPanel();
+      }, true);
+      /* 排在「全部」后面；如果「交流情绪」已经在，就排在它前面（造句在前） */
+      var chips = bar.querySelectorAll('.cc-chip'), all = null, mood = null;
+      for (var i = 0; i < chips.length; i++) {
+        if (/全部/.test(chips[i].textContent)) all = chips[i];
+        if (/交流情绪/.test(chips[i].textContent)) mood = chips[i];
+      }
+      var anchor = all;
+      if (all && all.nextSibling) bar.insertBefore(b, all.nextSibling);
+      else if (all) bar.appendChild(b);
+      else bar.insertBefore(b, bar.firstChild);
     } catch (e) { }
   }
 
@@ -24309,17 +24583,174 @@ function openApp(k) {
   if (typeof _renderCards === 'function') {
     window.renderCards = function () {
       var r = _renderCards.apply(this, arguments);
-      setTimeout(injectLib, 20);
+      setTimeout(function () {
+        injectChip();
+        var wrap = document.querySelector('#view .cc-wrap');
+        if (wrap && wrap.classList.contains('zj-mode')) paintPanel();
+      }, 20);
       return r;
     };
   }
-  try { setTimeout(function () { if ((location.hash.replace('#', '') || 'home') === 'cards') injectLib() }, 900); } catch (e) { }
+  try { setTimeout(function () { if ((location.hash.replace('#', '') || 'home') === 'cards') injectChip() }, 900); } catch (e) { }
 
   try { console.log('[zaoju] loaded', V, 'words=' + allWords()); } catch (e) { }
+})();
+
+/* ===== 交流情绪 · 字卡库里的固定分类（2026-11） =====
+   和「自由造句」同一个套路：不另开页面，就在字卡库分类条里加一个固定 chip，
+   点开才展开，里面三层（情绪 / 心意 / 交流意图）都能自己加词、也能关掉内置词。
+   数据存 state.moodChain = { mine:{emo:[],heart:[],intent:[]}, off:{...} }，
+   备份分类「字卡库」里加了 'moodChain'，跟字卡一起走。
+   生成逻辑在 00c-moodChain.js 的 _moodWord()：自建词 40% 概率直接抽。 */
+(function () {
+  if (window.__moodLib) return; window.__moodLib = 1;
+
+  var TIERS = [['emo', '情绪'], ['heart', '心意'], ['intent', '交流意图']];
+  var _open = '';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
+    })
+  }
+  function lib() { try { return moodLib() } catch (e) { return { mine: {}, off: {} } } }
+  function builtin(tier) { try { return moodBuiltinFlat(tier) } catch (e) { return [] } }
+  function mine(tier) { return (lib().mine[tier] || []).slice() }
+  function off(tier) { return (lib().off[tier] || []).slice() }
+  function groupCount(tier) { try { return Object.keys(MOOD_CHAIN[tier] || {}).length } catch (e) { return 0 } }
+
+  function panelHtml() {
+    var h = '<div class="zj-top">'
+      + '<button class="zj-back" data-mcj="close">‹ 全部字卡</button>'
+      + '<span class="zj-len"><span style="font-size:11px;color:#8E8577">气泡下方那三行小胶囊 · 开关在 设置→交互</span></span>'
+      + '</div>';
+    h += '<div class="zj-tip">固定分类，不能删。这三层是「情绪 → 心意 → 交流意图」，'
+      + '你加的词会直接进候选；点内置词可以关掉（灰掉）。</div>';
+    for (var i = 0; i < TIERS.length; i++) {
+      var k = TIERS[i][0], n = TIERS[i][1], open = (_open === k);
+      var bi = builtin(k), mi = mine(k);
+      h += '<div class="zj-row' + (open ? ' open' : '') + '" data-mcjcat="' + k + '">'
+        + '<span class="nm">' + n + '<i>' + esc(bi.slice(0, 3).join(' / ')) + '</i></span>'
+        + '<span class="cnt">' + (bi.length + mi.length) + '</span>'
+        + '<span class="ar">' + (open ? '⌄' : '›') + '</span></div>';
+      if (open) {
+        h += '<div class="zj-words">';
+        bi.forEach(function (w) {
+          var isOff = off(k).indexOf(w) >= 0;
+          h += '<button class="zj-wd' + (isOff ? ' off' : '') + '" data-mcjoff="' + k + '" data-w="' + esc(w) + '">' + esc(w) + '</button>';
+        });
+        mi.forEach(function (w) {
+          h += '<button class="zj-wd mine" data-mcjdel="' + k + '" data-w="' + esc(w) + '">' + esc(w) + '<u>×</u></button>';
+        });
+        h += '</div>';
+        h += '<div class="zj-add"><input id="mcjAdd_' + k + '" maxlength="16" placeholder="加一个「' + n + '」的词"><button data-mcjadd="' + k + '">加</button></div>';
+        h += '<div class="zj-tip" style="padding:0 0 10px">内置 ' + bi.length + ' 个（' + groupCount(k) + ' 组，已按组摊平）· 你加了 ' + mi.length + ' 个</div>';
+      }
+    }
+    return h;
+  }
+
+  function paint() {
+    var wrap = document.querySelector('#view .cc-wrap');
+    if (!wrap) return;
+    var box = document.getElementById('mcjPanel');
+    if (!box) { box = document.createElement('div'); box.id = 'mcjPanel'; wrap.appendChild(box); }
+    box.innerHTML = panelHtml();
+    box.onclick = function (e) {
+      var t = e.target.closest('[data-mcj],[data-mcjcat],[data-mcjoff],[data-mcjdel],[data-mcjadd]');
+      if (!t) return;
+      if (t.getAttribute('data-mcj') === 'close') {
+        wrap.classList.remove('zj-mode'); _open = '';
+        try { renderCards() } catch (x) { }
+        return;
+      }
+      if (t.hasAttribute('data-mcjcat')) {
+        var k = t.getAttribute('data-mcjcat');
+        _open = (_open === k ? '' : k); paint(); return;
+      }
+      if (t.hasAttribute('data-mcjoff')) {
+        try {
+          var c = t.getAttribute('data-mcjoff'), w = t.getAttribute('data-w');
+          var L = lib(); L.off[c] = L.off[c] || [];
+          var i = L.off[c].indexOf(w);
+          if (i >= 0) L.off[c].splice(i, 1); else L.off[c].push(w);
+          save(); paint();
+        } catch (err) { }
+        return;
+      }
+      if (t.hasAttribute('data-mcjdel')) {
+        try {
+          var c2 = t.getAttribute('data-mcjdel'), w2 = t.getAttribute('data-w');
+          var L2 = lib();
+          L2.mine[c2] = (L2.mine[c2] || []).filter(function (x) { return x !== w2 });
+          save(); paint();
+        } catch (err) { }
+        return;
+      }
+      if (t.hasAttribute('data-mcjadd')) {
+        try {
+          var c3 = t.getAttribute('data-mcjadd');
+          var inp = document.getElementById('mcjAdd_' + c3);
+          var v = String((inp && inp.value) || '').replace(/\s+/g, '').slice(0, 16);
+          if (!v) { try { toast('先写一个词') } catch (x) { } return }
+          var L3 = lib();
+          L3.mine[c3] = L3.mine[c3] || [];
+          if (L3.mine[c3].indexOf(v) < 0) L3.mine[c3].push(v);
+          L3.off[c3] = (L3.off[c3] || []).filter(function (x) { return x !== v });
+          save(); paint();
+          try { toast('已加到「' + v + '」') } catch (x) { }
+        } catch (err) { }
+        return;
+      }
+    };
+  }
+
+  function injectChip() {
+    var bar = document.querySelector('#view .cc-cats');
+    if (!bar) return;
+    if (bar.querySelector('[data-mcjopen]')) return;
+    var b = document.createElement('button');
+    b.className = 'cc-chip';
+    b.setAttribute('data-mcjopen', '1');
+    b.innerHTML = '交流情绪<i class="cc-fxdot"></i>';
+    b.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      var wrap = document.querySelector('#view .cc-wrap');
+      if (!wrap) return;
+      wrap.classList.add('zj-mode');
+      _open = ''; paint();
+    }, true);
+    /* 排在「自由造句」后面，跟固定分类挤在一起 */
+    var chips = bar.querySelectorAll('.cc-chip'), anchor = null, all = null;
+    for (var i = 0; i < chips.length; i++) {
+      if (/全部/.test(chips[i].textContent)) all = chips[i];
+      if (/自由造句/.test(chips[i].textContent)) anchor = chips[i];
+    }
+    var after = anchor || all;
+    if (after && after.nextSibling) bar.insertBefore(b, after.nextSibling);
+    else if (after) bar.appendChild(b);
+    else bar.insertBefore(b, bar.firstChild);
+  }
+
+  function hook() {
+    if (typeof window.renderCards !== 'function') return setTimeout(hook, 150);
+    var orig = window.renderCards;
+    window.renderCards = function () {
+      var r = orig.apply(this, arguments);
+      setTimeout(function () {
+        injectChip();
+        var wrap = document.querySelector('#view .cc-wrap');
+        if (wrap && wrap.classList.contains('zj-mode') && document.getElementById('mcjPanel') === null) paint();
+        else if (wrap && wrap.classList.contains('zj-mode')) paint();
+      }, 22);
+      return r;
+    };
+  }
+  hook();
 })();
 </script>
 <div id="ntfBar" style="display:none" onclick="ntfGo()"></div>
 </body>
 </html>
 
-<!-- __ZIKA_EOF__ a5ba2aa467 -->
+<!-- __ZIKA_EOF__ af0ce1724f -->
