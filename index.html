@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="efad6c3525">
-<meta name="x-build-ts" content="1793882283712">
+<meta name="x-build" content="ccb1ca6687">
+<meta name="x-build-ts" content="1793884418804">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -3433,17 +3433,26 @@ body.dark-page .page-top .back{color:#CFC6E6}
    黑白主题里原来有一条 !important 把 .chat-top 刷成死白、并关掉 backdrop-filter，
    所以顶栏透不出底图。这里把 .chat-top 从那条规则里摘出来，单独给"半透明白 + 模糊"。
    壁纸由 05-render.js 铺在 #view 上（含顶栏后面），所以模糊得出来。 */
-.page-top,.chat-input,.ptop,.cinput{
+.page-top,.ptop,.cinput{
   background:#FFFFFF !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
   border-color:rgba(17,18,20,.10) !important;
 }
 .chat-top{
-  background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.44)) !important;
-  backdrop-filter:blur(16px) saturate(1.35) !important;
-  -webkit-backdrop-filter:blur(16px) saturate(1.35) !important;
-  border-bottom:1px solid rgba(17,18,20,.08) !important;
-  box-shadow:0 6px 20px rgba(120,110,100,.06),inset 0 1px 0 rgba(255,255,255,.75) !important;
+  /* 白得太多会变成"白条"，看不出磨砂；这里压到 .30/.12，模糊加大到 26px */
+  background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,.12)) !important;
+  backdrop-filter:blur(26px) saturate(1.85) brightness(1.04) !important;
+  -webkit-backdrop-filter:blur(26px) saturate(1.85) brightness(1.04) !important;
+  border-bottom:1px solid rgba(17,18,20,.10) !important;
+  box-shadow:0 10px 28px rgba(120,110,100,.10),inset 0 1px 0 rgba(255,255,255,.65) !important;
 }
+/* 顶栏里的按钮/头像跟着半透明，别在磨砂上压一块死白 */
+.chat-top .back,.chat-top .pat-av{
+  background:rgba(255,255,255,.34) !important;
+  border-color:rgba(17,18,20,.10) !important;
+  backdrop-filter:blur(10px) !important;-webkit-backdrop-filter:blur(10px) !important;
+}
+/* 顶栏的状态小胶囊：给一点点底，名字才不糊 */
+.chat-top .ct-chips .chip{background:rgba(255,255,255,.5)}
 /* 自建词"再点一次删除"的警示态 */
 .zj-wd.warn{background:#FDF2F2 !important;border-color:#E3A6A6 !important;color:#B4543C !important;font-weight:600}
 /* 批量加词：多行输入框 */
@@ -7672,9 +7681,16 @@ function schedule(){
   for(var i=0;i<state.messages.length;i++){
     var m=state.messages[i];
     if(m.dir==='out'&&m.readDue&&!m.read)items.push({ts:m.readDue,fn:(function(mm){return function(){markRead(mm)}})(m)});
-    if(m.dir==='out'&&m.replyDue&&!m.answered)items.push({ts:m.replyDue,fn:(function(mm){return function(){replyChat(mm)}})(m)});
-    /* 送出的礼物 / 发出的代买请求：到点让他回应 */
-    if(m.dir==='out'&&m.replyDue&&!m.answered&&(m.kind==='gift'||m.kind==='buyreq'))items.push({ts:m.replyDue,fn:(function(mm){return function(){shopAnswer(mm)}})(m)});
+    if(m.dir==='out'&&m.replyDue&&!m.answered){
+      /* ★ 礼物 / 代买请求不能走"字卡库回复"，否则会把预设回应挤掉（用户报的：
+         礼物卡被当成普通消息、他从字卡库抽一句回，预设的情趣三句被压掉；
+         代买请求也永远停在"等待回应"）。现在按类型分流：
+           · 代买请求       → 只走 shopAnswer（答应就真的买给你 / 婉拒）
+           · 情趣类礼物     → 只走 shopAnswer（三条预设里随机一句）
+           · 其他礼物/普通消息 → 照旧走字卡库 replyChat（用户要的） */
+      var _preset=(m.kind==='buyreq')||(m.kind==='gift'&&(m.catName==='情趣'||m.cat==='adult'));
+      items.push({ts:m.replyDue,fn:(function(mm,isP){return function(){ isP?shopAnswer(mm):replyChat(mm) }})(m,_preset)});
+    }
     /* 未来的收件：到点让它出现，并且这时才发通知（和聊天室同步） */
     if(m.dir==='in'&&m.ts>t)items.push({ts:m.ts,fn:(function(mm){return function(){
       try{renderChat()}catch(e){}
@@ -14499,12 +14515,14 @@ function shopToday(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1
 function shopGen(force){
   var sh=shopState(),today=shopToday();
   /* ★ SHOP_V：商品池结构变了（比如新增"情趣"分类）就把当天的缓存作废，别等到明天 */
-  var SHOP_V=2;
+  var SHOP_V=3;
   if(!force&&sh.day===today&&sh.v===SHOP_V&&sh.items.length)return sh;
   var rnd=shopRand('zika-shop-'+today+'-'+(force?(sh.rv=(sh.rv||0)+1):'')),items=[],ci;
   for(ci=0;ci<SHOP_CATS.length;ci++){
     var k=SHOP_CATS[ci],p=SHOP_POOLS[k],pool=p.list.slice(),n;
-    for(n=0;n<3&&pool.length;n++){
+    /* ★ 情趣这一类的商品是固定清单、要让人慢慢挑，所以全上（不按每天 3 件轮换） */
+    var lim=(k==='adult')?pool.length:3;
+    for(n=0;n<lim&&pool.length;n++){
       var nm=pool.splice(Math.floor(rnd()*pool.length),1)[0];
       var price=(nm[2]!=null)?nm[2]:Math.round((p.min+rnd()*(p.max-p.min))*10)/10;
       items.push({id:'it'+ci+'_'+n+'_'+Math.floor(rnd()*1e6).toString(36),name:nm[0],emoji:nm[1],cat:k,catName:p.n,price:price});
@@ -20848,7 +20866,7 @@ function openApp(k) {
       state.messages.push({
         id: uid(), contactId: c.id, dir: 'out', readDue: now() + 4000, kind: 'gift',
         itemName: it.name, emoji: it.emoji, price: it.price, catName: it.catName || it.cat,
-        ts: now(), replyDue: now() + rndDelay(c), answered: false
+        ts: now(), replyDue: now() + (function(){ /* ★ 代买固定 15~30 秒内给答复，别让人干等 */ var a=15,b=30; return (a+Math.random()*(b-a))*1000 })(), answered: false
       });
     } catch (e) { }
     var s = SP();
@@ -20869,7 +20887,7 @@ function openApp(k) {
       state.messages.push({
         id: uid(), contactId: c.id, dir: 'out', readDue: now() + 4000, kind: 'buyreq',
         itemName: it.name, emoji: it.emoji, price: it.price, catName: it.catName || it.cat,
-        ts: now(), replyDue: now() + rndDelay(c), answered: false
+        ts: now(), replyDue: now() + (function(){ /* ★ 代买固定 15~30 秒内给答复，别让人干等 */ var a=15,b=30; return (a+Math.random()*(b-a))*1000 })(), answered: false
       });
     } catch (e) { }
     try { save() } catch (e) { }
@@ -24932,4 +24950,4 @@ function openApp(k) {
 </body>
 </html>
 
-<!-- __ZIKA_EOF__ efad6c3525 -->
+<!-- __ZIKA_EOF__ ccb1ca6687 -->
