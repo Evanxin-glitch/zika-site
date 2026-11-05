@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="af0ce1724f">
-<meta name="x-build-ts" content="1793808137197">
+<meta name="x-build" content="efad6c3525">
+<meta name="x-build-ts" content="1793882283712">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -3428,6 +3428,27 @@ body.dark-page .page-top .back{color:#CFC6E6}
 .zj-len button{border:1px solid rgba(60,50,45,.14);background:#fff;border-radius:9px;padding:7px 10px;
   font-size:11.5px;font-family:inherit;color:#3C372F;white-space:nowrap}
 .zj-len button.on{background:#111214;color:#fff;border-color:#111214;font-weight:600}
+
+/* ===== 2026-11：聊天顶栏磨砂（只顶栏）=====
+   黑白主题里原来有一条 !important 把 .chat-top 刷成死白、并关掉 backdrop-filter，
+   所以顶栏透不出底图。这里把 .chat-top 从那条规则里摘出来，单独给"半透明白 + 模糊"。
+   壁纸由 05-render.js 铺在 #view 上（含顶栏后面），所以模糊得出来。 */
+.page-top,.chat-input,.ptop,.cinput{
+  background:#FFFFFF !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+  border-color:rgba(17,18,20,.10) !important;
+}
+.chat-top{
+  background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.44)) !important;
+  backdrop-filter:blur(16px) saturate(1.35) !important;
+  -webkit-backdrop-filter:blur(16px) saturate(1.35) !important;
+  border-bottom:1px solid rgba(17,18,20,.08) !important;
+  box-shadow:0 6px 20px rgba(120,110,100,.06),inset 0 1px 0 rgba(255,255,255,.75) !important;
+}
+/* 自建词"再点一次删除"的警示态 */
+.zj-wd.warn{background:#FDF2F2 !important;border-color:#E3A6A6 !important;color:#B4543C !important;font-weight:600}
+/* 批量加词：多行输入框 */
+.zj-add textarea{flex:1;min-width:0;border:1px dashed rgba(60,50,45,.22);border-radius:11px;padding:9px 11px;
+  font-size:13px;font-family:inherit;background:#FCFCFC;line-height:1.5;resize:vertical;min-height:44px}
 </style>
 </head>
 <body>
@@ -5800,6 +5821,27 @@ function chatBgStyle(){
   }
   return 'background-image:'+(BG_PRESETS[st.chatBg]||BG_PRESETS.bg1);
 }
+/* ★ 2026-11：把聊天壁纸铺到"整个聊天页"（#view），不只铺消息区。
+   这样顶栏那层毛玻璃才有东西可以透出来（用户要求：顶栏磨砂、能透底图）。 */
+function applyChatBgTo(el){
+  if(!el||!el.style)return;
+  var st=(state&&state.settings)||{};
+  try{
+    if(st.chatBgImg){
+      el.style.backgroundImage='url('+mediaUrlSync(st.chatBgImg)+')';
+      el.style.backgroundSize=st.chatBgSize||'cover';
+      el.style.backgroundPosition=st.chatBgPos||'center';
+      el.style.backgroundRepeat=(st.chatBgSize==='auto'?'repeat':'no-repeat');
+      el.style.backgroundColor='';
+    }else{
+      el.style.backgroundImage='none';
+      el.style.backgroundSize='';
+      el.style.backgroundPosition='';
+      el.style.backgroundRepeat='';
+      el.style.backgroundColor=(BG_PRESETS[st.chatBg]||BG_PRESETS.bg1);
+    }
+  }catch(e){}
+}
 function homeBgStyle(){
   var st=state.settings;
   if(st.homeBgImg)return 'background-image:url('+mediaUrlSync(st.homeBgImg)+')';
@@ -5901,6 +5943,14 @@ function render(v){
     document.body.classList.toggle('room-mode',v==='room');
     /* 影院/咖啡馆/雷达是暗色整页，标题栏要跟着变暗，不然白条压在黑页上很割裂 */
     document.body.classList.toggle('dark-page',(v==='cinema'||v==='cafe'||v==='radar'));
+  }catch(e){}
+  /* ★ 聊天页：壁纸铺满整页（含顶栏后面），顶栏磨砂才透得出来；离开聊天页清掉 */
+  try{
+    var _vb=document.getElementById('view');
+    if(_vb){
+      if(v==='chat'&&typeof applyChatBgTo==='function')applyChatBgTo(_vb);
+      else{_vb.style.backgroundImage='';_vb.style.backgroundColor='';_vb.style.backgroundSize='';_vb.style.backgroundPosition='';_vb.style.backgroundRepeat=''}
+    }
   }catch(e){}
   if(v==='home')renderHome();
   else if(v==='profile')renderProfile();
@@ -8022,7 +8072,9 @@ function renderChat(){
   var CHAT_MAX_RENDER=120;
   var _hiddenCount=0;
   if(!window.__chatAll&&msgs.length>CHAT_MAX_RENDER){ _hiddenCount=msgs.length-CHAT_MAX_RENDER; msgs=msgs.slice(-CHAT_MAX_RENDER); }
-  var body='<div class="chat-wrap" style="'+chatBgStyle()+'"><div id="chatList">';
+  /* ★ 壁纸从 .chat-wrap 挪到整个聊天页（#view）：这样顶栏磨砂才能透出底图，
+     不再只是"顶栏下面才开始有图"。（05-render.js 里给 #view 套 same style） */
+  var body='<div class="chat-wrap"><div id="chatList">';
   if(_hiddenCount>0) body+='<div class="chat-earlier" data-act="chat-earlier">↑ 更早的消息（已折叠 '+_hiddenCount+' 条）</div>';
   if(!msgs.length)body+='<div class="empty"><span class="big">字</span>还没有消息，先打个招呼吧</div>';
   for(var j=0;j<msgs.length;j++)body+=bubbleHtml(msgs[j],c);
@@ -14403,9 +14455,26 @@ var SHOP_POOLS={
   gift:{n:'礼物',min:59,max:399,list:[['干花小夜灯','🕯️'],['星座项链','📿'],['手写相册','📔'],['木盒八音盒','🎵'],['定制马克杯','☕'],['香薰礼盒','🎁']]},
   dessert:{n:'甜品',min:12,max:128,list:[['草莓奶油蛋糕','🍰'],['提拉米苏','🍮'],['葡式蛋挞','🥧'],['马卡龙','🍬'],['焦糖布丁','🍮'],['舒芙蕾','🥞']]},
   drink:{n:'饮料',min:8,max:38,list:[['芋泥波波奶茶','🧋'],['生椰拿铁','☕'],['柠檬气泡水','🥤'],['蜜桃乌龙','🍑'],['热可可','🍫'],['杨枝甘露','🥭']]},
-  cloth:{n:'衣服',min:89,max:599,list:[['oversize 卫衣','🧥'],['针织开衫','🧶'],['棉麻连衣裙','👗'],['宽松衬衫','👔'],['羊绒围巾','🧣'],['牛仔外套','🧥']]}
+  cloth:{n:'衣服',min:89,max:599,list:[['oversize 卫衣','🧥'],['针织开衫','🧶'],['棉麻连衣裙','👗'],['宽松衬衫','👔'],['羊绒围巾','🧣'],['牛仔外套','🧥']]},
+  /* 情趣：第三项是固定价格（不传就按 min/max 随机）。进这个分类要过一次 18+ 确认 */
+  adult:{n:'情趣',min:39,max:399,list:[
+    ['按摩器','🫧',199],
+    ['震动器','💗',299],
+    ['安全套（三只装）','🛡️',39],
+    ['情趣内衣 · 蕾丝','🩱',129],
+    ['情趣内衣 · 真丝','👗',269],
+    ['香氛按摩油','🧴',89],
+    ['哑光丝绸眼罩','🎀',59],
+    ['丝绒束缚带','🎗️',79],
+    ['低温香薰蜡烛','🕯️',69],
+    ['温感润滑液','💧',49],
+    ['羽毛挑逗棒','🪶',45],
+    ['蕾丝手套','🧤',65],
+    ['浴球礼盒','🛁',79],
+    ['情侣骰子','🎲',39]
+  ]}
 };
-var SHOP_CATS=['daily','snack','gift','dessert','drink','cloth'];
+var SHOP_CATS=['daily','snack','gift','dessert','drink','cloth','adult'];
 function shopRand(seed){
   var h=2166136261,i;
   for(i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h=Math.imul(h,16777619)}
@@ -14429,17 +14498,19 @@ function shopToday(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1
 /** 每天生成一批；同一天多次打开是同一批（不会每次刷新都变） */
 function shopGen(force){
   var sh=shopState(),today=shopToday();
-  if(!force&&sh.day===today&&sh.items.length)return sh;
+  /* ★ SHOP_V：商品池结构变了（比如新增"情趣"分类）就把当天的缓存作废，别等到明天 */
+  var SHOP_V=2;
+  if(!force&&sh.day===today&&sh.v===SHOP_V&&sh.items.length)return sh;
   var rnd=shopRand('zika-shop-'+today+'-'+(force?(sh.rv=(sh.rv||0)+1):'')),items=[],ci;
   for(ci=0;ci<SHOP_CATS.length;ci++){
     var k=SHOP_CATS[ci],p=SHOP_POOLS[k],pool=p.list.slice(),n;
     for(n=0;n<3&&pool.length;n++){
       var nm=pool.splice(Math.floor(rnd()*pool.length),1)[0];
-      var price=Math.round((p.min+rnd()*(p.max-p.min))*10)/10;
+      var price=(nm[2]!=null)?nm[2]:Math.round((p.min+rnd()*(p.max-p.min))*10)/10;
       items.push({id:'it'+ci+'_'+n+'_'+Math.floor(rnd()*1e6).toString(36),name:nm[0],emoji:nm[1],cat:k,catName:p.n,price:price});
     }
   }
-  sh.day=today;sh.items=items;
+  sh.day=today;sh.v=SHOP_V;sh.items=items;
   return sh;
 }
 function shopItem(id){
@@ -14484,7 +14555,16 @@ function shopAnswer(m){
   if(!c)return;
   var sh=shopState();
   if(m.kind==='gift'){
-    pushIn(c.id,pick(['谢谢你，我很喜欢','收到啦，我会好好用的','你怎么知道我想要这个','这个我要留很久']),now());
+    /* ★ 情趣类礼物：固定三句里随机挑一句（用户指定的味道，不做成字卡） */
+    if(m.catName==='情趣'||m.cat==='adult'){
+      pushIn(c.id,pick([
+        '慢慢来你有很多时间。',
+        '你看起来，好像比我更紧张。',
+        '我们，先好好休息。'
+      ]),now());
+    }else{
+      pushIn(c.id,pick(['谢谢你，我很喜欢','收到啦，我会好好用的','你怎么知道我想要这个','这个我要留很久']),now());
+    }
   }else if(m.kind==='buyreq'){
     if(Math.random()<0.72){
       m.accepted=true;
@@ -20842,13 +20922,50 @@ function openApp(k) {
   }
 
   /* 点击委托（我们的按钮都带 data-sp） */
+  /* 18+ 门槛：只在这个分类第一次进入时弹一次。
+     ★ 不能用 openSheet —— 这个文件里 openSheet 被同名的"上架编辑器"覆盖了，
+       调它会把编辑面板打开。所以自己搭一层遮罩。 */
+  function adultGate() {
+    try { var old = document.getElementById('adultGate'); if (old) old.remove() } catch (e0) { }
+    var d = document.createElement('div');
+    d.id = 'adultGate';
+    d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(18,16,14,.44);'
+      + 'display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(4px)';
+    d.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:340px;width:100%;padding:22px 20px 16px;'
+      + 'box-shadow:0 22px 60px rgba(0,0,0,.24)">'
+      + '<h2 style="margin:0 0 10px;font-size:17px;font-family:inherit">仅限成年人</h2>'
+      + '<p style="margin:0 0 16px;font-size:13px;line-height:1.8;color:#6b6459;font-family:inherit">'
+      + '接下来是情趣用品分类，仅限成年人浏览。<br>内容只是你和 TA 之间的私事，不会提示给别人。</p>'
+      + '<div style="display:flex;gap:10px">'
+      + '<button id="agOk" style="flex:1;border:0;border-radius:12px;background:#111214;color:#fff;padding:12px;'
+      + 'font-size:14px;font-family:inherit">我已满 18 岁</button>'
+      + '<button id="agNo" style="flex:0 0 auto;border:1px solid rgba(60,50,45,.18);border-radius:12px;background:#fff;'
+      + 'color:#3C372F;padding:12px 16px;font-size:14px;font-family:inherit">先不进去</button></div></div>';
+    document.body.appendChild(d);
+    d.addEventListener('click', function (ev) {
+      var t = ev.target;
+      if (t && t.id === 'agNo') { d.remove(); return }
+      if (t && t.id === 'agOk') {
+        SP().adultOk = 1; save();
+        d.remove();
+        CUR = 'adult'; renderShop2();
+      }
+    }, true);
+  }
   document.addEventListener('click', function (e) {
     var t = e.target;
     if (!t || !t.closest) return;
     var b = t.closest('[data-sp]');
     if (!b) return;
     var a = b.getAttribute('data-sp');
-    if (a === 'cat') { e.preventDefault(); CUR = b.getAttribute('data-c') || 'all'; renderShop2(); return }
+    if (a === 'cat') {
+      e.preventDefault();
+      var want = b.getAttribute('data-c') || 'all';
+      /* ★ 情趣分类：第一次进要过一次 18+ 确认（记在 state.shop.adultOk，跟商城一起备份） */
+      if (want === 'adult' && !SP().adultOk) { adultGate(); return }
+      CUR = want; renderShop2(); return
+    }
+
     if (a === 'add') { e.preventDefault(); openSheet(''); return }
     if (a === 'buy') { e.preventDefault(); buy(b.getAttribute('data-id')); return }
     if (a === 'ask') { e.preventDefault(); ask(b.getAttribute('data-id')); return }
@@ -24443,6 +24560,7 @@ function openApp(k) {
      （chip 点下去会把 cur 切到不存在的分类，添加按钮还会往里塞普通字卡）。
      每次 renderCards 之后重画一次；展开哪个子分类记在内存里，重绘不丢。 */
   var _openCat = '';
+  var _pend = { key: '', until: 0 };   /* 自建词删除确认：第一次点挂起 3 秒 */
   function escq(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
@@ -24478,10 +24596,12 @@ function openApp(k) {
           h += '<button class="zj-wd' + (off ? ' off' : '') + '" data-zjoff="' + key + '" data-w="' + escq(w) + '">' + escq(w) + '</button>';
         });
         mineList(key).forEach(function (w) {
-          h += '<button class="zj-wd mine" data-zjdel="' + key + '" data-w="' + escq(w) + '">' + escq(w) + '<u>×</u></button>';
+          var pend = (_pend.key === (key + '|' + w) && Date.now() < _pend.until);
+          h += '<button class="zj-wd mine' + (pend ? ' warn' : '') + '" data-zjdel="' + key + '" data-w="' + escq(w) + '">'
+            + (pend ? '再点一次删除' : (escq(w) + '<u>×</u>')) + '</button>';
         });
         h += '</div>';
-        h += '<div class="zj-add"><input id="zjAdd_' + key + '" maxlength="12" placeholder="加一个「' + name + '」的词">'
+        h += '<div class="zj-add"><textarea id="zjAdd_' + key + '" rows="2" maxlength="600" placeholder="加词：一行一个，可整段粘贴"></textarea>'
           + '<button data-zjadd="' + key + '">加</button></div>';
       }
     }
@@ -24525,6 +24645,15 @@ function openApp(k) {
         if (t.hasAttribute('data-zjdel')) {
           try {
             var c2 = t.getAttribute('data-zjdel'), w2 = t.getAttribute('data-w');
+            var pk = c2 + '|' + w2;
+            /* ★ 第一次点只"挂起"，3 秒内再点一次才真删（用户要求：自建词别一点就没） */
+            if (!(_pend.key === pk && Date.now() < _pend.until)) {
+              _pend = { key: pk, until: Date.now() + 3000 };
+              paintPanel();
+              setTimeout(function () { if (_pend.key === pk && Date.now() >= _pend.until) { _pend = { key: '', until: 0 }; try { paintPanel() } catch (x) { } } }, 3100);
+              return;
+            }
+            _pend = { key: '', until: 0 };
             var z2 = Z();
             z2.mine[c2] = (z2.mine[c2] || []).filter(function (x) { return x !== w2 });
             save(); paintPanel();
@@ -24535,14 +24664,24 @@ function openApp(k) {
           try {
             var c3 = t.getAttribute('data-zjadd');
             var inp = document.getElementById('zjAdd_' + c3);
-            var v = String((inp && inp.value) || '').replace(/\s+/g, '').slice(0, 12);
-            if (!v) { try { toast('先写一个词') } catch (x) { } return }
+            /* ★ 批量：一行一个词，可整段粘贴（用户要求） */
+            var raw = String((inp && inp.value) || '').split(/[\r\n]+/);
             var z3 = Z();
             z3.mine[c3] = z3.mine[c3] || [];
-            if (z3.mine[c3].indexOf(v) < 0) z3.mine[c3].push(v);
-            z3.off[c3] = (z3.off[c3] || []).filter(function (x) { return x !== v });
+            z3.off[c3] = z3.off[c3] || [];
+            var added = 0, dup = 0, empty = 0;
+            for (var li = 0; li < raw.length; li++) {
+              var v = raw[li].replace(/\s+/g, ' ').trim().slice(0, 12);
+              if (!v) { empty++; continue }
+              var isDup = (z3.mine[c3].indexOf(v) >= 0) || ((BUILTIN[c3] || []).indexOf(v) >= 0 && z3.off[c3].indexOf(v) < 0);
+              if (isDup) { dup++; continue }
+              z3.mine[c3].push(v);
+              z3.off[c3] = z3.off[c3].filter(function (x) { return x !== v });
+              added++;
+            }
+            if (!added) { try { toast(dup ? '这些词已经有了' : '先写一个词') } catch (x) { } return }
             save(); paintPanel();
-            try { toast('已加进「' + v + '」') } catch (x) { }
+            try { toast('加了 ' + added + ' 个' + (dup ? '，跳过 ' + dup + ' 个重复的' : '')) } catch (x) { }
           } catch (x) { }
           return;
         }
@@ -24607,6 +24746,7 @@ function openApp(k) {
 
   var TIERS = [['emo', '情绪'], ['heart', '心意'], ['intent', '交流意图']];
   var _open = '';
+  var _pend = { key: '', until: 0 };   /* 自建词删除确认：第一次点挂起 3 秒 */
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
@@ -24615,6 +24755,22 @@ function openApp(k) {
   }
   function lib() { try { return moodLib() } catch (e) { return { mine: {}, off: {} } } }
   function builtin(tier) { try { return moodBuiltinFlat(tier) } catch (e) { return [] } }
+  /* ★ 面板要显示"全部内置词"（含被关掉的），不能用 moodBuiltinFlat（它会把关掉的过滤掉，
+     那样一点内置词就"消失"、还点不回来 —— 用户报的就是这个） */
+  function builtinAll(tier) {
+    try {
+      var groups = MOOD_CHAIN[tier] || {}, seen = {}, out = [];
+      for (var g in groups) {
+        var arr = groups[g] || [];
+        for (var i = 0; i < arr.length; i++) {
+          var w = arr[i];
+          if (!w || seen[w]) continue;
+          seen[w] = 1; out.push(w);
+        }
+      }
+      return out;
+    } catch (e) { return [] }
+  }
   function mine(tier) { return (lib().mine[tier] || []).slice() }
   function off(tier) { return (lib().off[tier] || []).slice() }
   function groupCount(tier) { try { return Object.keys(MOOD_CHAIN[tier] || {}).length } catch (e) { return 0 } }
@@ -24625,10 +24781,10 @@ function openApp(k) {
       + '<span class="zj-len"><span style="font-size:11px;color:#8E8577">气泡下方那三行小胶囊 · 开关在 设置→交互</span></span>'
       + '</div>';
     h += '<div class="zj-tip">固定分类，不能删。这三层是「情绪 → 心意 → 交流意图」，'
-      + '你加的词会直接进候选；点内置词可以关掉（灰掉）。</div>';
+      + '你加的词会直接进候选；点内置词可以关掉（灰掉，再点回来）。</div>';
     for (var i = 0; i < TIERS.length; i++) {
       var k = TIERS[i][0], n = TIERS[i][1], open = (_open === k);
-      var bi = builtin(k), mi = mine(k);
+      var bi = builtinAll(k), mi = mine(k);
       h += '<div class="zj-row' + (open ? ' open' : '') + '" data-mcjcat="' + k + '">'
         + '<span class="nm">' + n + '<i>' + esc(bi.slice(0, 3).join(' / ')) + '</i></span>'
         + '<span class="cnt">' + (bi.length + mi.length) + '</span>'
@@ -24640,10 +24796,13 @@ function openApp(k) {
           h += '<button class="zj-wd' + (isOff ? ' off' : '') + '" data-mcjoff="' + k + '" data-w="' + esc(w) + '">' + esc(w) + '</button>';
         });
         mi.forEach(function (w) {
-          h += '<button class="zj-wd mine" data-mcjdel="' + k + '" data-w="' + esc(w) + '">' + esc(w) + '<u>×</u></button>';
+          var pend = (_pend.key === (k + '|' + w) && Date.now() < _pend.until);
+          h += '<button class="zj-wd mine' + (pend ? ' warn' : '') + '" data-mcjdel="' + k + '" data-w="' + esc(w) + '">'
+            + (pend ? '再点一次删除' : (esc(w) + '<u>×</u>')) + '</button>';
         });
         h += '</div>';
-        h += '<div class="zj-add"><input id="mcjAdd_' + k + '" maxlength="16" placeholder="加一个「' + n + '」的词"><button data-mcjadd="' + k + '">加</button></div>';
+        h += '<div class="zj-add"><textarea id="mcjAdd_' + k + '" rows="2" maxlength="800" placeholder="加词：一行一个，可整段粘贴"></textarea>'
+          + '<button data-mcjadd="' + k + '">加</button></div>';
         h += '<div class="zj-tip" style="padding:0 0 10px">内置 ' + bi.length + ' 个（' + groupCount(k) + ' 组，已按组摊平）· 你加了 ' + mi.length + ' 个</div>';
       }
     }
@@ -24681,6 +24840,15 @@ function openApp(k) {
       if (t.hasAttribute('data-mcjdel')) {
         try {
           var c2 = t.getAttribute('data-mcjdel'), w2 = t.getAttribute('data-w');
+          var pk = c2 + '|' + w2;
+          /* ★ 第一次点只挂起，3 秒内再点一次才真删（用户要求：自建词别一点就没） */
+          if (!(_pend.key === pk && Date.now() < _pend.until)) {
+            _pend = { key: pk, until: Date.now() + 3000 };
+            paint();
+            setTimeout(function () { if (_pend.key === pk && Date.now() >= _pend.until) { _pend = { key: '', until: 0 }; try { paint() } catch (x) { } } }, 3100);
+            return;
+          }
+          _pend = { key: '', until: 0 };
           var L2 = lib();
           L2.mine[c2] = (L2.mine[c2] || []).filter(function (x) { return x !== w2 });
           save(); paint();
@@ -24691,14 +24859,25 @@ function openApp(k) {
         try {
           var c3 = t.getAttribute('data-mcjadd');
           var inp = document.getElementById('mcjAdd_' + c3);
-          var v = String((inp && inp.value) || '').replace(/\s+/g, '').slice(0, 16);
-          if (!v) { try { toast('先写一个词') } catch (x) { } return }
+          /* ★ 批量：一行一个词，可整段粘贴（用户要求） */
+          var raw = String((inp && inp.value) || '').split(/[\r\n]+/);
           var L3 = lib();
           L3.mine[c3] = L3.mine[c3] || [];
-          if (L3.mine[c3].indexOf(v) < 0) L3.mine[c3].push(v);
-          L3.off[c3] = (L3.off[c3] || []).filter(function (x) { return x !== v });
+          L3.off[c3] = L3.off[c3] || [];
+          var allB = builtinAll(c3);
+          var added = 0, dup = 0;
+          for (var li = 0; li < raw.length; li++) {
+            var v = raw[li].replace(/\s+/g, ' ').trim().slice(0, 16);
+            if (!v) continue;
+            var isDup = (L3.mine[c3].indexOf(v) >= 0) || (allB.indexOf(v) >= 0 && L3.off[c3].indexOf(v) < 0);
+            if (isDup) { dup++; continue }
+            L3.mine[c3].push(v);
+            L3.off[c3] = L3.off[c3].filter(function (x) { return x !== v });
+            added++;
+          }
+          if (!added) { try { toast(dup ? '这些词已经有了' : '先写一个词') } catch (x) { } return }
           save(); paint();
-          try { toast('已加到「' + v + '」') } catch (x) { }
+          try { toast('加了 ' + added + ' 个' + (dup ? '，跳过 ' + dup + ' 个重复的' : '')) } catch (x) { }
         } catch (err) { }
         return;
       }
@@ -24753,4 +24932,4 @@ function openApp(k) {
 </body>
 </html>
 
-<!-- __ZIKA_EOF__ af0ce1724f -->
+<!-- __ZIKA_EOF__ efad6c3525 -->
