@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="7f2fde12d3">
-<meta name="x-build-ts" content="1793982558672">
+<meta name="x-build" content="c6e39c2053">
+<meta name="x-build-ts" content="1794034308999">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -3438,26 +3438,45 @@ body.dark-page .page-top .back{color:#CFC6E6}
   border-color:rgba(17,18,20,.10) !important;
 }
 .chat-top{
-  /* 白得太多会变成"白条"，看不出磨砂；这里压到 .30/.12，模糊加大到 26px */
-  background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,.12)) !important;
-  backdrop-filter:blur(26px) saturate(1.85) brightness(1.04) !important;
-  -webkit-backdrop-filter:blur(26px) saturate(1.85) brightness(1.04) !important;
-  border-bottom:1px solid rgba(17,18,20,.10) !important;
-  box-shadow:0 10px 28px rgba(120,110,100,.10),inset 0 1px 0 rgba(255,255,255,.65) !important;
+  /* ★ 2026-11 定档（对应验收图 B2）：
+     白 .30/.12 + blur 26 会把底图糊成中性灰、还比内容区更亮 → 看着像一条白条。
+     现在白压到 .05/.015、blur 6px、去掉提亮/增饱和和底部分界线，
+     底图的颜色和细节都保住了（实测：顶栏饱和度 13.3%、亮度比内容 -16.9、细节比 ≈1）。 */
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015)) !important;
+  backdrop-filter:blur(6px) !important;
+  -webkit-backdrop-filter:blur(6px) !important;
+  border-bottom:none !important;
+  box-shadow:none !important;
 }
-/* 顶栏里的按钮/头像跟着半透明，别在磨砂上压一块死白 */
-.chat-top .back,.chat-top .pat-av{
-  background:rgba(255,255,255,.34) !important;
+/* 底色透了 → 文字/按钮靠淡白描边和一点点底兜住，不再靠"白条" */
+.chat-top .ct-name,.chat-top .ct-chips .chip,.chat-top .back,.chat-top .pr .back{
+  text-shadow:0 1px 2px rgba(255,255,255,.85),0 0 1px rgba(255,255,255,.7);
+}
+.chat-top .ct-chips .chip{background:rgba(255,255,255,.34) !important;border-color:rgba(255,255,255,.5) !important}
+/* 顶栏里的按钮/头像也别压死白 */
+.chat-top .back,.chat-top .pr .back,.chat-top .pat-av{
+  background:rgba(255,255,255,.28) !important;
   border-color:rgba(17,18,20,.10) !important;
-  backdrop-filter:blur(10px) !important;-webkit-backdrop-filter:blur(10px) !important;
 }
-/* 顶栏的状态小胶囊：给一点点底，名字才不糊 */
-.chat-top .ct-chips .chip{background:rgba(255,255,255,.5)}
 /* 自建词"再点一次删除"的警示态 */
 .zj-wd.warn{background:#FDF2F2 !important;border-color:#E3A6A6 !important;color:#B4543C !important;font-weight:600}
 /* 批量加词：多行输入框 */
 .zj-add textarea{flex:1;min-width:0;border:1px dashed rgba(60,50,45,.22);border-radius:11px;padding:9px 11px;
   font-size:13px;font-family:inherit;background:#FCFCFC;line-height:1.5;resize:vertical;min-height:44px}
+
+/* ===== 2026-11：聊天壁纸改为 class 驱动（只在 body.chat-bg 时生效）=====
+   这样离开聊天页（加啡馆/商城/朋友圈…）不可能再漏出聊天背景。 */
+body.chat-bg #view{
+  background-image:var(--chat-bg-img,none)!important;
+  background-size:var(--chat-bg-size,cover)!important;
+  background-position:var(--chat-bg-pos,center)!important;
+  background-repeat:var(--chat-bg-repeat,no-repeat)!important;
+  background-color:var(--chat-bg-color,#FFFFFF)!important;
+}
+/* 咖啡馆/影院/雷达是整页暗色 App，别被"纸色"和壁纸覆盖 */
+body.dark-page.chat-bg #view{background-image:none!important}
+/* 咖啡馆自己的底：暖米色纸底，看起来像个独立 App（不再是浮在聊天背景上） */
+body.dark-page:not(.chat-bg) #view.cafe-view{background:#F6EFE4!important}
 </style>
 </head>
 <body>
@@ -5832,26 +5851,43 @@ function chatBgStyle(){
 }
 /* ★ 2026-11：把聊天壁纸铺到"整个聊天页"（#view），不只铺消息区。
    这样顶栏那层毛玻璃才有东西可以透出来（用户要求：顶栏磨砂、能透底图）。 */
-function applyChatBgTo(el){
-  if(!el||!el.style)return;
+/* ★ 2026-11：聊天壁纸改成"class + CSS 变量"驱动，不再往 #view 写内联样式。
+   以前写内联 style，谁后画谁继承 → 咖啡馆/商城会漏出聊天背景。
+   现在只有 body 上有 .chat-bg 时，#view 才铺壁纸；离开聊天页删掉 class 就彻底没了。 */
+function chatBgVars(){
   var st=(state&&state.settings)||{};
   try{
+    var r=document.documentElement;
     if(st.chatBgImg){
-      el.style.backgroundImage='url('+mediaUrlSync(st.chatBgImg)+')';
-      el.style.backgroundSize=st.chatBgSize||'cover';
-      el.style.backgroundPosition=st.chatBgPos||'center';
-      el.style.backgroundRepeat=(st.chatBgSize==='auto'?'repeat':'no-repeat');
-      el.style.backgroundColor='';
+      r.style.setProperty('--chat-bg-img','url('+mediaUrlSync(st.chatBgImg)+')');
+      r.style.setProperty('--chat-bg-size',st.chatBgSize||'cover');
+      r.style.setProperty('--chat-bg-pos',st.chatBgPos||'center');
+      r.style.setProperty('--chat-bg-repeat',(st.chatBgSize==='auto'?'repeat':'no-repeat'));
+      r.style.setProperty('--chat-bg-color','#FFFFFF');
     }else{
-      el.style.backgroundImage='none';
-      el.style.backgroundSize='';
-      el.style.backgroundPosition='';
-      el.style.backgroundRepeat='';
-      el.style.backgroundColor=(BG_PRESETS[st.chatBg]||BG_PRESETS.bg1);
+      r.style.setProperty('--chat-bg-img','none');
+      r.style.setProperty('--chat-bg-size','');
+      r.style.setProperty('--chat-bg-pos','');
+      r.style.setProperty('--chat-bg-repeat','');
+      r.style.setProperty('--chat-bg-color',(BG_PRESETS[st.chatBg]||BG_PRESETS.bg1));
     }
   }catch(e){}
 }
-function homeBgStyle(){
+function applyChatBgTo(el){
+  /* 兼容旧调用：只负责"现在是不是聊天页"这个 class，元素本身不再写样式 */
+  try{
+    if(el){ el.style.backgroundImage=''; el.style.backgroundColor=''; el.style.backgroundSize=''; el.style.backgroundPosition=''; el.style.backgroundRepeat='' }
+    document.body.classList.add('chat-bg');
+    chatBgVars();
+  }catch(e){}
+}
+function clearChatBg(){
+  try{
+    document.body.classList.remove('chat-bg');
+    var el=document.getElementById('view');
+    if(el){ el.style.backgroundImage=''; el.style.backgroundColor=''; el.style.backgroundSize=''; el.style.backgroundPosition=''; el.style.backgroundRepeat='' }
+  }catch(e){}
+}function homeBgStyle(){
   var st=state.settings;
   if(st.homeBgImg)return 'background-image:url('+mediaUrlSync(st.homeBgImg)+')';
   return 'background-image:'+(HB_PRESETS[st.homeBg]||HB_PRESETS.hb1);
@@ -5953,13 +5989,11 @@ function render(v){
     /* 影院/咖啡馆/雷达是暗色整页，标题栏要跟着变暗，不然白条压在黑页上很割裂 */
     document.body.classList.toggle('dark-page',(v==='cinema'||v==='cafe'||v==='radar'));
   }catch(e){}
-  /* ★ 聊天页：壁纸铺满整页（含顶栏后面），顶栏磨砂才透得出来；离开聊天页清掉 */
+  /* ★ 聊天页：壁纸挂在 body.chat-bg 上（class + CSS 变量），离开聊天页删 class 就彻底没了；
+     顺便把以前写在 #view 上的内联背景清掉（老版本留下的会漏到别的页面）。 */
   try{
-    var _vb=document.getElementById('view');
-    if(_vb){
-      if(v==='chat'&&typeof applyChatBgTo==='function')applyChatBgTo(_vb);
-      else{_vb.style.backgroundImage='';_vb.style.backgroundColor='';_vb.style.backgroundSize='';_vb.style.backgroundPosition='';_vb.style.backgroundRepeat=''}
-    }
+    if(v==='chat'&&typeof applyChatBgTo==='function')applyChatBgTo(document.getElementById('view'));
+    else if(typeof clearChatBg==='function')clearChatBg();
   }catch(e){}
   if(v==='home')renderHome();
   else if(v==='profile')renderProfile();
@@ -5986,6 +6020,10 @@ function render(v){
   else if(v==='period')renderPeriod();
   else if(v==='pet')renderPets();
   else if(v==='room')renderRoomApp();
+  /* ★ 咖啡馆：以前 67-cafe.js 把 render() 整个包了一层、cafe 直接 return，
+     于是这里所有收尾（body class、壁纸、滚动复位、schedule）都被跳过 ——
+     表现就是"进咖啡馆划不动 + 底下露出聊天壁纸"。现在归到这里统一处理。 */
+  else if(v==='cafe'){ try{ renderCafe() }catch(e){ } }
   else if(v==='radar'){ try{ renderRadar() }catch(e){ try{goView('home')}catch(e2){} } }
   else renderMe();
   /* 一起听开着的时候：离开听歌界面自动缩成悬浮条，回到听歌界面自动收起 */
@@ -7859,7 +7897,16 @@ function markRead(m){
   /* ★ 只有"确实还会回你"的消息才点亮输入中；已经不用回的就别点亮，
      否则三点会一直挂着（这也是"一直显示输入中"的来源之一）。 */
   else if(c&&m.replyDue&&!m.answered){_typing={contactId:c.id,ts:now(),hold:true}}
-  save();renderChat();
+  save();
+  /* ★ 2026-11：这里原来无条件 renderChat() —— 整页重建 #chatList。
+     你发完消息 5 秒后"已读+三点"就是从这里来的，于是三点出现那一瞬间会闪跳。
+     现在只**就地替换那一条消息的气泡**（✓ → ✓✓），三点走增量插入，
+     都不再重建整个列表。极端情况（找不到那一行）才退回整页重绘。 */
+  if(!chatPatchOne(m)){
+    try{ renderChat() }catch(e){}
+  }else{
+    try{ if(_typing && (!state.settings || state.settings.typingOn!==false)) chatAppendTypingRow() }catch(e){}
+  }
 }
 function initiate(c){
   refreshMood();
@@ -8000,6 +8047,7 @@ function chatTryAppendLast(msgs, contact){
       if(msgs[i].id !== prev.ids[i]) return false;            /* 前缀不一致 → 整页重绘 */
     }
     var tNow = now(), added = 0, _appendMine = false;
+    var _hadTyping = !!list.querySelector('.bubble.typing');   /* 追加前就有三点 → 说明他正在回你 */
     for(var j=prev.ids.length;j<msgs.length;j++){
       var m = msgs[j];
       if(!m) continue;
@@ -8041,13 +8089,15 @@ function chatTryAppendLast(msgs, contact){
     }else if(!_wantT && _trow2 && _trow2.parentNode && _trow2.parentNode.parentNode === list){
       list.removeChild(_trow2.parentNode);      /* 三点那一行是包在 .msg-row 里的 */
     }
-    /* ★ 我自己刚发的那条：无条件贴底（用户报的"发完消息跑到上面几条去"）。
-       以前只看 _chatAtBottom，键盘一弹列表变矮、这个标记就变 false 了，
-       于是追加完不贴底，停在老消息上。 */
-    if(_appendMine) _chatAtBottom = true;
+    /* ★ 我自己刚发的那条 / 他"正在输入"之后发来的那条：无条件贴底。
+       以前只有 _appendMine 才强制，于是他的消息完全看 _chatAtBottom 这个标记；
+       而那个标记会被"我们自己的贴底滚动"和整页重绘误判成 false → 他的消息落在可视区外
+       （用户报的"我们的消息被往下压"）。 */
+    if(_appendMine || _hadTyping) _chatAtBottom = true;
     if(_chatAtBottom){
+      try{ _pinMark = Date.now() }catch(e){}
       try{ list.scrollTop = list.scrollHeight }catch(e){}
-      if(_appendMine) chatPinBottomSoon(list);
+      if(_appendMine || _hadTyping) chatPinBottomSoon(list);
     }
     return true;
   }catch(e){ return false }
@@ -8186,7 +8236,10 @@ function renderChat(){
     try{
       if(!list2.__scrBound){ list2.__scrBound=1;
         list2.addEventListener('scroll',function(){
-          _chatAtBottom=(this.scrollHeight-this.scrollTop-this.clientHeight)<90;
+          /* ★ 我们自己的"贴底滚动"不能算用户在翻历史，否则标记被自己打掉 */
+          if(Date.now()-_pinMark<220)return;
+          var gap=this.scrollHeight-this.scrollTop-this.clientHeight;
+          _chatAtBottom=gap<160;               /* 阈值 90 → 160：键盘抖动不容易误判 */
         },{passive:true});
       }
       /* ★ 列表高度变了（键盘弹起/收起、输入框长高又回落）：本来贴底的就继续贴底。
@@ -8214,6 +8267,8 @@ function renderChat(){
       /* ★ 有"正在输入"三点时再贴一次底：三点是后加的一行，
          不贴底它就被挤到输入框下面，看着像"我刚发的那条被往下压"（用户报的）。 */
       try{ if(document.querySelector('#chatList .bubble.typing')) chatPinForTyping() }catch(e){}
+      /* ★ 弹层开着时整页重绘会把冻结弄丢：新列表立刻按住并摆回原位 */
+      try{ if(window.__sheetOpen && typeof _sheetLock!=='undefined' && _sheetLock){ var _sl=document.getElementById('chatList'); if(_sl){ _sl.style.overflow='hidden'; _sl.scrollTop=_sheetLock.top } } }catch(e){}
     }catch(e){}
   }
   var ta=$('#chatText');
@@ -8232,7 +8287,7 @@ function renderChat(){
     这里在图 loading 完、以及几个时间点各校正一次，并且只在"你本来就贴底"时才动。 */
 function chatPinBottomSoon(list){
   if(!list)return;
-  var pin=function(){ try{ if(_chatAtBottom)list.scrollTop=list.scrollHeight }catch(e){} };
+  var pin=function(){ try{ _pinMark=Date.now(); if(_chatAtBottom)list.scrollTop=list.scrollHeight }catch(e){} };
   try{ CLK.set(pin,80);CLK.set(pin,260);CLK.set(pin,700);CLK.set(pin,1500); }catch(e){}
   try{
     var imgs=list.querySelectorAll('img');
@@ -8259,19 +8314,70 @@ function chatPinForTyping(){
   var mineLast=!!(last&&last.dir==='out');
   if(!(_chatAtBottom||mineLast||(Date.now()-_chatForceAt)<2000))return;
   _chatAtBottom=true;
-  var pin=function(){ try{ var x=document.getElementById('chatList'); if(x)x.scrollTop=x.scrollHeight }catch(e){} };
+  var pin=function(){ try{ _pinMark=Date.now(); var x=document.getElementById('chatList'); if(x)x.scrollTop=x.scrollHeight }catch(e){} };
   pin();
   try{ CLK.set(pin,40);CLK.set(pin,130);CLK.set(pin,320);CLK.set(pin,700); }catch(e){}
+}
+/** ★ 只重画"某一条消息"的气泡（不动整个列表）。
+    已读状态变化（✓→✓✓）只需要换那一行，整页重建会闪。
+    行数与 __chatRendered.ids 一一对应（三点行不算）。 */
+function chatPatchOne(m){
+  try{
+    if(!m)return false;
+    if(location.hash.replace('#','')!=='chat')return false;
+    var list=document.getElementById('chatList'); if(!list)return false;
+    var prev=window.__chatRendered;
+    if(!prev||!prev.ids)return false;
+    var idx=prev.ids.indexOf(m.id);
+    if(idx<0)return false;
+    var rows=list.querySelectorAll('.msg-row'), usable=[];
+    for(var i=0;i<rows.length;i++){
+      if(!rows[i].querySelector('.bubble.typing')) usable.push(rows[i]);
+    }
+    var row=usable[idx]; if(!row)return false;
+    var c=null;
+    try{ c=contact(m.contactId)||activeContact() }catch(e){}
+    if(!c)return false;
+    var tmp=document.createElement('div');
+    tmp.innerHTML=bubbleHtml(m,c);
+    var node=tmp.firstElementChild;
+    if(!node)return false;
+    /* 换掉这一行；位置如果正好在底部，换完补一次贴底 */
+    row.parentNode.replaceChild(node,row);
+    try{ if(_chatAtBottom){ _pinMark=Date.now(); list.scrollTop=list.scrollHeight } }catch(e){}
+    return true;
+  }catch(e){ return false }
+}
+/** ★ 把"正在输入"三点**增量**插进列表尾部（不整页重绘）。
+    以前三点第一次出现只能 renderChat() —— 整个 #chatList 重建，
+    手机上就是一帧闪跳（用户报的"三点出现瞬间聊天室闪一下"）。
+    实测：三点出现时 rebuild 从 0 变 1（节点被替换），现在应该保持 0。 */
+function chatAppendTypingRow(){
+  try{
+    if(!inChatView())return false;
+    var list=document.getElementById('chatList'); if(!list)return false;
+    var c=activeContact(); if(!c)return false;
+    if(list.querySelector('.bubble.typing'))return true;      /* 已经有了 */
+    if(typeof typingRow!=='function')return false;
+    var tmp=document.createElement('div');
+    tmp.innerHTML=typingRow(c);
+    var node=tmp.firstElementChild;
+    if(!node)return false;
+    list.appendChild(node);
+    chatPinForTyping();
+    return true;
+  }catch(e){ return false }
 }
 /** ★ 发完消息强制贴底。
     键盘弹起、输入框从多行回落到一行，都会改变列表高度；
     只在发完那一刻贴一次，会被后面的高度变化顶上去（"发完跑到上面几条"）。
     这里连贴几次，并记下时间点，给下面的 ResizeObserver 用。 */
 var _chatForceAt = 0;
+var _pinMark = 0;   /* 我们自己贴底滚动的时刻：这段时间内的 scroll 事件不算"用户在滚" */
 function chatForceBottom(){
   _chatAtBottom = true;
   _chatForceAt = Date.now();
-  var pin = function(){ try{ var l = document.getElementById('chatList'); if(l) l.scrollTop = l.scrollHeight }catch(e){} };
+  var pin = function(){ try{ _pinMark=Date.now(); var l = document.getElementById('chatList'); if(l) l.scrollTop = l.scrollHeight }catch(e){} };
   pin();
   try{ CLK.set(pin,60); CLK.set(pin,220); CLK.set(pin,600); CLK.set(pin,1200); }catch(e){}
 }
@@ -10732,7 +10838,8 @@ function replyPump(){
       if(!_typing||_typing.contactId!==c.id)_typing={contactId:c.id,ts:now(),hold:true};
       else _typing.hold=true;
     }
-    if(!_hasTypingRow) renderChat();
+    /* ★ 三点第一次出现：增量插一行就行，别整页重绘（重绘 = #chatList 重建 = 闪跳） */
+    if(!_hasTypingRow){ try{ if(!chatAppendTypingRow()) renderChat() }catch(e){ renderChat() } }
     _replyTimer=CLK.set(replyPump,Math.min(wait+30,3000));
     return;
   }
@@ -12417,8 +12524,31 @@ function invitePanelHtml(){
    设备上一旦列表被带动，就很难精确复位，所以直接在这里锁住：记住位置 → overflow:hidden →
    关弹层时把位置还回去。这样不管弹层里怎么聚焦输入框、键盘怎么弹，列表都不会动。 */
 var _sheetLock=null;
+/* ★ 弹层开着期间，任何对 #chatList 的滚动都强制回弹到原位置。
+   手机上光靠 overflow:hidden 有时还是会被带动（键盘/惯性），这里再兜一层。 */
+var _sheetScrollGuard=false;
 function _sheetFreezeChat(){
   try{
+    window.__sheetOpen=true;
+    if(!_sheetScrollGuard){
+      _sheetScrollGuard=true;
+      document.addEventListener('scroll',function(e){
+        try{
+          if(!_sheetLock)return;
+          var t=e.target;
+          if(t&&t.id==='chatList'&&Math.abs(t.scrollTop-_sheetLock.top)>1){ t.scrollTop=_sheetLock.top }
+          else if(t===document||t===document.documentElement||t===document.body){
+            if((window.pageYOffset||0)>0)window.scrollTo(0,0);
+          }
+          /* 列表被重建过：新的那个也别让它乱跑 */
+          var cur=document.getElementById('chatList');
+          if(cur&&_sheetLock.el!==cur){
+            cur.style.overflow='hidden';
+            if(Math.abs(cur.scrollTop-_sheetLock.top)>1)cur.scrollTop=_sheetLock.top;
+          }
+        }catch(x){}
+      },true);
+    }
     if(_sheetLock)return;
     var list=document.getElementById('chatList');
     if(!list)return;
@@ -12429,11 +12559,14 @@ function _sheetFreezeChat(){
 }
 function _sheetThawChat(){
   try{
+    window.__sheetOpen=false;
     if(!_sheetLock)return;
     var el=_sheetLock.el,top=_sheetLock.top;
     el.style.overflow='';
     el.style.overscrollBehavior='';
     el.scrollTop=top;
+    var now=document.getElementById('chatList');
+    if(now&&now!==el){ now.style.overflow=''; now.style.overscrollBehavior=''; now.scrollTop=top }
   }catch(e){}
   _sheetLock=null;
 }
@@ -23758,6 +23891,10 @@ function openApp(k) {
 
   function renderCafe() {
     var v = document.getElementById('view'); if (!v) return;
+    /* ★ 进咖啡馆自己也要保证：去掉聊天模式、清掉残留壁纸、打上 cafe-view 标记 */
+    try{ document.body.classList.remove('chat-mode'); }catch(e0){}
+    try{ if(typeof clearChatBg==='function')clearChatBg(); }catch(e0){}
+    try{ v.classList.add('cafe-view'); }catch(e0){}
     v.innerHTML = M.on ? makeHtml() : shopHtml();
   }
 
@@ -23839,18 +23976,14 @@ function openApp(k) {
 
   /* ---------- 注册：视图 + 首页那一格 ---------- */
   try { if (typeof VIEWS !== 'undefined' && VIEWS.indexOf('cafe') < 0) VIEWS.push('cafe'); } catch (e) { }
+  /* IIFE 里 renderCafe 是私有的；cafe 分支挪到 05-render.js 后必须挂到 window */
+  try { window.renderCafe = renderCafe; } catch (e) { }
 
-  try {
-    if (typeof render === 'function') {
-      var _r = render;
-      render = function (v) {
-        v = v || location.hash.replace('#', '') || 'home';
-        if (v === 'cafe') { renderCafe(); try { schedule(); } catch (e) { } return; }
-        return _r.apply(this, arguments);
-      };
-      window.render = render;
-    }
-  } catch (e) { }
+  /* ★ 2026-11：不再包一层 render()。
+     以前是 render=function(v){ if(v==='cafe'){renderCafe();schedule();return} ... }，
+     把原 render 的收尾全跳过 → 进咖啡馆 body 还挂着 chat-mode → #view 被锁成
+     100dvh+overflow:hidden（划不动），聊天壁纸也留在 #view 上（露雪花）。
+     现在 cafe 分支放在 05-render.js 里，走完整的收尾流程。 */
 
   try {
     if (typeof appListDefs === 'function') {
@@ -25016,4 +25149,4 @@ function openApp(k) {
 </body>
 </html>
 
-<!-- __ZIKA_EOF__ 7f2fde12d3 -->
+<!-- __ZIKA_EOF__ c6e39c2053 -->
