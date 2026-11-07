@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="x-build" content="ccb1ca6687">
-<meta name="x-build-ts" content="1793884418804">
+<meta name="x-build" content="7f2fde12d3">
+<meta name="x-build-ts" content="1793982558672">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta charset="UTF-8">
 <meta name="theme-color" content="#7CB342">
@@ -8034,6 +8034,10 @@ function chatTryAppendLast(msgs, contact){
       var _tw = document.createElement('div');
       _tw.innerHTML = typingRow(contact);
       if(_tw.firstElementChild) list.appendChild(_tw.firstElementChild);
+      /* ★ 三点是"新加的一行"，加完必须再贴一次底，否则它会落在可视区外面：
+         你发完消息看着自己的那条，然后他"正在输入"冒出来 ——
+         列表没滚，三点被挤到输入框下面看不见，只看到自己那条像被往下压（用户报的）。 */
+      try{ chatPinForTyping() }catch(e){}
     }else if(!_wantT && _trow2 && _trow2.parentNode && _trow2.parentNode.parentNode === list){
       list.removeChild(_trow2.parentNode);      /* 三点那一行是包在 .msg-row 里的 */
     }
@@ -8207,6 +8211,9 @@ function renderChat(){
         /* 你本来翻在上面 → 按"离底部同样的距离"还原，不要把你甩回顶上 */
         list2.scrollTop=Math.max(0,list2.scrollHeight-list2.clientHeight-_keepBot);
       }
+      /* ★ 有"正在输入"三点时再贴一次底：三点是后加的一行，
+         不贴底它就被挤到输入框下面，看着像"我刚发的那条被往下压"（用户报的）。 */
+      try{ if(document.querySelector('#chatList .bubble.typing')) chatPinForTyping() }catch(e){}
     }catch(e){}
   }
   var ta=$('#chatText');
@@ -8235,6 +8242,26 @@ function chatPinBottomSoon(list){
       imgs[i].addEventListener('error',pin);
     }
   }catch(e){}
+}
+/** ★ "正在输入"三点出现时贴底（2026-11）
+    为什么单独写一个：三点是后插进来的一行，插完如果只按 _chatAtBottom 判断，
+    这个标记被键盘/滚动弄成 false 时就不贴底了 —— 三点落在可视区外，
+    用户只看到"我刚发的那条被往下压"（他报的原话）。
+    规则：只要满足其一就强制贴底
+      · 本来就贴底
+      · 刚发过消息（2 秒内，_chatForceAt）
+      · 最后一条是我发的（说明我正看着自己刚发的那条） */
+function chatPinForTyping(){
+  var l=document.getElementById('chatList');
+  if(!l)return;
+  var last=null;
+  try{ last=(state.messages||[]).filter(function(m){return m&&m.contactId===state.activeContact}).pop() }catch(e){}
+  var mineLast=!!(last&&last.dir==='out');
+  if(!(_chatAtBottom||mineLast||(Date.now()-_chatForceAt)<2000))return;
+  _chatAtBottom=true;
+  var pin=function(){ try{ var x=document.getElementById('chatList'); if(x)x.scrollTop=x.scrollHeight }catch(e){} };
+  pin();
+  try{ CLK.set(pin,40);CLK.set(pin,130);CLK.set(pin,320);CLK.set(pin,700); }catch(e){}
 }
 /** ★ 发完消息强制贴底。
     键盘弹起、输入框从多行回落到一行，都会改变列表高度；
@@ -10878,7 +10905,15 @@ function maybeEmojiReply(c){
     var mm=state.messages[state.messages.length-1];
     mm.text='';mm.type='sticker';mm.img=st.img;mm.stickerId=st.id;
     if(Math.random()<0.45)pushIn(c.id,pickCardText(),now()+rnd(20,45)*1000);
-  }else pushIn(c.id,pick(EMOJIS),now());
+  }else{
+    /* ★ 他发表情时要从"你现在的表情库"里挑：内置的减去你删掉的，再加上你自己加的。
+       以前直接 pick(EMOJIS) —— 所以你把删掉的 emoji 他又发回来，你加的他反而从不用（用户报的）。 */
+    var _hid=(state.emojiHidden||[]);
+    var _pool=(typeof EMOJIS!=='undefined'?EMOJIS:[]).filter(function(e){ return _hid.indexOf(e)<0 })
+      .concat(state.emojis||[]);
+    if(!_pool.length) _pool=(typeof EMOJIS!=='undefined'?EMOJIS.slice():['😊']);
+    pushIn(c.id,pick(_pool),now());
+  }
 }
 function sendPoll(question,options,multi,fast){
   var c=activeContact();
@@ -12377,13 +12412,42 @@ function invitePanelHtml(){
 }
 
 /* ================= 弹层 ================= */
+/* ★ 2026-11：打开弹层时**冻结聊天列表的滚动**。
+   用户报的：进站后第一次点「表情」，表情栏一弹出，聊天记录就自己一路往上滑到最早的消息。
+   设备上一旦列表被带动，就很难精确复位，所以直接在这里锁住：记住位置 → overflow:hidden →
+   关弹层时把位置还回去。这样不管弹层里怎么聚焦输入框、键盘怎么弹，列表都不会动。 */
+var _sheetLock=null;
+function _sheetFreezeChat(){
+  try{
+    if(_sheetLock)return;
+    var list=document.getElementById('chatList');
+    if(!list)return;
+    _sheetLock={el:list,top:list.scrollTop};
+    list.style.overflow='hidden';
+    list.style.overscrollBehavior='none';
+  }catch(e){}
+}
+function _sheetThawChat(){
+  try{
+    if(!_sheetLock)return;
+    var el=_sheetLock.el,top=_sheetLock.top;
+    el.style.overflow='';
+    el.style.overscrollBehavior='';
+    el.scrollTop=top;
+  }catch(e){}
+  _sheetLock=null;
+}
 function openSheet(html){
   var m=$('#sheet-mask');
+  _sheetFreezeChat();
   m.innerHTML='<div class="sheet">'+html+'</div>';
   m.classList.remove('hide');
   scheduleMediaHydrate();
 }
-function closeSheet(){var m=$('#sheet-mask');m.classList.add('hide');m.innerHTML=''}
+function closeSheet(){
+  _sheetThawChat();
+  var m=$('#sheet-mask');m.classList.add('hide');m.innerHTML='';
+}
 
 /* ================= 全局事件 ================= */
 var fileInput=document.createElement('input');
@@ -15873,6 +15937,8 @@ function qkBatchSend() {
             box.id = 'qkTyping';
             box.style.display = 'contents';
             box.innerHTML = typingRow(c);
+            /* ★ 三点加完立刻贴底，不然它会落在可视区外（跟 09 里那条同源） */
+            try { if (typeof chatPinForTyping === 'function') chatPinForTyping() } catch (e) { }
             list.appendChild(box);
             try { chatForceBottom() } catch (e) { }
           } catch (e) { }
@@ -24950,4 +25016,4 @@ function openApp(k) {
 </body>
 </html>
 
-<!-- __ZIKA_EOF__ ccb1ca6687 -->
+<!-- __ZIKA_EOF__ 7f2fde12d3 -->
